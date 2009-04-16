@@ -1,0 +1,46 @@
+This package was debianized by Michael Davidsaver <mdavidsaver@bnl.gov> on
+Thu, 16 Apr 2009 11:45:18 -0400.
+
+It was downloaded from http://www.rtems.com
+
+Upstream Author(s):
+
+    <put author's name and email here>
+    <likewise for another author>
+
+Copyright:
+
+    <Copyright (C) YYYY Name OfAuthor>
+    <likewise for another author>
+
+License:
+
+    RTEMS is free software; you can redistribute it and/or modify it under
+    terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2, or (at your option) any
+    later version.  RTEMS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details. You should have received
+    a copy of the GNU General Public License along with RTEMS; see
+    file COPYING. If not, write to the Free Software Foundation, 675
+    Mass Ave, Cambridge, MA 02139, USA.
+
+    As a special exception, including RTEMS header files in a file,
+    instantiating RTEMS generics or templates, or linking other files
+    with RTEMS objects to produce an executable application, does not
+    by itself cause the resulting executable application to be covered
+    by the GNU General Public License. This exception does not
+    however invalidate any other reasons why the executable file might be
+    covered by the GNU Public License.
+
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
+The Debian packaging is (C) 2009, Michael Davidsaver <mdavidsaver@bnl.gov> and
+is licensed under the GPL, see above.
+
+
+# Please also look if there are files or directories which have a
+# different copyright/license attached and list them here.

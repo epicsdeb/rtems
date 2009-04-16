@@ -1,0 +1,150 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+ifeq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+CFLAGS:=$(filter-out -g,$(CFLAGS))
+CXXFLAGS:=$(filter-out -g,$(CXXFLAGS))
+endif
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+MAKEFLAGS += -j$(NUMJOBS)
+endif
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_TARGET_GNU_TYPE ?= powerpc-rtems4.9
+CROSS= --target=$(DEB_TARGET_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+
+RV=4.9
+PPC_BSPS=mvme2100 mvme3100 mvme5500
+
+
+build-powerpc/config.status: configure
+	dh_testdir
+	# Add here commands to configure the package.
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	cp -f /usr/share/misc/config.guess config.guess
+endif
+	install -d build-powerpc
+	cd build-powerpc && ../configure $(CROSS) --prefix=/usr \
+--mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info \
+--enable-cxx --enable-rdbg \
+--enable-rtemsbsp="$(PPC_BSPS)"
+
+#Do not touch CFLAGS use CFLAGS_FOR_HOST or CFLAGS_FOR_TARGET
+
+
+#Architecture
+build: build-arch
+
+build-arch: build-arch-stamp
+build-arch-stamp: build-powerpc/config.status 
+
+	# Add here commands to compile the arch part of the package.
+	$(MAKE) -C build-powerpc
+	touch $@
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp 
+
+	# Add here commands to clean up after the build process.
+	rm -rf build-powerpc
+	rm -f config.sub config.guess
+
+	dh_clean 
+
+install: install-indep install-arch
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_installdirs -i
+
+	# Add here commands to install the indep part of the package into
+	# debian/<package>-doc.
+	#INSTALLDOC#
+	install ChangeLog COPYING LICENSE* MAINTAINERS  debian/rtems/
+	install README* SUPPORT VERSION debian/rtems/
+
+	dh_install -i
+
+base_prefix=$(CURDIR)/debian/rtems/usr
+arch_prefix=$(CURDIR)/debian/rtems-$(1)/usr
+bsp_prefix=$(CURDIR)/debian/rtems-$(1)/usr
+
+# move BSP specfic files
+#  usr/lib/pkgconfig/powerpc-rtems4.9-mvme3100.pc
+#  usr/make/custom/mvme3100.pc
+#  usr/powerpc-rtems4.9/mvme3100/
+# $(1) is arch (ie powerpc)
+# $(2) is bsp (ie mvme3100)
+define BSP_install
+install -d $(call bsp_prefix,$(2))/lib/pkgconfig;
+mv $(base_prefix)/lib/pkgconfig/$(1)-rtems$(RV)-$(2).pc $(call bsp_prefix,$(2))/lib/pkgconfig;
+install -d $(call bsp_prefix,$(2))/make/custom;
+-mv $(base_prefix)/make/custom/$(2).cfg $(call bsp_prefix,$(2))/make/custom/;
+install -d $(call bsp_prefix,$(2))/$(1)-rtems$(RV)
+mv $(base_prefix)/$(1)-rtems$(RV)/$(2) $(call bsp_prefix,$(2))/$(1)-rtems$(RV);
+endef
+
+install-arch:
+	dh_testdir
+	dh_testroot
+	#dh_clean -k -s 
+	dh_installdirs -s
+
+	# Add here commands to install the arch part of the package into
+	# debian/tmp.
+	$(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
+
+	rm -rf $(CURDIR)/debian/rtems/usr/share
+
+	install -d $(CURDIR)/debian/rtems-powerpc/usr/bin
+	mv $(CURDIR)/debian/rtems/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
+
+	$(foreach bsp,$(PPC_BSPS),$(call BSP_install,powerpc,$(bsp)))
+
+	dh_install -s
+# Must not depend on anything. This is to be called by
+# binary-arch/binary-indep
+# in another 'make' thread.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog
+	dh_installdocs
+	dh_installexamples
+	dh_installman
+	dh_link
+	#dh_strip
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+# Build architecture independant packages using the common target.
+binary-indep: install-indep
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+
+binary: binary-arch binary-indep
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 
