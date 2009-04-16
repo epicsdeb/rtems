@@ -1,0 +1,37 @@
+/* include/bspopts.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Must be defined to be one of SCI1_MINOR or SCI2_MINOR. Determines which
+   device will be registered as /dev/console. */
+#undef CONSOLE_MINOR
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Must be defined to be one of SCI1_MINOR or SCI2_MINOR. Determines which
+   device is used for output by printk(). The printk port always uses polled
+   I/O. Don't open the printk port from RTEMS unless also using polled I/O for
+   the SCI ports. */
+#undef PRINTK_MINOR
+
+/* Define to 1 if you want interrupt-driven I/O for the SCI ports. */
+#undef UARTS_IO_MODE
+
+/* Define to 1 if you want termios support for every port. Termios support is
+   independent of the choice of UART I/O mode. */
+#undef UARTS_USE_TERMIOS
+
+/* Define to the desired timeout (in steps of 1/20 msec) to enable the
+   watchdog. Default is to disable the watchdog entirely. */
+#undef WATCHDOG_TIMEOUT

@@ -1,0 +1,26 @@
+/* include/bspopts.h.in.  Generated from configure.ac by autoheader.  */
+
+/* cpu clock rate in HZ */
+#undef CPU_CLOCK_RATE_HZ
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* If defined, compiles code to jump-start from FLASH, without a monitor */
+#undef STANDALONE_EVB
+
+/* If defined, selects whether 'early_hw_init()' is called from 'start.S';
+   'bsp_hw_init()' is always called from 'bspstart.c' */
+#undef START_HW_INIT

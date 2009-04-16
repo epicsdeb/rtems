@@ -1,0 +1,11 @@
+2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Backport from CVS-HEAD.
+
+2008-08-15	Allan Hessenflow <allanh@kallisti.com>
+
+	* ChangeLog, Makefile.am, README, bsp_specs, configure.ac,
+	preinstall.am, console/console.c, include/bsp.h,
+	network/networkconfig.c, start/start.S, startup/bspstart.c,
+	startup/linkcmds: New files.
+

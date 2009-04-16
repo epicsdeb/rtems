@@ -1,0 +1,27 @@
+##
+## $Id: Makefile.am,v 1.32 2008/02/04 19:39:43 jennifer Exp $
+##
+
+ACLOCAL_AMFLAGS = -I ../aclocal
+
+SUBDIRS = psxhdrs psx01 psx02 psx03 psx04 psx05 psx06 psx07 psx08 psx09 \
+    psx10 psx11 psx12 psx13 psx14 psxcleanup psxtime psxtimer01 psxtimer02  \
+    psxcancel psxbarrier01 psxmsgq01 psxmsgq02 psxrwlock01 psxsem01 \
+    psxspin01 psxenosys psxsignal01 psxsysconf psxualarm psxkey01 \
+    psxfatal01 psxfatal02
+
+## File IO tests
+SUBDIRS += psxfile01 psxreaddir psxstat psxmount psx13 psxchroot01 
+## Until sys/uio.h is moved to libcsupport, we have to have networking
+## enabled to support readv and writev.  Hopefully this is a temporary
+## situation.
+if HAS_NETWORKING
+SUBDIRS += psxrdwrv
+endif
+
+DIST_SUBDIRS = $(SUBDIRS) psxfatal_support
+EXTRA_DIST = psxfatal_support/init.c psxfatal_support/system.h
+
+
+include $(top_srcdir)/../automake/subdirs.am
+include $(top_srcdir)/../automake/local.am

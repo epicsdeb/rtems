@@ -1,0 +1,8 @@
+%rename lib old_lib
+
+*lib:
+%{!qrtems: %(old_lib)} \
+%{qrtems: -lrtemsbsp -lrtemscpu \
+%(old_lib) \
+%{qnolinkcmds: } }
+

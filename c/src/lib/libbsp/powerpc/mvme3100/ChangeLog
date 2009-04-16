@@ -1,0 +1,87 @@
+2009-03-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* startup/bspstart.c: removed legacy code (inherited
+	from old mvme2307 BSP) -- for testing trapping into
+	PPCBug -- which is irrelevant on this BSP.
+	Removed warning about SPRG0 having been reassigned
+	-- this BSP is OK.
+
+2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Backport from CVS-HEAD.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1322/bsps
+	* include/bspopts.h.in: Remove.
+
+2008-08-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* i2c/i2c_init.c, i2c/mpc8540_i2c.c, irq/irq_init.c,
+	network/tsec.c, pci/detect_host_bridge.c, startup/bspstart.c:
+	Add missing prototypes.
+
+2008-08-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup.
+
+2008-07-18	Till Straumann <strauman@slac.stanford.edu>
+
+	* startup/bspstart.c: removed warning about SPRG0
+	now being used for IRQ mask; this BSP is OK.
+
+2008-06-04	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, preinstall.am: Need tm27.h
+
+2008-05-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Remove stray line.
+
+2008-05-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Rework to avoid .rel files.
+
+2008-05-10	Till Straumann <strauman@slac.stanford.edu>
+
+	* network/tsec.c: removed memory input/output operands
+	which caused problems with gcc-4.3.0 (see
+	http://gcc.gnu.org/ml/gcc/2008-03/msg00976.html)
+
+2008-03-25	Till Straumann <strauman@slac.stanford.edu>
+
+	* include/bsp.h: declare BSP_commandline_string.
+
+2008-03-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* include/bsp.h, startup/bspstart.c: confdefs.h now wants
+	us to use BSP_INTERRUPT_STACK_SIZE instead of
+	CONFIGURE_INTERRUPT_STACK_MEMORY.
+
+2008-03-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* start/start.S, startup/bspstart.c: disable memory-select
+	errors early (in start.S) to avoid hangs due to speculative
+	memory access (motload maps absent memory in TLBs).
+	Remove TLB mappings for which no physical memory is installed
+	(bspstart). Enable HID1[RFXE] so that 'core_fault_in' errors
+	result in a machine-check rather than stalling the machine.
+	Re-enable memory-select errors at this point.
+
+2008-03-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* Makefile.am: add e500/mmu.rel to libbsp_a_LIBADD.
+
+2008-01-29	Eric Norum <norume@aps.anl.gov>
+
+	* startup/bspstart.c: Fixes a lockup which occurs when a speculative
+	load occurs from a particular range of memory.
+
+2008-01-09	Eric Norum <norume@aps.anl.gov>
+
+	* include/bsp.h: Include <bsp/vectors.h>.
+
+2007-12-13	Till Straumann <strauman@slac.stanford.edu>
+
+	* Makefile.am: use preload.S, vectors_entry.S from shared
+	area.

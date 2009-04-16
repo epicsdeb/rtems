@@ -1,0 +1,29 @@
+/* include/bspopts.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Enables some debugging in the BSP package. */
+#undef BSP_DEBUG
+
+/* Initialize RTC and load into system clock at startup. This will break some
+   tests. */
+#undef LOAD_RTC_AT_START
+
+/* if using 16 bit mode assembler support */
+#undef NEW_GAS
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Enables some debugging in the BSP's uart. */
+#undef UARTDEBUG

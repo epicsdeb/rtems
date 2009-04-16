@@ -1,0 +1,52 @@
+2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Backport from CVS-HEAD.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1322/bsps
+	* include/bspopts.h.in: Remove.
+
+2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* timer/timer.c: Convert to "bool".
+
+2008-08-31	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* timer/timer.c: Eliminate empty function from every benchmark timer
+	driver. Fix spelling.
+
+2008-08-31	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* timer/timer.c: Rename timer driver methods to follow RTEMS
+	programming conventions.
+
+2008-08-19	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* startup/bspstart.c: Fixed nested extern declarations.
+
+2008-08-19	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Add missing prototypes.
+
+2008-08-18	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* startup/init548x.c: Converted to UNIX line endings.
+
+2008-07-31	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Do not build .rel files. Reduces code bloat.
+
+2008-07-17	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* ChangeLog: Formatting.
+	* startup/linkcmds, startup/linkcmds.m5484FireEngine.flash: Add
+	wildcard to gcc exceptions section.
+
+2008-07-10	Peter Rasmussen <peter.rasmussen@embedded-brains.de>
+
+	* Makefile.am, preinstall.am, bsp_specs, ChangeLog, README,
+	clock/clock.c, console/console.c, include/bsp.h, include/coverhd.h,
+	include/tm27.h, network/network.c, start/start.S, startup/bspclean.c, 
+	startup/bspstart.c, startup/init548x.c, startup/linkcmds,
+	startup/linkcmds.m5484FireEngine.flash: New files.

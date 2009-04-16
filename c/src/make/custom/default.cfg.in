@@ -1,0 +1,6 @@
+#
+#  $Id: default.cfg.in,v 1.8 2000/09/12 20:55:35 joel Exp $
+#
+
+# Base name of start file
+START_BASE=start

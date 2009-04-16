@@ -1,0 +1,51 @@
+2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Backport from CVS-HEAD.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1322/bsps
+	* include/bspopts.h.in: Remove.
+
+2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* timer/timer.c: Convert to "bool".
+
+2008-08-31	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* timer/timer.c: Eliminate empty function from every benchmark timer
+	driver. Fix spelling.
+
+2008-08-31	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* timer/timer.c: Rename timer driver methods to follow RTEMS
+	programming conventions.
+
+2008-08-19	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/clock.c, startup/init5329.c: Add missing prototypes.
+
+2008-07-04	Matthew Riek <matthew.riek@ibiscomputer.com.au>
+
+	* Makefile.am, README, include/coverhd.h, network/network.c,
+	startup/bspstart.c, startup/cfinit.c, startup/linkcmdsflash: Add
+	cache support for 5329. Fix bug in network driver. Enable the cache
+	in copyback and write-through so we can assume that in BSP.
+
+2008-06-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* .cvsignore: New file.
+
+2008-06-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/linkcmds: Use wildcard on .data section.
+
+2008-06-20	Matthew Riek <matthew.riek@ibiscomputer.com.au>
+
+	* ChangeLog, Makefile.am, README, bsp_specs, configure.ac, gdb-init,
+	preinstall.am, clock/clock.c, console/console.c, include/bsp.h,
+	include/bspopts.h.in, include/coverhd.h, include/tm27.h,
+	network/network.c, start/start.S, startup/bspclean.c,
+	startup/bspstart.c, startup/cfinit.c, startup/init5329.c,
+	startup/linkcmds, startup/linkcmdsflash, timer/timer.c: New files.
+

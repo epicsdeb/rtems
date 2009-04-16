@@ -1,0 +1,146 @@
+2009-03-02	Ray Xu <rayx.cn@gmail.com>
+
+	PR 1380/bsps
+	* include/bsp.h: Switch to English comments.
+
+2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Backport from CVS-HEAD.
+
+2008-05-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Rework to avoid .rel files.
+
+2008-05-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspstart.c: Refactored and renamed initialization routines to
+	rtems_initialize_data_structures, rtems_initialize_before_drivers,
+	rtems_initialize_device_drivers, and
+	rtems_initialize_start_multitasking. This opened the sequence up so
+	that bootcard() could provide a more robust and flexible framework
+	which is easier to explain and understand. This also lays the
+	groundwork for sharing the division of available memory between the
+	RTEMS workspace and heap and the C library initialization across all
+	BSPs.
+
+2008-03-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/linkcmds: Add wildcard to gcc_except_table section so
+	programs compiled with gcc 4.3.x can link.
+
+2007-12-11	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h, startup/bspstart.c: Eliminate copies of the
+	Configuration Table. Use the RTEMS provided accessor macros to obtain
+	configuration fields.
+
+2007-12-04	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h, startup/bspstart.c: Move interrupt_stack_size field
+	from CPU Table to Configuration Table. Eliminate CPU Table from all
+	ports. Delete references to CPU Table in all forms.
+
+2007-12-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, include/bsp.h, startup/bspstart.c: Moved most of the
+	remaining CPU Table fields to the Configuration Table. This included
+	pretasking_hook, predriver_hook, postdriver_hook, idle_task,
+	do_zero_of_workspace, extra_mpci_receive_server_stack,
+	stack_allocate_hook, and stack_free_hook. As a side-effect of this
+	effort some multiprocessing code was made conditional and some style
+	clean up occurred.
+
+2007-11-03      Ray Xu <rayx.cn@gmail.com>
+
+        * start/start.S, startup/bspclean.c: Add veneer between ARM and 
+        Thumb instructions.  also moved bss init after CPSR/stack init in
+	start.S
+
+2007-09-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1257/bsps
+	* startup/bspstart.c: Code outside of cpukit should use the public
+	API for rtems_interrupt_disable/rtems_interrupt_enable. By bypassing
+	the public API and directly accessing _CPU_ISR_Disable and
+	_CPU_ISR_Enable, they were bypassing the compiler memory barrier
+	directive which could lead to problems. This patch also changes the
+	type of the variable passed into these routines and addresses minor
+	style issues.
+
+2007-05-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspstart.c: Eliminate maximum_drivers configuration parameter
+2007-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* README: Clean up.
+
+2007-06-22	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* network/network.c: Remove cs8900_get_mac_addr which conflicted with
+	one in libchip AND contained a hard-coded MAC address.
+
+2007-06-13	Ray Xu <rayx@gmail.com>
+
+	* startup/linkcmds: Shrink the aligment requirements.
+
+2007-05-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspstart.c: Eliminate maximum_drivers configuration parameter
+	since it was used to configure a no longer used feature. Device names
+	are now part of the filesystem not in a table.
+
+2007-05-15	Ray Xu <rayx@gmail.com>
+
+	* Makefile.am: Add abort.rel since it is now in the BSP shared source,
+	not in score/cpu.
+
+2007-05-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspclean.c: Remove incldue stdio.h
+
+2007-05-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, console/lpc22xx_uart.h: Remove warnings, cleanup and do
+	not build SPARC code accidentally referenced in Makefile.am.
+
+2007-05-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* console/uart.c, startup/bspclean.c, startup/bspstart.c: Remove debug
+	print methods that are redundant with prntk and replace their usage
+	with printk.
+
+2007-05-01	Joel Sherrill <joel@OARcorp.com>
+
+	* Makefile.am: Tinkering to reduce .text size of minimum executable
+	from ~64K to ~47K.
+	* Renamed startup/exit.c to startup/bspclean.c 
+	  * startup/bspclean.c: New file.
+	  * startup/exit.c: Removed.
+
+2007-05-01	Ray Xu <xr@trasin.net>
+
+	* README, times, console/lpc22xx_uart.h, console/uart.c, include/bsp.h,
+	start/start.S, startup/bspstart.c, startup/exit.c, startup/linkcmds:
+	Update BSP to address changes between 4.7 and CVS head as well as to
+	address comments from Ralf and Joel.
+
+2007-04-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Remove reference to ../../shared/main.c.
+
+2007-04-25	Ray Xu <xr@trasin.net>
+
+	* times: New (Initial submission).
+
+2007-04-25	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Include preinstall.am
+	* bsp_specs: Sync with modern GCC.
+
+2007-04-25	Ray Xu <xr@trasin.net>
+
+	* include/tm27.h, startup/bspstart.c, startup/exit.c,
+	startup/linkcmds, start/start.S: New (Initial submission).
+	* Makefile.am, README, bsp_specs, configure.ac,
+	console/lpc22xx_uart.h, console/uart.c, include/bsp.h,
+	network/network.c: New (Initial submission).
