@@ -53,7 +53,7 @@ build-arch: build-arch-stamp
 build-arch-stamp: build-powerpc/config.status 
 
 	# Add here commands to compile the arch part of the package.
-	$(MAKE) -C build-powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc
 	touch $@
 
 clean: 
@@ -76,8 +76,8 @@ install-indep:
 	# Add here commands to install the indep part of the package into
 	# debian/<package>-doc.
 	#INSTALLDOC#
-	install ChangeLog COPYING LICENSE* MAINTAINERS  debian/rtems/
-	install README* SUPPORT VERSION debian/rtems/
+	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/rtems/usr/share/doc/rtems/
+	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/rtems/usr/share/doc/rtems/
 
 	dh_install -i
 
@@ -108,7 +108,7 @@ install-arch:
 
 	# Add here commands to install the arch part of the package into
 	# debian/tmp.
-	$(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
 
 	rm -rf $(CURDIR)/debian/rtems/usr/share
 
