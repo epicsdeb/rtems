@@ -14,6 +14,20 @@ NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += -j$(NUMJOBS)
 endif
 
+-include debian/rules.def
+
+RTEMS_ARCH?=powerpc
+RTEMS_VER ?=4.9
+
+powerpc_BSPS=mvme2100 mvme3100 mvme5500
+i386_BSPS=pc386
+
+BSPS=$($(RTEMS_ARCH)_BSPS)
+
+ifeq (,$(BSPS))
+$(error "No BSP's selected")
+endif
+
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
@@ -21,14 +35,10 @@ export DH_OPTIONS
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_TARGET_GNU_TYPE ?= powerpc-rtems4.9
+DEB_TARGET_GNU_TYPE ?= $(RTEMS_ARCH)-rtems$(RTEMS_VER)
 CROSS= --target=$(DEB_TARGET_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 
-RV=4.9
-PPC_BSPS=mvme2100 mvme3100 mvme5500
-
-
-build-powerpc/config.status: configure
+build-$(RTEMS_ARCH)/config.status: configure
 	dh_testdir
 	# Add here commands to configure the package.
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
@@ -37,11 +47,11 @@ endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess
 endif
-	install -d build-powerpc
-	cd build-powerpc && ../configure $(CROSS) --prefix=/usr \
+	install -d build-$(RTEMS_ARCH)
+	cd build-$(RTEMS_ARCH) && ../configure $(CROSS) --prefix=/usr \
 --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info \
 --enable-cxx --enable-rdbg \
---enable-rtemsbsp="$(PPC_BSPS)"
+--enable-rtemsbsp="$(BSPS)"
 
 #Do not touch CFLAGS use CFLAGS_FOR_HOST or CFLAGS_FOR_TARGET
 
@@ -50,10 +60,10 @@ endif
 build: build-arch
 
 build-arch: build-arch-stamp
-build-arch-stamp: build-powerpc/config.status 
+build-arch-stamp: build-$(RTEMS_ARCH)/config.status 
 
 	# Add here commands to compile the arch part of the package.
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-$(RTEMS_ARCH)
 	touch $@
 
 clean: 
@@ -62,7 +72,7 @@ clean:
 	rm -f build-arch-stamp build-indep-stamp 
 
 	# Add here commands to clean up after the build process.
-	rm -rf build-powerpc
+	rm -rf build-$(RTEMS_ARCH)
 	rm -f config.sub config.guess
 
 	dh_clean 
@@ -86,18 +96,18 @@ arch_prefix=$(CURDIR)/debian/rtems-$(1)/usr
 bsp_prefix=$(CURDIR)/debian/rtems-$(1)/usr
 
 # move BSP specfic files
-#  usr/lib/pkgconfig/powerpc-rtems4.9-mvme3100.pc
+#  usr/lib/pkgconfig/$(DEB_TARGET_GNU_TYPE)-mvme3100.pc
 #  usr/make/custom/mvme3100.pc
-#  usr/powerpc-rtems4.9/mvme3100/
-# $(1) is arch (ie powerpc)
+#  usr/$(DEB_TARGET_GNU_TYPE)/mvme3100/
+# $(1) is $(RTEMS_ARCH) (ie powerpc)
 # $(2) is bsp (ie mvme3100)
 define BSP_install
 install -d $(call bsp_prefix,$(2))/lib/pkgconfig;
-mv $(base_prefix)/lib/pkgconfig/$(1)-rtems$(RV)-$(2).pc $(call bsp_prefix,$(2))/lib/pkgconfig;
+mv $(base_prefix)/lib/pkgconfig/$(1)-rtems$(RTEMS_VER)-$(2).pc $(call bsp_prefix,$(2))/lib/pkgconfig;
 install -d $(call bsp_prefix,$(2))/make/custom;
 -mv $(base_prefix)/make/custom/$(2).cfg $(call bsp_prefix,$(2))/make/custom/;
-install -d $(call bsp_prefix,$(2))/$(1)-rtems$(RV)
-mv $(base_prefix)/$(1)-rtems$(RV)/$(2) $(call bsp_prefix,$(2))/$(1)-rtems$(RV);
+install -d $(call bsp_prefix,$(2))/$(1)-rtems$(RTEMS_VER)
+mv $(base_prefix)/$(1)-rtems$(RTEMS_VER)/$(2) $(call bsp_prefix,$(2))/$(1)-rtems$(RTEMS_VER);
 endef
 
 install-arch:
@@ -108,14 +118,19 @@ install-arch:
 
 	# Add here commands to install the arch part of the package into
 	# debian/tmp.
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-$(RTEMS_ARCH) DESTDIR=$(CURDIR)/debian/rtems install
 
 	rm -rf $(CURDIR)/debian/rtems/usr/share
 
-	install -d $(CURDIR)/debian/rtems-powerpc/usr/bin
-	mv $(CURDIR)/debian/rtems/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
+	install -d $(CURDIR)/debian/rtems-$(RTEMS_ARCH)/usr/bin
+	mv $(CURDIR)/debian/rtems/usr/bin/$(RTEMS_ARCH)-* $(CURDIR)/debian/rtems-$(RTEMS_ARCH)/usr/bin/
 
-	$(foreach bsp,$(PPC_BSPS),$(call BSP_install,powerpc,$(bsp)))
+	$(foreach bsp,$(BSPS),$(call BSP_install,$(RTEMS_ARCH),$(bsp)))
+
+	# Directories which should be empty now
+	rmdir $(CURDIR)/debian/rtems/usr/$(DEB_TARGET_GNU_TYPE)
+	rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
+	rmdir $(CURDIR)/debian/rtems/usr/lib
 
 	dh_install -s
 # Must not depend on anything. This is to be called by
@@ -134,7 +149,7 @@ binary-common:
 	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps
+	#dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
@@ -148,3 +163,12 @@ binary-arch: build-arch install-arch
 
 binary: binary-arch binary-indep
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 
+
+config: debian/control debian/rules.def
+
+debian/control: debian/control.$(RTEMS_ARCH)
+	install $< $@
+
+debian/rules.def::
+	echo "RTEMS_ARCH=$(RTEMS_ARCH)" > $@
+	echo "RTEMS_VER=$(RTEMS_VER)" >> $@
