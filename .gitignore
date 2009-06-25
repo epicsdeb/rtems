@@ -1,5 +1,3 @@
 build-*
 build
 debian/rtems*
-debian/control
-debian/rules.def

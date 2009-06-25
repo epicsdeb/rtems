@@ -14,19 +14,10 @@ NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += -j$(NUMJOBS)
 endif
 
--include debian/rules.def
-
-RTEMS_ARCH?=powerpc
 RTEMS_VER ?=4.9
 
 powerpc_BSPS=mvme2100 mvme3100 mvme5500
 i386_BSPS=pc386
-
-BSPS=$($(RTEMS_ARCH)_BSPS)
-
-ifeq (,$(BSPS))
-$(error "No BSP's selected")
-endif
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
@@ -35,10 +26,14 @@ export DH_OPTIONS
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_TARGET_GNU_TYPE ?= $(RTEMS_ARCH)-rtems$(RTEMS_VER)
-CROSS= --target=$(DEB_TARGET_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+DEB_TARGET_GNU_TYPE ?= $(1)-rtems$(RTEMS_VER)
+CONFIG= --target=$(call DEB_TARGET_GNU_TYPE,$(1)) --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
+ --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info \
+--enable-cxx --enable-rdbg --enable-rtemsbsp="$($(1)_BSPS)"
 
-build-$(RTEMS_ARCH)/config.status: configure
+#Do not touch CFLAGS use CFLAGS_FOR_HOST or CFLAGS_FOR_TARGET
+
+build-powerpc/config.status: configure
 	dh_testdir
 	# Add here commands to configure the package.
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
@@ -47,23 +42,22 @@ endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess
 endif
-	install -d build-$(RTEMS_ARCH)
-	cd build-$(RTEMS_ARCH) && ../configure $(CROSS) --prefix=/usr \
---mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info \
---enable-cxx --enable-rdbg \
---enable-rtemsbsp="$(BSPS)"
-
-#Do not touch CFLAGS use CFLAGS_FOR_HOST or CFLAGS_FOR_TARGET
+	install -d build-powerpc
+	install -d build-i386
+	cd build-powerpc && ../configure $(call CONFIG,powerpc)
+	cd build-i386 && ../configure $(call CONFIG,i386)
 
 
 #Architecture
 build: build-arch
 
 build-arch: build-arch-stamp
-build-arch-stamp: build-$(RTEMS_ARCH)/config.status 
+build-arch-stamp: build-powerpc/config.status 
 
-	# Add here commands to compile the arch part of the package.
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-$(RTEMS_ARCH)
+	# Note: CFLAGS et all must be explicitly unset to avoid
+	#       clobbering the target CFLAGS
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386
 	touch $@
 
 clean: 
@@ -71,8 +65,7 @@ clean:
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp 
 
-	# Add here commands to clean up after the build process.
-	rm -rf build-$(RTEMS_ARCH)
+	rm -rf build-powerpc build-i386
 	rm -f config.sub config.guess
 
 	dh_clean 
@@ -99,7 +92,7 @@ bsp_prefix=$(CURDIR)/debian/rtems-$(1)/usr
 #  usr/lib/pkgconfig/$(DEB_TARGET_GNU_TYPE)-mvme3100.pc
 #  usr/make/custom/mvme3100.pc
 #  usr/$(DEB_TARGET_GNU_TYPE)/mvme3100/
-# $(1) is $(RTEMS_ARCH) (ie powerpc)
+# $(1) is arch (ie powerpc)
 # $(2) is bsp (ie mvme3100)
 define BSP_install
 install -d $(call bsp_prefix,$(2))/lib/pkgconfig;
@@ -116,19 +109,37 @@ install-arch:
 	#dh_clean -k -s 
 	dh_installdirs -s
 
-	# Add here commands to install the arch part of the package into
-	# debian/tmp.
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-$(RTEMS_ARCH) DESTDIR=$(CURDIR)/debian/rtems install
+	#TODO: avoid duplication.
+
+	# powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
 
 	rm -rf $(CURDIR)/debian/rtems/usr/share
 
-	install -d $(CURDIR)/debian/rtems-$(RTEMS_ARCH)/usr/bin
-	mv $(CURDIR)/debian/rtems/usr/bin/$(RTEMS_ARCH)-* $(CURDIR)/debian/rtems-$(RTEMS_ARCH)/usr/bin/
+	install -d $(CURDIR)/debian/rtems-powerpc/usr/bin
+	mv $(CURDIR)/debian/rtems/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
 
-	$(foreach bsp,$(BSPS),$(call BSP_install,$(RTEMS_ARCH),$(bsp)))
+	$(foreach bsp,$(powerpc_BSPS),$(call BSP_install,powerpc,$(bsp)))
+
+	## Directories which should be empty now
+	#rmdir $(CURDIR)/debian/rtems/usr/$(call DEB_TARGET_GNU_TYPE,powerpc)
+	#rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
+	#rmdir $(CURDIR)/debian/rtems/usr/lib
+	rm -rf $(CURDIR)/debian/rtems
+
+
+	# i386
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/rtems install
+
+	rm -rf $(CURDIR)/debian/rtems/usr/share
+
+	install -d $(CURDIR)/debian/rtems-i386/usr/bin
+	mv $(CURDIR)/debian/rtems/usr/bin/i386-* $(CURDIR)/debian/rtems-i386/usr/bin/
+
+	$(foreach bsp,$(i386_BSPS),$(call BSP_install,i386,$(bsp)))
 
 	# Directories which should be empty now
-	rmdir $(CURDIR)/debian/rtems/usr/$(DEB_TARGET_GNU_TYPE)
+	rmdir $(CURDIR)/debian/rtems/usr/$(call DEB_TARGET_GNU_TYPE,i386)
 	rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
 	rmdir $(CURDIR)/debian/rtems/usr/lib
 
@@ -163,12 +174,3 @@ binary-arch: build-arch install-arch
 
 binary: binary-arch binary-indep
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 
-
-config: debian/control debian/rules.def
-
-debian/control: debian/control.$(RTEMS_ARCH)
-	install $< $@
-
-debian/rules.def::
-	echo "RTEMS_ARCH=$(RTEMS_ARCH)" > $@
-	echo "RTEMS_VER=$(RTEMS_VER)" >> $@
