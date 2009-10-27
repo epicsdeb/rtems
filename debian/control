@@ -14,38 +14,38 @@ Description: Base RTEMS support
 
 Package: rtems-i386
 Architecture: any
-Depends: rtems, gcc-i386-rtems4.9, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems (= ${binary:Version}), gcc-i386-rtems4.9, ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS i386 support
  i386 specific RTEMS files which are not related to
  a specific BSP.
 
 Package: rtems-pc386
 Architecture: any
-Depends: rtems-i386, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems-i386 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: RTEMS 386 PC support
  RTEMS support for the standard PC hardware with a 386 cpu.
 
 Package: rtems-powerpc
 Architecture: any
-Depends: rtems, gcc-powerpc-rtems4.9, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems (= ${binary:Version}), gcc-powerpc-rtems4.9, ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS PowerPC support
  PowerPC specific RTEMS files which are not related to
  a specific BSP.
 
 Package: rtems-mvme2100
 Architecture: any
-Depends: rtems-powerpc, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems-powerpc (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS MVME2100 support
  RTEMS support for the mvme2100 PowerPC board
 
 Package: rtems-mvme3100
 Architecture: any
-Depends: rtems-powerpc, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems-powerpc (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS MVME3100 support
  RTEMS support for the mvme3100 PowerPC board
 
 Package: rtems-mvme5500
 Architecture: any
-Depends: rtems-powerpc, ${shlibs:Depends}, ${misc:Depends}
+Depends: rtems-powerpc (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS MVME5500 support
  RTEMS support for the mvme5500 PowerPC board
