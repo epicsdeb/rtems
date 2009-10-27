@@ -1,3 +1,11 @@
+rtems (4.9.2-2) unstable; urgency=low
+
+  * Builds PowerPC and i386
+  * Patches:
+  *   replace 'extern inline' with 'static inline'.
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Tue, 27 Oct 2009 11:48:51 -0400
+
 rtems (4.9.2-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
