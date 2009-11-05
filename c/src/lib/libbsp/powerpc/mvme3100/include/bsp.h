@@ -315,7 +315,7 @@ extern int BSP_connect_clock_handler (void);
  *            on PCI config space access to empty slots.
  */
 extern unsigned long _BSP_clear_hostbridge_errors(int enableMCP, int quiet);
-extern void BSP_motload_pci_fixup();
+extern void BSP_motload_pci_fixup(void);
 
 struct rtems_bsdnet_ifconfig;
 
