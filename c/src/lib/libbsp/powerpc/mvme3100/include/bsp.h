@@ -198,8 +198,33 @@ void bsp_reset(void);
 #define BSP_MVME3100_FLASH_CSR_F_WP_SW		(1<<3)
 #define BSP_MVME3100_FLASH_CSR_MAP_SEL		(1<<4)
 
+/* PCI bus Status */
+#define BSP_MVME3100_PCI_A_STS			((volatile uint8_t *)0xe2000004)
+#define BSP_MVME3100_PCI_B_STS			((volatile uint8_t *)0xe2000005)
+#define BSP_MVME3100_PCI_C_STS			((volatile uint8_t *)0xe2000006)
+#define BSP_MVME3100_PCI_STS(N)			(BSP_MVME3100_PCI_A_STS + (N))
+
+#define BSP_MVME3100_PCI_STS_SPD		(0x03)
+#  define BSP_MVME3100_PCI_STS_SPD_33		(0)
+#  define BSP_MVME3100_PCI_STS_SPD_66		(1)
+#  define BSP_MVME3100_PCI_STS_SPD_100		(2)
+#  define BSP_MVME3100_PCI_STS_SPD_133		(3)
+#define BSP_MVME3100_PCI_STS_MODE_X		(1<<2) /* Set PCI-X, clear PCI */
+#define BSP_MVME3100_PCI_STS_64B		(1<<3) /* Set 64-bit, clear 32-bit */
+/* ERDY and VIO bits are only used for bus B */
+#define BSP_MVME3100_PCI_STS_ERDY1		(1<<4)
+#define BSP_MVME3100_PCI_STS_ERDY2		(1<<5)
+#define BSP_MVME3100_PCI_STS_50V_VIO		(1<<6)
+#define BSP_MVME3100_PCI_STS_33V_VIO		(1<<7)
+
 /* Phy interrupt detect */
 #define BSP_MVME3100_IRQ_DETECT_REG		((volatile uint8_t *)0xe2000007)
+
+/* Device Presence */
+#define BSP_MVME3100_PRESENT			((volatile uint8_t *)0xe2000008)
+#define BSP_MVME3100_PRESENT_PMC1		(1<<0)
+#define BSP_MVME3100_PRESENT_PMC2		(1<<1)
+#define BSP_MVME3100_PRESENT_PMCSPAN		(1<<2)
 
 /* Atomically set bits in a sys-register; The bits set in 'mask'
  * are set in the register others; are left unmodified.

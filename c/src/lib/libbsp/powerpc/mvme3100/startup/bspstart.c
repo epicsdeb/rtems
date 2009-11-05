@@ -219,6 +219,49 @@ unsigned    e500_ratio = (porpllsr >> (31-15)) & 0x3f;
 	printk("CPU Clock Freq:                    %10u Hz\n", BSP_processor_frequency);
 }
 
+static
+char *pci_speed[] = {" 33","66","100","133"};
+
+void
+bsp_show_pci_status(void)
+{
+	uint8_t sts;
+	int i;
+
+	for(i=0; i<3 /* A B C */; i++){
+		sts=in_8(BSP_MVME3100_PCI_STS(i));
+
+		printk("PCI %c Status: %02x : %sMHz PCI%s %s-bit\n",
+			 'A'+i, sts,
+			pci_speed[sts&BSP_MVME3100_PCI_STS_SPD],
+			sts&BSP_MVME3100_PCI_STS_MODE_X ? "-X" : "",
+			sts&BSP_MVME3100_PCI_STS_64B ? "64" : "32"
+		);
+		if(i==1){ /* Bus B (PMC) */
+			printk("\tPMC1: %sready PMC2: %sready %s %s\n",
+				sts&BSP_MVME3100_PCI_STS_ERDY1 ? "" : "not ",
+				sts&BSP_MVME3100_PCI_STS_ERDY2 ? "" : "not ",
+				sts&BSP_MVME3100_PCI_STS_50V_VIO ? "5.0V" : "",
+				sts&BSP_MVME3100_PCI_STS_33V_VIO ? "3.3V" : ""
+			);
+		}
+	}
+
+	sts=in_8(BSP_MVME3100_PRESENT);
+	if(sts&BSP_MVME3100_PRESENT_PMC1)
+		printk("PMC1: populated\n");
+	else
+		printk("PMC1: empty\n");
+	if(sts&BSP_MVME3100_PRESENT_PMC2)
+		printk("PMC2: populated\n");
+	else
+		printk("PMC2: empty\n");
+	if(sts&BSP_MVME3100_PRESENT_PMCSPAN)
+		printk("PMCSpan: populated\n");
+	else
+		printk("PMCSpan: empty\n");
+}
+
 void
 bsp_predriver_hook(void)
 {
@@ -313,6 +356,8 @@ VpdBufRec          vpdData [] = {
 #ifdef SHOW_MORE_INIT_SETTINGS
 	printk("Going to start PCI buses scanning and initialization\n");
 #endif
+
+	bsp_show_pci_status();
 
 	BSP_mem_size            = BSP_get_mem_size();
 
