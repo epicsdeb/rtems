@@ -1,3 +1,10 @@
+rtems (4.9.2-3) unstable; urgency=low
+
+  * Rename base package to rtems-common
+  * Fix incorrect dependency
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Tue, 10 Nov 2009 11:58:12 -0500
+
 rtems (4.9.2-2) unstable; urgency=low
 
   * Builds PowerPC and i386
