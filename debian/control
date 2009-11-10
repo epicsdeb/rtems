@@ -8,7 +8,7 @@ Homepage: http://www.rtems.com
 
 Package: rtems
 Architecture: any
-Depends: gcc-i386-rtems4.9, ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS support
  Some base RTEMS binaries and documentation
 
