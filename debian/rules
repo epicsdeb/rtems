@@ -79,12 +79,12 @@ install-indep:
 	# Add here commands to install the indep part of the package into
 	# debian/<package>-doc.
 	#INSTALLDOC#
-	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/rtems/usr/share/doc/rtems/
-	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/rtems/usr/share/doc/rtems/
+	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/rtems-common/usr/share/doc/rtems-common/
+	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/rtems-common/usr/share/doc/rtems-common/
 
 	dh_install -i
 
-base_prefix=$(CURDIR)/debian/rtems/usr
+base_prefix=$(CURDIR)/debian/rtems-common/usr
 arch_prefix=$(CURDIR)/debian/rtems-$(1)/usr
 bsp_prefix=$(CURDIR)/debian/rtems-$(1)/usr
 
@@ -112,12 +112,12 @@ install-arch:
 	#TODO: avoid duplication.
 
 	# powerpc
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems-common install
 
 	rm -rf $(CURDIR)/debian/rtems/usr/share
 
 	install -d $(CURDIR)/debian/rtems-powerpc/usr/bin
-	mv $(CURDIR)/debian/rtems/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
+	mv $(CURDIR)/debian/rtems-common/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
 
 	$(foreach bsp,$(powerpc_BSPS),$(call BSP_install,powerpc,$(bsp)))
 
@@ -125,23 +125,23 @@ install-arch:
 	#rmdir $(CURDIR)/debian/rtems/usr/$(call DEB_TARGET_GNU_TYPE,powerpc)
 	#rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
 	#rmdir $(CURDIR)/debian/rtems/usr/lib
-	rm -rf $(CURDIR)/debian/rtems
+	rm -rf $(CURDIR)/debian/rtems-common
 
 
 	# i386
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/rtems install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/rtems-common install
 
-	rm -rf $(CURDIR)/debian/rtems/usr/share
+	rm -rf $(CURDIR)/debian/rtems-common/usr/share
 
 	install -d $(CURDIR)/debian/rtems-i386/usr/bin
-	mv $(CURDIR)/debian/rtems/usr/bin/i386-* $(CURDIR)/debian/rtems-i386/usr/bin/
+	mv $(CURDIR)/debian/rtems-common/usr/bin/i386-* $(CURDIR)/debian/rtems-i386/usr/bin/
 
 	$(foreach bsp,$(i386_BSPS),$(call BSP_install,i386,$(bsp)))
 
 	# Directories which should be empty now
-	rmdir $(CURDIR)/debian/rtems/usr/$(call DEB_TARGET_GNU_TYPE,i386)
-	rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
-	rmdir $(CURDIR)/debian/rtems/usr/lib
+	rmdir $(CURDIR)/debian/rtems-common/usr/$(call DEB_TARGET_GNU_TYPE,i386)
+	rmdir $(CURDIR)/debian/rtems-common/usr/lib/pkgconfig
+	rmdir $(CURDIR)/debian/rtems-common/usr/lib
 
 	dh_install -s
 # Must not depend on anything. This is to be called by
