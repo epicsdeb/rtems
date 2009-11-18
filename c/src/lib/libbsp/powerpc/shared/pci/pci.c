@@ -43,7 +43,7 @@
 #define pci  BSP_pci_configuration
 
 #ifndef  PCI_CONFIG_ADDR_VAL
-#define  PCI_CONFIG_ADDR_VAL(bus, slot, funcion, offset) \
+#define  PCI_CONFIG_ADDR_VAL(bus, slot, function, offset) \
      (0x80<<24|((bus)<<16)|(PCI_DEVFN((slot),(function))<<8)|(((offset)&~3)))
 #endif
 
