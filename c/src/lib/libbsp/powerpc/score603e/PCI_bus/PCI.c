@@ -1,9 +1,13 @@
 /*
  *
- *  COPYRIGHT (c) 1989, 1990, 1991, 1992, 1993, 1994, 1997.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
- * $Id: PCI.c,v 1.6 2004/04/21 16:01:44 ralf Exp $
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ * $Id: PCI.c,v 1.6.6.1 2009/05/05 16:18:05 jennifer Exp $
  */
 
 #include <rtems.h>

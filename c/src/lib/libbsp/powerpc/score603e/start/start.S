@@ -14,7 +14,7 @@
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
  *
- *  $Id: start.S,v 1.8 2008/09/03 20:36:21 joel Exp $
+ * $Id: start.S,v 1.8.2.1 2009/05/05 16:18:06 jennifer Exp $
  */
 
 #include "ppc-asm.h"

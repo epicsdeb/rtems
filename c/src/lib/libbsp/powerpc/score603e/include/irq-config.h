@@ -4,6 +4,8 @@
  * @ingroup bsp_interrupt
  *
  * @brief BSP interrupt support configuration.
+ *
+ * $Id: irq-config.h,v 1.1.2.3 2009/05/05 16:18:06 jennifer Exp $
  */
 
 /*

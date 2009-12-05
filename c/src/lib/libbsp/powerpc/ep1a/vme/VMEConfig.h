@@ -1,6 +1,6 @@
 #ifndef RTEMS_BSP_VME_CONFIG_H
 #define RTEMS_BSP_VME_CONFIG_H
-/* $Id: VMEConfig.h,v 1.4 2008/09/03 20:35:43 joel Exp $ */
+/* $Id: VMEConfig.h,v 1.4.2.1 2009/10/16 16:42:03 joel Exp $ */
 
 /* BSP specific address space configuration parameters */
 
@@ -77,7 +77,8 @@
  * at _VME_DRAM_OFFSET
  */
 #undef  _VME_DRAM_OFFSET
-#define _VME_DRAM_OFFSET                0xc0000000  
+/* #define _VME_DRAM_OFFSET                0xc0000000   */
+
 #define _VME_DRAM_32_OFFSET1		0x20000000
 #define _VME_DRAM_32_OFFSET2            0x20b00000
 #define _VME_DRAM_24_OFFSET1            0x00000000

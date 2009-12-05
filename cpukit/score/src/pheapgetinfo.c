@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapgetinfo.c,v 1.1 2007/05/03 21:33:39 joel Exp $
+ *  $Id: pheapgetinfo.c,v 1.1.4.1 2009/05/13 16:48:22 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,14 +16,25 @@
 #include <rtems/system.h>
 #include <rtems/score/protectedheap.h>
 
-void _Protected_heap_Get_information(
+bool _Protected_heap_Get_information(
   Heap_Control            *the_heap,
   Heap_Information_block  *the_info
 )
 {
   Heap_Get_information_status status;
 
+  if ( !the_heap )
+    return false;
+
+  if ( !the_info )
+    return false;
+
   _RTEMS_Lock_allocator();
     status = _Heap_Get_information( the_heap, the_info );
   _RTEMS_Unlock_allocator();
+
+  if ( status == HEAP_GET_INFORMATION_SUCCESSFUL )
+    return true;
+
+  return false;
 }

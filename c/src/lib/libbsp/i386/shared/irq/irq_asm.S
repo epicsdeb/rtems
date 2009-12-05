@@ -8,7 +8,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_asm.S,v 1.8.6.1 2009/03/12 14:19:11 joel Exp $
+ *  $Id: irq_asm.S,v 1.8.6.2 2009/05/18 17:45:21 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -107,11 +107,7 @@ nested:
 	 */
 
         pushl     ecx                       /* push vector number */
-        lea       (ecx,ecx,2), eax
-        mov       SYM (rtems_hdl_tbl), edx
-        shl       $0x3,eax
-        pushl     0x8(edx,eax,1)            /* push hdl argument */
-        call      *0x4(edx,eax,1)           /* call hdl */
+	call	  C_dispatch_isr
         addl      $4, esp
 
 	/*

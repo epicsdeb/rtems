@@ -1,3 +1,94 @@
+2009-11-11	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	PR 1471/cpukit
+	* libmisc/cpuuse/cpuusagereport.c: Rework statement to ensure 64-bit
+	multiplication is used to avoid overflow with intermediate value.
+
+2009-11-10	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	PR 1468/cpukit
+	* score/src/timespecdividebyinteger.c: Rework statement to ensure
+	64-bit multiplication is used.
+
+2009-11-10	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	PR 1462/cpukit
+	* rtems/include/rtems/rtems/ratemon.h, rtems/src/ratemonperiod.c: Fine
+	tune previous patch after analysis in application.
+
+2009-10-30	Glenn Humphrey <glenn.humphrey@oarcorp.com>
+
+	PR pr1462/cpukit
+	* rtems/include/rtems/rtems/ratemon.h, rtems/src/ratemonperiod.c,
+	rtems/src/ratemontimeout.c: Fix bugs in rate monotonic statistics.
+
+2009-10-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sapi/include/confdefs.h: Correct type of rtems_malloc_dirty_helper so
+	usable.
+
+2009-10-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* libcsupport/include/rtems/malloc.h: Correct type of
+	rtems_malloc_dirty_helper so usable.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1441/cpukit
+	* libcsupport/src/tcgetprgrp.c: Remove.
+	* libcsupport/src/tcgetpgrp.c: New (Renamed from 
+	  libcsupport/src/tcgetprgrp.c).
+	* libcsupport/Makefile.am: Add libcsupport/src/tcgetpgrp.c.
+	  Remove libcsupport/src/tcgetprgrp.c.
+
+2009-06-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libcsupport/include/rtems/assoc.h,
+	libcsupport/include/rtems/malloc.h: Add extern "C" {} guards.
+	* libcsupport/include/rtems/libio_.h: Move extern "C" {} guards.
+
+2009-05-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1415/cpukit
+	* rtems/src/semcreate.c, rtems/src/semtranslatereturncode.c,
+	score/include/rtems/score/coremutex.h,
+	score/inline/rtems/score/coremutex.inl, score/src/coremutex.c:
+	Address two paths where a task with a priority above the ceiling
+	could obtain a priority ceiling mutex.
+
+2009-05-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1413/cpukit
+	* rtems/src/timerserver.c: Fix bug where server based timers which
+	reinitiated themselves did not get reinserted onto timer chain.
+
+2009-05-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1412/cpukit
+	* score/src/coremutex.c: Add missing braces. Broken with strict mutex
+	code added.
+
+2009-05-13	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1411/cpukit
+	* rtems/src/workspace.c, score/include/rtems/score/protectedheap.h,
+	score/src/pheapgetfreeinfo.c, score/src/pheapgetinfo.c: Improve
+	workspace wrapper methods.
+
+2009-04-02	Ralf Corsépius <ralfcorsepius@rtems.org>
+
+	* aclocal/check-rtems-debug.m4: Add missing ','.
+
+2009-03-17	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libblock/src/ide_part_table.c: Fixed NULL pointer access.
+
+2009-03-12	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	PR 1378/filesystem
+	* libfs/src/imfs/deviceio.c: IMFS device lseek should return the
+	current offset.
+
 2009-03-12	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* ftpd/ftpd.h: Add extern C.

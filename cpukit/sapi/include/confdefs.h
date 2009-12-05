@@ -33,7 +33,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: confdefs.h,v 1.108.2.4 2009/01/05 20:15:51 joel Exp $
+ *  $Id: confdefs.h,v 1.108.2.5 2009/10/15 18:56:17 joel Exp $
  */
 
 #ifndef __CONFIGURATION_TEMPLATE_h
@@ -360,7 +360,7 @@ extern rtems_configuration_table        Configuration;
    *  allocated.  This is helpful for finding unitialized data structure
    *  problems. 
    */
-  rtems_malloc_dirtier_t *rtems_malloc_dirty_helper =
+  rtems_malloc_dirtier_t rtems_malloc_dirty_helper =
     #if defined(CONFIGURE_MALLOC_DIRTY)
       rtems_malloc_dirty_memory;
     #else

@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: ide_part_table.c,v 1.12 2008/09/01 07:44:48 ralf Exp $
+ * $Id: ide_part_table.c,v 1.12.2.1 2009/03/19 10:20:10 thomas Exp $
  *
  *****************************************************************************/
 
@@ -376,10 +376,10 @@ read_mbr(rtems_disk_desc_t *disk_desc)
          part_num < RTEMS_IDE_PARTITION_MAX_SUB_PARTITION_NUMBER;
          part_num++)
     {
-        if (is_extended(disk_desc->partitions[part_num]->sys_type))
+        part_desc = disk_desc->partitions[part_num];
+        if (part_desc != NULL && is_extended(part_desc->sys_type))
         {
-            read_extended_partition(disk_desc->partitions[part_num]->start,
-                                    disk_desc->partitions[part_num]);
+            read_extended_partition(part_desc->start, part_desc);
         }
     }
 

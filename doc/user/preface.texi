@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: preface.texi,v 1.15.8.1 2008/09/10 15:58:58 joel Exp $
+@c  $Id: preface.texi,v 1.15.8.2 2009/07/02 16:12:06 joel Exp $
 @c
 
 @ifinfo
@@ -151,17 +151,17 @@ been implemented in both the Ada and C programming languages.
 It has been ported to the following processor families:
 
 @itemize @bullet
-@item Intel i386 and above 
-@item Motorola MC68xxx 
-@item Motorola MC683xx
-@item Motorola ColdFire
+@item Analog Devices Blackfin
 @item ARM
+@item Freescale (formerly Motorola) MC68xxx 
+@item Freescale (formerly Motorola) MC683xx
+@item Freescale (formerly Motorola) ColdFire
+@item Intel i386 and above 
 @item MIPS
 @item PowerPC
+@item Renesas (formerly Hitachi) SuperH
+@item Renesas (formerly Hitachi) H8/300
 @item SPARC
-@item Hitachi SH
-@item Hitachi H8/300
-@item OpenCores OR32
 @item UNIX
 @end itemize
 

@@ -1,4 +1,4 @@
-/* $Id: exceptionhandler.c,v 1.5.2.1 2008/10/23 13:45:55 ericn Exp $ */
+/* $Id: exceptionhandler.c,v 1.5.2.2 2009/05/08 18:22:51 joel Exp $ */
 
 /* 
  * Authorship
@@ -134,6 +134,8 @@ int			quiet=0;
        /* register dump */
        printk("\t Next PC or Address of fault = %x, ", excPtr->EXC_SRR0);
        printk("Mvme5500 Saved MSR = %x\n", excPtr->EXC_SRR1);
+       printk("The Interrupt mask (e.g. MSR_EE) stored in SPRG0= 0x%x\n", 
+	      ppc_interrupt_get_disable_mask());
        printk("\t R0  = %08x", excPtr->GPR0);
        printk(" R1  = %08x", excPtr->GPR1);
        printk(" R2  = %08x", excPtr->GPR2);

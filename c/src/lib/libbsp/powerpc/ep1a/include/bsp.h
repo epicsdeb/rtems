@@ -1,17 +1,20 @@
 /*
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.7.2.1 2008/10/23 13:45:54 ericn Exp $
+ *  $Id: bsp.h,v 1.7.2.2 2009/10/16 16:42:02 joel Exp $
  */
 
 #ifndef _BSP_H
 #define _BSP_H
+
+
+#define BSP_ZERO_WORKSPACE_AUTOMATICALLY TRUE
 
 #include <bspopts.h>
 

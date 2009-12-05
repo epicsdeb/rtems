@@ -1,9 +1,13 @@
 /*
  *
- *  COPYRIGHT (c) 1989, 1990, 1991, 1992, 1993, 1994, 1997.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
- * $Id: flash.c,v 1.5 2004/04/21 10:43:00 ralf Exp $
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ * $Id: flash.c,v 1.5.6.1 2009/05/05 16:18:05 jennifer Exp $
  */
 
 #include <rtems.h>
@@ -11,7 +15,9 @@
 #include <stdio.h>
 
 #include <bsp.h>
+#include <bsp/irq.h>
 #include "PCI.h"
+
 /*PAGE
  *
  *  SCORE603e_FLASH_Disable

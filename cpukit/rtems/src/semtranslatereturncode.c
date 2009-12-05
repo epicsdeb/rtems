@@ -15,14 +15,14 @@
  *     + acquire a semaphore
  *     + release a semaphore
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semtranslatereturncode.c,v 1.19 2008/09/05 21:39:16 joel Exp $
+ *  $Id: semtranslatereturncode.c,v 1.19.2.1 2009/05/28 20:38:22 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -71,9 +71,8 @@ const rtems_status_code _Semaphore_Translate_core_mutex_return_code_[] = {
 #ifdef __RTEMS_STRICT_ORDER_MUTEX__
     CORE_MUTEX_RELEASE_NOT_ORDER,
 #endif
-  RTEMS_INTERNAL_ERROR     /* CORE_MUTEX_STATUS_CEILING_VIOLATED */
+  RTEMS_INVALID_PRIORITY   /* CORE_MUTEX_STATUS_CEILING_VIOLATED */
 };
-
 
 rtems_status_code _Semaphore_Translate_core_mutex_return_code (
   uint32_t   status

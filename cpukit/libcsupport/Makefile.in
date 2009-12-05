@@ -139,7 +139,7 @@ am__libcsupport_a_SOURCES_DIST = src/gxx_wrappers.c src/printk.c \
 	src/envlock.c src/cfgetispeed.c src/cfgetospeed.c \
 	src/cfsetispeed.c src/cfsetospeed.c src/tcgetattr.c \
 	src/tcsetattr.c src/tcdrain.c src/tcflow.c src/tcflush.c \
-	src/tcgetprgrp.c src/tcsendbreak.c src/tcsetpgrp.c \
+	src/tcgetpgrp.c src/tcsendbreak.c src/tcsetpgrp.c \
 	src/termios.c src/termiosinitialize.c src/termios_baud2index.c \
 	src/termios_baud2num.c src/termios_num2baud.c \
 	src/termios_setinitialbaud.c src/getpagesize.c
@@ -286,7 +286,7 @@ am__objects_14 = src/libcsupport_a-cfgetispeed.$(OBJEXT) \
 	src/libcsupport_a-tcdrain.$(OBJEXT) \
 	src/libcsupport_a-tcflow.$(OBJEXT) \
 	src/libcsupport_a-tcflush.$(OBJEXT) \
-	src/libcsupport_a-tcgetprgrp.$(OBJEXT) \
+	src/libcsupport_a-tcgetpgrp.$(OBJEXT) \
 	src/libcsupport_a-tcsendbreak.$(OBJEXT) \
 	src/libcsupport_a-tcsetpgrp.$(OBJEXT) \
 	src/libcsupport_a-termios.$(OBJEXT) \
@@ -485,7 +485,7 @@ BASE_FS_C_FILES = src/base_fs.c src/mount.c src/unmount.c src/libio.c \
 
 TERMIOS_C_FILES = src/cfgetispeed.c src/cfgetospeed.c src/cfsetispeed.c \
     src/cfsetospeed.c src/tcgetattr.c src/tcsetattr.c src/tcdrain.c \
-    src/tcflow.c src/tcflush.c src/tcgetprgrp.c src/tcsendbreak.c \
+    src/tcflow.c src/tcflush.c src/tcgetpgrp.c src/tcsendbreak.c \
     src/tcsetpgrp.c src/termios.c src/termiosinitialize.c \
     src/termios_baud2index.c src/termios_baud2num.c src/termios_num2baud.c \
     src/termios_setinitialbaud.c
@@ -917,7 +917,7 @@ src/libcsupport_a-tcflow.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/libcsupport_a-tcflush.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
-src/libcsupport_a-tcgetprgrp.$(OBJEXT): src/$(am__dirstamp) \
+src/libcsupport_a-tcgetpgrp.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/libcsupport_a-tcsendbreak.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
@@ -1076,7 +1076,7 @@ mostlyclean-compile:
 	-rm -f src/libcsupport_a-tcflow.$(OBJEXT)
 	-rm -f src/libcsupport_a-tcflush.$(OBJEXT)
 	-rm -f src/libcsupport_a-tcgetattr.$(OBJEXT)
-	-rm -f src/libcsupport_a-tcgetprgrp.$(OBJEXT)
+	-rm -f src/libcsupport_a-tcgetpgrp.$(OBJEXT)
 	-rm -f src/libcsupport_a-tcsendbreak.$(OBJEXT)
 	-rm -f src/libcsupport_a-tcsetattr.$(OBJEXT)
 	-rm -f src/libcsupport_a-tcsetpgrp.$(OBJEXT)
@@ -1235,7 +1235,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcflow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcflush.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcgetattr.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcsendbreak.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcsetattr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libcsupport_a-tcsetpgrp.Po@am__quote@
@@ -3305,19 +3305,19 @@ src/libcsupport_a-tcflush.obj: src/tcflush.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libcsupport_a-tcflush.obj `if test -f 'src/tcflush.c'; then $(CYGPATH_W) 'src/tcflush.c'; else $(CYGPATH_W) '$(srcdir)/src/tcflush.c'; fi`
 
-src/libcsupport_a-tcgetprgrp.o: src/tcgetprgrp.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libcsupport_a-tcgetprgrp.o -MD -MP -MF src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Tpo -c -o src/libcsupport_a-tcgetprgrp.o `test -f 'src/tcgetprgrp.c' || echo '$(srcdir)/'`src/tcgetprgrp.c
-@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Tpo src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tcgetprgrp.c' object='src/libcsupport_a-tcgetprgrp.o' libtool=no @AMDEPBACKSLASH@
+src/libcsupport_a-tcgetpgrp.o: src/tcgetpgrp.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libcsupport_a-tcgetpgrp.o -MD -MP -MF src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Tpo -c -o src/libcsupport_a-tcgetpgrp.o `test -f 'src/tcgetpgrp.c' || echo '$(srcdir)/'`src/tcgetpgrp.c
+@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Tpo src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tcgetpgrp.c' object='src/libcsupport_a-tcgetpgrp.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libcsupport_a-tcgetprgrp.o `test -f 'src/tcgetprgrp.c' || echo '$(srcdir)/'`src/tcgetprgrp.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libcsupport_a-tcgetpgrp.o `test -f 'src/tcgetpgrp.c' || echo '$(srcdir)/'`src/tcgetpgrp.c
 
-src/libcsupport_a-tcgetprgrp.obj: src/tcgetprgrp.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libcsupport_a-tcgetprgrp.obj -MD -MP -MF src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Tpo -c -o src/libcsupport_a-tcgetprgrp.obj `if test -f 'src/tcgetprgrp.c'; then $(CYGPATH_W) 'src/tcgetprgrp.c'; else $(CYGPATH_W) '$(srcdir)/src/tcgetprgrp.c'; fi`
-@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Tpo src/$(DEPDIR)/libcsupport_a-tcgetprgrp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tcgetprgrp.c' object='src/libcsupport_a-tcgetprgrp.obj' libtool=no @AMDEPBACKSLASH@
+src/libcsupport_a-tcgetpgrp.obj: src/tcgetpgrp.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libcsupport_a-tcgetpgrp.obj -MD -MP -MF src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Tpo -c -o src/libcsupport_a-tcgetpgrp.obj `if test -f 'src/tcgetpgrp.c'; then $(CYGPATH_W) 'src/tcgetpgrp.c'; else $(CYGPATH_W) '$(srcdir)/src/tcgetpgrp.c'; fi`
+@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Tpo src/$(DEPDIR)/libcsupport_a-tcgetpgrp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/tcgetpgrp.c' object='src/libcsupport_a-tcgetpgrp.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libcsupport_a-tcgetprgrp.obj `if test -f 'src/tcgetprgrp.c'; then $(CYGPATH_W) 'src/tcgetprgrp.c'; else $(CYGPATH_W) '$(srcdir)/src/tcgetprgrp.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libcsupport_a-tcgetpgrp.obj `if test -f 'src/tcgetpgrp.c'; then $(CYGPATH_W) 'src/tcgetpgrp.c'; else $(CYGPATH_W) '$(srcdir)/src/tcgetpgrp.c'; fi`
 
 src/libcsupport_a-tcsendbreak.o: src/tcsendbreak.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcsupport_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libcsupport_a-tcsendbreak.o -MD -MP -MF src/$(DEPDIR)/libcsupport_a-tcsendbreak.Tpo -c -o src/libcsupport_a-tcsendbreak.o `test -f 'src/tcsendbreak.c' || echo '$(srcdir)/'`src/tcsendbreak.c

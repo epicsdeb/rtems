@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.17.2.2 2008/12/04 17:57:26 joel Exp $
+ *  $Id: ckinit.c,v 1.17.2.3 2009/09/16 00:03:35 strauman Exp $
  */
 
 #include <bsp.h>
@@ -285,19 +285,27 @@ void Clock_driver_support_initialize_hardware(void)
     /* printk( "Use 8254\n" ); */
     Clock_driver_support_at_tick = Clock_driver_support_at_tick_empty;
     Clock_driver_nanoseconds_since_last_tick = 
-      bsp_clock_nanoseconds_since_last_tick_tsc;
-
+      bsp_clock_nanoseconds_since_last_tick_i8254;
   } else {
     /* printk( "Use TSC\n" ); */
     Clock_driver_support_at_tick = Clock_driver_support_at_tick_tsc;
     Clock_driver_nanoseconds_since_last_tick = 
-      bsp_clock_nanoseconds_since_last_tick_i8254;
+      bsp_clock_nanoseconds_since_last_tick_tsc;
   }
+
+  /* Shell installs nanosecond handler before calling
+   * Clock_driver_support_initialize_hardware() :-(
+   * so we do it again now that we're ready.
+   */
+  rtems_clock_set_nanoseconds_extension(
+    Clock_driver_nanoseconds_since_last_tick
+  );
 
   if (!BSP_install_rtems_irq_handler (&clockIrqData)) {
     printk("Unable to initialize system clock\n");
     rtems_fatal_error_occurred(1);
   }
+
 }
 
 #define Clock_driver_support_shutdown_hardware() \

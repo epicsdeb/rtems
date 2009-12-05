@@ -12,15 +12,11 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio_.h,v 1.28 2008/09/08 15:19:33 joel Exp $
+ *  $Id: libio_.h,v 1.28.2.1 2009/06/03 03:40:06 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_LIBIO__H
 #define _RTEMS_RTEMS_LIBIO__H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <rtems.h>
 #include <rtems/libio.h>                /* include before standard IO */
@@ -28,6 +24,10 @@ extern "C" {
 #include <sys/types.h>
 
 #include <errno.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  *  Semaphore to protect the io table

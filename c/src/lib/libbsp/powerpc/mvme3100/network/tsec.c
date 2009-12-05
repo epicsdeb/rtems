@@ -50,6 +50,7 @@
 #include <libcpu/byteorder.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <errno.h>
 #include <assert.h>
 #include <bsp.h>
 
@@ -112,6 +113,9 @@ phy_irq_pending(struct tsec_private *mp);
 
 static uint32_t
 phy_ack_irq(struct tsec_private *mp);
+
+static void
+tsec_update_mcast(struct ifnet *ifp);
 
 #if defined(PARANOIA) || defined(DEBUG)
 void tsec_dump_tring(struct tsec_private *mp);
@@ -636,6 +640,8 @@ static inline void bd_wrbuf(TSEC_BD *bd, uint32_t addr)
 
 /* Driver 'private' data */
 
+#define NUM_MC_HASHES		256
+
 struct tsec_private {
 	FEC_Enet_Base	base;            /* Controller base address                  */
 	FEC_Enet_Base	phy_base;        /* Phy base address (not necessarily identical
@@ -680,6 +686,7 @@ struct tsec_private {
 		unsigned	odrops;
 		unsigned	repack;
 	}               stats;
+	uint16_t		mc_refcnt[NUM_MC_HASHES];
 };
 
 #define NEXT_TXI(mp, i)	(((i)+1) < (mp)->tx_ring_size ? (i)+1 : 0 )
@@ -1212,7 +1219,7 @@ int i;
 static int
 mac_set_duplex(struct tsec_private *mp)
 {
-int media = 0;
+int media = IFM_MAKEWORD(0, 0, 0, 0);
 
 	if ( 0 == BSP_tsec_media_ioctl(mp, SIOCGIFMEDIA, &media)) {
 		if ( IFM_LINK_OK & media ) {
@@ -1339,8 +1346,9 @@ rtems_interrupt_level l;
 
 	for ( i=0; i<8*4; i+=4 ) {
 		fec_wr( b, TSEC_IADDR0 + i, 0 );
-		fec_wr( b, TSEC_GADDR0 + i, 0 );
 	}
+
+	BSP_tsec_mcast_filter_clear(mp);
 
 	BSP_tsec_reset_stats(mp);
 
@@ -1394,6 +1402,80 @@ rtems_interrupt_level l;
 
 	/* globally reenable */
 	rtems_interrupt_enable( l );
+}
+
+static uint8_t
+hash_prog(struct tsec_private *mp, uint32_t tble, const uint8_t *enaddr, int accept)
+{
+uint8_t  s;
+uint32_t reg, bit;
+
+	s = ether_crc32_le(enaddr, ETHER_ADDR_LEN);
+
+	/* bit-reverse */
+    s = ((s&0x0f) << 4) | ((s&0xf0) >> 4);
+    s = ((s&0x33) << 2) | ((s&0xcc) >> 2);
+    s = ((s&0x55) << 1) | ((s&0xaa) >> 1);
+
+	reg = tble + ((s >> (5-2)) & ~3);
+	bit = 1 << (31 - (s & 31));
+
+	if ( accept ) {
+		if ( 0 == mp->mc_refcnt[s]++ )
+			fec_set( mp->base, reg, bit );
+	} else {
+		if ( mp->mc_refcnt[s] > 0 && 0 == --mp->mc_refcnt[s] )
+			fec_clr( mp->base, reg, bit );
+	}
+}
+
+void
+BSP_tsec_mcast_filter_clear(struct tsec_private *mp)
+{
+int i;
+	for ( i=0; i<8*4; i+=4 ) {
+		fec_wr( mp->base, TSEC_GADDR0 + i, 0 );
+	}
+	for ( i=0; i<NUM_MC_HASHES; i++ )
+		mp->mc_refcnt[i] = 0;
+}
+
+void
+BSP_tsec_mcast_filter_accept_all(struct tsec_private *mp)
+{
+int i;
+	for ( i=0; i<8*4; i+=4 ) {
+		fec_wr( mp->base, TSEC_GADDR0 + i, 0xffffffff );
+	}
+	for ( i=0; i<NUM_MC_HASHES; i++ )
+		mp->mc_refcnt[i]++;
+}
+
+static void
+mcast_filter_prog(struct tsec_private *mp, uint8_t *enaddr, int accept)
+{
+static const uint8_t bcst[6]={0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+	if ( ! (enaddr[0] & 0x01) ) {
+		/* not a multicast address; ignore */
+		return;
+	}
+	if ( 0 == memcmp( enaddr, bcst, sizeof(bcst) ) ) {
+		/* broadcast; ignore */
+		return;
+	}
+	hash_prog(mp, TSEC_GADDR0, enaddr, accept);
+}
+
+void
+BSP_tsec_mcast_filter_accept_add(struct tsec_private *mp, uint8_t *enaddr)
+{
+	mcast_filter_prog(mp, enaddr, 1 /* accept */);
+}
+
+void
+BSP_tsec_mcast_filter_accept_del(struct tsec_private *mp, uint8_t *enaddr)
+{
+	mcast_filter_prog(mp, enaddr, 0 /* delete */);
 }
 
 void
@@ -2247,15 +2329,17 @@ unsigned long	l,o;
 static void consume_rx_mbuf(void *buf, void *arg, int len)
 {
 struct ifnet *ifp = arg;
+struct mbuf    *m = buf;
+
 	if ( len <= 0 ) {
 		ifp->if_iqdrops++;
 		if ( len < 0 ) {
 			ifp->if_ierrors++;
 		}
-		/* caller recycles mbuf */
+		if ( m )
+			m_freem(m);
 	} else {
 		struct ether_header *eh;
-		struct mbuf			*m = buf;
 
 			eh			= (struct ether_header *)(mtod(m, unsigned long) + ETH_RX_OFFSET);
 			m->m_len	= m->m_pkthdr.len = len - sizeof(struct ether_header) - ETH_RX_OFFSET - ETH_CRC_LEN;
@@ -2309,7 +2393,21 @@ tsec_init(void *arg)
 {
 struct tsec_softc	*sc  = arg;
 struct ifnet		*ifp = &sc->arpcom.ac_if;
+int                 media;
+
 	BSP_tsec_init_hw(&sc->pvt, ifp->if_flags & IFF_PROMISC, sc->arpcom.ac_enaddr);
+
+	/* Determine initial link status and block sender if there is no link */
+	media = IFM_MAKEWORD(0, 0, 0, 0);
+	if ( 0 == BSP_tsec_media_ioctl(&sc->pvt, SIOCGIFMEDIA, &media) ) {
+		if ( (IFM_LINK_OK & media) ) {
+			ifp->if_flags &= ~IFF_OACTIVE;
+		} else {
+			ifp->if_flags |=  IFF_OACTIVE;
+		}
+	}
+
+	tsec_update_mcast(ifp);
 	ifp->if_flags |= IFF_RUNNING;
 	sc->arpcom.ac_if.if_timer = 0;
 }
@@ -2346,6 +2444,31 @@ struct tsec_softc	*sc = ifp->if_softc;
 
 	tsec_init(sc);
 	tsec_start(ifp);
+}
+
+static void
+tsec_update_mcast(struct ifnet *ifp)
+{
+struct tsec_softc *sc = ifp->if_softc;
+struct ether_multi     *enm;
+struct ether_multistep step;
+
+	if ( IFF_ALLMULTI & ifp->if_flags ) {
+		BSP_tsec_mcast_filter_accept_all( &sc->pvt );
+	} else {
+		BSP_tsec_mcast_filter_clear( &sc->pvt );
+
+		ETHER_FIRST_MULTI(step, (struct arpcom *)ifp, enm);
+
+		while ( enm ) {
+			if ( memcmp(enm->enm_addrlo, enm->enm_addrhi, ETHER_ADDR_LEN) )
+				assert( !"Should never get here; IFF_ALLMULTI should be set!" );
+
+			BSP_tsec_mcast_filter_accept_add(&sc->pvt, enm->enm_addrlo);
+
+			ETHER_NEXT_MULTI(step, enm);
+		}
+	}
 }
 
 /* bsdnet driver ioctl entry */
@@ -2395,15 +2518,19 @@ int					f;
 			error = BSP_tsec_media_ioctl(&sc->pvt, cmd, &ifr->ifr_media);
 		break;
  
-/*
- * TODO
- *
- * 		case SIOCADDMULTI:
- * 		case SIOCDELMULTI:
- *
- *		break;
- */
+ 		case SIOCADDMULTI:
+ 		case SIOCDELMULTI:
+			error = (cmd == SIOCADDMULTI)
+		    		? ether_addmulti(ifr, &sc->arpcom)
+				    : ether_delmulti(ifr, &sc->arpcom);
 
+			if (error == ENETRESET) {
+				if (ifp->if_flags & IFF_RUNNING) {
+					tsec_update_mcast(ifp);
+				}
+				error = 0;
+			}
+		break;
 
  		case SIO_RTEMS_SHOW_STATS:
 			BSP_tsec_dump_stats( &sc->pvt, stdout );
@@ -2570,7 +2697,7 @@ struct	ifnet		*ifp;
 		ifp->if_timer			= 0;
 
 		sc->bsd.oif_flags		= /* ... */
-		ifp->if_flags			= IFF_BROADCAST | IFF_SIMPLEX;
+		ifp->if_flags			= IFF_BROADCAST | IFF_MULTICAST | IFF_SIMPLEX;
 
 		/*
 		 * if unset, this set to 10Mbps by ether_ifattach; seems to be unused by bsdnet stack;
