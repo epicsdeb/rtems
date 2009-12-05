@@ -16,7 +16,7 @@ endif
 
 RTEMS_VER ?=4.9
 
-powerpc_BSPS=mvme2100 mvme3100 mvme5500
+powerpc_BSPS=mvme2100 mvme2307 mvme3100 mvme5500
 i386_BSPS=pc386
 
 # This has to be exported to make some magic below work.
