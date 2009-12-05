@@ -3,11 +3,14 @@
  *
  *  This part is found on the second generation of this board.
  *
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tod.c,v 1.9 2008/09/05 11:45:52 ralf Exp $
+ *  $Id: tod.c,v 1.9.2.1 2009/05/05 16:18:06 jennifer Exp $
  */
 
 #include <rtems.h>

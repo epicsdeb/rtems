@@ -19,7 +19,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timerserver.c,v 1.17.2.1 2008/12/03 21:01:08 joel Exp $
+ *  $Id: timerserver.c,v 1.17.2.2 2009/05/21 15:40:00 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -137,7 +137,13 @@ static void _Timer_Server_process_insertions(void)
     } else if ( the_timer->the_class == TIMER_TIME_OF_DAY_ON_TASK ) {
       _Watchdog_Insert( &_Timer_Seconds_chain, &the_timer->Ticker );
     }
+
+    /*
+     *  Insert the timers that have been requested to be inserted.
+     */
+    _Timer_Server_process_insertions();
   }
+
 }
 
 /**

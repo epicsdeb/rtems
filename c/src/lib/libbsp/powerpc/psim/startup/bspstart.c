@@ -4,14 +4,14 @@
  *  The generic CPU dependent initialization has been performed
  *  before any of these are invoked.
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-20089
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.33 2008/07/24 14:52:54 thomas Exp $
+ *  $Id: bspstart.c,v 1.33.2.1 2009/10/16 16:09:09 joel Exp $
  */
 
 #include <string.h>
@@ -43,6 +43,11 @@ extern int PSIM_INSTRUCTIONS_PER_MICROSECOND;
  * PCI Bus Frequency
  */
 unsigned int BSP_bus_frequency;
+
+/*
+ *  Driver configuration parameters
+ */
+uint32_t   bsp_clicks_per_usec;
 
 /*
  * Time base divisior (how many tick for 1 second).
@@ -106,6 +111,7 @@ void bsp_start( void )
    *  initialize the device driver parameters
    */
   BSP_bus_frequency        = (unsigned int)&PSIM_INSTRUCTIONS_PER_MICROSECOND;
+  bsp_clicks_per_usec      = BSP_bus_frequency;
   BSP_time_base_divisor    = 1;
 
   /*

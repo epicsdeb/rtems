@@ -311,7 +311,7 @@ int rtems_telnetd_initialize(
 #if 0
   printf("This is rtems-telnetd (modified by Till Straumann)\n");
   printf("$Id: telnetd.c,v 1.12.2.1 2008/10/15 17:38:12 joel Exp $\n");
-  printf("Release $Name: rtems-4-9-2 $\n");
+  printf("Release $Name: rtems-4-9-3 $\n");
 #endif
 
   if ( !telnetd_shell && !cmd ) {

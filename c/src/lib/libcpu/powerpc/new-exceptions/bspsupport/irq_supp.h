@@ -3,7 +3,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_supp.h,v 1.2 2007/12/10 07:06:53 strauman Exp $
+ *  $Id: irq_supp.h,v 1.2.2.1 2009/05/05 16:20:51 jennifer Exp $
  */
 
 #ifndef IRQ_SHARED_IRQ_C_GLUE_H
@@ -67,6 +67,29 @@ struct _BSP_Exception_frame;
 int C_dispatch_irq_handler (struct _BSP_Exception_frame *frame, unsigned int excNum);
 
 /*
+ * Snippet to be used by PIC drivers and by bsp_irq_dispatch_list
+ * traverses list of shared handlers for a given interrupt
+ *
+ */
+
+static inline void
+bsp_irq_dispatch_list_base(
+  rtems_irq_connect_data *tbl,
+  unsigned irq,
+  rtems_irq_hdl sentinel
+)
+{
+	rtems_irq_connect_data* vchain;
+	for( vchain = &tbl[irq];
+			((int)vchain != -1 && vchain->hdl != sentinel);
+			vchain = (rtems_irq_connect_data*)vchain->next_handler )
+	{
+          vchain->hdl(vchain->handle);
+	}
+}
+
+
+/*
  * Snippet to be used by PIC drivers;
  * enables interrupts, traverses list of
  * shared handlers for a given interrupt
@@ -90,13 +113,8 @@ bsp_irq_dispatch_list(
 	/* Enable all interrupts */
 	_ISR_Set_level(0);
 
-	rtems_irq_connect_data* vchain;
-	for( vchain = &tbl[irq];
-			((int)vchain != -1 && vchain->hdl != sentinel);
-			vchain = (rtems_irq_connect_data*)vchain->next_handler )
-	{
-		vchain->hdl(vchain->handle);
-	}
+
+        bsp_irq_dispatch_list_base( tbl, irq, sentinel );
 
 	/* Restore original level */
 	_ISR_Set_level(l_orig);

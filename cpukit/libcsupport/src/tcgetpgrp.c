@@ -8,25 +8,19 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tcgetprgrp.c,v 1.5 2003/09/04 18:54:13 joel Exp $
+ *  $Id: tcgetpgrp.c,v 1.1 2009/09/15 05:32:49 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems.h>
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE_TCGETPGRP)
 
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <termios.h>
-/* #include <sys/ioctl.h> */
+#include <unistd.h>
 
-#include <rtems/libio.h>
-
-pid_t tcgetprgrp(int fd)
+pid_t tcgetpgrp(int fd __attribute__((unused)))
 {
   return getpid();
 }

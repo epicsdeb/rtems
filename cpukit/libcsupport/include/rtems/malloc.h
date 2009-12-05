@@ -12,7 +12,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: malloc.h,v 1.5 2008/01/29 17:28:27 joel Exp $
+ * $Id: malloc.h,v 1.5.2.2 2009/10/15 18:55:51 joel Exp $
  */
 
 #ifndef _RTEMS_MALLOC_H
@@ -22,6 +22,10 @@
 #include <rtems/bspIo.h>
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  *  Malloc Statistics Structure
@@ -80,7 +84,7 @@ extern rtems_malloc_sbrk_functions_t *rtems_malloc_sbrk_helpers;
  * Malloc Plugin to Dirty Memory at Allocation Time
  */
 typedef void (*rtems_malloc_dirtier_t)(void *, size_t);
-extern rtems_malloc_dirtier_t *rtems_malloc_dirty_helper;
+extern rtems_malloc_dirtier_t rtems_malloc_dirty_helper;
 
 /** @brief Dirty memory function
  *  
@@ -144,5 +148,9 @@ int rtems_memalign(
   size_t   alignment,
   size_t   size
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

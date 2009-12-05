@@ -17,7 +17,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bat.c,v 1.13 2007/12/01 00:24:25 strauman Exp $
+ * $Id: bat.c,v 1.13.2.1 2009/10/16 16:12:42 joel Exp $
  */
 #include <rtems.h>
 #include <libcpu/bat.h>
@@ -380,8 +380,9 @@ setbat (int typ, int bat_index, unsigned long virt, unsigned long phys,
       init_done = 1;
     }
   }
-
-  if (size >= (1 << 17) && (err = check_overlap (typ, virt, size)) >= 0) {
+  
+  err = check_overlap (typ, virt, size);
+  if ((size >= (1 << 17)) && (err >= 0) && (err != bat_index)) {
     rtems_interrupt_enable (level);
     printk ("BATs must not overlap; area 0x%08x..0x%08x hits %cBAT %i\n",
             virt, virt + size, (TYP_I == typ ? 'I' : 'D'), err);

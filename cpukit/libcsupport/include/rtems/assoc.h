@@ -8,11 +8,17 @@
  *  one space to another (eg: our errno's to host errno's and v.v)
  *
  *
- *  $Id: assoc.h,v 1.10 2008/01/25 02:57:43 joel Exp $
+ *  $Id: assoc.h,v 1.10.2.1 2009/06/03 03:39:59 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_ASSOC_H
 #define _RTEMS_RTEMS_ASSOC_H
+
+#include <stdint.h> /* uint32_t */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     const char  *name;
@@ -107,5 +113,8 @@ const char *rtems_assoc_name_bad(
 );
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* ! _INCLUDE_ASSOC_H */
+#endif /* ! _RTEMS_RTEMS_ASSOC_H */

@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_init.c,v 1.2 2008/08/20 08:55:03 ralf Exp $
+ *  $Id: irq_init.c,v 1.2.2.1 2009/06/06 00:46:55 strauman Exp $
  */
 
 #include <libcpu/io.h>
@@ -28,7 +28,7 @@
 #include <libcpu/raw_exception.h>
 #include <rtems/bspIo.h>
 
-static void nop_func(void)
+static void nop_func(void *arg)
 {
 	printk("Unhandled IRQ\n");
 }

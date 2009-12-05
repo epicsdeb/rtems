@@ -113,14 +113,15 @@ libbsp_a_DEPENDENCIES =  \
 	../../../libcpu/@RTEMS_CPU@/mpc6xx/timer.rel $(am__append_3)
 am__objects_1 = p_clock.$(OBJEXT)
 am__objects_2 = uart.$(OBJEXT) console.$(OBJEXT)
-am__objects_3 = irq_init.$(OBJEXT) irq.$(OBJEXT)
+am__objects_3 = irq_init.$(OBJEXT) BSP_irq.$(OBJEXT)
 am__objects_4 = pci.$(OBJEXT) pci_interface.$(OBJEXT) \
 	detect_host_bridge.$(OBJEXT) pcifinddevice.$(OBJEXT)
 am__objects_5 = bspstart.$(OBJEXT) pgtbl_setup.$(OBJEXT) \
 	pgtbl_activate.$(OBJEXT) pretaskinghook.$(OBJEXT) \
 	sbrk.$(OBJEXT) bootcard.$(OBJEXT) bsppredriverhook.$(OBJEXT) \
 	bspclean.$(OBJEXT) bsplibc.$(OBJEXT) bsppost.$(OBJEXT) \
-	gnatinstallhandler.$(OBJEXT) reboot.$(OBJEXT)
+	gnatinstallhandler.$(OBJEXT) reboot.$(OBJEXT) \
+	probeMemEnd.$(OBJEXT)
 am__objects_6 = tod.$(OBJEXT) todcfg.$(OBJEXT)
 am__objects_7 = exceptionhandler.$(OBJEXT) vectors_entry.$(OBJEXT)
 am__objects_8 = GT64260TWSI.$(OBJEXT) MVME5500I2C.$(OBJEXT)
@@ -362,7 +363,8 @@ startup_SOURCES = startup/bspstart.c \
     ../../powerpc/shared/startup/sbrk.c ../../shared/bootcard.c \
     ../../shared/bsppredriverhook.c startup/bspclean.c \
     ../../shared/bsplibc.c ../../shared/bsppost.c \
-    ../../shared/gnatinstallhandler.c startup/reboot.c
+    ../../shared/gnatinstallhandler.c startup/reboot.c \
+    ../../powerpc/shared/startup/probeMemEnd.c
 
 pclock_SOURCES = ../../powerpc/shared/clock/p_clock.c
 include_bsp_HEADERS = ../../powerpc/shared/console/uart.h \
@@ -384,7 +386,7 @@ console_SOURCES = ../../powerpc/shared/console/uart.c \
 pci_SOURCES = pci/pci.c pci/pci_interface.c pci/detect_host_bridge.c \
     pci/pcifinddevice.c
 
-irq_SOURCES = irq/irq_init.c irq/irq.c 
+irq_SOURCES = irq/irq_init.c irq/BSP_irq.c 
 tod_SOURCES = ../../shared/tod.c tod/todcfg.c
 vectors_SOURCES = vectors/exceptionhandler.c \
     ../../powerpc/shared/start/vectors_entry.S	
@@ -524,6 +526,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BSP_irq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GT64260TWSI.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MVME5500I2C.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bootcard.Po@am__quote@
@@ -537,7 +540,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/detect_host_bridge.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exceptionhandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gnatinstallhandler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/irq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/irq_init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mvme5500start___OBJEXT_-preload.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mvme5500start___OBJEXT_-start.Po@am__quote@
@@ -551,6 +553,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pgtbl_activate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pgtbl_setup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pretaskinghook.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/probeMemEnd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sbrk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tod.Po@am__quote@
@@ -687,19 +690,19 @@ irq_init.obj: irq/irq_init.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o irq_init.obj `if test -f 'irq/irq_init.c'; then $(CYGPATH_W) 'irq/irq_init.c'; else $(CYGPATH_W) '$(srcdir)/irq/irq_init.c'; fi`
 
-irq.o: irq/irq.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT irq.o -MD -MP -MF $(DEPDIR)/irq.Tpo -c -o irq.o `test -f 'irq/irq.c' || echo '$(srcdir)/'`irq/irq.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/irq.Tpo $(DEPDIR)/irq.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='irq/irq.c' object='irq.o' libtool=no @AMDEPBACKSLASH@
+BSP_irq.o: irq/BSP_irq.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT BSP_irq.o -MD -MP -MF $(DEPDIR)/BSP_irq.Tpo -c -o BSP_irq.o `test -f 'irq/BSP_irq.c' || echo '$(srcdir)/'`irq/BSP_irq.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/BSP_irq.Tpo $(DEPDIR)/BSP_irq.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='irq/BSP_irq.c' object='BSP_irq.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o irq.o `test -f 'irq/irq.c' || echo '$(srcdir)/'`irq/irq.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o BSP_irq.o `test -f 'irq/BSP_irq.c' || echo '$(srcdir)/'`irq/BSP_irq.c
 
-irq.obj: irq/irq.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT irq.obj -MD -MP -MF $(DEPDIR)/irq.Tpo -c -o irq.obj `if test -f 'irq/irq.c'; then $(CYGPATH_W) 'irq/irq.c'; else $(CYGPATH_W) '$(srcdir)/irq/irq.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/irq.Tpo $(DEPDIR)/irq.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='irq/irq.c' object='irq.obj' libtool=no @AMDEPBACKSLASH@
+BSP_irq.obj: irq/BSP_irq.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT BSP_irq.obj -MD -MP -MF $(DEPDIR)/BSP_irq.Tpo -c -o BSP_irq.obj `if test -f 'irq/BSP_irq.c'; then $(CYGPATH_W) 'irq/BSP_irq.c'; else $(CYGPATH_W) '$(srcdir)/irq/BSP_irq.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/BSP_irq.Tpo $(DEPDIR)/BSP_irq.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='irq/BSP_irq.c' object='BSP_irq.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o irq.obj `if test -f 'irq/irq.c'; then $(CYGPATH_W) 'irq/irq.c'; else $(CYGPATH_W) '$(srcdir)/irq/irq.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o BSP_irq.obj `if test -f 'irq/BSP_irq.c'; then $(CYGPATH_W) 'irq/BSP_irq.c'; else $(CYGPATH_W) '$(srcdir)/irq/BSP_irq.c'; fi`
 
 pci.o: pci/pci.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pci.o -MD -MP -MF $(DEPDIR)/pci.Tpo -c -o pci.o `test -f 'pci/pci.c' || echo '$(srcdir)/'`pci/pci.c
@@ -924,6 +927,20 @@ reboot.obj: startup/reboot.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='startup/reboot.c' object='reboot.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o reboot.obj `if test -f 'startup/reboot.c'; then $(CYGPATH_W) 'startup/reboot.c'; else $(CYGPATH_W) '$(srcdir)/startup/reboot.c'; fi`
+
+probeMemEnd.o: ../../powerpc/shared/startup/probeMemEnd.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT probeMemEnd.o -MD -MP -MF $(DEPDIR)/probeMemEnd.Tpo -c -o probeMemEnd.o `test -f '../../powerpc/shared/startup/probeMemEnd.c' || echo '$(srcdir)/'`../../powerpc/shared/startup/probeMemEnd.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/probeMemEnd.Tpo $(DEPDIR)/probeMemEnd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../../powerpc/shared/startup/probeMemEnd.c' object='probeMemEnd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o probeMemEnd.o `test -f '../../powerpc/shared/startup/probeMemEnd.c' || echo '$(srcdir)/'`../../powerpc/shared/startup/probeMemEnd.c
+
+probeMemEnd.obj: ../../powerpc/shared/startup/probeMemEnd.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT probeMemEnd.obj -MD -MP -MF $(DEPDIR)/probeMemEnd.Tpo -c -o probeMemEnd.obj `if test -f '../../powerpc/shared/startup/probeMemEnd.c'; then $(CYGPATH_W) '../../powerpc/shared/startup/probeMemEnd.c'; else $(CYGPATH_W) '$(srcdir)/../../powerpc/shared/startup/probeMemEnd.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/probeMemEnd.Tpo $(DEPDIR)/probeMemEnd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../../powerpc/shared/startup/probeMemEnd.c' object='probeMemEnd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o probeMemEnd.obj `if test -f '../../powerpc/shared/startup/probeMemEnd.c'; then $(CYGPATH_W) '../../powerpc/shared/startup/probeMemEnd.c'; else $(CYGPATH_W) '$(srcdir)/../../powerpc/shared/startup/probeMemEnd.c'; fi`
 
 tod.o: ../../shared/tod.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tod.o -MD -MP -MF $(DEPDIR)/tod.Tpo -c -o tod.o `test -f '../../shared/tod.c' || echo '$(srcdir)/'`../../shared/tod.c

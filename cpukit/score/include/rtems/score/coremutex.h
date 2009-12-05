@@ -8,14 +8,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutex.h,v 1.36 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: coremutex.h,v 1.36.2.1 2009/05/28 20:38:22 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_COREMUTEX_H
@@ -257,8 +257,10 @@ typedef struct {
  *  @param[in] the_mutex_attributes is the attributes associated with this
  *         mutex instance
  *  @param[in] initial_lock is the initial value of the mutex
+ *
+ *  @return This method returns CORE_MUTEX_STATUS_SUCCESSFUL if successful.
  */
-void _CORE_mutex_Initialize(
+CORE_mutex_Status _CORE_mutex_Initialize(
   CORE_mutex_Control           *the_mutex,
   CORE_mutex_Attributes        *the_mutex_attributes,
   uint32_t                      initial_lock

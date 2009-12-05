@@ -1,9 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989, 1990, 1991, 1992, 1993, 1994, 1997.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
- * $Id: universe.c,v 1.8.4.1 2008/09/30 23:17:15 joel Exp $
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ * $Id: universe.c,v 1.8.4.2 2009/05/05 16:18:05 jennifer Exp $
  */
 
 #include <rtems.h>

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.38 2008/09/05 06:38:12 ralf Exp $
+ *  $Id: cpu.c,v 1.38.2.1 2009/11/10 04:03:39 strauman Exp $
  */
 
 #include <rtems.h>
@@ -170,6 +170,7 @@ static rtems_raw_irq_hdl tbl[] = {
 	 rtems_exception_prologue_12,
 	 rtems_exception_prologue_13,
 	 rtems_exception_prologue_14,
+     0,
 	 rtems_exception_prologue_16,
 	 rtems_exception_prologue_17,
 	 rtems_exception_prologue_18,

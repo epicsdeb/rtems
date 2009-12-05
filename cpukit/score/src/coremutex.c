@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutex.c,v 1.31 2008/07/29 02:21:15 ccj Exp $
+ *  $Id: coremutex.c,v 1.31.2.2 2009/05/28 20:38:22 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -42,7 +42,7 @@
  *  Output parameters:  NONE
  */
 
-void _CORE_mutex_Initialize(
+CORE_mutex_Status _CORE_mutex_Initialize(
   CORE_mutex_Control           *the_mutex,
   CORE_mutex_Attributes        *the_mutex_attributes,
   uint32_t                      initial_lock
@@ -63,8 +63,11 @@ void _CORE_mutex_Initialize(
     the_mutex->holder     = _Thread_Executing;
     the_mutex->holder_id  = _Thread_Executing->Object.id;
     if ( _CORE_mutex_Is_inherit_priority( &the_mutex->Attributes ) ||
-         _CORE_mutex_Is_priority_ceiling( &the_mutex->Attributes ) )
+         _CORE_mutex_Is_priority_ceiling( &the_mutex->Attributes ) ) {
       
+      if ( _Thread_Executing->current_priority < 
+             the_mutex->Attributes.priority_ceiling )
+       return CORE_MUTEX_STATUS_CEILING_VIOLATED;
 #ifdef __RTEMS_STRICT_ORDER_MUTEX__
        _Chain_Prepend_unprotected( &_Thread_Executing->lock_mutex,
                                    &the_mutex->queue.lock_queue );
@@ -72,6 +75,7 @@ void _CORE_mutex_Initialize(
 #endif
 
       _Thread_Executing->resource_count++;
+    }
   } else {
     the_mutex->nest_count = 0;
     the_mutex->holder     = NULL;
@@ -85,4 +89,6 @@ void _CORE_mutex_Initialize(
     STATES_WAITING_FOR_MUTEX,
     CORE_MUTEX_TIMEOUT
   );
+
+  return CORE_MUTEX_STATUS_SUCCESSFUL;
 }

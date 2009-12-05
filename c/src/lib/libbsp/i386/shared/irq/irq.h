@@ -15,7 +15,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq.h,v 1.11 2006/03/17 10:11:36 ralf Exp $
+ *  $Id: irq.h,v 1.11.6.1 2009/05/18 17:45:21 joel Exp $
  */
 
 #ifndef _IRQ_H_
@@ -31,6 +31,7 @@ extern "C" {
 
 #include <bsp/irq_asm.h>
 #include <rtems.h>
+#define BSP_SHARED_HANDLER_SUPPORT      1
 #include <rtems/irq.h>
 
 /*-------------------------------------------------------------------------+
@@ -46,7 +47,7 @@ extern "C" {
      * Interrupt offset in comparison to BSP_ASM_IRQ_VECTOR_BASE
      * NB : 1) Interrupt vector number in IDT = offset + BSP_ASM_IRQ_VECTOR_BASE
      * 	    2) The same name should be defined on all architecture
-     *	       so that handler connexion can be unchanged.
+     *	       so that handler connection can be unchanged.
      */
 #define BSP_PERIODIC_TIMER      0
 #define BSP_KEYBOARD          	1

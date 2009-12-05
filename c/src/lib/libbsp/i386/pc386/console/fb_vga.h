@@ -2,7 +2,7 @@
 #define __fbvga_drv__
 /***************************************************************************
  *
- * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/fb_vga.h,v 1.6 2006/03/17 10:11:36 ralf Exp $
+ * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/Attic/fb_vga.h,v 1.6 2006/03/17 10:11:36 ralf Exp $
  *
  * Copyright (c) 2000  -- Rosimildo da Silva.
  *

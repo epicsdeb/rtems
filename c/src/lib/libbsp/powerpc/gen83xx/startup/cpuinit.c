@@ -21,7 +21,7 @@
 \*===============================================================*/
 
 /*
- *  $Id: cpuinit.c,v 1.8 2008/08/26 11:55:31 thomas Exp $
+ *  $Id: cpuinit.c,v 1.8.2.1 2009/03/19 10:41:46 thomas Exp $
  */
 
 /***********************************************************************/
@@ -235,7 +235,7 @@ void cpu_init( void)
       (uint32_t) bsp_rom_start,
       (uint32_t) bsp_rom_size,
     #endif /* HAS_UBOOT */
-    false,
+    true,
     false,
     false,
     false,

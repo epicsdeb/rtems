@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  * 
- *  $Id: bspstart.c,v 1.49 2008/05/19 19:07:10 ericn Exp $
+ *  $Id: bspstart.c,v 1.49.2.4 2009/09/09 14:17:10 strauman Exp $
  */
 
 #include <bsp.h>
@@ -57,6 +57,20 @@
  * should be followed immediately by a NOP instruction.  This avoids the cache
  * corruption problem.
  * DATECODES AFFECTED: All
+ *
+ *
+ * Buffered writes must be disabled as described in "MCF5282 Chip Errata",
+ * MCF5282DE, Rev. 6, 5/2009:
+ *   SECF124: Buffered Write May Be Executed Twice 
+ *   Errata type: Silicon 
+ *   Affected component: Cache 
+ *   Description: If buffered writes are enabled using the CACR or ACR
+ *                registers, the imprecise write transaction generated
+ *                by a buffered write may be executed twice. 
+ *   Workaround: Do not enable buffered writes in the CACR or ACR registers: 
+ *               CACR[8] = DBWE (default buffered write enable) must be 0 
+ *               ACRn[5] = BUFW (buffered write enable) must be 0 
+ *   Fix plan: Currently, there are no plans to fix this. 
  */
 #define m68k_set_cacr_nop(_cacr) asm volatile ("movec %0,%%cacr\n\tnop" : : "d" (_cacr))
 #define m68k_set_cacr(_cacr) asm volatile ("movec %0,%%cacr" : : "d" (_cacr))
@@ -67,7 +81,7 @@
  * Read/write copy of cache registers
  *   Split instruction/data or instruction-only
  *   Allow CPUSHL to invalidate a cache line
- *   Enable buffered writes
+ *   Disable buffered writes
  *   No burst transfers on non-cacheable accesses
  *   Default cache mode is *disabled* (cache only ACRx areas)
  */
@@ -75,7 +89,6 @@ uint32_t mcf5282_cacr_mode = MCF5XXX_CACR_CENB |
 #ifndef RTEMS_MCF5282_BSP_ENABLE_DATA_CACHE
                              MCF5XXX_CACR_DISD |
 #endif
-                             MCF5XXX_CACR_DBWE |
                              MCF5XXX_CACR_DCM;
 uint32_t mcf5282_acr0_mode = 0;
 uint32_t mcf5282_acr1_mode = 0;
@@ -99,7 +112,7 @@ void _CPU_cache_enable_instruction(void)
 
     rtems_interrupt_disable(level);
     mcf5282_cacr_mode &= ~MCF5XXX_CACR_DIDI;
-    m68k_set_cacr(mcf5282_cacr_mode);
+    m68k_set_cacr_nop(mcf5282_cacr_mode | MCF5XXX_CACR_CINV | MCF5XXX_CACR_INVI);
     rtems_interrupt_enable(level);
 }
 
@@ -133,8 +146,8 @@ void _CPU_cache_enable_data(void)
     rtems_interrupt_level level;
 
     rtems_interrupt_disable(level);
-    mcf5282_cacr_mode &= ~MCF5XXX_CACR_CENB;
-    m68k_set_cacr(mcf5282_cacr_mode);
+    mcf5282_cacr_mode &= ~MCF5XXX_CACR_DISD;
+    m68k_set_cacr_nop(mcf5282_cacr_mode | MCF5XXX_CACR_CINV | MCF5XXX_CACR_INVD);
     rtems_interrupt_enable(level);
 #endif
 }
@@ -145,8 +158,7 @@ void _CPU_cache_disable_data(void)
     rtems_interrupt_level level;
 
     rtems_interrupt_disable(level);
-    rtems_interrupt_disable(level);
-    mcf5282_cacr_mode |= MCF5XXX_CACR_CENB;
+    mcf5282_cacr_mode |= MCF5XXX_CACR_DISD;
     m68k_set_cacr(mcf5282_cacr_mode);
     rtems_interrupt_enable(level);
 #endif
@@ -175,6 +187,8 @@ void _CPU_cache_invalidate_1_data_line(const void *addr)
  */
 void bsp_libc_init( void *, uint32_t, int );
 void bsp_pretasking_hook(void);         /* m68k version */
+
+extern void bsp_fake_syscall();
 
 /*
  * The Arcturus boot ROM prints exception information improperly
@@ -248,6 +262,13 @@ void bsp_start( void )
         if (i != (32+2)) /* Catch all but bootrom system calls */
             *((void (**)(int))(i * 4)) = handler;
 
+	/*
+	 * Qemu has no trap handler; install our fake syscall
+	 * implementation if there is no existing handler.
+	 */
+	if ( 0 == *((void (**)(int))((32+2) * 4)) )
+		*((void (**)(int))((32+2) * 4)) = bsp_fake_syscall;
+
   /*
    *  Need to "allocate" the memory for the RTEMS Workspace and
    *  tell the RTEMS configuration where it is.  This memory is
@@ -265,12 +286,16 @@ void bsp_start( void )
 
   /*
    * Cache SDRAM
+   * Enable buffered writes
+   * As Device Errata SECF124 notes this may cause double writes,
+   * but that's not really a big problem and benchmarking tests have
+   * shown that buffered writes do gain some performance.
    */
   mcf5282_acr0_mode = MCF5XXX_ACR_AB((uint32_t)_RamBase)     |
                       MCF5XXX_ACR_AM((uint32_t)_RamSize-1)   |
                       MCF5XXX_ACR_EN                         |
-                      MCF5XXX_ACR_BWE                        |
-                      MCF5XXX_ACR_SM_IGNORE;
+                      MCF5XXX_ACR_SM_IGNORE                  |
+                      MCF5XXX_ACR_BWE;
   m68k_set_acr0(mcf5282_acr0_mode);
 
   /*
@@ -402,6 +427,37 @@ syscall_1(int, setbenv, const char *, a)
 syscall_2(int, program, bsp_mnode_t *, chain, int, flags)
 syscall_3(int, flash_erase_range, volatile unsigned short *, flashptr, int, start, int, end);
 syscall_3(int, flash_write_range, volatile unsigned short *, flashptr, bsp_mnode_t *, chain, int, offset);
+
+/* Provide a dummy-implementation of these syscalls
+ * for qemu (which lacks the firmware).
+ */
+
+#define __STR(x)    #x
+#define __STRSTR(x) __STR(x)
+#define ERRVAL      __STRSTR(EACCES)
+
+/* reset-control register */
+#define RCR "__IPSBAR + 0x110000"
+
+asm(
+    "bsp_fake_syscall:         \n"
+    "   cmpl  #0,  %d0         \n" /* sysreset    */
+    "   bne   1f               \n"
+    "   moveb #0x80, %d0       \n"
+    "   moveb %d0, "RCR"       \n" /* reset-controller */
+        /* should never get here - but we'd return -EACCESS if we do */
+    "1:                        \n"
+    "   cmpl  #12, %d0         \n" /* gethwaddr   */
+    "   beq   2f               \n"
+    "   cmpl  #14, %d0         \n" /* getbenv     */
+    "   beq   2f               \n"
+    "   movel #-"ERRVAL", %d0  \n" /* return -EACCESS */
+    "   rte                    \n"
+    "2:                        \n"
+    "   movel #0,  %d0         \n" /* return NULL */
+    "   rte                    \n"
+);
+
 
 /*
  * 'Extended BSP' routines

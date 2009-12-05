@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: protectedheap.h,v 1.3 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: protectedheap.h,v 1.3.2.1 2009/05/13 16:48:22 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_PROTECTED_HEAP_H
@@ -185,8 +185,10 @@ bool _Protected_heap_Walk(
  *
  *  @param[in] the_heap pointer to heap header
  *  @param[in] the_info pointer to a status information area
+ *
+ *  @return true if successfully able to return information
  */
-void _Protected_heap_Get_information(
+bool _Protected_heap_Get_information(
   Heap_Control            *the_heap,
   Heap_Information_block  *the_info
 );
@@ -200,7 +202,7 @@ void _Protected_heap_Get_information(
  *
  *  @return free block information filled in.
  */
-void _Protected_heap_Get_free_information(
+bool _Protected_heap_Get_free_information(
   Heap_Control        *the_heap,
   Heap_Information    *info
 );

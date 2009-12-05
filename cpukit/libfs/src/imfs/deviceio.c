@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: deviceio.c,v 1.16.2.1 2009/03/09 14:12:58 joel Exp $
+ *  $Id: deviceio.c,v 1.16.2.2 2009/03/12 21:13:25 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -241,7 +241,7 @@ off_t device_lseek(
   int            whence
 )
 {
-  return 0;
+  return offset;
 }
 
 /*

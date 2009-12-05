@@ -1,14 +1,14 @@
 /*
  *  Workspace Handler
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: workspace.c,v 1.2 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: workspace.c,v 1.2.2.1 2009/05/13 16:48:22 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,6 +17,7 @@
 
 #include <rtems/system.h>
 #include <rtems/score/wkspace.h>
+#include <rtems/score/protectedheap.h>
 #include <rtems/score/interr.h>
 #include <rtems/config.h>
 
@@ -26,28 +27,40 @@ bool rtems_workspace_get_information(
   Heap_Information_block  *the_info
 )
 {
-  Heap_Get_information_status status;
-
-  status = _Heap_Get_information( &_Workspace_Area, the_info );
-  if ( status == HEAP_GET_INFORMATION_SUCCESSFUL )
-    return true;
-  else
+  if ( !the_info )
     return false;
+
+  return _Protected_heap_Get_information( &_Workspace_Area, the_info );
 }
 
 /*
  *  _Workspace_Allocate
  */
 bool rtems_workspace_allocate(
-  size_t   bytes,
-  void   **pointer
+  uintptr_t   bytes,
+  void      **pointer
 )
 {
-   *pointer =  _Heap_Allocate( &_Workspace_Area, bytes );
-   if (!pointer)
-     return false;
-   else
-     return true;
+  void *ptr;
+
+  /*
+   * check the arguments
+   */
+  if ( !pointer )
+    return false;
+
+  if ( !bytes )
+    return false;
+
+  /*
+   * Allocate the memory
+   */
+  ptr =  _Protected_heap_Allocate( &_Workspace_Area, (intptr_t) bytes );
+  if (!ptr)
+    return false;
+
+  *pointer = ptr;
+  return true;
 }
 
 /*
@@ -57,6 +70,6 @@ bool rtems_workspace_free(
   void *pointer
 )
 {
-   return _Heap_Free( &_Workspace_Area, pointer );
+   return _Protected_heap_Free( &_Workspace_Area, pointer );
 }
 

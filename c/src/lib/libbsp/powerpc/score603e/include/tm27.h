@@ -1,11 +1,14 @@
 /*
  *  tm27.h
  *
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tm27.h,v 1.4 2005/05/04 19:31:30 jennifer Exp $
+ *  $Id: tm27.h,v 1.4.6.1 2009/05/05 16:18:06 jennifer Exp $
  */
 
 #ifndef _RTEMS_TMTEST27
