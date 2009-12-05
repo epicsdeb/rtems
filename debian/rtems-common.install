@@ -1,0 +1,12 @@
+usr/share/doc/rtems-common
+usr/bin/cklength
+usr/bin/eolstrip
+usr/bin/install-if-change
+usr/bin/packhex
+usr/bin/rtems-bin2c
+usr/bin/unhex
+usr/make/README
+usr/make/*.cfg
+usr/make/compilers
+usr/make/Templates
+usr/make/custom/default.cfg

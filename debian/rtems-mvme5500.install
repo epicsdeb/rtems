@@ -1,0 +1,3 @@
+usr/make/custom/mvme5500.cfg
+usr/lib/pkgconfig/powerpc-rtems*-mvme5500.pc
+usr/powerpc-rtems*/mvme5500

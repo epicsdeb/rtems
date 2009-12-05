@@ -1,0 +1,3 @@
+usr/make/custom/mvme2100.cfg
+usr/lib/pkgconfig/powerpc-rtems*-mvme2100.pc
+usr/powerpc-rtems*/mvme2100

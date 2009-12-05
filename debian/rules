@@ -4,14 +4,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-ifeq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
-CFLAGS:=$(filter-out -g,$(CFLAGS))
-CXXFLAGS:=$(filter-out -g,$(CXXFLAGS))
-endif
-
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-MAKEFLAGS += -j$(NUMJOBS)
+BMAKEFLAGS += -j$(NUMJOBS)
 endif
 
 RTEMS_VER ?=4.9
@@ -35,13 +30,10 @@ CONFIG= --target=$(call DEB_TARGET_GNU_TYPE,$(1)) --build=$(DEB_BUILD_GNU_TYPE) 
 
 build-powerpc/config.status: configure
 	dh_testdir
-	# Add here commands to configure the package.
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+
 	cp -f /usr/share/misc/config.sub config.sub
-endif
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess
-endif
+
 	install -d build-powerpc
 	install -d build-i386
 	cd build-powerpc && ../configure $(call CONFIG,powerpc)
@@ -56,8 +48,8 @@ build-arch-stamp: build-powerpc/config.status
 
 	# Note: CFLAGS et all must be explicitly unset to avoid
 	#       clobbering the target CFLAGS
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386
 	touch $@
 
 clean: 
@@ -76,32 +68,7 @@ install-indep:
 	dh_testroot
 	dh_installdirs -i
 
-	# Add here commands to install the indep part of the package into
-	# debian/<package>-doc.
-	#INSTALLDOC#
-	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/rtems-common/usr/share/doc/rtems-common/
-	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/rtems-common/usr/share/doc/rtems-common/
-
-	dh_install -i
-
-base_prefix=$(CURDIR)/debian/rtems-common/usr
-arch_prefix=$(CURDIR)/debian/rtems-$(1)/usr
-bsp_prefix=$(CURDIR)/debian/rtems-$(1)/usr
-
-# move BSP specfic files
-#  usr/lib/pkgconfig/$(DEB_TARGET_GNU_TYPE)-mvme3100.pc
-#  usr/make/custom/mvme3100.pc
-#  usr/$(DEB_TARGET_GNU_TYPE)/mvme3100/
-# $(1) is arch (ie powerpc)
-# $(2) is bsp (ie mvme3100)
-define BSP_install
-install -d $(call bsp_prefix,$(2))/lib/pkgconfig;
-mv $(base_prefix)/lib/pkgconfig/$(1)-rtems$(RTEMS_VER)-$(2).pc $(call bsp_prefix,$(2))/lib/pkgconfig;
-install -d $(call bsp_prefix,$(2))/make/custom;
--mv $(base_prefix)/make/custom/$(2).cfg $(call bsp_prefix,$(2))/make/custom/;
-install -d $(call bsp_prefix,$(2))/$(1)-rtems$(RTEMS_VER)
-mv $(base_prefix)/$(1)-rtems$(RTEMS_VER)/$(2) $(call bsp_prefix,$(2))/$(1)-rtems$(RTEMS_VER);
-endef
+	dh_install -i --fail-missing
 
 install-arch:
 	dh_testdir
@@ -109,41 +76,21 @@ install-arch:
 	#dh_clean -k -s 
 	dh_installdirs -s
 
+	install -d $(CURDIR)/debian/tmp/usr/share/doc/rtems-common
+	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/tmp/usr/share/doc/rtems-common/
+	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/tmp/usr/share/doc/rtems-common/
+
 	#TODO: avoid duplication.
 
 	# powerpc
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/rtems-common install
-
-	rm -rf $(CURDIR)/debian/rtems/usr/share
-
-	install -d $(CURDIR)/debian/rtems-powerpc/usr/bin
-	mv $(CURDIR)/debian/rtems-common/usr/bin/powerpc-* $(CURDIR)/debian/rtems-powerpc/usr/bin/
-
-	$(foreach bsp,$(powerpc_BSPS),$(call BSP_install,powerpc,$(bsp)))
-
-	## Directories which should be empty now
-	#rmdir $(CURDIR)/debian/rtems/usr/$(call DEB_TARGET_GNU_TYPE,powerpc)
-	#rmdir $(CURDIR)/debian/rtems/usr/lib/pkgconfig
-	#rmdir $(CURDIR)/debian/rtems/usr/lib
-	rm -rf $(CURDIR)/debian/rtems-common
-
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
 
 	# i386
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/rtems-common install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/tmp install
 
-	rm -rf $(CURDIR)/debian/rtems-common/usr/share
+	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
-	install -d $(CURDIR)/debian/rtems-i386/usr/bin
-	mv $(CURDIR)/debian/rtems-common/usr/bin/i386-* $(CURDIR)/debian/rtems-i386/usr/bin/
-
-	$(foreach bsp,$(i386_BSPS),$(call BSP_install,i386,$(bsp)))
-
-	# Directories which should be empty now
-	rmdir $(CURDIR)/debian/rtems-common/usr/$(call DEB_TARGET_GNU_TYPE,i386)
-	rmdir $(CURDIR)/debian/rtems-common/usr/lib/pkgconfig
-	rmdir $(CURDIR)/debian/rtems-common/usr/lib
-
-	dh_install -s
+	dh_install -s --fail-missing
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
 # in another 'make' thread.
@@ -152,6 +99,7 @@ binary-common:
 	dh_testroot
 	dh_installchangelogs ChangeLog
 	dh_installdocs
+	dh_installdocs -A ChangeLog COPYING LICENSE* MAINTAINERS README* SUPPORT
 	dh_installexamples
 	dh_installman
 	dh_link
