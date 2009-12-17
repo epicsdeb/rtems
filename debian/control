@@ -10,7 +10,7 @@ Homepage: http://www.rtems.com
 Package: rtems-common
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: rtems (<< 4.9.3)
+Conflicts: rtems (<< 4.9.3), netatalk
 Description: Base RTEMS support
  Some base RTEMS binaries and documentation
 
