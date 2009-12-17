@@ -1,3 +1,10 @@
+rtems (4.9.2-4) unstable; urgency=low
+
+  * Note conflict between rtems-common an netatalk
+    Both provide the file /usr/bin/unhex
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Thu, 17 Dec 2009 16:35:41 -0500
+
 rtems (4.9.2-3) unstable; urgency=low
 
   * Rename base package to rtems-common
