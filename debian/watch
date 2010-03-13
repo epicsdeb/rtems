@@ -1,0 +1,3 @@
+version=3
+
+ftp://ftp.rtems.com/pub/rtems/releases/([\d\.]+)/rtems-([\d\.]+).tar.bz2
