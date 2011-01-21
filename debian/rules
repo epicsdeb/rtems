@@ -72,14 +72,12 @@ install-stamp:
 	dh install --before dh_auto_install
 
 	# powerpc
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
 
 	# i386
-	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-i386 DESTDIR=$(CURDIR)/debian/tmp install
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386 DESTDIR=$(CURDIR)/debian/tmp install
 
 	mv debian/tmp/usr/bin/bin2boot debian/tmp/usr/bin/i386-rtems4.9-bin2boot
-
-	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 

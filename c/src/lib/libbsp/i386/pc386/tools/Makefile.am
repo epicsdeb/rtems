@@ -11,23 +11,23 @@ EXTRA_DIST = Spec.doc
 # FIXME: The installation directory is arguable
 transform =
 bsptools_bindir = ${prefix}/bin
-bsptools_bin_PROGRAMS = bin2boot
+bsptools_bin_PROGRAMS = $(target_alias)-bin2boot
 
-bin2boot_SOURCES = bin2boot.c
+$(target_alias)-bin2boot_SOURCES = bin2boot.c
 
 ## HACK: install into build-tree
 all-local: $(TMPINSTALL_FILES)
 
 TMPINSTALL_FILES =
 
-$(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/$(dirstamp):
-	@$(MKDIR_P) $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools
-	@: > $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/$(dirstamp)
-TMPINSTALL_FILES += $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/$(dirstamp)
+$(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_ROOT)/@RTEMS_BSP@/bin
+	@: > $(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(dirstamp)
+TMPINSTALL_FILES += $(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(dirstamp)
 
-$(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/bin2boot$(EXEEXT): bin2boot$(EXEEXT) $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/$(dirstamp)
-	$(INSTALL_PROGRAM) $< $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/bin2boot$(EXEEXT)
-TMPINSTALL_FILES += $(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/bin2boot$(EXEEXT)
+$(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(target_alias)-bin2boot$(EXEEXT): bin2boot$(EXEEXT) $(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(dirstamp)
+	$(INSTALL_PROGRAM) $< $(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(target_alias)-bin2boot$(EXEEXT)
+TMPINSTALL_FILES += $(PROJECT_ROOT)/@RTEMS_BSP@/bin/$(target_alias)-bin2boot$(EXEEXT)
 
 CLEANFILES = $(TMPINSTALL_FILES)
 
