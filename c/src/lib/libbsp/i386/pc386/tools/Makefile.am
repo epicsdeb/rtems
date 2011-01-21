@@ -10,7 +10,7 @@ EXTRA_DIST = Spec.doc
 # to deal with it.
 # FIXME: The installation directory is arguable
 transform =
-bsptools_bindir = ${exec_prefix}/@RTEMS_BSP@/build-tools
+bsptools_bindir = ${prefix}/bin
 bsptools_bin_PROGRAMS = bin2boot
 
 bin2boot_SOURCES = bin2boot.c

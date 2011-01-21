@@ -211,7 +211,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I ../../../../../aclocal
 EXTRA_DIST = Spec.doc
-bsptools_bindir = ${exec_prefix}/@RTEMS_BSP@/build-tools
+bsptools_bindir = ${prefix}/bin
 bin2boot_SOURCES = bin2boot.c
 TMPINSTALL_FILES =  \
 	$(PROJECT_ROOT)/@RTEMS_BSP@/build-tools/$(dirstamp) \
