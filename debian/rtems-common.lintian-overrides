@@ -1,0 +1,4 @@
+rtems-common: non-standard-dir-in-usr
+rtems-common: file-in-unusual-dir
+# RTEMS apps expect to find everything under /usr
+# including /usr/make

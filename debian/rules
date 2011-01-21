@@ -41,46 +41,35 @@ build-powerpc/config.status: configure
 
 
 #Architecture
-build: build-arch
+build: build-pre build-target build-post
 
-build-arch: build-arch-stamp
-build-arch-stamp: build-powerpc/config.status 
+build-pre:
+	dh build --before dh_auto_configure
+
+build-target: build-target-powerpc build-target-i386
+
+build-target-%: build-%/config.status
+	dh_testdir
 
 	# Note: CFLAGS et all must be explicitly unset to avoid
 	#       clobbering the target CFLAGS
-	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc
-	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-$*
 	touch $@
 
+build-post:
+	dh build --after dh_auto_test
+
 clean: 
-	dh_testdir
-	dh_testroot
-	rm -f build-arch-stamp build-indep-stamp 
+	rm -f build-target-* install-stamp
 
 	rm -rf build-powerpc build-i386
 	rm -f config.sub config.guess
 
-	dh_clean 
+	dh clean
 
-install: install-indep install-arch
-install-indep:
-	dh_testdir
-	dh_testroot
-	dh_installdirs -i
-
-	dh_install -i --fail-missing
-
-install-arch:
-	dh_testdir
-	dh_testroot
-	#dh_clean -k -s 
-	dh_installdirs -s
-
-	install -d $(CURDIR)/debian/tmp/usr/share/doc/rtems-common
-	install ChangeLog COPYING LICENSE* $(CURDIR)/debian/tmp/usr/share/doc/rtems-common/
-	install MAINTAINERS README* SUPPORT $(CURDIR)/debian/tmp/usr/share/doc/rtems-common/
-
-	#TODO: avoid duplication.
+install: build install-stamp
+install-stamp:
+	dh install --before dh_auto_install
 
 	# powerpc
 	env -u CFLAGS -u CXXFLAGS $(MAKE) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
@@ -90,35 +79,16 @@ install-arch:
 
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
-	dh_install -s --fail-missing
-# Must not depend on anything. This is to be called by
-# binary-arch/binary-indep
-# in another 'make' thread.
-binary-common:
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs ChangeLog
-	dh_installdocs
-	dh_installdocs -A ChangeLog COPYING LICENSE* MAINTAINERS README* SUPPORT
-	dh_installexamples
-	dh_installman
-	dh_link
-	#dh_strip
-	dh_compress
-	dh_fixperms
-	dh_makeshlibs
-	dh_installdeb
-	#dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-# Build architecture independant packages using the common target.
-binary-indep: install-indep
-	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
-# Build architecture dependant packages using the common target.
-binary-arch: build-arch install-arch
-	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+	dh install --after dh_auto_install
+	touch $@
+
+binary-arch: install
+	dh binary-arch
+
+binary-indep: install
+	dh binary-indep
 
 binary: binary-arch binary-indep
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 

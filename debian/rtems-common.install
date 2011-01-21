@@ -1,4 +1,3 @@
-usr/share/doc/rtems-common
 usr/bin/cklength
 usr/bin/eolstrip
 usr/bin/install-if-change
