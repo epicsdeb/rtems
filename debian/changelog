@@ -1,3 +1,9 @@
+rtems (4.10.2-1) unstable; urgency=low
+
+  * New RTEMS version
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Fri, 14 Sep 2012 10:52:45 -0400
+
 rtems (4.9.3-3) unstable; urgency=low
 
   * Fix problem with bin2boot truncating its output
