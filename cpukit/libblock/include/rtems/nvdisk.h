@@ -7,7 +7,7 @@
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.com/license/LICENSE.
  *
- * $Id: nvdisk.h,v 1.2 2008/07/29 02:21:14 ccj Exp $
+ * $Id: nvdisk.h,v 1.5 2010/05/22 16:51:05 ralf Exp $
  */
 
 /**
@@ -31,7 +31,7 @@
 /**
  * The base name of the nv disks.
  */
-#define RTEMS_NVDISK_DEVICE_BASE_NAME "/dev/nvdisk"
+#define RTEMS_NVDISK_DEVICE_BASE_NAME "/dev/nvd"
 
 /**
  * NV disk specific ioctl request types. To use open the
@@ -58,7 +58,7 @@
 #define RTEMS_NVDISK_IOCTL_PRINT_STATUS _IO('B', 131)
 
 /**
- * NV Disk Monitoring Data allows a user to obtain 
+ * NV Disk Monitoring Data allows a user to obtain
  * the current status of the disk.
  */
 typedef struct rtems_nvdisk_monitor_data
@@ -89,7 +89,7 @@ typedef struct rtems_nvdisk_driver_handlers
   /**
    * Read data from the device into the buffer. Return an errno
    * error number if the data cannot be read.
-   * 
+   *
    * @param device The device to read data from.
    * @param flags Device specific flags for the driver.
    * @param base The base address of the device.
@@ -99,13 +99,13 @@ typedef struct rtems_nvdisk_driver_handlers
    * @retval 0 No error.
    * @retval EIO The read did not complete.
    */
-  int (*read) (uint32_t device, uint32_t flags, uint32_t base, 
-               uint32_t offset, void* buffer, uint32_t size);
+  int (*read) (uint32_t device, uint32_t flags, void* base,
+               uint32_t offset, void* buffer, size_t size);
 
   /**
    * Write data from the buffer to the device. Return an errno
    * error number if the device cannot be written to.
-   * 
+   *
    * @param device The device to write data to.
    * @param flags Device specific flags for the driver.
    * @param base The base address of the device.
@@ -115,13 +115,13 @@ typedef struct rtems_nvdisk_driver_handlers
    * @retval 0 No error.
    * @retval EIO The write did not complete or verify.
    */
-  int (*write) (uint32_t device, uint32_t flags, uint32_t base, 
-                uint32_t offset, const void* buffer, uint32_t size);
+  int (*write) (uint32_t device, uint32_t flags, void* base,
+                uint32_t offset, const void* buffer, size_t size);
 
   /**
    * Verify data in the buffer to the data in the device. Return an
    * errno error number if the device cannot be read or the data verified.
-   * 
+   *
    * @param device The device to verify the data with.
    * @param flags Device specific flags for the driver.
    * @param base The base address of the device.
@@ -131,8 +131,8 @@ typedef struct rtems_nvdisk_driver_handlers
    * @retval 0 No error.
    * @retval EIO The data did not verify.
    */
-  int (*verify) (uint32_t device, uint32_t flags, uint32_t base,
-                 uint32_t offset, const void* buffer, uint32_t size);
+  int (*verify) (uint32_t device, uint32_t flags, void* base,
+                 uint32_t offset, const void* buffer, size_t size);
 
 } rtems_nvdisk_driver_handlers;
 
@@ -148,7 +148,7 @@ typedef struct rtems_nvdisk_driver_handlers
 typedef struct rtems_nvdisk_device_desc
 {
   uint32_t                            flags;  /**< Private user flags. */
-  uint32_t                            base;   /**< Base address of the device. */
+  void*                               base;   /**< Base address of the device. */
   uint32_t                            size;   /**< Size of the device. */
   const rtems_nvdisk_driver_handlers* nv_ops; /**< Device handlers. */
 } rtems_nvdisk_device_desc;

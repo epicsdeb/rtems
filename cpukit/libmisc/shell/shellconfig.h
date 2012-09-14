@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: shellconfig.h,v 1.16 2008/08/07 02:23:11 ccj Exp $
+ *  $Id: shellconfig.h,v 1.27 2010/05/31 13:56:37 ccj Exp $
  */
 
 #ifndef _RTEMS_SHELL_CONFIG_h
@@ -21,7 +21,11 @@
  */
 extern rtems_shell_cmd_t rtems_shell_HELP_Command;
 extern rtems_shell_cmd_t rtems_shell_ALIAS_Command;
+extern rtems_shell_cmd_t rtems_shell_TIME_Command;
 extern rtems_shell_cmd_t rtems_shell_LOGOFF_Command;
+extern rtems_shell_cmd_t rtems_shell_SETENV_Command;
+extern rtems_shell_cmd_t rtems_shell_GETENV_Command;
+extern rtems_shell_cmd_t rtems_shell_UNSETENV_Command;
 
 extern rtems_shell_cmd_t rtems_shell_MDUMP_Command;
 extern rtems_shell_cmd_t rtems_shell_WDUMP_Command;
@@ -46,25 +50,34 @@ extern rtems_shell_cmd_t rtems_shell_RMDIR_Command;
 extern rtems_shell_cmd_t rtems_shell_CHROOT_Command;
 extern rtems_shell_cmd_t rtems_shell_CHMOD_Command;
 extern rtems_shell_cmd_t rtems_shell_CAT_Command;
+extern rtems_shell_cmd_t rtems_shell_MKRFS_Command;
 extern rtems_shell_cmd_t rtems_shell_MSDOSFMT_Command;
+extern rtems_shell_cmd_t rtems_shell_MSDOSFMT_Alias;
 extern rtems_shell_cmd_t rtems_shell_MV_Command;
 extern rtems_shell_cmd_t rtems_shell_RM_Command;
+extern rtems_shell_cmd_t rtems_shell_LN_Command;
+extern rtems_shell_cmd_t rtems_shell_MKNOD_Command;
 extern rtems_shell_cmd_t rtems_shell_UMASK_Command;
 extern rtems_shell_cmd_t rtems_shell_MOUNT_Command;
 extern rtems_shell_cmd_t rtems_shell_UNMOUNT_Command;
 extern rtems_shell_cmd_t rtems_shell_BLKSYNC_Command;
+extern rtems_shell_cmd_t rtems_shell_FDISK_Command;
+extern rtems_shell_cmd_t rtems_shell_DD_Command;
+extern rtems_shell_cmd_t rtems_shell_HEXDUMP_Command;
+extern rtems_shell_cmd_t rtems_shell_DEBUGRFS_Command;
 
+extern rtems_shell_cmd_t rtems_shell_RTC_Command;
+
+extern rtems_shell_cmd_t rtems_shell_HALT_Command;
 extern rtems_shell_cmd_t rtems_shell_CPUUSE_Command;
 extern rtems_shell_cmd_t rtems_shell_STACKUSE_Command;
 extern rtems_shell_cmd_t rtems_shell_PERIODUSE_Command;
 extern rtems_shell_cmd_t rtems_shell_WKSPACE_INFO_Command;
 extern rtems_shell_cmd_t rtems_shell_MALLOC_INFO_Command;
 #if RTEMS_NETWORKING
-  #if defined(CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING)
-    extern rtems_shell_cmd_t rtems_shell_IFCONFIG_Command;
-    extern rtems_shell_cmd_t rtems_shell_ROUTE_Command;
-    extern rtems_shell_cmd_t rtems_shell_NETSTATS_Command;
-  #endif
+  extern rtems_shell_cmd_t rtems_shell_IFCONFIG_Command;
+  extern rtems_shell_cmd_t rtems_shell_ROUTE_Command;
+  extern rtems_shell_cmd_t rtems_shell_NETSTATS_Command;
 #endif
 
 extern rtems_shell_cmd_t *rtems_shell_Initial_commands[];
@@ -77,16 +90,6 @@ extern rtems_shell_alias_t rtems_shell_CD_Alias;
 extern rtems_shell_alias_t rtems_shell_EXIT_Alias;
 
 extern rtems_shell_alias_t *rtems_shell_Initial_aliases[];
-
-/*
- *  Externs for mount command helpers
- */
-extern rtems_shell_filesystems_t rtems_shell_Mount_MSDOS;
-extern rtems_shell_filesystems_t rtems_shell_Mount_TFTP;
-extern rtems_shell_filesystems_t rtems_shell_Mount_FTP;
-extern rtems_shell_filesystems_t rtems_shell_Mount_NFS;
-
-extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
 
 /*
  *  If we are configured to alias a command, then make sure the underlying
@@ -143,6 +146,7 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
      */
     &rtems_shell_HELP_Command,
     &rtems_shell_ALIAS_Command,
+    &rtems_shell_TIME_Command,
 
     /*
      *  Common commands that can be optional
@@ -186,6 +190,21 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
          !defined(CONFIGURE_SHELL_NO_COMMAND_LOGOFF)) || \
         defined(CONFIGURE_SHELL_COMMAND_LOGOFF)
       &rtems_shell_LOGOFF_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_SETENV)) || \
+        defined(CONFIGURE_SHELL_COMMAND_SETENV)
+      &rtems_shell_SETENV_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_GETENV)) || \
+        defined(CONFIGURE_SHELL_COMMAND_GETENV)
+      &rtems_shell_GETENV_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_CRLENV)) || \
+        defined(CONFIGURE_SHELL_COMMAND_UNSETENV)
+      &rtems_shell_UNSETENV_Command,
     #endif
 
     /*
@@ -266,9 +285,15 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
       &rtems_shell_CAT_Command,
     #endif
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_MKRFS)) || \
+        defined(CONFIGURE_SHELL_COMMAND_MKRFS)
+      &rtems_shell_MKRFS_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
          !defined(CONFIGURE_SHELL_NO_COMMAND_MSDOSFMT)) || \
         defined(CONFIGURE_SHELL_COMMAND_MSDOSFMT)
       &rtems_shell_MSDOSFMT_Command,
+      &rtems_shell_MSDOSFMT_Alias,
     #endif
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
          !defined(CONFIGURE_SHELL_NO_COMMAND_MV)) || \
@@ -279,6 +304,16 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
          !defined(CONFIGURE_SHELL_NO_COMMAND_RM)) || \
         defined(CONFIGURE_SHELL_COMMAND_RM)
       &rtems_shell_RM_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_LN)) || \
+        defined(CONFIGURE_SHELL_COMMAND_LN)
+      &rtems_shell_LN_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_MKNOD)) || \
+        defined(CONFIGURE_SHELL_COMMAND_MKNOD)
+      &rtems_shell_MKNOD_Command,
     #endif
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
          !defined(CONFIGURE_SHELL_NO_COMMAND_UMASK)) || \
@@ -300,10 +335,35 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
         defined(CONFIGURE_SHELL_COMMAND_BLKSYNC)
       &rtems_shell_BLKSYNC_Command,
     #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_FDISK)) || \
+        defined(CONFIGURE_SHELL_COMMAND_FDISK)
+      &rtems_shell_FDISK_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_DD)) || \
+        defined(CONFIGURE_SHELL_COMMAND_DD)
+      &rtems_shell_DD_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_HEXDUMP)) || \
+        defined(CONFIGURE_SHELL_COMMAND_HEXDUMP)
+      &rtems_shell_HEXDUMP_Command,
+    #endif
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_DEBUGRFS)) || \
+        defined(CONFIGURE_SHELL_COMMAND_DEBUGRFS)
+      &rtems_shell_DEBUGRFS_Command,
+    #endif
 
     /*
      *  RTEMS Related commands
      */
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_HALT)) || \
+        defined(CONFIGURE_SHELL_COMMAND_HALT)
+      &rtems_shell_HALT_Command,
+    #endif
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
          !defined(CONFIGURE_SHELL_NO_COMMAND_CPUUSE)) || \
         defined(CONFIGURE_SHELL_COMMAND_CPUUSE)
@@ -320,17 +380,16 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
       &rtems_shell_PERIODUSE_Command,
     #endif
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
-         !defined(CONFIGURE_SHELL_COMMAND_WKSPACE_INFO)) || \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_WKSPACE_INFO)) || \
         defined(CONFIGURE_SHELL_COMMAND_WKSPACE_INFO)
       &rtems_shell_WKSPACE_INFO_Command,
     #endif
-
 
     /*
      *  Malloc family commands
      */
     #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
-         !defined(CONFIGURE_SHELL_COMMAND_MALLOC_INFO)) || \
+         !defined(CONFIGURE_SHELL_NO_COMMAND_MALLOC_INFO)) || \
         defined(CONFIGURE_SHELL_COMMAND_MALLOC_INFO)
       &rtems_shell_MALLOC_INFO_Command,
     #endif
@@ -340,22 +399,29 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
      */
     #if RTEMS_NETWORKING
       #if (defined(CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING) && \
-           !defined(CONFIGURE_SHELL_COMMAND_IFCONFIG)) || \
+           !defined(CONFIGURE_SHELL_NO_COMMAND_IFCONFIG)) || \
           defined(CONFIGURE_SHELL_COMMAND_IFCONFIG)
         &rtems_shell_IFCONFIG_Command,
       #endif
 
       #if (defined(CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING) && \
-           !defined(CONFIGURE_SHELL_COMMAND_ROUTE)) || \
+           !defined(CONFIGURE_SHELL_NO_COMMAND_ROUTE)) || \
           defined(CONFIGURE_SHELL_COMMAND_ROUTE)
         &rtems_shell_ROUTE_Command,
       #endif
 
       #if (defined(CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING) && \
-           !defined(CONFIGURE_SHELL_COMMAND_NETSTATS)) || \
+           !defined(CONFIGURE_SHELL_NO_COMMAND_NETSTATS)) || \
           defined(CONFIGURE_SHELL_COMMAND_NETSTATS)
         &rtems_shell_NETSTATS_Command,
       #endif
+    #endif
+
+    /* Miscanellous shell commands */
+    #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) \
+          && !defined(CONFIGURE_SHELL_NO_COMMAND_RTC)) \
+        || defined(CONFIGURE_SHELL_COMMAND_RTC)
+      &rtems_shell_RTC_Command,
     #endif
 
     /*
@@ -366,31 +432,6 @@ extern rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[];
     #endif
     NULL
   };
-
-  /*
-   * The mount command's support file system types.
-   */
-  #if (defined(CONFIGURE_SHELL_COMMANDS_ALL) && \
-       !defined(CONFIGURE_SHELL_COMMAND_MOUNT)) || \
-       defined(CONFIGURE_SHELL_COMMAND_UNMOUNT)
-    rtems_shell_filesystems_t *rtems_shell_Mount_filesystems[] = {
-      #if defined(CONFIGURE_SHELL_MOUNT_MSDOS)
-        &rtems_shell_Mount_MSDOS,
-      #endif
-      #if RTEMS_NETWORKING
-        #if defined(CONFIGURE_SHELL_MOUNT_TFTP)
-          &rtems_shell_Mount_TFTP,
-        #endif
-        #if defined(CONFIGURE_SHELL_MOUNT_FTP)
-          &rtems_shell_Mount_FTP,
-        #endif
-        #if defined(CONFIGURE_SHELL_MOUNT_NFS)
-          &rtems_shell_Mount_NFS,
-        #endif
-      #endif
-      NULL
-    };
-  #endif
 
 #endif
 

@@ -13,16 +13,16 @@
  *     + initialize the RTEMS executive
  *     + shutdown the RTEMS executive
  */
- 
+
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.h,v 1.17 2008/05/12 18:40:59 joel Exp $
+ *  $Id: init.h,v 1.19 2009/11/29 13:51:52 ralf Exp $
  */
 
 #ifndef _RTEMS_INIT_H
@@ -52,9 +52,7 @@ extern const rtems_multiprocessing_table
  *  that involves initializing data structures to a state that scheduling
  *  can occur in a consistent manner.
  */
-void rtems_initialize_data_structures(
-  rtems_configuration_table *configuration_table
-);
+void rtems_initialize_data_structures(void);
 
 /**
  *  @brief rtems_initialize_before_drivers

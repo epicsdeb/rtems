@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup ScoreProtHeap
+ *
+ * @brief Protected Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapgetfreeinfo.c,v 1.1.4.1 2009/05/13 16:48:22 joel Exp $
+ *  $Id: pheapgetfreeinfo.c,v 1.3 2009/09/06 15:24:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H

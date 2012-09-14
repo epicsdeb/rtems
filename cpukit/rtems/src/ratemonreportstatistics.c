@@ -1,14 +1,14 @@
 /*
  *  Rate Monotonic Manager -- Report Statistics for All Periods
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemonreportstatistics.c,v 1.6 2007/12/14 17:37:12 joel Exp $
+ *  $Id: ratemonreportstatistics.c,v 1.12 2009/12/02 18:22:18 humph Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -21,11 +21,9 @@
 #include <inttypes.h>
 
 #include <rtems/bspIo.h>
+#include <rtems/score/timespec.h>
 
-#if defined(RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS) || \
-    defined(RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS)
-  #include <rtems/score/timespec.h>
-
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
   /* We print to 1/10's of milliseconds */
   #define NANOSECONDS_DIVIDER 1000
   #define PERCENT_FMT     "%04" PRId32
@@ -55,12 +53,10 @@ void rtems_rate_monotonic_report_statistics_with_plugin(
     return;
 
   (*print)( context, "Period information by period\n" );
-#if defined(RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS)
-  (*print)( context, "--- CPU times are in seconds ---\n" );
-#endif
-#if defined(RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS)
-  (*print)( context, "--- Wall times are in seconds ---\n" );
-#endif
+  #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+    (*print)( context, "--- CPU times are in seconds ---\n" );
+    (*print)( context, "--- Wall times are in seconds ---\n" );
+  #endif
 /*
 Layout by columns -- in memory of Hollerith :)
 
@@ -75,28 +71,22 @@ ididididid NNNN ccccc mmmmmm X
 \n");
 */
   (*print)( context, "   ID     OWNER COUNT MISSED     "
-       #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+       #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
           "     "
        #endif
           "CPU TIME     "
-       #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-          "    "
-       #endif
-       #ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
-          "      "
+       #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+          "          "
        #endif
           "   WALL TIME\n"
   );
   (*print)( context, "                               "
-       #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+       #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
           "     "
        #endif
           "MIN/MAX/AVG    "
-       #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-          "    "
-       #endif
-       #ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
-          "      "
+       #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+          "          "
        #endif
           "  MIN/MAX/AVG\n"
   );
@@ -111,7 +101,7 @@ ididididid NNNN ccccc mmmmmm X
     status = rtems_rate_monotonic_get_statistics( id, &the_stats );
     if ( status != RTEMS_SUCCESSFUL )
       continue;
-    
+
     /* If the above passed, so should this but check it anyway */
     status = rtems_rate_monotonic_get_status( id, &the_status );
     #if defined(RTEMS_DEBUG)
@@ -119,16 +109,11 @@ ididididid NNNN ccccc mmmmmm X
         continue;
     #endif
 
-    name[ 0 ] = '\0';
-
-    if ( the_status.owner ) {
-      rtems_object_get_name( the_status.owner, sizeof(name), name );
-    }
+    rtems_object_get_name( the_status.owner, sizeof(name), name );
 
     /*
-     *  Print part of report line that is not dependent on granularity 
+     *  Print part of report line that is not dependent on granularity
      */
-
     (*print)( context,
       "0x%08" PRIx32 " %4s %5" PRId32 " %6" PRId32 " ",
       id, name,
@@ -138,7 +123,6 @@ ididididid NNNN ccccc mmmmmm X
     /*
      *  If the count is zero, don't print statistics
      */
-
     if (the_stats.count == 0) {
       (*print)( context, "\n" );
       continue;
@@ -148,24 +132,23 @@ ididididid NNNN ccccc mmmmmm X
      *  print CPU Usage part of statistics
      */
     {
-    #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-      struct timespec   cpu_average;
+    #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+      struct timespec  cpu_average;
+      struct timespec *min_cpu = &the_stats.min_cpu_time;
+      struct timespec *max_cpu = &the_stats.max_cpu_time;
+      struct timespec *total_cpu = &the_stats.total_cpu_time;
 
-      _Timespec_Divide_by_integer(
-         &the_stats.total_cpu_time,
-         the_stats.count,
-         &cpu_average
-      );
+      _Timespec_Divide_by_integer( total_cpu, the_stats.count, &cpu_average );
       (*print)( context,
         "%" PRId32 "."  NANOSECONDS_FMT "/"        /* min cpu time */
         "%" PRId32 "."  NANOSECONDS_FMT "/"        /* max cpu time */
         "%" PRId32 "."  NANOSECONDS_FMT " ",       /* avg cpu time */
-        the_stats.min_cpu_time.tv_sec, 
-          the_stats.min_cpu_time.tv_nsec / NANOSECONDS_DIVIDER,
-        the_stats.max_cpu_time.tv_sec,
-          the_stats.max_cpu_time.tv_nsec / NANOSECONDS_DIVIDER,
-        cpu_average.tv_sec,
-          cpu_average.tv_nsec / NANOSECONDS_DIVIDER
+        _Timespec_Get_seconds( min_cpu ),
+	  _Timespec_Get_nanoseconds( min_cpu ) / NANOSECONDS_DIVIDER,
+        _Timespec_Get_seconds( max_cpu ),
+	  _Timespec_Get_nanoseconds( max_cpu ) / NANOSECONDS_DIVIDER,
+        _Timespec_Get_seconds( &cpu_average ),
+	  _Timespec_Get_nanoseconds( &cpu_average ) / NANOSECONDS_DIVIDER
        );
     #else
       uint32_t ival_cpu, fval_cpu;
@@ -182,26 +165,26 @@ ididididid NNNN ccccc mmmmmm X
     }
 
     /*
-     *  print Wall time part of statistics
+     *  print wall time part of statistics
      */
     {
-    #ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
+    #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
       struct timespec  wall_average;
-      _Timespec_Divide_by_integer(
-         &the_stats.total_wall_time,
-         the_stats.count,
-         &wall_average
-      );
+      struct timespec *min_wall = &the_stats.min_wall_time;
+      struct timespec *max_wall = &the_stats.max_wall_time;
+      struct timespec *total_wall = &the_stats.total_wall_time;
+
+      _Timespec_Divide_by_integer(total_wall, the_stats.count, &wall_average);
       (*print)( context,
         "%" PRId32 "." NANOSECONDS_FMT "/"        /* min wall time */
         "%" PRId32 "." NANOSECONDS_FMT "/"        /* max wall time */
         "%" PRId32 "." NANOSECONDS_FMT "\n",      /* avg wall time */
-        the_stats.min_wall_time.tv_sec, 
-          the_stats.min_wall_time.tv_nsec / NANOSECONDS_DIVIDER,
-        the_stats.max_wall_time.tv_sec,
-          the_stats.max_wall_time.tv_nsec / NANOSECONDS_DIVIDER,
-        wall_average.tv_sec,
-          wall_average.tv_nsec / NANOSECONDS_DIVIDER
+        _Timespec_Get_seconds( min_wall ),
+          _Timespec_Get_nanoseconds( min_wall ) / NANOSECONDS_DIVIDER,
+        _Timespec_Get_seconds( max_wall ),
+          _Timespec_Get_nanoseconds( max_wall ) / NANOSECONDS_DIVIDER,
+        _Timespec_Get_seconds( &wall_average ),
+          _Timespec_Get_nanoseconds( &wall_average ) / NANOSECONDS_DIVIDER
       );
     #else
       uint32_t  ival_wall, fval_wall;

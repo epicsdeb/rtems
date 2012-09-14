@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_rmnod.c,v 1.15 2008/07/03 01:37:38 ccj Exp $
+ *  $Id: imfs_rmnod.c,v 1.16 2009/06/12 01:53:33 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -31,7 +31,8 @@
  */
 
 int IMFS_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+  rtems_filesystem_location_info_t  *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t  *pathloc         /* IN */
 )
 {
   IMFS_jnode_t *the_jnode;

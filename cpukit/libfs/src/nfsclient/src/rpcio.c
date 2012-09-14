@@ -1,4 +1,4 @@
-/* $Id: rpcio.c,v 1.4 2008/09/05 13:42:31 joel Exp $ */
+/* $Id: rpcio.c,v 1.13.2.1 2010/06/18 10:00:46 ralf Exp $ */
 
 /* RPC multiplexor for a multitasking environment */
 
@@ -6,7 +6,7 @@
 
 /* This code funnels arbitrary task's UDP/RPC requests
  * through one socket to arbitrary servers.
- * The replies are gathered and dispatched to the 
+ * The replies are gathered and dispatched to the
  * requestors.
  * One task handles all the sending and receiving
  * work including retries.
@@ -15,20 +15,20 @@
  * of the results (except for the RPC header which
  * is handled by the daemon).
  */
- 
-/* 
+
+/*
  * Authorship
  * ----------
  * This software (NFS-2 client implementation for RTEMS) was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2002-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The NFS-2 client implementation for RTEMS was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -37,18 +37,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -57,9 +57,15 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <inttypes.h>
 
 #include <rtems.h>
 #include <rtems/error.h>
@@ -100,7 +106,7 @@
 						 *  into different areas of the data.
 						 *
 						 * If undefined, the regular 'sendto()'
-						 *  interface is used. 
+						 *  interface is used.
 						 */
 
 #undef REJECT_SERVERIP_MISMATCH
@@ -136,7 +142,7 @@ static struct timeval _rpc_default_timeout = { 10 /* secs */, 0 /* usecs */ };
  * thread doing RPC IO (e.g. NFS)
  */
 #define RTEMS_RPC_EVENT		RTEMS_EVENT_30	/* THE event used by RPCIO. Every task doing
-											 * RPC IO will receive this - hence it is 
+											 * RPC IO will receive this - hence it is
 											 * RESERVED
 											 */
 #define RPCIOD_RX_EVENT		RTEMS_EVENT_1	/* Events the RPCIOD is using/waiting for */
@@ -284,7 +290,7 @@ typedef struct RpcUdpServerRec_ {
 } RpcUdpServerRec;
 
 typedef union  RpcBufU_ {
-		u_long				xid;
+		uint32_t			xid;
 		char				buf[1];
 } RpcBufU, *RpcBuf;
 
@@ -347,7 +353,7 @@ typedef struct RpcUdpXactPoolRec_ {
  * objects are registered.
  * A number of bits in a transaction's XID maps 1:1 to
  * an index in this table. Hence, the XACT matching
- * an RPC/UDP reply packet can quickly be found 
+ * an RPC/UDP reply packet can quickly be found
  * The size of this table imposes a hard limit on the
  * number of all created transactions in the system.
  */
@@ -387,8 +393,10 @@ static rtems_id			rpciod  = 0;		/* task id of the RPC daemon                 */
 static rtems_id			msgQ    = 0;		/* message queue where the daemon picks up
 											 * requests
 											 */
+#ifndef NDEBUG
 static rtems_id			llock	= 0;		/* MUTEX protecting the server list */
 static rtems_id			hlock	= 0;		/* MUTEX protecting the hash table and the list of servers */
+#endif
 static rtems_id			fini	= 0;		/* a synchronization semaphore we use during
 											 * module cleanup / driver unloading
 											 */
@@ -481,10 +489,10 @@ bool_t rval;
 enum clnt_stat
 rpcUdpServerCreate(
 	struct sockaddr_in	*paddr,
-	int					prog,
-	int					vers,
-	u_long				uid,
-	u_long				gid,
+	rpcprog_t		prog,
+	rpcvers_t		vers,
+	u_long			uid,
+	u_long			gid,
 	RpcUdpServer		*psrv
 	)
 {
@@ -542,7 +550,7 @@ struct pmap		pmaparg;
 		/* dont use non-reentrant pmap_getport ! */
 
 		pmap_err = rpcUdpCallRp(
-						paddr, 
+						paddr,
 						PMAPPROG,
 						PMAPVERS,
 						PMAPPROC_GETPORT,
@@ -564,7 +572,7 @@ struct pmap		pmaparg;
 
 	if (0==paddr->sin_port) {
 			return RPC_PROGNOTREGISTERED;
-	} 
+	}
 
 	rval       			= (RpcUdpServer)MY_MALLOC(sizeof(*rval));
 	memset(rval, 0, sizeof(*rval));
@@ -576,7 +584,7 @@ struct pmap		pmaparg;
 	/* start with a long retransmission interval - it
 	 * will be adapted dynamically
 	 */
-	rval->retry_period  = RPCIOD_RETX_CAP_S * ticksPerSec; 
+	rval->retry_period  = RPCIOD_RETX_CAP_S * ticksPerSec;
 
 	rval->auth 			= auth;
 
@@ -670,7 +678,7 @@ register int	i,j;
 	rval = (RpcUdpXact)MY_CALLOC(1,sizeof(*rval) - sizeof(rval->obuf) + size);
 
 	if (rval) {
-	
+
 		header.rm_xid             = 0;
 		header.rm_direction       = CALL;
 		header.rm_call.cb_rpcvers = RPC_MSG_VERSION;
@@ -683,12 +691,12 @@ register int	i,j;
 			return 0;
 		}
 		/* pick a free table slot and initialize the XID */
-		rval->obuf.xid = time(0) ^ (unsigned long)rval;
+		rval->obuf.xid = time(0) ^ (uintptr_t)rval;
 		MU_LOCK(hlock);
-		rval->obuf.xid = (xidHashSeed++ ^ ((unsigned long)rval>>10)) & XACT_HASH_MSK;
+		rval->obuf.xid = (xidHashSeed++ ^ ((uintptr_t)rval>>10)) & XACT_HASH_MSK;
 		i=j=(rval->obuf.xid & XACT_HASH_MSK);
 		if (msgQ) {
-			/* if there's no message queue, refuse to 
+			/* if there's no message queue, refuse to
 			 * give them transactions; we might be in the process to
 			 * go away...
 			 */
@@ -896,7 +904,7 @@ rtems_event_set		gotEvents;
 #ifndef MBUF_RX
 	xact->ibufsize = 0;
 #endif
-	
+
 	if (refresh && locked_refresh(xact->server)) {
 		rtems_task_ident(RTEMS_SELF, RTEMS_WHO_AM_I, &xact->requestor);
 		if ( rtems_message_queue_send(msgQ, &xact, sizeof(xact)) ) {
@@ -917,9 +925,10 @@ rtems_event_set		gotEvents;
  * be more efficient
  */
 static void
-rxWakeupCB(struct socket *sock, caddr_t arg)
+rxWakeupCB(struct socket *sock, void *arg)
 {
-rtems_event_send((rtems_id)arg, RPCIOD_RX_EVENT);
+  rtems_id *rpciod = (rtems_id*) arg;
+  rtems_event_send(*rpciod, RPCIOD_RX_EVENT);
 }
 
 int
@@ -941,8 +950,7 @@ struct sockwakeup	wkup;
 			s = ioctl(ourSock, FIONBIO, (char*)&noblock);
 			assert( s == 0 );
 			/* assume nobody tampers with the clock !! */
-			status = rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticksPerSec);
-			assert( status == RTEMS_SUCCESSFUL );
+			ticksPerSec = rtems_clock_get_ticks_per_second();
 			MU_CREAT( &hlock );
 			MU_CREAT( &llock );
 
@@ -963,7 +971,7 @@ struct sockwakeup	wkup;
 			assert( status == RTEMS_SUCCESSFUL );
 
 			wkup.sw_pfn = rxWakeupCB;
-			wkup.sw_arg = (caddr_t)rpciod;
+			wkup.sw_arg = &rpciod;
 			assert( 0==setsockopt(ourSock, SOL_SOCKET, SO_RCVWAKEUP, &wkup, sizeof(wkup)) );
 			status = rtems_message_queue_create(
 											rtems_build_name('R','P','C','q'),
@@ -1015,12 +1023,12 @@ rpcUdpCleanup(void)
  */
 enum clnt_stat
 rpcUdpClntCreate(
-		struct sockaddr_in *psaddr,
-		int					prog,
-		int					vers,
-		u_long				uid,
-		u_long				gid,
-		RpcUdpClnt			*pclnt
+		struct sockaddr_in	*psaddr,
+		rpcprog_t		prog,
+		rpcvers_t		vers,
+		u_long			uid,
+		u_long			gid,
+		RpcUdpClnt		*pclnt
 )
 {
 RpcUdpXact		x;
@@ -1037,7 +1045,7 @@ enum clnt_stat	err;
 	/* TODO: could maintain a server cache */
 
 	x->server = s;
-	
+
 	*pclnt = x;
 
 	return RPC_SUCCESS;
@@ -1133,7 +1141,7 @@ nodeAppend(ListNode l, ListNode n)
 		n->next->prev = n;
 	l->next = n;
 	n->prev = l;
-	
+
 }
 
 /* this code does the work */
@@ -1149,21 +1157,20 @@ rtems_event_set   events;
 ListNode          newList;
 size_t            size;
 rtems_id          q          =  0;
-ListNodeRec       listHead   = {0};
+ListNodeRec       listHead   = {0, 0};
 unsigned long     epoch      = RPCIOD_EPOCH_SECS * ticksPerSec;
 unsigned long			max_period = RPCIOD_RETX_CAP_S * ticksPerSec;
 rtems_status_code	status;
 
 
-	status = rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &then );
-	assert( status == RTEMS_SUCCESSFUL );
+        then = rtems_clock_get_ticks_since_boot();
 
 	for (next_retrans = epoch;;) {
 
 		if ( RTEMS_SUCCESSFUL !=
 			 (stat = rtems_event_receive(
 						RPCIOD_RX_EVENT | RPCIOD_TX_EVENT | RPCIOD_KILL_EVENT,
-						RTEMS_WAIT | RTEMS_EVENT_ANY, 
+						RTEMS_WAIT | RTEMS_EVENT_ANY,
 						next_retrans,
 						&events)) ) {
 			ASSERT( RTEMS_TIMEOUT == stat );
@@ -1199,8 +1206,7 @@ rtems_status_code	status;
 			}
 		}
 
-		status = rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &unow );
-		assert( status == RTEMS_SUCCESSFUL );
+        	unow = rtems_clock_get_ticks_since_boot();
 
 		/* measure everything relative to then to protect against
 		 * rollover
@@ -1319,13 +1325,13 @@ rtems_status_code	status;
 									__FILE__,
 									__LINE__,
 									xact->requestor);
-					}	
+					}
 
 				} else {
 					int len;
 
 					len = (int)XDR_GETPOS(&xact->xdrs);
-				
+
 #ifdef MBUF_TX
 					xact->refcnt = 1;	/* sendto itself */
 #endif
@@ -1441,7 +1447,7 @@ rtems_status_code	status;
 				 * respect to 'then' - hence:
 				 *
 				 * abs_age == old_age + old_then == new_age + new_then
-				 * 
+				 *
 				 * ==> new_age = old_age + old_then - new_then == old_age - 'now'
 				 */
 				((RpcUdpXact)n)->age  -= now;
@@ -1511,7 +1517,7 @@ rtems_status_code	status;
 
 RpcUdpXactPool
 rpcUdpXactPoolCreate(
-	int prog, 		int version,
+	rpcprog_t prog, 		rpcvers_t version,
 	int xactsize,	int poolsize)
 {
 RpcUdpXactPool	rval = MY_MALLOC(sizeof(*rval));
@@ -1594,7 +1600,6 @@ RpcUdpXactPool pool;
  *             the RTEMS/BSDNET headers redefine those :-(
  */
 
-#define KERNEL
 #define _KERNEL
 #include <sys/mbuf.h>
 
@@ -1645,7 +1650,7 @@ int        len  = (int)XDR_GETPOS(&xact->xdrs);
  * The semantics of the 'pibuf' pointer are
  * as follows:
  *
- * MBUF_RX: 
+ * MBUF_RX:
  *
  */
 
@@ -1655,7 +1660,7 @@ static RpcUdpXact
 sockRcv(void)
 {
 int					len,i;
-u_long				xid;
+uint32_t				xid;
 union {
 	struct sockaddr_in	sin;
 	struct sockaddr     sa;
@@ -1740,9 +1745,9 @@ RpcUdpXact			xact     = 0;
 #endif
 			} else {
 			fprintf(stderr,"RPCIO WARNING sockRcv(): transaction mismatch\n");
-			fprintf(stderr,"xact: xid  0x%08lx  -- got 0x%08lx\n",
+			fprintf(stderr,"xact: xid  0x%08" PRIx32 "  -- got 0x%08" PRIx32 "\n",
 							xact->obuf.xid, xid);
-			fprintf(stderr,"xact: addr 0x%08lx  -- got 0x%08lx\n",
+			fprintf(stderr,"xact: addr 0x%08" PRIx32 "  -- got 0x%08" PRIx32 "\n",
 							xact->server->addr.sin.sin_addr.s_addr,
 							fromAddr.sin.sin_addr.s_addr);
 			fprintf(stderr,"xact: port 0x%08x  -- got 0x%08x\n",
@@ -1751,7 +1756,7 @@ RpcUdpXact			xact     = 0;
 			}
 		} else {
 			fprintf(stderr,
-					"RPCIO WARNING sockRcv(): got xid 0x%08lx but its slot is empty\n",
+					"RPCIO WARNING sockRcv(): got xid 0x%08" PRIx32 " but its slot is empty\n",
 					xid);
 		}
 		/* forget about this one and try again */

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: newlibc_init.c,v 1.1 2008/08/18 15:43:45 joel Exp $
+ *  $Id: newlibc_init.c,v 1.3 2009/11/29 13:35:32 ralf Exp $
  *
  */
 
@@ -17,26 +17,11 @@
 #include "config.h"
 #endif
 
-#define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
-#include <rtems.h>
-
 #if defined(RTEMS_NEWLIB)
-#include <rtems/libcsupport.h>
-
-/* Since we compile with strict ANSI we need to undef it to get
- * prototypes for extensions
- */
-#undef __STRICT_ANSI__
-
-#include <stdlib.h>             /* for free() */
-#include <string.h>             /* for memset() */
-
-#include <sys/reent.h>          /* for extern of _REENT (aka _impure_ptr) */
-#include <errno.h>
 
 /*
  *  Init libc for CYGNUS newlib
- * 
+ *
  *  Set up _REENT to use our global libc_global_reent.
  *  (newlib provides a global of its own, but we prefer our own name for it)
  *
@@ -48,14 +33,9 @@
  */
 
 
-struct _reent    libc_global_reent
-    __ATTRIBUTE_IMPURE_PTR__ = _REENT_INIT(libc_global_reent);
 void
 libc_init(void)
 {
-  _REENT = &libc_global_reent;
-
-  _Thread_Set_libc_reent (&_REENT);
 }
 
 #endif

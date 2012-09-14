@@ -28,6 +28,11 @@ $(PROJECT_INCLUDE)/$(dirstamp):
 	@: > $(PROJECT_INCLUDE)/$(dirstamp)
 PREINSTALL_DIRS += $(PROJECT_INCLUDE)/$(dirstamp)
 
+$(PROJECT_INCLUDE)/bsp/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
+	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+
 $(PROJECT_LIB)/bsp_specs: bsp_specs $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/bsp_specs
 PREINSTALL_FILES += $(PROJECT_LIB)/bsp_specs
@@ -44,22 +49,29 @@ $(PROJECT_INCLUDE)/bspopts.h: include/bspopts.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bspopts.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bspopts.h
 
+$(PROJECT_INCLUDE)/bsp/bootcard.h: ../../shared/include/bootcard.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/bootcard.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/bootcard.h
+
 $(PROJECT_INCLUDE)/coverhd.h: ../../shared/include/coverhd.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/coverhd.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/coverhd.h
-
-$(PROJECT_INCLUDE)/bsp/$(dirstamp):
-	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
-	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 
 $(PROJECT_LIB)/linkcmds: startup/linkcmds $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds
 PREINSTALL_FILES += $(PROJECT_LIB)/linkcmds
 
-$(PROJECT_INCLUDE)/bsp/pci.h: ../../powerpc/shared/pci/pci.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/pci.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/pci.h
+$(PROJECT_LIB)/start.$(OBJEXT): start.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_LIB)/start.$(OBJEXT)
+TMPINSTALL_FILES += $(PROJECT_LIB)/start.$(OBJEXT)
+
+$(PROJECT_LIB)/rtems_crti.$(OBJEXT): rtems_crti.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
+TMPINSTALL_FILES += $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
+
+$(PROJECT_INCLUDE)/bsp/uart.h: ../../powerpc/shared/console/uart.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/uart.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/uart.h
 
 $(PROJECT_INCLUDE)/bsp/motorola.h: ../../powerpc/shared/motorola/motorola.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/motorola.h
@@ -81,25 +93,21 @@ $(PROJECT_INCLUDE)/bsp/rsPMCQ1.h: console/rsPMCQ1.h $(PROJECT_INCLUDE)/bsp/$(dir
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/rsPMCQ1.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/rsPMCQ1.h
 
-$(PROJECT_INCLUDE)/bsp/irq.h: irq/irq.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+$(PROJECT_INCLUDE)/bsp/openpic.h: ../../powerpc/shared/openpic/openpic.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/openpic.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/openpic.h
+
+$(PROJECT_INCLUDE)/bsp/pci.h: ../../powerpc/shared/pci/pci.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/pci.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/pci.h
+
+$(PROJECT_INCLUDE)/bsp/irq.h: ../../powerpc/shared/irq/irq.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq.h
-
-$(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h: ../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/ppc_exc_bspsupp.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h
-
-$(PROJECT_INCLUDE)/bsp/vectors.h: ../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/vectors.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/vectors.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/vectors.h
 
 $(PROJECT_INCLUDE)/bsp/irq_supp.h: ../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/irq_supp.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq_supp.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq_supp.h
-
-$(PROJECT_INCLUDE)/bsp/openpic.h: ../../powerpc/shared/openpic/openpic.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/openpic.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/openpic.h
 
 $(PROJECT_INCLUDE)/bsp/vmeUniverse.h: ../../shared/vmeUniverse/vmeUniverse.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/vmeUniverse.h
@@ -128,12 +136,4 @@ PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/bspVmeDmaList.h
 $(PROJECT_INCLUDE)/bsp/VMEDMA.h: ../../shared/vmeUniverse/VMEDMA.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/VMEDMA.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/VMEDMA.h
-
-$(PROJECT_LIB)/start.$(OBJEXT): start.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_LIB)/start.$(OBJEXT)
-TMPINSTALL_FILES += $(PROJECT_LIB)/start.$(OBJEXT)
-
-$(PROJECT_LIB)/rtems_crti.$(OBJEXT): rtems_crti.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
-TMPINSTALL_FILES += $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
 

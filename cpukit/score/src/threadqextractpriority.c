@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqextractpriority.c,v 1.8 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: threadqextractpriority.c,v 1.10 2008/12/31 03:36:04 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -35,7 +35,7 @@
  *  Input parameters:
  *    the_thread_queue - pointer to a threadq header
  *    the_thread       - pointer to a thread control block
- *    requeuing        - TRUE if requeuing and should not alter timeout or state
+ *    requeuing        - true if requeuing and should not alter timeout or state
  *
  *  Output parameters: NONE
  *
@@ -44,7 +44,7 @@
  */
 
 void _Thread_queue_Extract_priority_helper(
-  Thread_queue_Control *the_thread_queue,
+  Thread_queue_Control *the_thread_queue __attribute__((unused)),
   Thread_Control       *the_thread,
   bool                  requeuing
 )

@@ -31,12 +31,13 @@
  */
 
 /*
- * $Id: route.h,v 1.7 2007/03/25 05:29:54 ralf Exp $
+ * $Id: route.h,v 1.8 2008/12/11 17:28:33 ralf Exp $
  */
 
 #ifndef _NET_ROUTE_H_
 #define _NET_ROUTE_H_
 
+#include <sys/socket.h> /* struct sockaddr */
 /*
  * Kernel resident routing tables.
  *

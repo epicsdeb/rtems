@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.12 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.13 2009/07/20 01:01:34 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -69,7 +69,7 @@ rtems_task Init(
      Task_name[ 1 ],
      1,
      RTEMS_MINIMUM_STACK_SIZE * 2,
-     RTEMS_TIMESLICE,
+     RTEMS_PREEMPT|RTEMS_TIMESLICE,
      RTEMS_DEFAULT_ATTRIBUTES,
      &Task_id[ 1 ]
   );
@@ -79,7 +79,7 @@ rtems_task Init(
      Task_name[ 2 ],
      1,
      RTEMS_MINIMUM_STACK_SIZE * 2,
-     RTEMS_TIMESLICE,
+     RTEMS_PREEMPT|RTEMS_TIMESLICE,
      RTEMS_DEFAULT_ATTRIBUTES,
      &Task_id[ 2 ]
   );
@@ -89,7 +89,7 @@ rtems_task Init(
      Task_name[ 3 ],
      1,
      RTEMS_MINIMUM_STACK_SIZE * 2,
-     RTEMS_TIMESLICE,
+     RTEMS_PREEMPT|RTEMS_TIMESLICE,
      RTEMS_DEFAULT_ATTRIBUTES,
      &Task_id[ 3 ]
   );

@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup ScoreProtHeap
+ *
+ * @brief Protected Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapwalk.c,v 1.3 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: pheapwalk.c,v 1.5 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,7 +36,7 @@ bool _Protected_heap_Walk(
    * If we are called from within a dispatching critical section,
    * then it is forbidden to lock a mutex.  But since we are inside
    * a critical section, it should be safe to walk it unlocked.
-   * 
+   *
    * NOTE: Dispatching is also disabled during initialization.
    */
   if ( !_Thread_Dispatch_disable_level ) {

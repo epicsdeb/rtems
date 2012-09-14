@@ -8,19 +8,19 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task3.c,v 1.8 2007/05/11 19:44:17 joel Exp $
+ *  $Id: task3.c,v 1.10 2009/10/30 11:09:13 ralf Exp $
  */
 
 #include "system.h"
 
-void Task_3()
+void Task_3(void)
 {
   rtems_status_code status;
   int               i;
@@ -43,7 +43,7 @@ void Task_3()
      */
 
     puts( "TA3 - rtems_task_wake_after - sleep 1 second" );
-    status = rtems_task_wake_after( TICKS_PER_SECOND );
+    status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after in TA3" );
   }
 

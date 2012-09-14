@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tget_blf.c,v 1.1 2007/04/17 20:32:13 joel Exp $
+ *  $Id: tget_blf.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,9 +22,9 @@
  */
 
 ER tget_blf(
-  VP *p_blf,
-  ID  mpfid,
-  TMO tmout
+  VP *p_blf __attribute__((unused)),
+  ID  mpfid __attribute__((unused)),
+  TMO tmout __attribute__((unused))
 )
 {
   return E_OK;

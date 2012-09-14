@@ -17,7 +17,7 @@
  *
  * http://www.rtems.com/license/LICENSE.
  *
- *  $Id: linkcmds.flash,v 1.7 2008/03/03 23:06:26 joel Exp $
+ *  $Id: linkcmds.flash,v 1.8 2008/09/16 22:16:04 joel Exp $
  */
 
 /*
@@ -31,7 +31,7 @@
  * A heap size of 0 means "Use all available memory for the heap".
  * Initial stack located in on-chip SRAM and not declared there.
  */
-_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x0;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
 
 /*
  * Declare system clock frequency.
@@ -69,8 +69,8 @@ SECTIONS
    * Dynamic RAM
    */
   ram : {
-          _RamBase = .;
-          __RamBase = .;
+          RamBase = .;
+          RamBase = .;
   } >ram 
 
   /*
@@ -167,8 +167,8 @@ SECTIONS
     
     clear_end = .;
 
-    _WorkspaceBase = .;
-    __WorkspaceBase = .;
+    WorkAreaBase = .;
+    WorkAreaBase = .;
 
   } > ram
 

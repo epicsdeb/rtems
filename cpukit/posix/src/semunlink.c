@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semunlink.c,v 1.13 2007/12/17 16:19:14 joel Exp $
+ *  $Id: semunlink.c,v 1.14 2009/02/03 10:10:57 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -58,7 +58,7 @@ int sem_unlink(
     _Objects_Get_index( the_semaphore_id )
   );
 
-  the_semaphore->linked = FALSE;
+  the_semaphore->linked = false;
   _POSIX_Semaphore_Namespace_remove( the_semaphore );
   _POSIX_Semaphore_Delete( the_semaphore );
 

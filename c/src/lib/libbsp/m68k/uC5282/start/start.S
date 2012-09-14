@@ -14,7 +14,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.4 2007/03/12 11:18:23 joel Exp $
+ *  $Id: start.S,v 1.7 2010/04/08 13:20:20 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -298,9 +298,9 @@ Entry:
  */
 .align 4
     PUBLIC (_uhoh)
-SYM(_uhoh): 
+SYM(_uhoh):
     nop                 | Leave spot for breakpoint
-    stop    #0x2700             | Stop with interrupts disabled 
+    stop    #0x2700             | Stop with interrupts disabled
     bra.w   SYM(_uhoh)          | Stuck forever
 
 .align 4
@@ -336,16 +336,16 @@ vectcpy:
     move.l a0@+,a1@+       | Copy the vector table
     sub.l  #1,d0
     bne.s  vectcpy
-     
+
     /*
      * Remainder of the startup code is handled by C code
      */
     jmp SYM(Init5282)       | Start C code (which never returns)
-    
+
 /***************************************************************************
    Function : CopyDataClearBSSAndStart
 
-   Description : Copy DATA segment, Copy SRAM segment, clear BSS segment, 
+   Description : Copy DATA segment, Copy SRAM segment, clear BSS segment,
    start C program. Assume that DATA and BSS sizes are multiples of 4.
  ***************************************************************************/
 .align 4
@@ -354,7 +354,7 @@ vectcpy:
 SYM(CopyDataClearBSSAndStart):
     lea SYM(_data_dest_start),a0        | Get start of DATA in RAM
     lea SYM(_data_src_start),a2     | Get start of DATA in ROM
-        sub.l   #SYM(_header_offset),a2          | Change source by the amount of the header offset 
+        sub.l   #SYM(_header_offset),a2          | Change source by the amount of the header offset
     cmpl    a0,a2                   | Are they the same?
     beq.s   NODATACOPY              | Yes, no copy necessary
     lea SYM(_data_dest_end),a1      | Get end of DATA in RAM
@@ -365,7 +365,7 @@ DATACOPYLOOPTEST:
     cmpl    a1,a0                   | Done?
     bcs.s   DATACOPYLOOP                | No, skip
 NODATACOPY:
-        
+
 /* Now, clear BSS */
         lea _clear_start,a0     | Get start of BSS
     lea _clear_end,a1       | Get end of BSS
@@ -382,18 +382,14 @@ ZEROLOOPTEST:
      * Right : Now we're ready to boot RTEMS
      */
     clrl    d0          | Pass in null to all boot_card() params
-    movel   d0,a7@-         | environp
-    movel   d0,a7@-         | argv
-    movel   d0,a7@-         | argc
+    movel   d0,a7@-         | command line
     jsr SYM(boot_card)      | Call C boot_card function to startup RTEMS
-        movel   a7@+,d0
-        movel   a7@+,d0
-        movel   a7@+,d0
+    movel   a7@+,d0
 MULTI_TASK_EXIT:
-        nop
-        nop
-        trap    #14
-        bra     MULTI_TASK_EXIT      
+    nop
+    nop
+    trap    #14
+    bra     MULTI_TASK_EXIT
 
 
 END_CODE

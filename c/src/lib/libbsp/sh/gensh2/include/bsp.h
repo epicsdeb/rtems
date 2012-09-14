@@ -30,7 +30,7 @@
  *  developmental purposes without any warranty nor representation
  *  by the authors or by TGA Technologies.
  *
- *  $Id: bsp.h,v 1.20 2007/12/11 15:48:17 joel Exp $
+ *  $Id: bsp.h,v 1.23 2009/08/17 21:18:51 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -45,6 +45,8 @@ extern "C" {
 #include <rtems/console.h>
 
 #include <bspopts.h>
+
+#define BSP_SMALL_MEMORY 1
 
 #if 0
 #include <rtems/devnull.h>
@@ -76,35 +78,12 @@ extern "C" {
  * Defined in the linker script 'linkcmds'
  */
 
-extern uint32_t         HeapStart ;
-extern uint32_t         HeapEnd ;
-extern uint32_t         WorkSpaceStart ;
-extern uint32_t         WorkSpaceEnd ;
-
 extern void *CPU_Interrupt_stack_low ;
 extern void *CPU_Interrupt_stack_high ;
-
-/* miscellaneous stuff assumed to exist */
-
-extern void bsp_cleanup( void );
 
 /*
  *  Device Driver Table Entries
  */
-
-/*
- * We redefine CONSOLE_DRIVER_TABLE_ENTRY to redirect /dev/console
- *
- * FIXME: Since console driver works properly this is not
- * necessary. When enabled - causes error in console_initialize.
- */
-#if 0
-#undef CONSOLE_DRIVER_TABLE_ENTRY
-#define CONSOLE_DRIVER_TABLE_ENTRY \
-  BSP_CONSOLE_DRIVER_TABLE_ENTRY, \
-  { console_initialize, console_open, console_close, \
-      console_read, console_write, console_control }
-#endif
 
 /*
  * NOTE: Use the standard Clock driver entry

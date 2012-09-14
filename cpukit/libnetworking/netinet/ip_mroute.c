@@ -9,8 +9,12 @@
  * Modified by Bill Fenner, PARC, April 1995
  *
  * MROUTING Revision: 3.5
- * $Id: ip_mroute.c,v 1.6 2008/09/01 06:36:17 ralf Exp $
+ * $Id: ip_mroute.c,v 1.8 2010/03/28 05:47:49 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_mrouting.h"
 
@@ -22,7 +26,7 @@
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/protosw.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/kernel.h>
 #include <sys/ioctl.h>

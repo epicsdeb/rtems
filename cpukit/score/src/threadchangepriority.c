@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Change Priority
  *
- *
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadchangepriority.c,v 1.11 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: threadchangepriority.c,v 1.12.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,7 +39,7 @@
  *  Input parameters:
  *    the_thread   - pointer to thread control block
  *    new_priority - ultimate priority
- *    prepend_it   - TRUE if the thread should be prepended to the chain
+ *    prepend_it   - true if the thread should be prepended to the chain
  *
  *  Output parameters:  NONE
  *
@@ -70,7 +69,7 @@ void _Thread_Change_priority(
   if ( prepend_it &&
        _Thread_Is_executing( the_thread ) &&
        new_priority >= the_thread->current_priority )
-    prepend_it = TRUE;
+    prepend_it = true;
 */
 
   /*
@@ -137,6 +136,6 @@ void _Thread_Change_priority(
 
   if ( !_Thread_Is_executing_also_the_heir() &&
        _Thread_Executing->is_preemptible )
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
   _ISR_Enable( level );
 }

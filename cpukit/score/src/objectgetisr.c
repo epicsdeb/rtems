@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectgetisr.c,v 1.6 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: objectgetisr.c,v 1.7 2009/01/05 20:09:02 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -61,14 +61,7 @@ Objects_Control *_Objects_Get_isr_disable(
   uint32_t         index;
   ISR_Level        level;
 
-#if defined(RTEMS_MULTIPROCESSING)
   index = id - information->minimum_id + 1;
-#else
-  /* index = _Objects_Get_index( id ); */
-  index = id & 0x0000ffff;
-  /* This should work but doesn't always :( */
-  /* index = (uint16_t  ) id; */
-#endif
 
   _ISR_Disable( level );
   if ( information->maximum >= index ) {

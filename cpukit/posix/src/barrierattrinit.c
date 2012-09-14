@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: barrierattrinit.c,v 1.2 2007/12/17 16:19:13 joel Exp $
+ *  $Id: barrierattrinit.c,v 1.3 2009/02/03 10:10:42 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,7 @@ int pthread_barrierattr_init(
   if ( !attr )
     return EINVAL;
 
-  attr->is_initialized = TRUE;
+  attr->is_initialized = true;
   attr->process_shared = PTHREAD_PROCESS_PRIVATE;
   return 0;
 }

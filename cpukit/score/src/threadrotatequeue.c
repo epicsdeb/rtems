@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadrotatequeue.c,v 1.6 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: threadrotatequeue.c,v 1.7 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -38,7 +38,7 @@
  *  remove the running THREAD from the ready chain
  *  and place it immediatly at the rear of this chain.  Reset timeslice
  *  and yield the processor functions both use this routine, therefore if
- *  reset is TRUE and this is the only thread on the chain then the
+ *  reset is true and this is the only thread on the chain then the
  *  timeslice counter is reset.  The heir THREAD will be updated if the
  *  running is also the currently the heir.
  *
@@ -84,7 +84,7 @@ void _Thread_Rotate_Ready_Queue(
     _Thread_Heir = (Thread_Control *) ready->first;
 
   if ( executing != _Thread_Heir )
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
 
   _ISR_Enable( level );
 }

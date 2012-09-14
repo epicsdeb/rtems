@@ -31,8 +31,12 @@
  */
 
 /*
- * $Id: if.c,v 1.7 2007/05/10 05:12:54 ralf Exp $
+ * $Id: if.c,v 1.10 2010/05/29 04:35:29 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
@@ -44,7 +48,7 @@
 #include <sys/protosw.h>
 #include <sys/kernel.h>
 #include <sys/ioctl.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/syslog.h>
 #include <sys/sysctl.h>
 
@@ -130,7 +134,7 @@ if_attach(struct ifnet *ifp)
 	 * create a Link Level name for this device
 	 */
 	namelen = sprintf(workbuf, "%s%d", ifp->if_name, ifp->if_unit);
-#define _offsetof(t, m) ((int)((caddr_t)&((t *)0)->m))
+#define _offsetof(t, m) ((uintptr_t)((void*)&((t *)0)->m))
 	masklen = _offsetof(struct sockaddr_dl, sdl_data[0]) + namelen;
 	socksize = masklen + ifp->if_addrlen;
 #define ROUNDUP(a) (1 + (((a) - 1) | (sizeof(long) - 1)))

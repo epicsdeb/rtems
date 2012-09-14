@@ -1,4 +1,4 @@
-## $Id: check-rtems-debug.m4,v 1.2.6.1 2009/04/02 11:50:31 ralf Exp $
+## $Id: check-rtems-debug.m4,v 1.3 2009/04/02 11:49:51 ralf Exp $
 
 AC_DEFUN([RTEMS_CHECK_RTEMS_DEBUG],
 [AC_REQUIRE([RTEMS_ENABLE_RTEMS_DEBUG])

@@ -7,7 +7,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bsp.h,v 1.19.2.1 2008/10/23 13:45:54 ericn Exp $
+ * $Id: bsp.h,v 1.24.2.1 2011/05/18 05:08:36 strauman Exp $
  */
 #ifndef _BSP_H
 #define _BSP_H
@@ -22,13 +22,7 @@
 
 /*
  *  confdefs.h overrides for this BSP:
- *   - termios serial ports (defaults to 1)
- *   - Interrupt stack space is not minimum if defined.
  */
-
-#if !defined(mvme2100)
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
-#endif
 
 /*
  * diagram illustrating the role of the configuration
@@ -48,11 +42,11 @@
  * NOTE: VME addresses should NEVER be translated using these constants!
  *       they are strictly for BSP internal use. Drivers etc. should use
  *       the translation routines int VME.h (BSP_vme2local_adrs/BSP_local2vme_adrs).
- * 
+ *
  *           CPU ADDR                  PCI_ADDR                                VME ADDR
- * 
+ *
  *           00000000                  XXXXXXXX                                XXXXXXXX
- *    ^  ^   ........         
+ *    ^  ^   ........
  *    |  |
  *    |  |  e.g., RAM                  XXXXXXXX
  *    |  |                                                                     00000000
@@ -75,7 +69,7 @@
  *        VME devices   hostbridge                 mapped by
  *       visible here                              universe
  *                    =====================================================
- * 
+ *
  */
 
 /* fundamental addresses for BSP (CHRPxxx and PREPxxx are from libcpu/io.h) */
@@ -87,7 +81,7 @@
 /* offset of pci memory as seen from the CPU */
 #define PCI_MEM_BASE		0
 /* where (in CPU addr. space) does the PCI window start */
-#define PCI_MEM_WIN0		0x80000000 
+#define PCI_MEM_WIN0		0x80000000
 
 #else
 #define	_IO_BASE		PREP_ISA_IO_BASE
@@ -128,6 +122,13 @@
 
 #define BSP_CONSOLE_PORT	BSP_UART_COM1
 #define BSP_UART_BAUD_BASE	115200
+
+#if defined(MVME_HAS_DEC21140)
+struct rtems_bsdnet_ifconfig;
+#define RTEMS_BSP_NETWORK_DRIVER_NAME "dc1"
+#define RTEMS_BSP_NETWORK_DRIVER_ATTACH rtems_dec21140_driver_attach
+extern int rtems_dec21140_driver_attach();
+#endif
 
 #include <bsp/openpic.h>
 /* BSP_PIC_DO_EOI is optionally used by the 'vmeUniverse' driver
@@ -189,7 +190,6 @@ extern char *BSP_commandline_string;
   ((unsigned long long) ((((unsigned long long)BSP_time_base_divisor) * 1000000ULL) /((unsigned long long) BSP_bus_frequency)) * ((unsigned long long) (_value)))
 
 extern void BSP_panic(char *s);
-extern void bsp_reset(void);
 /* extern int printk(const char *, ...) __attribute__((format(printf, 1, 2))); */
 extern int BSP_disconnect_clock_handler (void);
 extern int BSP_connect_clock_handler (void);

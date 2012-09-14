@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.18 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: system.h,v 1.23 2009/05/10 14:39:46 joel Exp $
  */
 
 #include <tmacros.h>
@@ -44,9 +44,10 @@ TEST_EXTERN rtems_name Task_name[ 6 ];    /* array of task names */
 TEST_EXTERN rtems_id   Region_id[ 2 ];    /* array of region ids */
 TEST_EXTERN rtems_name Region_name[ 2 ];  /* array of region names */
 
-TEST_EXTERN uint8_t   Area_1[64000]  CPU_STRUCTURE_ALIGNMENT;
+/* test will fail... segment sizes need to be reworked for <=32K buffer */
+TEST_EXTERN uint8_t   Area_1[20*1024]  CPU_STRUCTURE_ALIGNMENT;
 
-#define BASE_PRIORITY 140
+#define BASE_PRIORITY ((RTEMS_MAXIMUM_PRIORITY / 2u) + 1u)
 
 #define Put_address_from_area_1( _to_be_printed ) \
    printf( "0x%08lx", \

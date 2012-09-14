@@ -10,9 +10,10 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.13 2004/04/20 07:09:30 ralf Exp $
+ *  $Id: system.h,v 1.15 2009/10/12 13:31:01 joel Exp $
  */
 
+#include <bsp.h>
 #include <tmacros.h>
 
 /* functions */
@@ -48,8 +49,6 @@ void Task_switch(
 #define CONFIGURE_TICKS_PER_TIMESLICE       100
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
-
-#define CONFIGURE_EXTRA_TASK_STACKS (6 * RTEMS_MINIMUM_STACK_SIZE)
 
 #include <rtems/confdefs.h>
 

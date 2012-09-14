@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler - Object Id to Thread Pointer
  *
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadget.c,v 1.13 2008/06/04 23:05:37 joel Exp $
+ *  $Id: threadget.c,v 1.14.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -56,26 +55,26 @@ Thread_Control *_Thread_Get (
   Objects_Information **api_information;
   Objects_Information *information;
   Thread_Control      *tp = (Thread_Control *) 0;
- 
+
   if ( _Objects_Are_ids_equal( id, OBJECTS_ID_OF_SELF ) ) {
     _Thread_Disable_dispatch();
     *location = OBJECTS_LOCAL;
     tp = _Thread_Executing;
     goto done;
   }
- 
+
   the_api = _Objects_Get_API( id );
   if ( !_Objects_Is_api_valid( the_api ) ) {
     *location = OBJECTS_ERROR;
     goto done;
   }
-  
+
   the_class = _Objects_Get_class( id );
   if ( the_class != 1 ) {       /* threads are always first class :) */
     *location = OBJECTS_ERROR;
     goto done;
   }
- 
+
   api_information = _Objects_Information_table[ the_api ];
   if ( !api_information ) {
     *location = OBJECTS_ERROR;
@@ -87,9 +86,9 @@ Thread_Control *_Thread_Get (
     *location = OBJECTS_ERROR;
     goto done;
   }
- 
+
   tp = (Thread_Control *) _Objects_Get( information, id, location );
- 
+
 done:
   return tp;
 }

@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: unlink.c,v 1.15 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: unlink.c,v 1.19 2010/02/16 01:47:46 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -24,41 +24,75 @@ int unlink(
   const char *path
 )
 {
+  int                               parentpathlen;
+  const char                       *name;
+  rtems_filesystem_location_info_t  parentloc;
   rtems_filesystem_location_info_t  loc;
+  int                               i;
   int                               result;
+  bool                              free_parentloc = false;
 
   /*
-   * Get the node to be unlinked.
+   * Get the node to be unlinked. Find the parent path first.
    */
 
-  result = rtems_filesystem_evaluate_path( path, 0, &loc, false );
-  if ( result != 0 )
-     return -1;
+  parentpathlen = rtems_filesystem_dirname ( path );
 
-  result = rtems_filesystem_evaluate_parent(RTEMS_LIBIO_PERMS_WRITE, &loc );
-  if (result != 0 && errno != ENOTSUP) {
-    rtems_filesystem_freenode( &loc );
+  if ( parentpathlen == 0 )
+    rtems_filesystem_get_start_loc( path, &i, &parentloc );
+  else {
+    result = rtems_filesystem_evaluate_path( path, parentpathlen,
+                                             RTEMS_LIBIO_PERMS_WRITE,
+                                             &parentloc,
+                                             false );
+    if ( result != 0 )
+      return -1;
+
+    free_parentloc = true;
+  }
+
+  /*
+   * Start from the parent to find the node that should be under it.
+   */
+
+  loc = parentloc;
+  name = path + parentpathlen;
+  name += rtems_filesystem_prefix_separators( name, strlen( name ) );
+
+  result = rtems_filesystem_evaluate_relative_path( name , strlen( name ),
+                                                    0, &loc, false );
+  if ( result != 0 ) {
+    if ( free_parentloc )
+      rtems_filesystem_freenode( &parentloc );
     return -1;
   }
 
   if ( !loc.ops->node_type_h ) {
     rtems_filesystem_freenode( &loc );
+    if ( free_parentloc )
+      rtems_filesystem_freenode( &parentloc );
     rtems_set_errno_and_return_minus_one( ENOTSUP );
   }
 
   if (  (*loc.ops->node_type_h)( &loc ) == RTEMS_FILESYSTEM_DIRECTORY ) {
     rtems_filesystem_freenode( &loc );
+    if ( free_parentloc )
+      rtems_filesystem_freenode( &parentloc );
     rtems_set_errno_and_return_minus_one( EISDIR );
   }
 
   if ( !loc.ops->unlink_h ) {
     rtems_filesystem_freenode( &loc );
+    if ( free_parentloc )
+      rtems_filesystem_freenode( &parentloc );
     rtems_set_errno_and_return_minus_one( ENOTSUP );
   }
 
-  result = (*loc.ops->unlink_h)( &loc );
+  result = (*loc.ops->unlink_h)( &parentloc, &loc );
 
   rtems_filesystem_freenode( &loc );
+  if ( free_parentloc )
+    rtems_filesystem_freenode( &parentloc );
 
   return result;
 }
@@ -74,7 +108,7 @@ int unlink(
 #include <reent.h>
 
 int _unlink_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   const char    *path
 )
 {

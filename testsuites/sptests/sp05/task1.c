@@ -10,14 +10,14 @@
  *
  *  NOTE: The rtems_task_suspend() directives fail on the first iteration.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.9 2004/03/30 11:15:16 ralf Exp $
+ *  $Id: task1.c,v 1.10 2009/08/12 20:50:43 joel Exp $
  */
 
 #include "system.h"
@@ -40,7 +40,7 @@ rtems_task Task_1(
   for ( pass=1 ; pass <= 3 ; pass++ ) {
 
     puts( "TA1 - rtems_task_wake_after - sleep 5 seconds" );
-    status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after of TA1" );
 
     puts( "TA1 - rtems_task_suspend - suspend TA3" );
@@ -60,7 +60,7 @@ rtems_task Task_1(
     directive_failed( status, "rtems_task_resume of TA2" );
 
     puts( "TA1 - rtems_task_wake_after - sleep 5 seconds" );
-    status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
     puts( "TA1 - rtems_task_suspend - suspend TA2" );

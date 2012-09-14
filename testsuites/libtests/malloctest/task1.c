@@ -3,20 +3,23 @@
  *  This set of three tasks do some simple task switching for about
  *  15 seconds and then call a routine to "blow the stack".
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.10 2007/12/19 16:05:32 joel Exp $
+ *  $Id: task1.c,v 1.14 2009/11/30 03:33:22 ralf Exp $
  */
 
 #include "system.h"
-#include <rtems/malloc.h> 
+#include <rtems/malloc.h>
 #include <string.h>
 #include <stdlib.h>
+
+/* HACK: Blatant visibility violation */
+extern void malloc_walk(size_t source, size_t printf_enabled);
 
 #define NUM_PASSES 100
 
@@ -42,11 +45,11 @@ rtems_task Task_1_through_5(
         rtems_test_exit(0);
     }
 
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     put_name( Task_name[ task_number( tid ) ], FALSE );
-    print_time( " - rtems_clock_get - ", &time, "\n" );
+    print_time( " - rtems_clock_get_tod - ", &time, "\n" );
 
     mem_amt = ((int)((float)rand()*1000.0/(float)RAND_MAX));
     while (!(mem_ptr = malloc ( mem_amt))) {
@@ -57,7 +60,8 @@ rtems_task Task_1_through_5(
     memset( mem_ptr, mem_amt, mem_amt );
     malloc_report_statistics();
     malloc_walk(1,FALSE);
-    status = rtems_task_wake_after( task_number( tid ) * 1 * TICKS_PER_SECOND/4 );
+    status = rtems_task_wake_after(
+      task_number( tid ) * 1 * rtems_clock_get_ticks_per_second()/4 );
     for (i=0; i < mem_amt; i++)
     {
        if ( mem_ptr[i] != (mem_amt & 0xff))

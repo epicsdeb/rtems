@@ -33,7 +33,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.6 2004/04/21 16:01:46 ralf Exp $
+ *  $Id: start.S,v 1.9 2010/04/24 21:45:57 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -174,7 +174,7 @@ zero_bss:
         mov #0,r4		! argc
         mov.l main_k,r0
         jsr @r0
-        mov #0,r5		! argv - can place in dead slot
+        nop
 
         ! call exit
         mov	r0,r4

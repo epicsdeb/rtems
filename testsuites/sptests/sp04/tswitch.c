@@ -10,23 +10,26 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tswitch.c,v 1.15 2004/04/16 09:19:05 ralf Exp $
+ *  $Id: tswitch.c,v 1.19.2.1 2011/02/02 19:02:17 joel Exp $
  */
 
 #include "system.h"
 
-struct taskSwitchLog taskSwitchLog[1000];
-int taskSwitchLogIndex;
+/*
+ *  Only require 10 task switches on sis/gdb.  --joel 2 Feb 2011
+ */
+struct taskSwitchLog taskSwitchLog[25];
+unsigned int taskSwitchLogIndex;
 volatile int testsFinished;
 
-rtems_extension Task_switch(
+void Task_switch(
   rtems_tcb *unused,
   rtems_tcb *heir
 )
@@ -43,8 +46,8 @@ rtems_extension Task_switch(
     case 3:
       Run_count[ index ] += 1;
 
-      status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-      directive_failed_with_level( status, "rtems_clock_get", 1 );
+      status = rtems_clock_get_tod( &time );
+      directive_failed_with_level( status, "rtems_clock_get_tod", 1 );
 
       if (taskSwitchLogIndex < (sizeof taskSwitchLog / sizeof taskSwitchLog[0])) {
         taskSwitchLog[taskSwitchLogIndex].taskIndex = index;

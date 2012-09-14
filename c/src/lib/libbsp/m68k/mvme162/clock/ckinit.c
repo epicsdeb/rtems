@@ -21,13 +21,12 @@
  *  for the RTEMS executive. Its licensing policies are those of the
  *  RTEMS above.
  *
- *  $Id: ckinit.c,v 1.18 2008/09/05 22:05:22 joel Exp $
+ *  $Id: ckinit.c,v 1.19 2008/09/16 19:03:40 joel Exp $
  */
 
 #include <stdlib.h>
 
 #include <bsp.h>
-#include <rtems/libio.h>
 
 #define MS_COUNT          1000            /* T2's countdown constant (1 ms) */
 #define CLOCK_INT_LEVEL   6               /* T2's interrupt level */

@@ -1,16 +1,16 @@
-/** 
- *  @file  score/src//timespecaddto.c
+/**
+ *  @file  score/src/timespecaddto.c
  */
 
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespecaddto.c,v 1.1 2007/04/05 21:17:27 joel Exp $
+ *  $Id: timespecaddto.c,v 1.3 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H

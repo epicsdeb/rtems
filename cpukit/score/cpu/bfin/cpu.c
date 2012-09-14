@@ -8,8 +8,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.9 2008/09/08 15:19:08 joel Exp $
+ *  $Id: cpu.c,v 1.15 2010/04/17 19:24:16 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
@@ -21,8 +25,7 @@
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  *
  *  NO_CPU Specific Information:
  *
@@ -37,23 +40,8 @@ extern void _CPU_NMI_handler(void);
 extern void _CPU_Exception_handler(void);
 extern void _CPU_Unhandled_Interrupt_handler(void);
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
-  /*
-   *  The thread_dispatch argument is the address of the entry point
-   *  for the routine called at the end of an ISR once it has been
-   *  decided a context switch is necessary.  On some compilation
-   *  systems it is difficult to call a high-level language routine
-   *  from assembly.  This allows us to trick these systems.
-   *
-   *  If you encounter this problem save the entry point in a CPU
-   *  dependent variable.
-   */
-
-  /*_CPU_Thread_dispatch_pointer = thread_dispatch;*/
-
   /*
    *  If there is not an easy way to initialize the FP context
    *  during Context_Initialize, then it is usually easier to
@@ -181,11 +169,11 @@ void _CPU_ISR_install_vector(
 }
 
 #if (CPU_PROVIDES_IDLE_THREAD_BODY == TRUE)
-void *_CPU_Thread_Idle_body(uint32_t ignored) {
-
-    while (1) {
-        __asm__ __volatile__("ssync; idle; ssync");
-    }
+void *_CPU_Thread_Idle_body(uint32_t ignored)
+{
+  while (1) {
+    __asm__ __volatile__("ssync; idle; ssync");
+  }
 }
 #endif
 
@@ -204,7 +192,8 @@ void _CPU_Context_Initialize(
     uint32_t     stack_high;  /* highest "stack aligned" address */
     stack_high = ((uint32_t)(stack_base) + size);
 
-    the_context->register_sp = stack_high;
+    /* blackfin abi requires caller to reserve 12 bytes on stack */
+    the_context->register_sp = stack_high - 12;
     the_context->register_rets = (uint32_t) entry_point;
     the_context->imask = new_level ? 0 : 0xffff;
 }

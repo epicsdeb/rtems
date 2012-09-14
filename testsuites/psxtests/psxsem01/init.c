@@ -1,9 +1,24 @@
-#define CONFIGURE_INIT
-#include "system.h"
+/*
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: init.c,v 1.18 2009/12/08 17:52:53 joel Exp $
+ */
+
 #include <sched.h>
+#include <semaphore.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <time.h>
 #include <tmacros.h>
+#include <pmacros.h>
+#include "test_support.h"
+
+#define MAX_SEMS  10
 
 void *POSIX_Init(
   void *argument
@@ -12,7 +27,7 @@ void *POSIX_Init(
   int             status;
   int             value;
   int             i;
-  sem_t           sems[CONFIGURE_MAXIMUM_POSIX_SEMAPHORES];
+  sem_t           sems[MAX_SEMS];
   sem_t           sem2;
   sem_t           *n_sem1;
   sem_t           *n_sem2;
@@ -21,8 +36,13 @@ void *POSIX_Init(
 
   puts( "\n\n*** POSIX SEMAPHORE MANAGER TEST 1 ***" );
 
+  puts( "Init: sem_init - UNSUCCESSFUL (EINVAL)" );
+  status = sem_init(NULL, 0, 1);
+  fatal_posix_service_status( status, -1, "sem_init error return status");
+  fatal_posix_service_status( errno, EINVAL, "sem_init errorno EINVAL" );
+
   puts( "Init: sem_init - SUCCESSFUL" );
-  for (i = 0; i < CONFIGURE_MAXIMUM_POSIX_SEMAPHORES; i++) {
+  for (i = 0; i < MAX_SEMS; i++) {
     status = sem_init(&sems[i], 0, i);
     sprintf(failure_msg, "sem_init %d", i );
     fatal_posix_service_status( status, 0, failure_msg);
@@ -38,7 +58,7 @@ void *POSIX_Init(
   fatal_posix_service_status( errno, ENOSYS, "sem_init errno set to ENOSYS");
 
   puts( "Init: sem_getvalue - SUCCESSFUL ");
-  for (i = 0; i < CONFIGURE_MAXIMUM_POSIX_SEMAPHORES; i++) {
+  for (i = 0; i < MAX_SEMS; i++) {
     status = sem_getvalue(&sems[i], &value);
     sprintf( failure_msg, "sem_getvalue %d", i );
     fatal_posix_service_status( status, 0, failure_msg );
@@ -112,7 +132,8 @@ void *POSIX_Init(
   puts( "Init: sem_timedwait - UNSUCCESSFUL (ETIMEDOUT)" );
   status = sem_timedwait(&sems[2], &waittime);
   fatal_posix_service_status( status, -1, "sem_timedwait error return status");
-  fatal_posix_service_status( errno, ETIMEDOUT, "sem_timedwait errno ETIMEDOUT");
+  fatal_posix_service_status(
+    errno, ETIMEDOUT, "sem_timedwait errno ETIMEDOUT");
 
   /*
    * To do this case, we must be blocking when we want the semaphore.
@@ -136,7 +157,7 @@ void *POSIX_Init(
   fatal_posix_service_status( errno, EINVAL, "sem_post errno EINVAL");
 
   puts( "Init: sem_destroy - SUCCESSFUL" );
-  for (i = 1; i < CONFIGURE_MAXIMUM_POSIX_SEMAPHORES; i++) {
+  for (i = 1; i < MAX_SEMS; i++) {
     status = sem_destroy(&sems[i]);
     sprintf( failure_msg, "sem_destroy %d", i );
     fatal_posix_service_status( status, 0, failure_msg );
@@ -148,20 +169,32 @@ void *POSIX_Init(
    * Validate all sem_open return paths.
    */
 
+  puts( "Init: sem_open - UNSUCCESSFUL (ENAMETOOLONG)" );
+  n_sem1 = sem_open(Get_Too_Long_Name(), O_CREAT, 0777, 1 );
+  fatal_posix_service_pointer_minus_one(
+    n_sem1, "sem_open error return status");
+  fatal_posix_service_status(
+    errno, ENAMETOOLONG, "sem_open errorno ENAMETOOLONG" );
+
   puts( "Init: sem_open - sem1 SUCCESSFUL" );
-  n_sem1 = sem_open( "sem1", O_CREAT, 00777, 1 );
-  assert( n_sem1 != SEM_FAILED );
+  n_sem1 = sem_open( "sem1",O_CREAT, 0777, 1 );
+  rtems_test_assert(  n_sem1 != SEM_FAILED );
+
+  puts( "Init: sem_destroy - named sem1 - EINVAL" );
+  status = sem_destroy(n_sem1);
+  fatal_posix_service_status( status, -1, "sem_destroy named semaphore");
+  fatal_posix_service_status( errno, EINVAL,  "sem_destroy named semaphore");
 
   puts( "Init: sem_open - Create an Existing sem (EEXIST)" );
-  n_sem2 = sem_open("sem1", O_CREAT | O_EXCL, 00777, 1);
-  fatal_posix_service_status(
-    (int) n_sem2, (int ) SEM_FAILED, "sem_open error return status" );
+  n_sem2 = sem_open("sem1", O_CREAT | O_EXCL, 0777, 1);
+  fatal_posix_service_pointer_minus_one(
+    n_sem2, "sem_open error return status" );
   fatal_posix_service_status( errno, EEXIST,  "sem_open errno EEXIST");
 
   puts( "Init: sem_open - Open new sem without create flag (ENOENT)" );
-  n_sem2 = sem_open("sem3", O_EXCL, 00777, 1);
-  fatal_posix_service_status(
-    (int) n_sem2, (int ) SEM_FAILED, "sem_open error return status" );
+  n_sem2 = sem_open("sem3", O_EXCL, 0777, 1);
+  fatal_posix_service_pointer_minus_one(
+    n_sem2, "sem_open error return status" );
   fatal_posix_service_status( errno, ENOENT,  "sem_open errno EEXIST");
 
   /*
@@ -185,8 +218,7 @@ void *POSIX_Init(
 
   puts( "Init: sem_open - Open an existing sem ( same id )" );
   n_sem2 = sem_open("sem1", 0 );
-  fatal_posix_service_status(
-    (int) n_sem2, (int ) n_sem1, "sem_open error return status" );
+  rtems_test_assert(  n_sem2 == n_sem1 );
 
   /*
    * Unlink the semaphore, then verify an open of the same name produces a
@@ -198,9 +230,9 @@ void *POSIX_Init(
   fatal_posix_service_status( status, 0, "sem_unlink locked semaphore");
 
   puts( "Init: sem_open - Reopen sem1 SUCCESSFUL with a different id" );
-  n_sem2 = sem_open( "sem1", O_CREAT | O_EXCL, 00777, 1);
-  assert( n_sem2 != SEM_FAILED );
-  assert( n_sem2 != n_sem1 );
+  n_sem2 = sem_open( "sem1", O_CREAT | O_EXCL, 0777, 1);
+  rtems_test_assert(  n_sem2 != SEM_FAILED );
+  rtems_test_assert(  n_sem2 != n_sem1 );
 
   /*
    * Validate we can call close on a semaphore opened with sem_open.
@@ -209,7 +241,6 @@ void *POSIX_Init(
   puts( "Init: sem_close (1) - SUCCESSFUL" );
   status = sem_close( n_sem1 );
   fatal_posix_service_status( status, 0, "sem_close semaphore");
-
 
   /*
    * Validate it n_sem2 (the last open for sem1 name can be
@@ -258,7 +289,7 @@ void *POSIX_Init(
   status = sem_unlink("sem2");
   fatal_posix_service_status( status, -1, "sem_unlink error return status");
   fatal_posix_service_status( errno, ENOENT, "sem_unlink errno ENOENT");
-  assert( (status == -1) && (errno == ENOENT) );
+  rtems_test_assert(  (status == -1) && (errno == ENOENT) );
 
 
   /* Try adding in unlinking before closing... (can we still open?) */
@@ -268,3 +299,19 @@ void *POSIX_Init(
 
   return NULL; /* just so the compiler thinks we returned something */
 }
+
+/* configuration information */
+#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+
+#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+
+#define CONFIGURE_MAXIMUM_POSIX_THREADS     1
+#define CONFIGURE_MAXIMUM_POSIX_SEMAPHORES  MAX_SEMS
+
+#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+#define CONFIGURE_POSIX_INIT_THREAD_STACK_SIZE \
+        (RTEMS_MINIMUM_STACK_SIZE * 4)
+
+#define CONFIGURE_INIT
+#include <rtems/confdefs.h>

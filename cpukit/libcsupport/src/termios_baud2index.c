@@ -6,13 +6,18 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: termios_baud2index.c,v 1.1 2008/05/22 20:35:40 joel Exp $
+ *  $Id: termios_baud2index.c,v 1.3 2010/03/27 05:36:46 ralf Exp $
  */
 
-#include <sys/termios.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-int termios_baud_to_index(
-  int termios_baud
+#include <sys/termios.h>
+#include <rtems/termiostypes.h>
+
+int rtems_termios_baud_to_index(
+  rtems_termios_baud_t termios_baud
 )
 {
   int baud_index;

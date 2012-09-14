@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: untar.c,v 1.12 2007/09/05 23:46:36 joel Exp $
+ *  $Id: untar.c,v 1.12.6.2 2011/11/07 21:42:37 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -39,7 +39,8 @@
  *   148      8 bytes  Header checksum (in octal ascii)
  *   156      1 bytes  Link flag
  *   157    100 bytes  Linkname ('\0' terminated, 99 maxmum length)
- *   257      8 bytes  Magic ("ustar  \0")
+ *   257      8 bytes  Magic PAX ("ustar\0" + 2 bytes padding)
+ *   257      8 bytes  Magic GNU tar ("ustar  \0")
  *   265     32 bytes  User name ('\0' terminated, 31 maxmum length)
  *   297     32 bytes  Group name ('\0' terminated, 31 maxmum length)
  *   329      8 bytes  Major device ID (in octal ascii)
@@ -143,7 +144,7 @@ Untar_FromMemory(
       /* Read the header */
       bufr = &tar_ptr[ptr];
       ptr += 512;
-      if (strncmp(&bufr[257], "ustar  ", 7))
+      if (strncmp(&bufr[257], "ustar", 5))
       {
          retval = UNTAR_SUCCESSFUL;
          break;
@@ -204,6 +205,7 @@ Untar_FromMemory(
                if (n != len)
                {
                   printk("untar: Error during write\n");
+                  retval  = UNTAR_FAIL;
                   break;
                }
                ptr += 512;
@@ -253,7 +255,7 @@ Untar_FromFile(
 {
    int            fd;
    char           *bufr;
-   size_t         n;
+   ssize_t        n;
    char           fname[100];
    char           linkname[100];
    int            sum;
@@ -264,15 +266,17 @@ Untar_FromFile(
    unsigned long  size;
    unsigned char  linkflag;
 
-
    retval = UNTAR_SUCCESSFUL;
-   bufr = (char *)malloc(512);
-   if (bufr == NULL)
-   {
-      return(UNTAR_FAIL);
+
+   if ((fd = open(tar_name, O_RDONLY)) < 0) {
+       return UNTAR_FAIL;
    }
 
-   fd = open(tar_name, O_RDONLY);
+   bufr = (char *)malloc(512);
+   if (bufr == NULL) {
+      return(UNTAR_FAIL);
+   }
+   
    while (1)
    {
       /* Read the header */
@@ -283,7 +287,7 @@ Untar_FromFile(
          break;
       }
 
-      if (strncmp(&bufr[257], "ustar  ", 7))
+      if (strncmp(&bufr[257], "ustar", 5))
       {
          break;
       }

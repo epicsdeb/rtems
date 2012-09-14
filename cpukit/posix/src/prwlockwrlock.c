@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: prwlockwrlock.c,v 1.4 2007/11/30 20:34:13 humph Exp $
+ *  $Id: prwlockwrlock.c,v 1.6 2009/11/30 15:44:21 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,7 +40,7 @@ int pthread_rwlock_wrlock(
 {
   POSIX_RWLock_Control  *the_rwlock;
   Objects_Locations      location;
-  
+
   if ( !rwlock )
     return EINVAL;
 
@@ -52,7 +52,7 @@ int pthread_rwlock_wrlock(
       _CORE_RWLock_Obtain_for_writing(
 	&the_rwlock->RWLock,
 	*rwlock,
-	TRUE,          /* do not timeout -- wait forever */
+	true,          /* do not timeout -- wait forever */
 	0,
 	NULL
       );

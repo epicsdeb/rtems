@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.31 2007/06/20 22:19:38 joel Exp $
+## $Id: Makefile.am,v 1.32 2008/09/17 16:22:38 joel Exp $
 ##
 
 include $(top_srcdir)/automake/compile.am
@@ -72,16 +72,6 @@ project_lib_PROGRAMS += no-timer.rel
 no_timer_rel_SOURCES = rtems/no-timer.c
 no_timer_rel_CPPFLAGS = $(AM_CPPFLAGS)
 no_timer_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
-
-project_lib_PROGRAMS += no-filesystem.rel
-no_filesystem_rel_SOURCES = no-filesystem.c no-libio.c
-no_filesystem_rel_CPPFLAGS = $(AM_CPPFLAGS)
-no_filesystem_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
-
-project_lib_PROGRAMS += no-console.rel
-no_console_rel_SOURCES = no-console.c
-no_console_rel_CPPFLAGS = $(AM_CPPFLAGS)
-no_console_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/automake/local.am

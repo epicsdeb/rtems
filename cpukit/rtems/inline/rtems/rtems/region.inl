@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: region.inl,v 1.17 2008/09/04 17:43:18 ralf Exp $
+ *  $Id: region.inl,v 1.19 2009/09/14 14:48:38 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_REGION_H
@@ -78,10 +78,10 @@ RTEMS_INLINE_ROUTINE Region_Control *_Region_Get (
  */
 RTEMS_INLINE_ROUTINE void *_Region_Allocate_segment (
   Region_Control *the_region,
-  uint32_t        size
+  uintptr_t       size
 )
 {
-   return _Heap_Allocate( &the_region->Memory, size );
+  return _Heap_Allocate( &the_region->Memory, size );
 }
 
 /**

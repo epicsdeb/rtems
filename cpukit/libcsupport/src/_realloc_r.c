@@ -8,19 +8,19 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: _realloc_r.c,v 1.1 2007/12/18 20:36:40 joel Exp $
+ *  $Id: _realloc_r.c,v 1.3 2009/09/30 06:15:39 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifdef RTEMS_NEWLIB
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__REALLOC_R)
 #include <sys/reent.h>
 #include <stdlib.h>
 
 void *_realloc_r(
-  struct _reent *ignored,
+  struct _reent *ignored __attribute__((unused)),
   void          *ptr,
   size_t         size
 )

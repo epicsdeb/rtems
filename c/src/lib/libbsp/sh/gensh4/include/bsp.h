@@ -34,7 +34,7 @@
  *  developmental purposes without any warranty nor representation
  *  by the authors or by TGA Technologies.
  *
- *  $Id: bsp.h,v 1.16 2007/12/11 15:48:20 joel Exp $
+ *  $Id: bsp.h,v 1.18 2008/09/15 19:18:29 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -65,11 +65,6 @@ extern "C" {
  * Defined in the linker script 'linkcmds'
  */
 
-extern uint32_t         HeapStart ;
-extern uint32_t         HeapEnd ;
-extern uint32_t         WorkSpaceStart ;
-extern uint32_t         WorkSpaceEnd ;
-
 extern void *CPU_Interrupt_stack_low ;
 extern void *CPU_Interrupt_stack_high ;
 
@@ -79,10 +74,6 @@ extern void *CPU_Interrupt_stack_high ;
 extern uint32_t   boot_mode;
 #define SH4_BOOT_MODE_FLASH 0
 #define SH4_BOOT_MODE_IPL   1
-
-/* miscellaneous stuff assumed to exist */
-
-extern void bsp_cleanup( void );
 
 /*
  *  Device Driver Table Entries

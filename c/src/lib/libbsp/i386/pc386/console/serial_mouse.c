@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/serial_mouse.c,v 1.13 2008/08/19 19:34:08 joel Exp $
+ * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/Attic/serial_mouse.c,v 1.14 2009/09/30 03:12:13 ralf Exp $
  *
  * MODULE DESCRIPTION:
  * This module implements the RTEMS drivers for the PC serial ports
@@ -264,7 +264,7 @@ conSetAttr(int port, int minor, const struct termios *t)
 {
   unsigned long baud, databits, parity, stopbits;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 

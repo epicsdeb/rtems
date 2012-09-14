@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.2 2008/09/06 03:28:08 ralf Exp $
+ *  $Id: system.h,v 1.4 2009/09/26 15:47:16 joel Exp $
  */
 
 /*
@@ -26,13 +26,24 @@ rtems_task Init(
   rtems_task_argument argument
 );
 
-rtems_extension Fatal_extension(
+void Fatal_extension(
   uint32_t   source,
   bool       is_internal,
   uint32_t   error
 );
 
-/* need prototypes */
+void Put_Error(
+  uint32_t source,
+  uint32_t error
+);
+
+void Put_Source(
+  uint32_t source
+);
+
+void force_error(void);
+
+/* need some prototypes for test cases */
 
 #include "testcase.h"
 

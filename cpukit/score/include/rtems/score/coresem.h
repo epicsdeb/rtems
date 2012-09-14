@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/coresem.h
  *
  *  This include file contains all the constants and structures associated
@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coresem.h,v 1.25 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: coresem.h,v 1.28.2.1 2010/06/14 06:09:11 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_CORESEM_H
@@ -29,14 +29,18 @@
  */
 /**@{*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <rtems/score/thread.h>
 #include <rtems/score/threadq.h>
 #include <rtems/score/priority.h>
 #include <rtems/score/watchdog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(RTEMS_POSIX_API) || defined(RTEMS_ITRON_API)
+  #define RTEMS_SCORE_CORESEM_ENABLE_SEIZE_BODY
+#endif
 
 /**
  *  The following type defines the callout which the API provides
@@ -135,25 +139,27 @@ void _CORE_semaphore_Initialize(
   uint32_t                      initial_value
 );
 
-/**
- *  This routine attempts to receive a unit from @a the_semaphore.
- *  If a unit is available or if the wait flag is FALSE, then the routine
- *  returns.  Otherwise, the calling task is blocked until a unit becomes
- *  available.
- *
- *  @param[in] the_semaphore is the semaphore to seize
- *  @param[in] id is the Id of the API level Semaphore object associated
- *         with this instance of a SuperCore Semaphore
- *  @param[in] wait indicates if the caller is willing to block
- *  @param[in] timeout is the number of ticks the calling thread is willing
- *         to wait if @a wait is TRUE.
- */
-void _CORE_semaphore_Seize(
-  CORE_semaphore_Control  *the_semaphore,
-  Objects_Id               id,
-  bool                     wait,
-  Watchdog_Interval        timeout
-);
+#if defined(RTEMS_SCORE_CORESEM_ENABLE_SEIZE_BODY)
+  /**
+   *  This routine attempts to receive a unit from @a the_semaphore.
+   *  If a unit is available or if the wait flag is false, then the routine
+   *  returns.  Otherwise, the calling task is blocked until a unit becomes
+   *  available.
+   *
+   *  @param[in] the_semaphore is the semaphore to seize
+   *  @param[in] id is the Id of the API level Semaphore object associated
+   *         with this instance of a SuperCore Semaphore
+   *  @param[in] wait indicates if the caller is willing to block
+   *  @param[in] timeout is the number of ticks the calling thread is willing
+   *         to wait if @a wait is true.
+   */
+  void _CORE_semaphore_Seize(
+    CORE_semaphore_Control  *the_semaphore,
+    Objects_Id               id,
+    bool                     wait,
+    Watchdog_Interval        timeout
+  );
+#endif
 
 /**
  *  This routine frees a unit to the semaphore.  If a task was blocked waiting

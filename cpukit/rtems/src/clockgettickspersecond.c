@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockgettickspersecond.c,v 1.1 2008/03/11 20:07:49 joel Exp $
+ *  $Id: clockgettickspersecond.c,v 1.2 2008/12/16 17:35:59 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,6 +16,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/clock.h>
 #include <rtems/score/isr.h>
@@ -25,5 +26,6 @@
 
 rtems_interval rtems_clock_get_ticks_per_second(void)
 {
-  return TOD_MICROSECONDS_PER_SECOND / _TOD_Microseconds_per_tick;
+  return TOD_MICROSECONDS_PER_SECOND /
+    rtems_configuration_get_microseconds_per_tick();
 }

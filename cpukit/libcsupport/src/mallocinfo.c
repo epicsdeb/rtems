@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mallocinfo.c,v 1.2 2007/12/18 20:36:40 joel Exp $
+ *  $Id: mallocinfo.c,v 1.3 2008/09/17 18:37:55 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -21,7 +21,7 @@
 #include <rtems/libcsupport.h>
 #include <rtems/score/protectedheap.h>
 
-extern Heap_Control  RTEMS_Malloc_Heap;
+extern Heap_Control  *RTEMS_Malloc_Heap;
 
 /*
  *  Find amount of free heap remaining
@@ -34,6 +34,6 @@ int malloc_info(
   if ( !the_info )
     return -1;
 
-  _Protected_heap_Get_information( &RTEMS_Malloc_Heap, the_info );
+  _Protected_heap_Get_information( RTEMS_Malloc_Heap, the_info );
   return 0;
 }

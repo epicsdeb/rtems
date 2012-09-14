@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutex.inl,v 1.25.2.1 2009/05/28 20:38:22 joel Exp $
+ *  $Id: coremutex.inl,v 1.28 2009/11/09 14:52:28 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_COREMUTEX_H
@@ -31,12 +31,12 @@
 /**
  *  @brief Is Mutex Locked
  *
- *  This routine returns TRUE if the mutex specified is locked and FALSE
+ *  This routine returns true if the mutex specified is locked and false
  *  otherwise.
  *
  *  @param[in] the_mutex is the mutex to check
  *
- *  @return This method returns TRUE if the mutex is locked.
+ *  @return This method returns true if the mutex is locked.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_locked(
   CORE_mutex_Control  *the_mutex
@@ -48,12 +48,12 @@ RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_locked(
 /**
  *  @brief Does Core Mutex Use FIFO Blocking
  *
- *  This routine returns TRUE if the mutex's wait discipline is FIFO and FALSE
+ *  This routine returns true if the mutex's wait discipline is FIFO and false
  *  otherwise.
  *
  *  @param[in] the_attribute is the attribute set of the mutex
  *
- *  @return This method returns TRUE if the mutex is using FIFO blocking order.
+ *  @return This method returns true if the mutex is using FIFO blocking order.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_fifo(
   CORE_mutex_Attributes *the_attribute
@@ -65,12 +65,12 @@ RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_fifo(
 /**
  *  @brief Doex Core Mutex Use Priority Blocking
  *
- *  This routine returns TRUE if the mutex's wait discipline is PRIORITY and
- *  FALSE otherwise.
+ *  This routine returns true if the mutex's wait discipline is PRIORITY and
+ *  false otherwise.
  *
  *  @param[in] the_attribute is the attribute set of the mutex
  *
- *  @return This method returns TRUE if the mutex is using
+ *  @return This method returns true if the mutex is using
  *          priority blocking order.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_priority(
@@ -83,12 +83,12 @@ RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_priority(
 /**
  *  @brief Does Mutex Use Priority Inheritance
  *
- *  This routine returns TRUE if the mutex's wait discipline is
- *  INHERIT_PRIORITY and FALSE otherwise.
+ *  This routine returns true if the mutex's wait discipline is
+ *  INHERIT_PRIORITY and false otherwise.
  *
  *  @param[in] the_attribute is the attribute set of the mutex
  *
- *  @return This method returns TRUE if the mutex is using priority
+ *  @return This method returns true if the mutex is using priority
  *          inheritance.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_inherit_priority(
@@ -101,11 +101,11 @@ RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_inherit_priority(
 /**
  *  @brief Does Mutex Use Priority Ceiling
  *
- *  This routine returns TRUE if the mutex's wait discipline is
- *  PRIORITY_CEILING and FALSE otherwise.
+ *  This routine returns true if the mutex's wait discipline is
+ *  PRIORITY_CEILING and false otherwise.
  *
  *  @param[in] the_attribute is the attribute set of the mutex
- *  @return This method returns TRUE if the mutex is using priority
+ *  @return This method returns true if the mutex is using priority
  *          ceiling.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_mutex_Is_priority_ceiling(
@@ -130,7 +130,6 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
 )
 {
   Thread_Control   *executing;
-  ISR_Level         level = *level_p;
 
   /* disabled when you get here */
 
@@ -154,8 +153,8 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
     }
 
     if ( !_CORE_mutex_Is_priority_ceiling( &the_mutex->Attributes ) ) {
-        _ISR_Enable( level );
-        return 0;
+      _ISR_Enable( *level_p );
+      return 0;
     } /* else must be CORE_MUTEX_DISCIPLINES_PRIORITY_CEILING
        *
        * we possibly bump the priority of the current holder -- which
@@ -168,17 +167,17 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
       ceiling = the_mutex->Attributes.priority_ceiling;
       current = executing->current_priority;
       if ( current == ceiling ) {
-        _ISR_Enable( level );
+        _ISR_Enable( *level_p );
         return 0;
       }
 
       if ( current > ceiling ) {
         _Thread_Disable_dispatch();
-        _ISR_Enable( level );
+        _ISR_Enable( *level_p );
         _Thread_Change_priority(
           the_mutex->holder,
           the_mutex->Attributes.priority_ceiling,
-         FALSE
+         false
         );
         _Thread_Enable_dispatch();
         return 0;
@@ -188,7 +187,7 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
         the_mutex->lock       = CORE_MUTEX_UNLOCKED;
         the_mutex->nest_count = 0;     /* undo locking above */
         executing->resource_count--;   /* undo locking above */
-        _ISR_Enable( level );
+        _ISR_Enable( *level_p );
         return 0;
       }
     }
@@ -204,11 +203,11 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
     switch ( the_mutex->Attributes.lock_nesting_behavior ) {
       case CORE_MUTEX_NESTING_ACQUIRES:
         the_mutex->nest_count++;
-        _ISR_Enable( level );
+        _ISR_Enable( *level_p );
         return 0;
       case CORE_MUTEX_NESTING_IS_ERROR:
         executing->Wait.return_code = CORE_MUTEX_STATUS_NESTING_NOT_ALLOWED;
-        _ISR_Enable( level );
+        _ISR_Enable( *level_p );
         return 0;
       case CORE_MUTEX_NESTING_BLOCKS:
         break;

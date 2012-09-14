@@ -12,7 +12,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bootldr.h,v 1.7 2007/03/31 01:14:39 ralf Exp $
+ * $Id: bootldr.h,v 1.8 2009/09/25 14:56:04 joel Exp $
  */
 
 #ifndef _PPC_BOOTLDR_H

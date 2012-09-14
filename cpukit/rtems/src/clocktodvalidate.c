@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clocktodvalidate.c,v 1.10 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: clocktodvalidate.c,v 1.14 2009/11/30 15:59:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,6 +17,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/clock.h>
 
 /*
@@ -40,21 +41,23 @@ const uint32_t   _TOD_Days_per_month[ 2 ][ 13 ] = {
  *    the_tod - pointer to a time and date structure
  *
  *  Output parameters:
- *    TRUE  - if the date, time, and tick are valid
- *    FALSE - if the the_tod is invalid
+ *    true  - if the date, time, and tick are valid
+ *    false - if the the_tod is invalid
  *
  *  NOTE: This routine only works for leap-years through 2099.
  */
 
 bool _TOD_Validate(
-  rtems_time_of_day *the_tod
+  const rtems_time_of_day *the_tod
 )
 {
   uint32_t   days_in_month;
+  uint32_t   ticks_per_second;
 
+  ticks_per_second = TOD_MICROSECONDS_PER_SECOND /
+	    rtems_configuration_get_microseconds_per_tick();
   if ((!the_tod)                                  ||
-      (the_tod->ticks  >=
-          (TOD_MICROSECONDS_PER_SECOND / _TOD_Microseconds_per_tick))  ||
+      (the_tod->ticks  >= ticks_per_second)       ||
       (the_tod->second >= TOD_SECONDS_PER_MINUTE) ||
       (the_tod->minute >= TOD_MINUTES_PER_HOUR)   ||
       (the_tod->hour   >= TOD_HOURS_PER_DAY)      ||

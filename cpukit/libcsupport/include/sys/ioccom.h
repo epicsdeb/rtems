@@ -30,7 +30,7 @@
  * $FreeBSD: src/sys/sys/ioccom.h,v 1.15 2004/04/07 04:19:49 imp Exp $
  */
 /*
- * $Id: ioccom.h,v 1.9 2007/05/10 07:29:13 ralf Exp $
+ * $Id: ioccom.h,v 1.10 2009/02/04 12:52:22 ralf Exp $
  */
 
 #ifndef	_SYS_IOCCOM_H_
@@ -86,7 +86,7 @@
 #define FIOSETOWN       _IOW('f', 124, int)     /* set owner */
 #define FIOGETOWN       _IOR('f', 123, int)     /* get owner */
 
-#ifndef KERNEL
+#ifndef _KERNEL
 
 #include <rtems/bsd/sys/cdefs.h>
 

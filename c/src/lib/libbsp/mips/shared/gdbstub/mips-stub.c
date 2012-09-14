@@ -11,7 +11,7 @@
     REGARD TO THIS SOFTWARE INCLUDING BUT NOT LIMITED TO THE WARRANTIES
     OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
-    $Id: mips-stub.c,v 1.15 2008/08/18 07:31:10 ralf Exp $
+    $Id: mips-stub.c,v 1.17 2010/04/28 18:59:49 joel Exp $
 
 ********************************************************************************
 *
@@ -118,7 +118,7 @@
 *       As an example, "0* " means the same thing as "0000".
 *
 *******************************************************************************/
-
+
 
 #include <string.h>
 #include <signal.h>
@@ -255,7 +255,7 @@ static struct z0break z0break_arr[BREAKNUM];
 static struct z0break *z0break_avail = NULL;
 static struct z0break *z0break_list  = NULL;
 
-
+
 /*
  * Convert an int to hex.
  */
@@ -334,7 +334,7 @@ mem2hex (void *_addr, int length, char *buf)
   return (buf);
 }
 
-
+
 /*
  * Convert a hex character to an int.
  */
@@ -531,7 +531,7 @@ bin2mem (
   return mem;
 }
 
-
+
 /*
  * Scan the input stream for a sequence for the form $<data>#<checksum>.
  */
@@ -649,7 +649,7 @@ putpacket (char *buffer)
   while  (getAck () != '+');
 }
 
-
+
 /*
  * Saved instruction data for single step support
  */
@@ -808,7 +808,7 @@ doSStep (void)
    return;
 }
 
-
+
 /*
  * Translate the R4600 exception code into a Unix-compatible signal.
  */
@@ -917,7 +917,7 @@ void gdb_stub_report_exception_info(
    *optr++ = '\0';
 }
 
-
+
 
 /*
  * Scratch frame used to retrieve contexts for different threads, so as
@@ -931,6 +931,7 @@ CPU_Interrupt_frame current_thread_registers;
  * reacts to gdb's requests.
  */
 
+extern void clear_cache(void);
 void handle_exception (rtems_vector_number vector, CPU_Interrupt_frame *frame)
 {
    int          host_has_detached = 0;
@@ -1439,12 +1440,7 @@ void handle_exception (rtems_vector_number vector, CPU_Interrupt_frame *frame)
     *  but not necessarily the I-cache.
     */
 
-   {
-      extern void clear_cache(void);
-      clear_cache();
-   }
-
-   return;
+   clear_cache();
 }
 
 static int numsegs;

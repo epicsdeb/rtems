@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rwlock.inl,v 1.3 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: rwlock.inl,v 1.4 2009/01/05 20:26:01 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_RWLOCK_H
@@ -68,7 +68,7 @@ RTEMS_INLINE_ROUTINE POSIX_RWLock_Control *_POSIX_RWLock_Get (
 {
   return (POSIX_RWLock_Control *) _Objects_Get(
       &_POSIX_RWLock_Information,
-      *((Objects_Id *)RWLock),
+      (Objects_Id) *RWLock,
       location
   );
 }

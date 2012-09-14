@@ -1,11 +1,11 @@
 ##
-## $Id: Makefile.am,v 1.21 2006/07/11 05:00:28 ralf Exp $
+## $Id: Makefile.am,v 1.22 2009/04/03 12:48:13 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = sp29.exe
-sp29_exe_SOURCES = init.c
+rtems_tests_PROGRAMS = sp29
+sp29_SOURCES = init.c
 
 dist_rtems_tests_DATA = sp29.scn
 dist_rtems_tests_DATA += sp29.doc
@@ -14,15 +14,15 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-sp29_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+sp29_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
 AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(sp29_exe_OBJECTS) $(sp29_exe_LDADD)
-LINK_LIBS = $(sp29_exe_LDLIBS)
+LINK_OBJS = $(sp29_OBJECTS) $(sp29_LDADD)
+LINK_LIBS = $(sp29_LDLIBS)
 
-sp29.exe$(EXEEXT): $(sp29_exe_OBJECTS) $(sp29_exe_DEPENDENCIES)
-	@rm -f sp29.exe$(EXEEXT)
+sp29$(EXEEXT): $(sp29_OBJECTS) $(sp29_DEPENDENCIES)
+	@rm -f sp29$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

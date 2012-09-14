@@ -27,7 +27,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: malloc_boundary.c,v 1.3 2008/08/25 11:15:14 ralf Exp $
+ *  $Id: malloc_boundary.c,v 1.9 2010/05/23 06:30:23 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -38,7 +38,10 @@
 
 #include <stdio.h>
 
+/* only supported on newlib targets */
 #ifdef RTEMS_NEWLIB
+/* not completely implemented so not included in coverage analysis */
+#ifndef RTEMS_COVERAGE
 
 #define SENTINELSIZE    12
 #define SENTINEL       "\xD1\xAC\xB2\xF1" "BITE ME"
@@ -54,35 +57,36 @@ struct mallocNode {
 
 struct mallocNode mallocNodeHead;
 
-void rtems_malloc_boundary_initialize(void)
+static void rtems_malloc_boundary_initialize(void)
 {
   mallocNodeHead.back = &mallocNodeHead;
   mallocNodeHead.forw = &mallocNodeHead;
 }
 
-uint32_t rtems_malloc_boundary_overhead(void)
+static uint32_t rtems_malloc_boundary_overhead(void)
 {
   return sizeof(struct mallocNode) + SENTINELSIZE;
 }
 
-void rtems_malloc_boundary_at_malloc(
+static void rtems_malloc_boundary_at_malloc(
   void     *pointer,
   size_t    size
 )
 {
   void *return_this;
   struct mallocNode *mp = (struct mallocNode *)pointer;
-  int *fp, *nfp, i;
+  intptr_t *fp, *nfp;
+  int i;
 
   _RTEMS_Lock_allocator();
     mp->memory = mp + 1;
     return_this = mp->memory;
     mp->size = size - (sizeof(struct mallocNode) + SENTINELSIZE);
-    fp = (int *)&size - 2;
+    fp = (intptr_t *)&size - 2;
     for (i = 0 ; i < CALLCHAINSIZE ; i++) {
       mp->callChain[i] = fp[1];
-      nfp = (int *)(fp[0]);
-      if((nfp <= fp) || (nfp > (int *)(1 << 24)))
+      nfp = (intptr_t *)(fp[0]);
+      if((nfp <= fp) || (nfp > (intptr_t *)(INT32_C(0x1000000) /* 1 << 24 */)))
        break;
       fp = nfp;
     }
@@ -96,9 +100,9 @@ void rtems_malloc_boundary_at_malloc(
   _RTEMS_Unlock_allocator();
 }
 
-void reportMallocError(const char *msg, struct mallocNode *mp);
+static void reportMallocError(const char *msg, struct mallocNode *mp);
 
-void rtems_malloc_boundary_at_free(
+static void rtems_malloc_boundary_at_free(
   void     *pointer
 )
 {
@@ -124,9 +128,9 @@ void rtems_malloc_boundary_at_free(
   _RTEMS_Unlock_allocator();
 }
 
-void rtems_malloc_boundary_at_realloc(
-  void     *pointer,
-  size_t    size
+static void rtems_malloc_boundary_at_realloc(
+  void     *pointer __attribute__((unused)),
+  size_t    size __attribute__((unused))
 )
 {
   /* this needs to be implemented */
@@ -146,7 +150,7 @@ rtems_malloc_boundary_functions_t rtems_malloc_boundary_functions_table = {
 rtems_malloc_boundary_functions_t *rtems_malloc_boundary_helpers = NULL;
 /*   &rtems_malloc_boundary_functions_table; */
 
-void reportMallocError(const char *msg, struct mallocNode *mp)
+static void reportMallocError(const char *msg, struct mallocNode *mp)
 {
     unsigned char *sp = (unsigned char *)mp->memory + mp->size;
     int i, ind = 0;
@@ -175,7 +179,8 @@ void reportMallocError(const char *msg, struct mallocNode *mp)
     printk("\n\n%s\n\n", cbuf);
 }
 
-void checkMallocArena(void)
+#if UNUSED
+static void checkMallocArena(void)
 {
   struct mallocNode *mp;
 
@@ -189,6 +194,7 @@ void checkMallocArena(void)
     }
   _RTEMS_Unlock_allocator();
 }
-
 #endif
 
+#endif
+#endif

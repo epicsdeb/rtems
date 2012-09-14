@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: sigaction.c,v 1.11 2004/05/21 20:19:33 joel Exp $
+ *  $Id: sigaction.c,v 1.12 2009/08/05 21:39:49 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -74,7 +74,7 @@ int sigaction(
       if ( act->sa_handler == SIG_DFL ) {
         _POSIX_signals_Vectors[ sig ] = _POSIX_signals_Default_vectors[ sig ];
       } else {
-         _POSIX_signals_Clear_process_signals( signo_to_mask(sig) );
+         _POSIX_signals_Clear_process_signals( sig );
          _POSIX_signals_Vectors[ sig ] = *act;
       }
     _ISR_Enable( level );

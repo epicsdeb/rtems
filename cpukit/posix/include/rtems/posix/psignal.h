@@ -3,32 +3,21 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psignal.h,v 1.15 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: psignal.h,v 1.22 2009/12/04 15:30:08 ralf Exp $
  */
 
 #ifndef _RTEMS_POSIX_PSIGNAL_H
 #define _RTEMS_POSIX_PSIGNAL_H
 
 #include <rtems/posix/pthread.h>
-
-/*
- *  Currently 32 signals numbered 1-32 are defined
- */
-
-#define SIGNAL_EMPTY_MASK  0x00000000
-#define SIGNAL_ALL_MASK    0xffffffff
-
-#define signo_to_mask( _sig ) (1 << ((_sig) - 1))
-
-#define is_valid_signo( _sig ) \
-  ((_sig) >= 1 && (_sig) <= 32 )
+#include <rtems/posix/sigset.h>
 
 #define _States_Is_interruptible_signal( _states ) \
   ( ((_states) & \
@@ -58,6 +47,8 @@ extern struct sigaction _POSIX_signals_Vectors[ SIG_ARRAY_MAX ];
 
 extern Watchdog_Control _POSIX_signals_Alarm_timer;
 
+extern Watchdog_Control _POSIX_signals_Ualarm_timer;
+
 extern Thread_queue_Control _POSIX_signals_Wait_queue;
 
 extern Chain_Control _POSIX_signals_Inactive_siginfo;
@@ -77,9 +68,7 @@ typedef struct {
  *  Internal routines
  */
 
-void _POSIX_signals_Manager_Initialization(
-  int  maximum_queued_signals
-);
+void _POSIX_signals_Manager_Initialization(void);
 
 void _POSIX_signals_Post_switch_extension(
   Thread_Control  *the_thread
@@ -116,7 +105,7 @@ void _POSIX_signals_Set_process_signals(
 );
 
 void _POSIX_signals_Clear_process_signals(
-  sigset_t   mask
+  int        signo
 );
 
 /*

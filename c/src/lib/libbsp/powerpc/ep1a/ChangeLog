@@ -1,27 +1,175 @@
-2009-10-16	Jennifer Averett <jennifer@OARcorp.com>
+2011-05-17	Till Straumann <strauman@slac.stanford.edu>
 
-	* Makefile.am, configure.ac, preinstall.am, console/alloc360.c,
-	console/config.c, console/console.c, console/m68360.h,
-	console/mc68360_scc.c, console/rsPMCQ1.c, console/rsPMCQ1.h,
-	include/bsp.h, irq/irq_init.c, irq/openpic_xxx_irq.c, start/start.S,
-	startup/bspstart.c, startup/linkcmds, vme/VMEConfig.h: 
-        Updated and tested against RTEMS 4.9. Updated README file to latest
-        source status. Modified to use the shared irq source code. Turned off
-	debugging, cleaned up warnings, removed unused code. Tested with two
-	PMCQ1 serial cards. Tested MC68360 serial ports and VME using
-	external tests.
-	* README, irq/irq.h, vme/vmeconfig.c: New files.
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+	PR1797/bsps
+	* configure.ac: Made CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
+	a bspopts.h setting.
 
-	* bsp_specs: Backport from CVS-HEAD.
+2011-03-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1751/bsps
+	* start/start.S: Fix typo which was not caught by binutils prior to a
+	recent bug fix.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* start/start.S: removed obsolete bootcard calling warning
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* console/mc68360_scc.c: adapted to new prototype for *_write
+	function
+
+2009-10-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for exception support changes.
+	* irq/irq_init.c, irq/openpic_xxx_irq.c: Changed exception header file
+	includes.
+	* startup/bspstart.c: Update for ppc_exc_initialize() changes.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/ep1a.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* startup/bspstart.c:
+	let 'save_boot_params()' return a pointer to the commandline
+	saved by the BSP which is NULL in this case. This pointer could
+	be passed on to 'boot_card()' as it is done by other BSPs.
+	This 'start/start.S' file however, passes a NULL pointer
+	directly to boot_card() (w/o ever calling save_boot_params()).
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Remove nested externs.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Add missing prototypes.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/linkcmds: Add .sbss.*.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/ep1a.cfg: New (relocated from /make/custom).
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* console/config.c: Spacing.
+
+2009-08-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Eliminate BSPs defining NUMBER_OF_TERMIOS_PORTS.
+	Should be automatically handled by confdefs.h or the application.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* start/start.S: Update for boot_card command line change.
+
+2008-12-07	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove -Qy from *link.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
 
 2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* console/init68360.c: Delete unused code.
 
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console/config.c, console/console.c, console/console.h,
+	console/ns16550cfg.c, console/ns16550cfg.h, include/bsp.h,
+	include/tm27.h, irq/irq_init.c, irq/openpic_xxx_irq.c,
+	pci/no_host_bridge.c: File head clean up.
+	* console/debugio.c: Removed.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* preinstall.am: Regenerated.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
 2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* Makefile.am: Remove noinst_PROGRAMS (Unused).
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Use standardized bsp_cleanup() which can optionally
+	print a message, poll for user to press key, and call bsp_reset().
+	Using this eliminates the various bsp_cleanup() implementations which
+	had their own implementation and variety of string constants.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, include/bsp.h, startup/bspstart.c: Use PowerPC level
+	shared bsp_get_work_area() implementation.
+	* startup/bspgetworkarea.c: Removed.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Remove unnecessary includes of
+	rtems/libcsupport.h and rtems/libio.h.
+
+2008-09-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, console/rsPMCQ1.h, include/bsp.h,
+	startup/bspstart.c: Create bsp_get_work_area() into its own file and
+	use BSP Framework to perform more initialization.
+	* startup/bspgetworkarea.c: New file.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Review of all bsp_cleanup() implementations. In
+	this phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-09-06	Ralf Corsépius <ralf.corsepius@rtems.org>
 

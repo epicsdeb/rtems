@@ -1,7 +1,7 @@
 /*
  *  FTP Server Information
  *
- *  $Id: ftpd.h,v 1.8.2.1 2009/03/12 15:34:38 joel Exp $
+ *  $Id: ftpd.h,v 1.9 2009/03/12 15:34:29 joel Exp $
  */
 
 #ifndef _RTEMS_FTPD_H

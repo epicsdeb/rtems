@@ -1,6 +1,6 @@
 /*
   ------------------------------------------------------------------------
-  $Id: rtemsSemaphore.h,v 1.4 2006/12/13 15:52:00 joel Exp $
+  $Id: rtemsSemaphore.h,v 1.7 2009/11/28 05:48:23 ralf Exp $
   ------------------------------------------------------------------------
 
   COPYRIGHT (c) 1997
@@ -93,7 +93,7 @@ public:
   virtual const rtems_status_code destroy();
 
   // connect to an existing semaphore object, will not be the owner
-  const rtemsSemaphore& operator=(const rtemsSemaphore& semaphore);  
+  const rtemsSemaphore& operator=(const rtemsSemaphore& semaphore);
   virtual const rtems_status_code connect(const char *name, uint32_t node);
 
   // obtain the semaphore, timeout is in micro-seconds
@@ -128,17 +128,18 @@ private:
 const rtems_status_code rtemsSemaphore::obtain(const bool wait,
                                                const uint32_t micro_secs)
 {
-  rtems_interval usecs =
-    micro_secs && (micro_secs < _TOD_Microseconds_per_tick) ?
-    _TOD_Microseconds_per_tick : micro_secs;
+  rtems_interval usecs = micro_secs &&
+    (micro_secs < rtems_configuration_get_microseconds_per_tick()) ?
+    rtems_configuration_get_microseconds_per_tick() : micro_secs;
+
   return
     set_status_code(rtems_semaphore_obtain(id,
                                            wait ? RTEMS_WAIT : RTEMS_NO_WAIT,
-                                           TOD_MICROSECONDS_TO_TICKS(usecs)));
+                                           RTEMS_MICROSECONDS_TO_TICKS(usecs)));
 }
 
 const rtems_status_code rtemsSemaphore::release(void)
-{  
+{
   return set_status_code(rtems_semaphore_release(id));
 }
 

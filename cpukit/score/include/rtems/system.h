@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/system.h
  *
  *  This include file contains information that is included in every
@@ -14,20 +14,11 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.57 2008/09/08 15:19:34 joel Exp $
+ *  $Id: system.h,v 1.63 2010/04/12 15:28:03 ralf Exp $
  */
 
 #ifndef _RTEMS_SYSTEM_H
 #define _RTEMS_SYSTEM_H
-
-/**
- *  @mainpage RTEMS SuperCore
- *
- *  The RTEMS real-time operating systems is a layered system
- *  with each of the public APIs implemented in terms of a common
- *  foundation layer called the SuperCore.  This is the Doxygen
- *  generated documentation for the RTEMS SuperCore.
- */
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +45,7 @@ extern "C" {
 #define SCORE_EXTERN  extern
 #endif
 
-/** 
+/**
  *  The following ensures that all data is declared in the space
  *  of the initialization routine for either the Initialization Manager
  *  or the initialization file for the appropriate API.  It is
@@ -68,7 +59,7 @@ extern "C" {
 #define SAPI_EXTERN  extern
 #endif
 
-/** 
+/**
  *  The following ensures that all data is declared in the space
  *  of the initialization routine for either the Initialization Manager
  *  or the initialization file for the appropriate API.  It is
@@ -82,7 +73,7 @@ extern "C" {
 #define RTEMS_EXTERN  extern
 #endif
 
-/** 
+/**
  *  The following ensures that all data is declared in the space
  *  of the initialization routine for either the Initialization Manager
  *  or the initialization file for the appropriate API.  It is
@@ -96,7 +87,7 @@ extern "C" {
 #define POSIX_EXTERN  extern
 #endif
 
-/** 
+/**
  *  The following ensures that all data is declared in the space
  *  of the initialization routine for either the Initialization Manager
  *  or the initialization file for the appropriate API.  It is
@@ -147,6 +138,18 @@ extern "C" {
   #define RTEMS_COMPILER_NO_RETURN_ATTRIBUTE
 #endif
 
+/**
+ *  Instructs the compiler to issue a warning whenever a variable or function
+ *  with this attribute will be used.
+ */
+#ifdef __GNUC__
+  #define RTEMS_COMPILER_DEPRECATED_ATTRIBUTE \
+     __attribute__ ((deprecated))
+#else
+  #define RTEMS_COMPILER_DEPRECATED_ATTRIBUTE
+#endif
+
+#ifndef ASM
 #ifdef RTEMS_POSIX_API
 /** The following is used by the POSIX implementation to catch bad paths.  */
 int POSIX_NOT_IMPLEMENTED( void );
@@ -162,6 +165,7 @@ int POSIX_NOT_IMPLEMENTED( void );
 typedef void * proc_ptr;
 
 #include <stddef.h>
+#endif
 
 #if !defined( TRUE ) || (TRUE != 1)
 /**  Boolean constant TRUE */
@@ -175,14 +179,17 @@ typedef void * proc_ptr;
 #define FALSE     (0)
 #endif
 
-#include <rtems/stdint.h>
+#ifndef ASM
+#include <stdint.h>
+#endif
 #include <rtems/score/cpu.h>        /* processor specific information */
 
-/** 
+#ifndef ASM
+/**
  *  This macro is used to obtain the offset of a field in a structure.
  */
 #define RTEMS_offsetof(type, field) \
-       ((uint32_t) &(((type *) 0)->field))
+       ((uintptr_t) &(((type *) 0)->field))
 
 /**
  *  The following is the extern for the RTEMS version string.
@@ -198,6 +205,7 @@ extern const char _Copyright_Notice[];
 
 /** This macro defines the maximum length of a Classic API name. */
 #define RTEMS_MAXIMUM_NAME_LENGTH sizeof(rtems_name)
+#endif
 
 #ifdef __cplusplus
 }

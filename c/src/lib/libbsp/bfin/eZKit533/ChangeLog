@@ -1,6 +1,107 @@
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2011-04-20  Rohan Kangralkar <rkangral@ece.neu.edu>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	PR 1781/bsps
+	* console/console-io.c: The UART RX and TX are different ISR
+	now. So the array containing the registeration changes. The
+	change is due to change in the libcup uart function.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console-io.c: Let eZKit533_BSP_poll_char return int.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/eZKit533.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/eZKit533.cfg: Switch to compiling at O2.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Add missing prototype.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/eZKit533.cfg: New (relocated from /make/custom).
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Rely on clock driver to determine when we should use
+	fast idle.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Add BFIN_ON_SKYEYE define to disable features not
+	supported on simulator.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unnecessary boilerplate comments.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/linkcmds: Use top level shared
+	bsp_get_work_area() implementation.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Remove unnecessary includes of
+	rtems/libcsupport.h and rtems/libio.h.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, startup/bspstart.c, startup/linkcmds:
+	Split out bsp_get_work_area() into its own file and user BSP
+	Framework to perform more initialization.
 
 2008-08-18	Allan Hessenflow <allanh@kallisti.com>
 

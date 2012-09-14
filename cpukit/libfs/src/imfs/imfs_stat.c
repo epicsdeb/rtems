@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_stat.c,v 1.11 2004/04/17 08:34:41 ralf Exp $
+ *  $Id: imfs_stat.c,v 1.14.2.1 2011/06/10 18:17:02 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -27,6 +27,7 @@ int IMFS_stat(
   struct stat                      *buf
 )
 {
+  IMFS_fs_info_t *fs_info;
   IMFS_jnode_t   *the_jnode;
   IMFS_device_t  *io;
 
@@ -36,8 +37,8 @@ int IMFS_stat(
   switch ( the_jnode->type ) {
 
     case IMFS_DEVICE:
-      io          = &the_jnode->info.device;
-      buf->st_dev = rtems_filesystem_make_dev_t( io->major, io->minor );
+      io           = &the_jnode->info.device;
+      buf->st_rdev = rtems_filesystem_make_dev_t( io->major, io->minor );
       break;
 
     case IMFS_LINEAR_FILE:
@@ -49,11 +50,23 @@ int IMFS_stat(
       buf->st_size = 0;
       break;
 
+    case IMFS_FIFO:
+      buf->st_size = 0;
+      break;
+
     default:
       rtems_set_errno_and_return_minus_one( ENOTSUP );
       break;
   }
 
+  /*
+   * The device number of the IMFS is the major number and the minor is the
+   * instance.
+   */
+  fs_info = loc->mt_entry->fs_info;
+  buf->st_dev =
+    rtems_filesystem_make_dev_t( IMFS_DEVICE_MAJOR_NUMBER, fs_info->instance );
+  
   buf->st_mode  = the_jnode->st_mode;
   buf->st_nlink = the_jnode->st_nlink;
   buf->st_ino   = the_jnode->st_ino;
@@ -63,6 +76,8 @@ int IMFS_stat(
   buf->st_atime = the_jnode->stat_atime;
   buf->st_mtime = the_jnode->stat_mtime;
   buf->st_ctime = the_jnode->stat_ctime;
+
+  buf->st_blksize = imfs_rq_memfile_bytes_per_block;
 
   return 0;
 }

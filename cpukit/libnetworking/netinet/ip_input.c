@@ -27,9 +27,13 @@
  * SUCH DAMAGE.
  *
  *	@(#)ip_input.c	8.2 (Berkeley) 1/4/94
- * $Id: ip_input.c,v 1.9 2008/09/01 06:36:17 ralf Exp $
+ * $Id: ip_input.c,v 1.12.2.1 2010/06/15 11:34:00 ralf Exp $
  *	$ANA: ip_input.c,v 1.5 1996/09/18 14:34:59 wollman Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #define	_IP_VHL
 
@@ -44,7 +48,7 @@
 #include <sys/domain.h>
 #include <sys/protosw.h>
 #include <sys/socket.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/kernel.h>
 #include <sys/syslog.h>
@@ -224,7 +228,7 @@ ip_init(void)
 
 }
 
-static struct	sockaddr_in ipaddr = { sizeof(ipaddr), AF_INET };
+static struct	sockaddr_in ipaddr = { sizeof(ipaddr), AF_INET, 0, {0}, {0} };
 static struct	route ipforward_rt;
 
 /*
@@ -1184,7 +1188,7 @@ ip_srcroute(void)
 	*(mtod(m, struct in_addr *)) = *p--;
 #ifdef DIAGNOSTIC
 	if (ipprintfs)
-		printf(" hops %lx", ntohl(mtod(m, struct in_addr *)->s_addr));
+		printf(" hops %"PRIx32, ntohl(mtod(m, struct in_addr *)->s_addr));
 #endif
 
 	/*
@@ -1204,7 +1208,7 @@ ip_srcroute(void)
 	while (p >= ip_srcrt.route) {
 #ifdef DIAGNOSTIC
 		if (ipprintfs)
-			printf(" %lx", ntohl(q->s_addr));
+			printf(" %"PRIx32, ntohl(q->s_addr));
 #endif
 		*q++ = *p--;
 	}
@@ -1214,7 +1218,7 @@ ip_srcroute(void)
 	*q = ip_srcrt.dst;
 #ifdef DIAGNOSTIC
 	if (ipprintfs)
-		printf(" %lx\n", ntohl(q->s_addr));
+		printf(" %"PRIx32"\n", ntohl(q->s_addr));
 #endif
 	return (m);
 }
@@ -1290,7 +1294,7 @@ ip_forward(struct mbuf *m, int srcrt)
 	dest = 0;
 #ifdef DIAGNOSTIC
 	if (ipprintfs)
-		printf("forward: src %lx dst %lx ttl %x\n",
+		printf("forward: src %"PRIx32" dst %"PRIx32" ttl %x\n",
 			ip->ip_src.s_addr, ip->ip_dst.s_addr, ip->ip_ttl);
 #endif
 

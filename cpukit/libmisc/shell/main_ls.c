@@ -158,7 +158,7 @@ main_ls(rtems_shell_ls_globals* globals, int argc, char *argv[])
 
     struct getopt_data getopt_reent;
     memset(&getopt_reent, 0, sizeof(getopt_data));
-    
+
 #if RTEMS_REMOVED
 	setprogname(argv[0]);
 #endif
@@ -360,7 +360,8 @@ main_ls(rtems_shell_ls_globals* globals, int argc, char *argv[])
 		if (!kflag)
 			(void)getbsize(NULL, &blocksize);
 #else
-        blocksize = 1024;
+        /* Make equal to 1 so ls -l shows the actual blcok count */
+        blocksize = 512;
 #endif
 		blocksize /= 512;
 	}
@@ -452,7 +453,7 @@ traverse(rtems_shell_ls_globals* globals, int argc, char *argv[], int options)
         fts_close(ftsp);
 		return;
     }
-    
+
 	/*
 	 * If not recursing down this tree and don't need stat info, just get
 	 * the names.
@@ -542,6 +543,7 @@ display(rtems_shell_ls_globals* globals, FTSENT *p, FTSENT *list)
 	btotal = stotal = maxblock = maxsize = 0;
 	maxmajor = maxminor = 0;
 	for (cur = list, entries = 0; cur; cur = cur->fts_link) {
+    uint64_t size;
 		if (cur->fts_info == FTS_ERR || cur->fts_info == FTS_NS) {
 			warnx("%s: %s",
 			    cur->fts_name, strerror(cur->fts_errno));
@@ -571,14 +573,18 @@ display(rtems_shell_ls_globals* globals, FTSENT *p, FTSENT *list)
 			maxlen = cur->fts_namelen;
 		if (needstats) {
 			sp = cur->fts_statp;
+      if (sp->st_size < 0)
+        size = sp->st_size * -1;
+      else
+        size = sp->st_size;
 			if (sp->st_blocks > maxblock)
 				maxblock = sp->st_blocks;
 			if (sp->st_ino > maxinode)
 				maxinode = sp->st_ino;
 			if (sp->st_nlink > maxnlink)
 				maxnlink = sp->st_nlink;
-			if (sp->st_size > maxsize)
-				maxsize = sp->st_size;
+			if (size > maxsize)
+				maxsize = size;
 			if (S_ISCHR(sp->st_mode) || S_ISBLK(sp->st_mode)) {
 				bcfile = 1;
 				if (major(sp->st_rdev) > maxmajor)
@@ -588,7 +594,7 @@ display(rtems_shell_ls_globals* globals, FTSENT *p, FTSENT *list)
 			}
 
 			btotal += sp->st_blocks;
-			stotal += sp->st_size;
+			stotal += size;
 			if (f_longform) {
 				if (f_numericonly ||
 				    (user = user_from_uid(sp->st_uid, 0)) ==
@@ -627,7 +633,7 @@ display(rtems_shell_ls_globals* globals, FTSENT *p, FTSENT *list)
 				np->group = &np->data[ulen + 1];
 				(void)strcpy(np->group, group);
 
-				if (f_flags) {
+				 if (f_flags && flags) {
 					np->flags = &np->data[ulen + glen + 2];
 				  	(void)strcpy(np->flags, flags);
 				}
@@ -701,7 +707,7 @@ mastercmp_no_listdir(const FTSENT **a, const FTSENT **b)
 {
 	int a_info, b_info;
     int l_f_listdir = 0;
-    
+
 	a_info = (*a)->fts_info;
 	if (a_info == FTS_ERR)
 		return (0);

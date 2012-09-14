@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: send.c,v 1.10 2004/03/23 09:59:52 ralf Exp $
+ *  $Id: send.c,v 1.11 2008/12/18 17:15:51 joel Exp $
  */
 
 #include <rtems.h>
@@ -44,8 +44,8 @@ rtems_mpci_entry Shm_Send_packet(
     (*Shm_Configuration->cause_intr)( node );
   }
   else {
-    for( nnum = SHM_FIRST_NODE ; nnum <= Shm_Maximum_nodes ; nnum++ )
-      if ( Shm_Local_node != nnum ) {
+    for( nnum = SHM_FIRST_NODE ; nnum <= SHM_MAXIMUM_NODES ; nnum++ )
+      if ( _Configuration_MP_table->node != nnum ) {
         tmp_ecb = Shm_Allocate_envelope();
         if ( !tmp_ecb )
           rtems_fatal_error_occurred( SHM_NO_FREE_PKTS );

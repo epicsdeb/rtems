@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: spinlock.inl,v 1.3 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: spinlock.inl,v 1.4 2009/01/05 20:26:01 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_SPINLOCK_H
@@ -68,7 +68,7 @@ RTEMS_INLINE_ROUTINE POSIX_Spinlock_Control *_POSIX_Spinlock_Get (
 {
   return (POSIX_Spinlock_Control *) _Objects_Get(
       &_POSIX_Spinlock_Information,
-      *((Objects_Id *)spinlock),
+      (Objects_Id) *spinlock,
       location
   );
 }

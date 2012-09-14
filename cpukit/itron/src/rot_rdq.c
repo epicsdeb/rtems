@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rot_rdq.c,v 1.8 2004/04/15 04:00:25 ralf Exp $
+ *  $Id: rot_rdq.c,v 1.9 2008/12/14 18:31:41 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -34,7 +34,7 @@ ER rot_rdq(
   PRI priority;
 
 
-  if (( tskpri <= 0 ) || ( tskpri >= 256 ))
+  if (( tskpri <= 0 ) || ( tskpri >= PRIORITY_MAXIMUM-1 ))
     return E_PAR;
 
   _Thread_Disable_dispatch();

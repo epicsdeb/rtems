@@ -13,7 +13,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.2 2007/12/11 15:50:22 joel Exp $
+ *  $Id: bsp.h,v 1.4 2010/04/30 14:55:51 sh Exp $
  */
 
 #ifndef __BSP_H_
@@ -30,7 +30,7 @@ extern "C" {
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
 
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 1
+#define BSP_FEATURE_IRQ_EXTENSION
 
 /** Define operation count for Tests */
 #define OPERATION_COUNT 10

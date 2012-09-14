@@ -55,17 +55,16 @@
 .extern _CoreSramBase0
 .extern _CoreSramBase1
 .extern _CoreSramSize1
-.extern mcf548x_init 
+.extern mcf548x_init
 .extern boot_card
 .extern _SpInit
-.extern _InitPc
 
 /*===============================================================*\
 | Global symbols                                                  |
 \*===============================================================*/
 
 .global interrupt_vector_table
-.global spurious_int_count 
+.global spurious_int_count
 .global start
 
 
@@ -77,7 +76,7 @@
 PUBLIC (InterruptVectorTable)
 SYM(InterruptVectorTable):
 INITSP:		.long	_SpInit		        /* Initial SP		  */
-INITPC:		.long	_InitPc			/* Initial PC		  */
+INITPC:		.long	start			/* Initial PC		  */
 vector002:	.long	asm_default_interrupt	/* Access Error		  */
 vector003:	.long	asm_default_interrupt	/* Address Error	  */
 vector004:	.long	asm_default_interrupt	/* Illegal Instruction	  */
@@ -340,13 +339,13 @@ PUBLIC (start)
 SYM(start):
     move.w	#0x3700,sr              /* disable interrupts */
     jmp 	start_init
-    
+
 /*===============================================================*\
 | Sspurious interrupt counter                                     |
 \*===============================================================*/
 .align 4
 .data					/* begin of data section */
-PUBLIC (spurious_int_count) 
+PUBLIC (spurious_int_count)
 SYM(spurious_int_count):
     .long   0   			/* spurious interrupt counter */
 
@@ -354,14 +353,14 @@ SYM(spurious_int_count):
 | Function: Default exception handler                             |
 +-----------------------------------------------------------------+
 | - stop and disable all interrupts                               |
-| - loop forever                                                  | 
+| - loop forever                                                  |
 \*===============================================================*/
 .text					/* start of text section */
 .align 4
 PUBLIC (asm_default_interrupt)
 SYM(asm_default_interrupt):
-    nop                         	
-    stop    #0x3700             	/* stop */ 
+    nop
+    stop    #0x3700             	/* stop */
     bra.w   asm_default_interrupt      	/* loop forever */
 
 /*===============================================================*\
@@ -373,64 +372,60 @@ SYM(asm_default_interrupt):
 PUBLIC (asm_spurious_interrupt)
 SYM(asm_spurious_interrupt):
     add.l   #1,spurious_int_count
-    rte  
-    
+    rte
+
 /*===============================================================*\
 | Function: start_init                                            |
 +-----------------------------------------------------------------+
-| - Disable all intterupts                                        | 
+| - Disable all intterupts                                        |
 | - Setup the internal SRAM                                       |
 | - Initialize mcf548x peripherals                                |
 | - Set initial stack pointer                                     |
-| - Boot RTEMS                   
+| - Boot RTEMS
 \*===============================================================*/
 .align 4
 PUBLIC (start_init)
 SYM(start_init):
-    
+
     move.l  #0x01040100,d0		/* invalidate instruction/data/branch cache, disable all caches */
     movec   d0,cacr
-    
+
     move.l  #_CoreSramBase0,d0 		/* initialize RAMBAR0 */
     add.l   #0x21,d0                    /* for code & data    */
     movec   d0,rambar0
-    
+
     move.l  #_CoreSramBase1,d0		/* initialize RAMBAR1 */
     add.l   #0x21,d0                    /* for code & data    */
     movec   d0,rambar1                  /* movec d0,RAMBAR1   */
 
     move.l  #__MBAR,d0			/* initialize MBAR */
     movec   d0,mbar
-     
+
     move.l  #_CoreSramBase1,d0		/* set sp to end of Core SRAM temporarily */
     add.l   #_CoreSramSize1,d0
     move.l  d0,sp
-    
+
     move.l  #0,d0			/* initialize frame pointer */
-    movea.l d0,a6 
-    
+    movea.l d0,a6
+
     jsr	    mcf548x_init		/* Initialize mcf548x peripherals */
 
-    move.l  #_SpInit,sp		        /* relocate sp */ 
-     
+    move.l  #_SpInit,sp		        /* relocate sp */
+
     clrl    d0          		/* clear d0 */
-    movel   d0,a7@-                     /* environp == NULL */
-    movel   d0,a7@-                     /* argv == NULL */
-    movel   d0,a7@-                     /* argc == 0 */
- 
+    movel   d0,a7@-                     /* command line == 0 */
+
     jsr     boot_card                   /* boot rtems */
 
-    movel   a7@+,d0
-    movel   a7@+,d0
     movel   a7@+,d0
 
 exit_multitasking:
     nop
     nop
-    halt                        	
-    bra     exit_multitasking 
+    halt
+    bra     exit_multitasking
 
-.end					/* end of start.S module */	
-   
+.end					/* end of start.S module */
 
- 
+
+

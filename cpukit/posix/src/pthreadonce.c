@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadonce.c,v 1.6 2004/04/15 13:24:47 ralf Exp $
+ *  $Id: pthreadonce.c,v 1.7 2009/02/03 10:10:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -34,8 +34,8 @@ int pthread_once(
     rtems_mode saveMode;
     rtems_task_mode(RTEMS_NO_PREEMPT, RTEMS_PREEMPT_MASK, &saveMode);
     if ( !once_control->init_executed ) {
-      once_control->is_initialized = TRUE;
-      once_control->init_executed = TRUE;
+      once_control->is_initialized = true;
+      once_control->init_executed = true;
       (*init_routine)();
     }
     rtems_task_mode(saveMode, RTEMS_PREEMPT_MASK, &saveMode);

@@ -12,12 +12,16 @@
  *
  * This software is provided ``AS IS'' without any warranties of any kind.
  *
- *	$Id: ip_fw.c,v 1.4 2007/05/10 05:12:54 ralf Exp $
+ *	$Id: ip_fw.c,v 1.5.2.1 2010/06/15 11:34:00 ralf Exp $
  */
 
 /*
  * Implement IP packet firewall
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #ifndef IPFIREWALL_MODULE
 #include "opt_ipfw.h"
@@ -74,7 +78,8 @@ SYSCTL_INT(_net_inet_ip_fw, OID_AUTO, verbose_limit, CTLFLAG_RW, &fw_verbose_lim
 
 #define dprintf(a)	if (!fw_debug); else printf a
 
-#define print_ip(a)	 printf("%ld.%ld.%ld.%ld",(ntohl(a.s_addr)>>24)&0xFF,\
+#define print_ip(a)	 printf("%"PRId32".%"PRId32".%"PRId32".%"PRId32,\
+				 		  (ntohl(a.s_addr)>>24)&0xFF,\
 				 		  (ntohl(a.s_addr)>>16)&0xFF,\
 						  (ntohl(a.s_addr)>>8)&0xFF,\
 						  (ntohl(a.s_addr))&0xFF);

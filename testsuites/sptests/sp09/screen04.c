@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen04.c,v 1.9 2007/12/13 21:45:23 joel Exp $
+ *  $Id: screen04.c,v 1.13 2009/11/30 03:33:24 ralf Exp $
  */
 
 #include "system.h"
@@ -25,6 +25,19 @@ void Screen4()
   struct timeval    tv;
   time_t            seconds;
   rtems_status_code status;
+
+  status = rtems_event_receive(
+    RTEMS_EVENT_16,
+    RTEMS_NO_WAIT,
+    RTEMS_NO_TIMEOUT,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_event_receive NULL param"
+  );
+  puts( "TA1 - rtems_event_receive - NULL param - RTEMS_INVALID_ADDRESS" );
 
   status = rtems_event_receive(
     RTEMS_EVENT_16,
@@ -56,7 +69,7 @@ void Screen4()
   status = rtems_event_receive(
     RTEMS_EVENT_16,
     RTEMS_DEFAULT_OPTIONS,
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     &event_out
   );
   fatal_directive_status(
@@ -75,7 +88,7 @@ void Screen4()
   puts( "TA1 - rtems_event_send - RTEMS_INVALID_ID" );
 
   puts( "TA1 - rtems_task_wake_after - sleep 1 second - RTEMS_SUCCESSFUL" );
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   build_time( &time, 2, 5, 1988, 8, 30, 45, 0 );
@@ -84,10 +97,10 @@ void Screen4()
   directive_failed( status, "rtems_clock_set" );
   puts( " - RTEMS_SUCCESSFUL" );
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TIME_VALUE, &tv );
-  directive_failed( status, "clock_get time value OK" );
+  status = rtems_clock_get_tod_timeval( &tv );
+  directive_failed( status, "clock_get_tod_timeval OK" );
 
-  seconds = tv.tv_sec; 
+  seconds = tv.tv_sec;
   printf( "TA1 - current time - %s\n", ctime(&seconds) );
 
 }

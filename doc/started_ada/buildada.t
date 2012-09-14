@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: buildada.t,v 1.23 2004/09/29 20:22:30 joel Exp $
+@c  $Id: buildada.t,v 1.24 2009/10/14 13:08:39 ralf Exp $
 @c
 
 @chapter Building the GNAT Cross Compiler Toolset
@@ -487,16 +487,14 @@ is the directory under tools that contails @value{RTEMSUNTAR}.
 
 @item ENABLE_RTEMS_POSIX
 is set to "yes" if you want to enable the RTEMS POSIX API support.
-At this time, this feature is not supported by the UNIX ports of RTEMS
-and is forced to "no" for those targets.  This corresponds to the
+This corresponds to the 
 @code{configure} option @code{--enable-posix}.
 
 This must be enabled to support the GNAT/RTEMS run-time.
 
 @item ENABLE_RTEMS_ITRON
 is set to "yes" if you want to enable the RTEMS ITRON API support.
-At this time, this feature is not supported by the UNIX ports of RTEMS
-and is forced to "no" for those targets.  This corresponds to the
+This corresponds to the
 @code{configure} option @code{--enable-itron}.
 
 @item ENABLE_RTEMS_MP

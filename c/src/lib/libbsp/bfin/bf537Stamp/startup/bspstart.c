@@ -4,7 +4,7 @@
  *  board, and monitor specific initialization and configuration.
  *  The generic CPU dependent initialization has been performed
  *  before this routine is invoked.
- *  
+ *
  *  Copyright (c) 2006 by Atos Automacao Industrial Ltda.
  *             written by Alain Schaefer <alain.schaefer@easc.ch>
  *                    and Antonio Giovanini <antonio@atos.com.br>
@@ -13,32 +13,59 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.1 2008/08/15 20:21:00 joel Exp $
+ *  $Id: bspstart.c,v 1.6 2009/11/30 03:38:33 ralf Exp $
  */
 
 
-#include <string.h>
-
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
+#include <bsp.h>
 #include <libcpu/bf537.h>
+#include <libcpu/ebiuRegs.h>
 #include <libcpu/gpioRegs.h>
 #include <libcpu/mmu.h>
+#include <libcpu/mmuRegs.h>
 #include <libcpu/interrupt.h>
-#include <bsp.h>
 
 
-#if 0
-static bfin_mmu_region_t mmuRegions[] = {
+static bfin_mmu_config_t mmuRegions = {
+    /* instruction */
+    {
+        {(void *) 0x00000000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x00400000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x00800000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x00c00000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x01000000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x01400000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x01800000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x01c00000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x02000000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x02400000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x02800000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x02c00000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x03000000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0x20000000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_CACHEABLE},
+        {(void *) 0xff800000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_NOCACHE},
+        {(void *) 0xffc00000, ICPLB_DATA_PAGE_SIZE_4MB | INSTR_NOCACHE}
+    },
+    /* data */
+    {
+        {(void *) 0x00000000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x00400000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x00800000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x00c00000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x01000000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x01400000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x01800000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x01c00000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x02000000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x02400000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x02800000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x02c00000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x03000000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0x20000000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_WRITEBACK},
+        {(void *) 0xff800000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_NOCACHE},
+        {(void *) 0xffc00000, DCPLB_DATA_PAGE_SIZE_4MB | DATA_NOCACHE}
+    }
 };
-#endif
-
-/*
- *  Use the shared implementations of the following routines
- */
-
-void bsp_postdriver_hook(void);
-void bsp_libc_init(void *, uint32_t, int);
 
 void Init_RTC(void);
 
@@ -47,86 +74,47 @@ static void initEBIU(void);
 static void initGPIO(void);
 
 /*
- *  Function:   bsp_pretasking_hook
- *  Created:    95/03/10
- *
- *  Description:
- *      BSP pretasking hook.  Called just before drivers are initialized.
- *      Used to setup libc and install any BSP extensions.
- *
- *  NOTES:
- *      Must not use libc (to do io) from here, since drivers are
- *      not yet initialized.
- *
+ *  BSP pretasking hook.
  */
-
-void bsp_pretasking_hook(void) {
-  extern int HeapBase;
-  extern int RamBase;
-  extern int RamSize;
-  unsigned long heapSize;
-  void *heapStart;
-
+void bsp_pretasking_hook(void)
+{
   bfin_interrupt_init();
-
-  heapStart = &HeapBase;
-  heapSize  = (unsigned long) &RamBase;
-  heapSize += (unsigned long) &RamSize;
-  heapSize -= (unsigned long) &HeapBase;
-
-  bsp_libc_init(heapStart, heapSize, 0);
-
 }
 
 /*
  *  bsp_start
  *
- *  This routine does the bulk of the system initialization.
+ *  This routine does the bulk of the BSP initialization.
  */
-void bsp_start(void) {
-    
-  extern void *_WorkspaceBase;
-
+void bsp_start(void)
+{
   /* BSP Hardware Initialization*/
 
-  /*bfin_mmu_init(sizeof(mmuRegions) / sizeof(mmuRegions[0]), mmuRegions);*/
+  *(uint32_t volatile *) DMEM_CONTROL |= DMEM_CONTROL_PORT_PREF0;
+  *(uint32_t volatile *) DMEM_CONTROL &= ~DMEM_CONTROL_PORT_PREF1;
+  bfin_mmu_init(&mmuRegions);
+  rtems_cache_enable_instruction();
+  rtems_cache_enable_data();
 
   Init_RTC();   /* Blackfin Real Time Clock initialization */
 
   initPLL();   /* PLL initialization */
   initEBIU();  /* EBIU initialization */
   initGPIO();  /* GPIO initialization */
-
-  /*
-   *  Allocate the memory for the RTEMS Work Space.  This can come from
-   *  a variety of places: hard coded address, malloc'ed from outside
-   *  RTEMS world (e.g. simulator or primitive memory manager), or (as
-   *  typically done by stock BSPs) by subtracting the required amount
-   *  of work space from the last physical address on the CPU board.
-   */
-
-  /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
-   */
-
-  Configuration.work_space_start = (void *) &_WorkspaceBase;
-
 }
 
  /*
   * initPLL
-  * 
+  *
   * Routine to initialize the PLL. The BF537 Stamp uses a 27 Mhz XTAL. BISON
   * See "../bf537Stamp/include/bsp.h" for more information.
   */
 
 static void initPLL(void) {
- 
+
 #ifdef BISON
   unsigned int n;
-  
+
   /* Configure PLL registers */
   *((uint16_t*)PLL_LOCKCNT) = 0x1000;
   *((uint16_t*)PLL_DIV) = PLL_CSEL|PLL_SSEL;
@@ -136,27 +124,37 @@ static void initPLL(void) {
   asm("cli r0;");
   asm("idle;");
   asm("sti r0;");
-  
+
   /* Delay for PLL stabilization */
-  for (n=0; n<200; n++) {} 
+  for (n=0; n<200; n++) {}
 #endif
-  
+
 }
 
  /*
   * initEBIU
-  * 
+  *
   * Configure extern memory
   */
 
 static void initEBIU(void) {
+
+  /* by default the processor has priority over dma channels for access to
+     external memory.  this has been seen to result in dma unerruns on
+     ethernet transmit; it seems likely it could cause dma overruns on
+     ethernet receive as well.  setting the following bit gives the dma
+     channels priority over the cpu, fixing that problem.  unfortunately
+     we don't have finer grain control than that; all dma channels now
+     have priority over the cpu. */
+  *(uint16_t volatile *) EBIU_AMGCTL |= EBIU_AMGCTL_CDPRIO;
+
 #ifdef BISON
   /* Configure FLASH */
   *((uint32_t*)EBIU_AMBCTL0)  = 0x7bb07bb0L;
   *((uint32_t*)EBIU_AMBCTL1)  = 0x7bb07bb0L;
   *((uint16_t*)EBIU_AMGCTL)   = 0x000f;
-  
-  /* Configure SDRAM 
+
+  /* Configure SDRAM
   *((uint32_t*)EBIU_SDGCTL) = 0x0091998d;
   *((uint16_t*)EBIU_SDBCTL) = 0x0013;
   *((uint16_t*)EBIU_SDRRC)  = 0x0817;
@@ -166,11 +164,11 @@ static void initEBIU(void) {
 
  /*
   * initGPIO
-  * 
+  *
   * Enable LEDs port
   */
 static void initGPIO(void) {
-
+#if (!BFIN_ON_SKYEYE)
   *(uint16_t volatile *) PORT_MUX = 0;
 
   /* port f bits 0, 1: uart0 tx, rx */
@@ -206,6 +204,7 @@ static void initGPIO(void) {
   *(uint16_t volatile *) (PORTHIO_BASE_ADDRESS + PORTIO_MASKA_OFFSET) = 0x0000;
   *(uint16_t volatile *) (PORTHIO_BASE_ADDRESS + PORTIO_MASKB_OFFSET) = 0x0000;
   *(uint16_t volatile *) (PORTHIO_BASE_ADDRESS + PORTIO_DIR_OFFSET) = 0x0000;
+#endif
 }
 
 /*

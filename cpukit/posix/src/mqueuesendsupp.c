@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueuesendsupp.c,v 1.21 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: mqueuesendsupp.c,v 1.22 2009/02/03 10:10:48 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -83,7 +83,7 @@ int _POSIX_Message_queue_Send_support(
        *  A timed receive with a bad time will do a poll regardless.
        */
       if ( wait )
-        do_wait = (the_mq_fd->oflag & O_NONBLOCK) ? FALSE : TRUE;
+        do_wait = (the_mq_fd->oflag & O_NONBLOCK) ? false : true;
       else
         do_wait = wait;
 

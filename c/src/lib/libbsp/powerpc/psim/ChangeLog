@@ -1,14 +1,194 @@
-2009-10-16	Jennifer Averett <jennifer.averett@OARcorp.com>
+2011-05-17	Till Straumann <strauman@slac.stanford.edu>
 
-	* startup/bspstart.c: Add bsp_clicks_per_usec.
+	PR1797/bsps
+	* configure.ac: Made CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
+	a bspopts.h setting.
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-01	Till Straumann <strauman@slac.stanford.edu>
+
+	* Makefile.am, start/start.S: Added AltiVec support
+	(only effective if user modifies psim.cfg: CPU_CFLAGS
+	choosing a CPU architecture with AltiVec or directly
+	adding -maltivec, -mabi=altivec).
+
+	* start/start.S: removed '.file' statement which 
+	confused gdb.
+
+2009-11-15	Till Straumann <strauman@slac.stanford.edu>
+
+	* startup/bspstart.c: use normal get_ppc_cpu_type()
+	for determining PPC flavor. This causes the appropriate
+	'feature' bits to be set and should work as long 
+	as the PVR is set to 0xfffe0000 in the device tree.
+
+	* startup/linkcmds: increased RAM_SIZE to 32M.
+
+2009-11-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* start/start.S: Ensure that initial stack is aligned to
+	CPU_STACK_ALIGNMENT.
+
+2009-10-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for exception support changes.
+	* irq/irq_init.c: Changed exception header file includes.
+	* startup/bspstart.c: Update for ppc_exc_initialize() changes.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/psim.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* start/start.S, startup/bspstart.c: Fix warnings.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/psim.cfg: New (relocated from /make/custom).
+
+2009-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Disable network interface when networking
+	is disabled.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-09-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* network/gdb-6.8-psim-hw_ethtap.diff: Added gdb patch
+	which implements the NIC hardware emulation.
+
+2009-09-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* Makefile.am, bsp.h, network/if_sim.c, network/README:
+	added driver for NIC emulation.
+
+2009-09-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* Makefile.am, preinstall.am, irq/no_pic.c (REMOVED),
+	irq/irq.h, irq/irq_init.c:
+	use openpic from 'shared' area instead of no_pic.
+	* inlude/psim.h:
+	use openpic from 'shared' area instead of no_pic.
+	Added 'extern' declaration for (linker-script defined) RamBase
+	and RamSize symbols. Let CPP macros expand to these symbols
+	instead of static constants.
+	Added register definitions for OpenPIC in the register area.
+	Added register definitions for ethernet controller in the register
+	area.
+	* startup/linkcmds: Increased RamSize to 16M. Increased 'RAM'
+	memory region to 32M (there is really no disadvantage in making
+	this large). Added comment explaining the inter-relation between
+	RamSize, the size of the memory region, the device-tree property
+	"oea-memory-size" and the DBAT setting.
+	* tools/psim-shared: Try to determine RamSize from executable
+	and set 'oea-memory-size' accordingly. May be overridden if 'RAM_SIZE'
+	envvar is set.
+	Added openpic to device-tree.
+	Added ethernet controller to device-tree (commented because a PSIM
+	patch is currently required to use this device).
+	* startup/bspstart: Increase DBAT0 mapping to size of 32M.
+
+2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspstart.c: Spacing.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* start/start.S: Update for boot_card command line change.
+
+2008-12-07	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove -Qy from *link.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-11-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/linkcmds: Most .eh_frame section to make gcc 4.4 SVN happy.
+
+2008-11-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Add bsp_clicks_per_usec variable which is used by
+	shared code.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
 
 2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* Makefile.am: Remove noinst_PROGRAMS (Unused).
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, start/start.S: bsp_cleanup() had the same code which was
+	executed when you returned from boot_card() to start.S. So just use
+	the stub bsp_cleanup() implementation and remove a file.
+	* startup/bspclean.c: Removed.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unused BSP_INIT_STACK_SIZE.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, include/bsp.h, startup/bspstart.c, startup/linkcmds: Use
+	PowerPC level shared bsp_get_work_area() implementation.
+	* startup/bspgetworkarea.c: Removed.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unnecessary boilerplate comments.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/bspstart.c: Add use of bsp_get_work_area() in
+	its own file and rely on BSP Framework to perform more
+	initialization. Remove unnecessary includes of rtems/libio.h and
+	rtems/libcsupport.h.
+	* startup/bspgetworkarea.c: New file.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Review of all bsp_cleanup() implementations. In this
+	phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-09-05	Joel Sherrill <joel.sherrill@oarcorp.com>
 

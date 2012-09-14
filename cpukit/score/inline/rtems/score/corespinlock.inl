@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: corespinlock.inl,v 1.4 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: corespinlock.inl,v 1.5 2008/12/22 09:22:17 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_CORESPINLOCK_H
@@ -34,8 +34,8 @@
  *
  *  @param[in] the_spinlock will be checked
  *
- *  @return This method will return TRUE if the spinlock is busy
- *          and FALSE otherwise.
+ *  @return This method will return true if the spinlock is busy
+ *          and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _CORE_spinlock_Is_busy(
   CORE_spinlock_Control  *the_spinlock

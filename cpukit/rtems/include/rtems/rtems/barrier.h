@@ -20,21 +20,23 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: barrier.h,v 1.5 2008/04/18 20:08:07 joel Exp $
+ *  $Id: barrier.h,v 1.8 2009/11/29 11:55:14 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_BARRIER_H
 #define _RTEMS_RTEMS_BARRIER_H
 
 /**
- *  @defgroup ClassicBarrier Classic API Barrier
+ *  @defgroup ClassicBarrier Barriers
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */
 /**@{*/
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -76,13 +78,8 @@ RTEMS_BARRIER_EXTERN Objects_Information  _Barrier_Information;
  *  @brief _Barrier_Manager_initialization
  *
  *  This routine performs the initialization necessary for this manager.
- *
- *  @param[in] maximum_barriers is the total number of barriers allowed to
- *             concurrently be active in the system.
  */
-void _Barrier_Manager_initialization(
-  uint32_t   maximum_barriers
-);
+void _Barrier_Manager_initialization(void);
 
 /**
  *  @brief rtems_barrier_create
@@ -118,7 +115,7 @@ rtems_status_code rtems_barrier_create(
  *  extent of the search for the ID of the barrier named name.
  *  The search can be limited to a particular node or allowed to
  *  encompass all nodes.
- * 
+ *
  *  @param[in] name is the name of this barrier instance.
  *  @param[out] id will contain the id of this barrier.
  *

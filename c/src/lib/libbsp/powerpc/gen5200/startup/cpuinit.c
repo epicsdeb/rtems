@@ -98,18 +98,18 @@ static void calc_dbat_regvals(
   while ((end_addr & block_mask) != (base_addr & block_mask)) {
     block_mask <<= 1;
   }
-  
-  bat_ptr->batu.bepi = base_addr >> (32 - 15); 
+
+  bat_ptr->batu.bepi = base_addr >> (32 - 15);
   bat_ptr->batu.bl   = ~(block_mask >> (28 - 11));
   bat_ptr->batu.vs   = 1;
   bat_ptr->batu.vp   = 1;
-  
-  bat_ptr->batl.brpn = base_addr  >> (32 - 15); 
-  bat_ptr->batl.w    = flg_w; 
-  bat_ptr->batl.i    = flg_i; 
-  bat_ptr->batl.m    = flg_m; 
-  bat_ptr->batl.g    = flg_g; 
-  bat_ptr->batl.pp   = flg_bpp; 
+
+  bat_ptr->batl.brpn = base_addr  >> (32 - 15);
+  bat_ptr->batl.w    = flg_w;
+  bat_ptr->batl.i    = flg_i;
+  bat_ptr->batl.m    = flg_m;
+  bat_ptr->batl.g    = flg_g;
+  bat_ptr->batl.pp   = flg_bpp;
 }
 
 #if defined (BRS5L)
@@ -170,14 +170,14 @@ void cpu_init_bsp(void)
 {
   BAT dbat;
   uint32_t start = 0;
-  
+
   /*
    * Program BAT0 for RAM
    */
   calc_dbat_regvals(
     &dbat,
-    uboot_bdinfo_ptr->bi_memstart,
-    uboot_bdinfo_ptr->bi_memsize,
+    bsp_uboot_board_info.bi_memstart,
+    bsp_uboot_board_info.bi_memsize,
     true,
     false,
     false,
@@ -193,16 +193,16 @@ void cpu_init_bsp(void)
    * U-Boot that lies about the starting address of Flash.  This check
    * corrects that.
    */
-  if ((uboot_bdinfo_ptr->bi_flashstart + uboot_bdinfo_ptr->bi_flashsize)
-    < uboot_bdinfo_ptr->bi_flashstart) {
-    start = 0 - uboot_bdinfo_ptr->bi_flashsize;
+  if ((bsp_uboot_board_info.bi_flashstart + bsp_uboot_board_info.bi_flashsize)
+    < bsp_uboot_board_info.bi_flashstart) {
+    start = 0 - bsp_uboot_board_info.bi_flashsize;
   } else {
-    start = uboot_bdinfo_ptr->bi_flashstart;
+    start = bsp_uboot_board_info.bi_flashstart;
   }
   calc_dbat_regvals(
     &dbat,
     start,
-    uboot_bdinfo_ptr->bi_flashsize,
+    bsp_uboot_board_info.bi_flashsize,
     true,
     false,
     false,
@@ -229,11 +229,11 @@ void cpu_init_bsp(void)
   /*
    * If there is SRAM, program BAT3 for that memory
    */
-  if (uboot_bdinfo_ptr->bi_sramsize != 0) {
+  if (bsp_uboot_board_info.bi_sramsize != 0) {
     calc_dbat_regvals(
       &dbat,
-      uboot_bdinfo_ptr->bi_sramstart,
-      uboot_bdinfo_ptr->bi_sramsize,
+      bsp_uboot_board_info.bi_sramstart,
+      bsp_uboot_board_info.bi_sramsize,
       false,
       true,
       true,
@@ -272,7 +272,7 @@ void cpu_init(void)
   /* Update MSR */
   ppc_set_machine_state_register( msr);
 
-  /* 
+  /*
    * Enable data cache.
    *
    * NOTE: TRACE32 now supports data cache for MGT5x00.

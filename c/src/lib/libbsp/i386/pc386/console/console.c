@@ -27,7 +27,7 @@
 | *  http://www.rtems.com/license/LICENSE.
 | **************************************************************************
 |
-|  $Id: console.c,v 1.39.2.1 2008/11/03 20:56:02 strauman Exp $
+|  $Id: console.c,v 1.48 2010/04/12 16:32:54 ralf Exp $
 +--------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -39,6 +39,7 @@
 #include <bsp/irq.h>
 #include <rtems/libio.h>
 #include <termios.h>
+#include <rtems/termiostypes.h>
 #include <uart.h>
 #include <libcpu/cpuModel.h>
 
@@ -78,7 +79,7 @@ extern void kbd_init( void );
 +--------------------------------------------------------------------------*/
 extern void keyboard_interrupt(void );
 extern void keyboard_interrupt_wrapper(void *);
-extern char BSP_wait_polled_input(void);
+extern int BSP_wait_polled_input(void);
 extern void _IBMPC_initVideo(void);
 
 static int  conSetAttr(int minor, const struct termios *);
@@ -115,17 +116,17 @@ isr_is_on(const rtems_irq_connect_data *irq)
 
 extern int  rtems_kbpoll( void );
 
-static int
-ibmpc_console_write(int minor, const char *buf, int len)
+static ssize_t
+ibmpc_console_write(int minor, const char *buf, size_t len)
 {
-  int count;
+  size_t count;
   for (count = 0; count < len; count++)
   {
     _IBMPC_outch( buf[ count ] );
     if( buf[ count ] == '\n')
       _IBMPC_outch( '\r' );            /* LF = LF + CR */
   }
-  return 0;
+  return count;
 }
 
 int kbd_poll_read( int minor )
@@ -136,6 +137,84 @@ int kbd_poll_read( int minor )
      return c;
   }
   return -1;
+}
+
+/* provide default that does nothing */
+extern void
+BSP_runtime_console_select(int *, int *) __attribute__((weak));
+
+/* provide routine to select console; this
+ * is called very early so that early boot
+ * messages also make it to the redirected
+ * device.
+ */
+void
+BSP_console_select(void)
+{
+  const char* mode;
+
+  /*
+   * Check the command line for the type of mode
+   * the console is.
+   */
+  mode = bsp_cmdline_arg ("--console=");
+
+  if (mode)
+  {
+    mode += sizeof ("--console=") - 1;
+    if (strncmp (mode, "console", sizeof ("console") - 1) == 0)
+    {
+      BSPConsolePort = BSP_CONSOLE_PORT_CONSOLE;
+      BSPPrintkPort  = BSP_CONSOLE_PORT_CONSOLE;
+    }
+    else if (strncmp (mode, "com1", sizeof ("com1") - 1) == 0)
+    {
+      BSPConsolePort = BSP_UART_COM1;
+      BSPPrintkPort  = BSP_UART_COM1;
+    }
+    else if (strncmp (mode, "com2", sizeof ("com2") - 1) == 0)
+    {
+      BSPConsolePort = BSP_UART_COM2;
+      BSPPrintkPort  = BSP_UART_COM2;
+    }
+  }
+
+  if ( BSP_runtime_console_select )
+    BSP_runtime_console_select(&BSPPrintkPort, &BSPConsolePort);
+
+#ifdef RTEMS_RUNTIME_CONSOLE_SELECT
+  /*
+   * If no video card, fall back to serial port console
+   */
+#include <crt.h>
+  if((BSPConsolePort == BSP_CONSOLE_PORT_CONSOLE)
+   && (*(unsigned char*) NB_MAX_ROW_ADDR == 0)
+   && (*(unsigned short*)NB_MAX_COL_ADDR == 0)) {
+    BSPConsolePort = BSP_UART_COM2;
+    BSPPrintkPort  = BSP_UART_COM1;
+  }
+#endif
+
+  if(BSPPrintkPort == BSP_UART_COM1)
+    {
+      printk("Warning : This will be the last message on console\n");
+
+      /*
+       * FIXME: cast below defeats the very idea of having
+       * function pointer types defined
+       */
+      BSP_output_char = (BSP_output_char_function_type)
+                          BSP_output_char_via_serial;
+      BSP_poll_char   = (BSP_polling_getchar_function_type)
+                          BSP_poll_char_via_serial;
+    }
+  else if(BSPPrintkPort != BSP_CONSOLE_PORT_CONSOLE)
+    {
+      printk("illegal assignement of printk channel");
+      /* just skip; at this early stage we don't want
+       * to call rtems_fatal_error_occurred().
+       */
+    }
 }
 
 /*-------------------------------------------------------------------------+
@@ -150,6 +229,7 @@ console_initialize(rtems_device_major_number major,
 {
   rtems_status_code status;
 
+
   /* Initialize the KBD interface */
   kbd_init();
 
@@ -157,19 +237,6 @@ console_initialize(rtems_device_major_number major,
    * Set up TERMIOS
    */
   rtems_termios_initialize ();
-
-#ifdef RTEMS_RUNTIME_CONSOLE_SELECT
-  /*
-   * If no video card, fall back to serial port console
-   */
-#include <crt.h>
-  if((BSPConsolePort == BSP_CONSOLE_PORT_CONSOLE)
-   && (*(unsigned char*) NB_MAX_ROW_ADDR == 0)
-   && (*(unsigned short*)NB_MAX_COL_ADDR == 0)) {
-    BSPConsolePort = BSP_UART_COM2;
-    BSPPrintkPort  = BSP_UART_COM1;
-  }
-#endif
 
   /*
    *  The video was initialized in the start.s code and does not need
@@ -240,27 +307,14 @@ console_initialize(rtems_device_major_number major,
 	{
 	  printk("Initialized console on port COM2 9600-8-N-1\n\n");
 	}
+  }
 
-      if(BSPPrintkPort == BSP_UART_COM1)
-        {
-          printk("Warning : This will be the last message on console\n");
-
-          /*
-           * FIXME: cast below defeats the very idea of having
-           * function pointer types defined
-           */
-          BSP_output_char = (BSP_output_char_function_type)
-                              BSP_output_char_via_serial;
-          BSP_poll_char   = (BSP_polling_getchar_function_type)
-                              BSP_poll_char_via_serial;
-        }
-      else if(BSPPrintkPort != BSP_CONSOLE_PORT_CONSOLE)
-        {
-           printk("illegal assignement of printk channel");
-         rtems_fatal_error_occurred (status);
-        }
-
+  if(BSPPrintkPort != BSP_CONSOLE_PORT_CONSOLE && BSPPrintkPort != BSP_UART_COM1)
+    {
+      printk("illegal assignement of printk channel");
+      rtems_fatal_error_occurred (status);
     }
+
   return RTEMS_SUCCESSFUL;
 } /* console_initialize */
 
@@ -433,7 +487,7 @@ conSetAttr(int minor, const struct termios *t)
 {
   unsigned long baud, databits, parity, stopbits;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 

@@ -1,3 +1,32 @@
+2011-04-20	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* acinclude.m4: Regenerated for TLL6527M.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-05-31	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* shared/start/start.S: Pass 0/NULL for argc/argv.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* shared/start/start.S: Update for boot_card command line change.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/start/start.S: Add BFIN_ON_SKYEYE define to disable features
+	not supported on simulator.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspgetworkarea.c: Removed.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspgetworkarea.c: New file.
+
 2008-08-30	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* acinclude.m4: Add bf537Stamp. Regenerate.

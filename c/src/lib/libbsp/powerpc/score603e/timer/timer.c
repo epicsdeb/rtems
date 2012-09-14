@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.c,v 1.9.2.1 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: timer.c,v 1.11 2009/05/05 16:24:04 jennifer Exp $
  */
 
 #include <assert.h>

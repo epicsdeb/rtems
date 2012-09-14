@@ -28,6 +28,11 @@ $(PROJECT_INCLUDE)/$(dirstamp):
 	@: > $(PROJECT_INCLUDE)/$(dirstamp)
 PREINSTALL_DIRS += $(PROJECT_INCLUDE)/$(dirstamp)
 
+$(PROJECT_INCLUDE)/bsp/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
+	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+
 $(PROJECT_LIB)/bsp_specs: bsp_specs $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/bsp_specs
 PREINSTALL_FILES += $(PROJECT_LIB)/bsp_specs
@@ -36,7 +41,7 @@ $(PROJECT_INCLUDE)/bsp.h: include/bsp.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp.h
 
-$(PROJECT_INCLUDE)/tm27.h: include/tm27.h $(PROJECT_INCLUDE)/$(dirstamp)
+$(PROJECT_INCLUDE)/tm27.h: ../../shared/include/tm27.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/tm27.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/tm27.h
 
@@ -44,10 +49,9 @@ $(PROJECT_INCLUDE)/bspopts.h: include/bspopts.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bspopts.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bspopts.h
 
-$(PROJECT_INCLUDE)/bsp/$(dirstamp):
-	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
-	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+$(PROJECT_INCLUDE)/bsp/bootcard.h: ../../shared/include/bootcard.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/bootcard.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/bootcard.h
 
 $(PROJECT_INCLUDE)/coverhd.h: include/coverhd.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/coverhd.h
@@ -65,25 +69,13 @@ $(PROJECT_INCLUDE)/bsp/irq.h: include/irq.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq.h
 
-$(PROJECT_INCLUDE)/bsp/irq-config.h: include/irq-config.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq-config.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq-config.h
-
-$(PROJECT_INCLUDE)/bsp/u-boot.h: ../shared/include/u-boot.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/u-boot.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/u-boot.h
-
 $(PROJECT_INCLUDE)/bsp/irq-generic.h: ../../shared/include/irq-generic.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq-generic.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq-generic.h
 
-$(PROJECT_INCLUDE)/bsp/vectors.h: ../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/vectors.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/vectors.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/vectors.h
-
-$(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h: ../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/ppc_exc_bspsupp.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/ppc_exc_bspsupp.h
+$(PROJECT_INCLUDE)/bsp/spi.h: spi/spi.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/spi.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/spi.h
 
 $(PROJECT_LIB)/start.$(OBJEXT): start.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/start.$(OBJEXT)
@@ -93,11 +85,11 @@ $(PROJECT_LIB)/rtems_crti.$(OBJEXT): rtems_crti.$(OBJEXT) $(PROJECT_LIB)/$(dirst
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
 TMPINSTALL_FILES += $(PROJECT_LIB)/rtems_crti.$(OBJEXT)
 
+$(PROJECT_LIB)/linkcmds: startup/linkcmds $(PROJECT_LIB)/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds
+TMPINSTALL_FILES += $(PROJECT_LIB)/linkcmds
+
 $(PROJECT_LIB)/linkcmds.base: startup/linkcmds.base $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds.base
 PREINSTALL_FILES += $(PROJECT_LIB)/linkcmds.base
-
-$(PROJECT_LIB)/linkcmds.tqm8xx: startup/linkcmds.tqm8xx $(PROJECT_LIB)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds.tqm8xx
-PREINSTALL_FILES += $(PROJECT_LIB)/linkcmds.tqm8xx
 

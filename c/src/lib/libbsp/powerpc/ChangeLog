@@ -1,3 +1,231 @@
+2011-07-20	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1837/bsps
+	* shared/motorola/motorola.c, shared/motorola/motorola.h: Add MVME2400
+	board with 750 CPU to list of supported Motorola boards.
+
+2011-05-17  Till Straumann <strauman@slac.stanford.edu>
+
+	PR1797/bsps
+	* shared/startup/sbrk.c: Cleanup; changed default
+	BSP_sbrk_policy to yield all memory to the heap.
+	App must specify a different policy if desired.
+
+2011-05-13  Gedare Bloom <gedare@gwmail.gwu.edu>
+
+	PR1797/bsps
+	* shared/startup/sbrk.c : Renamed bsp_sbrk_init().
+	
+2011-05-07  Kate Feng <feng@bnl.gov>
+
+	PR1797/bsps
+	* shared/startup/bspgetworkarea.c: Removed _bsp_sbrk_init().
+	* shared/startup/pretaskinghook.c: Removed rtems/malloc.h.
+
+2011-03-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* shared/start/start.S: Remove conflict markers in comment.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2011-01-19	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* shared/pci/detect_raven_bridge.c: Fix spelling.
+
+2011-01-19	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* shared/pci/detect_raven_bridge.c: Fix spelling.
+
+2010-08-25	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1689/bsps
+	* shared/flash/intelFlash.c: Scale erase timeout by actual
+	system clock rate rather than assuming a fixed value.
+
+2010-04-28	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* shared/bootloader/em86.c, shared/bootloader/mm.c,
+	shared/console/polled_io.c, shared/irq/irq_init.c,
+	shared/startup/bspstart.c: Remove warnings.
+
+2010-04-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/flash/flash.c: Include <unistd.h>.
+
+2010-04-08      Eric Norum <wenorum@lbl.gov>
+
+	* shared/motorola/vpd.c: add include to pick up read()/close() prototypes.
+
+2010-03-27      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* shared/startup/bspstart.c, shared/startup/pgtbl_setup.c: fix
+	prototypes
+
+2010-03-25      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* aclocal.m4: add "gwlcfm" bsp
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* shared/console/uart.c, shared/console/uart.h: adapted to new
+	prototype for *_write function
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* shared/pci/pci.c: Rename pci_config into rtems_pci_config_t.
+
+2009-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/irq/irq_init.c: Add missing initializer.
+
+2009-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/console/polled_io.c: Add prototype for boot_udelay.
+
+2009-12-03	Till Straumann <strauman@slac.stanford.edu>
+
+	* acinclude.m4, beatnik: Imported/added 'beatnik'
+	BSP.
+
+2009-12-01	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/start/start.S: Added AltiVec support (initializing
+	MSR[VE], VSCR and VRSAVE).
+
+2009-12-01	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/vme/vme_universe.c: moved extern declaration
+	out of local scope.
+
+2009-12-01	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/startup/panic.c: Fixed compiler warning.
+
+2009-12-01	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/startup/probeMemEnd.c: removed __here_s_the_real_end
+	check. __rtems_end should be good enough.
+
+2009-11-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/start/start.S: Align initial stack to
+	CPU_STACK_ALIGNMENT.
+
+2009-11-03	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* shared/clock/clock.c: Remove classic decrementer handler
+	* shared/vme/vme_universe.c: removed non-prototype warnings
+
+2009-11-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/startup/probeMemEnd.c: Add missing prototypes.
+
+2009-10-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/irq/irq_asm.S, shared/irq/README.deprecated,
+	shared/irq/irq.c, shared/vectors/vectors.h,
+	shared/vectors/vectors_init.c, shared/vectors/README.deprecated,
+	shared/vectors/vectors.S: Removed files.
+	* Makefile.am: Update for removed files.
+
+2009-10-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/clock/clock.c, shared/irq/irq_init.c,
+	shared/irq/openpic_i8259_irq.c: Changed exception header file
+	includes.
+
+2009-10-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/vme/vme_universe.c:
+	Fixed compiler warnings by adding prototypes to function
+	declarations and moving extern declarations to global scope.
+
+2009-10-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/startup/pgtbl_setup.c: Fixed compiler warnings
+	(added prototypes to function declarations etc.)
+
+2009-10-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/start/start.S, shared/startup/bspstart.c:
+	let 'save_boot_params()' return a pointer to the commandline
+	saved by the BSP and pass this pointer on to 'boot_card()'.
+
+2009-10-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* shared/startup/linkcmds: Add __SBSS_END__ and __SBSS2_END__.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/startup/zerobss.c: Remove nested externs.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/motorola/motorola.c, shared/vme/vme_universe.c:
+	Add missing prototypes.
+
+2009-10-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/openpic/openpic.c: Make openpic_writefield
+	static inline (Get rid of GCC warning).
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/console/console.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* acinclude.m4: Add qemuppc.
+
+2009-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bootloader/bootldr.h: Change extern inline to static inline.
+
+2009-09-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/openpic/openpic.c: include the more generic <rtems/pci.h>
+	rather than <bsp/pci.h>.
+
+2009-09-11	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/irq/openpic_i8259_irq.c: Do not include <bsp/VMEConfig.h>
+	if the bsp.h defines HAVE_NO_VME so that BSPs w/o VME do not
+	have to create a dummy VMEConfig.h header.
+
+2009-09-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1435/bsps
+	* shared/startup/bspidle.c: New file.
+
+2009-08-25	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* ep1a/startup/linkcmds, mbx8xx/startup/linkcmds,
+	score603e/startup/linkcmds, shared/startup/linkcmds,
+	ss555/startup/linkcmds: Fix typos in .eh_frame sections.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/flash/spansionFlash.c: Convert calls to legacy routine
+	rtems_clock_get( RTEMS_CLOCK_GET_xxx, ..) to rtems_clock_get_xxx().
+
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/startup/bspgetworkarea.c: Switch from ssize_t to uintptr_t for
+	bsp_get_work_area() since the work area is larger than a single
+	allocatable object.
+
+2009-05-05	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	* shared/pci/pci.c: Removed warnings.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* shared/start/start.S: Update for boot_card command line change.
+
 2009-03-12	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	PR 1385/cpukit
@@ -12,11 +240,33 @@
 	* shared/clock/clock.c: Standard decrementer exception is now more
 	robust against erroneous external exception disable times.
 
+2009-02-27	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* shared/startup/bspgetworkarea.c: Add check to determine if current
+	stack pointer is in work area.
+
+2009-02-26	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* shared/startup/bspgetworkarea.c: Make debug messages same as
+	standard.
+
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/irq/irq.c: Spacing.
+
 2009-02-11	Matt Rippa <mrippa@gemini.edu>
 
 	PR 1352/bsps
-	* shared/console/reboot.c, shared/motorola/motorola.c: Include support
-	for mvme2600/mvme2700.
+	* shared/motorola/motorola.c: Include support for mvme2600/mvme2700.
+
+2009-02-11	Matt Rippa <mrippa@gemini.edu>
+
+	PR 1362/bsps
+	* shared/console/bspreset.c: Fix BSP reset on mvme2300 - mvme2700.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/irq/openpic_i8259_irq.c: Line wrap.
 
 2008-11-03	Till Straumann <strauman@slac.stanford.edu>
 
@@ -25,24 +275,64 @@
 
 2008-11-03	Till Straumann <strauman@slac.stanford.edu>
 
-	* shared/startup/linkcmds: increased size of CODE memory
-	area.
-
-2008-11-03	Till Straumann <strauman@slac.stanford.edu>
-
 	* shared/startup/pretaskinghook.c, shared/startup/sbrk.c:
 	Fixed PR#1335.
 
-2008-10-23	Eric Norum <norume@aps.anl.gov>
+2008-10-02	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
-	* ep1a/include/bsp.h, motorola_powerpc/Makefile.am,
-	motorola_powerpc/include/bsp.h, mvme3100/Makefile.am,
-	mvme3100/include/bsp.h, mvme3100/startup/bspstart.c,
-	mvme3100/startup/misc.c, mvme5500/include/bsp.h,
-	mvme5500/startup/bspclean.c, mvme5500/startup/reboot.c,
-	mvme5500/vectors/exceptionhandler.c, shared/console/inch.c,
-	shared/console/reboot.c, shared/startup/bspstart.c,
-	shared/startup/panic.c: Reset card on RTEMS shutdown
+	* shared/clock/clock.c: Update for status-checks.h changes.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/startup/bspgetworkarea.c: Change size_t to ssize_t on
+	bsp_get_work_area(). On 16-bit architectures, size_t can be 16-bits
+	which would limit the work area to 64K.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/console/inch.c, shared/startup/panic.c: Use standardized
+	bsp_cleanup() which can optionally print a message, poll for user to
+	press key, and call bsp_reset(). Using this eliminates the various
+	bsp_cleanup() implementations which had their own implementation and
+	variety of string constants.
+	* shared/console/bspreset.c: New file.
+	* shared/console/reboot.c: Removed.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/startup/bspgetworkarea.c, shared/startup/sbrk.c: Remove
+	warnings by switching to uintptr_t.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/start/start.S, shared/startup/bspgetworkarea.c,
+	shared/startup/bspstart.c, shared/startup/linkcmds: Modifications
+	which reflect those tested on psim. Hopefully they work on all
+	boards. The initialization stack is explicitly declared in the
+	linkcmds memory layout rather than magic math.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/include/nvram.h: Fix typo.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/clock/clock.c: Remove unnecessary includes of
+	rtems/libcsupport.h and rtems/libio.h.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/startup/bspstart.c, shared/startup/pretaskinghook.c: Add use
+	of bsp_get_work_area() in its own file and rely on BSP Framework to
+	perform more initialization.
+	* shared/startup/bspgetworkarea.c: New file.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/startup/bspstart.c: Review of all bsp_cleanup()
+	implementations. In this phase, all prototypes were removed from
+	bsp.h and empty implementations were removed and made to use the
+	shared stub.
 
 2008-09-08	Joel Sherrill <joel.sherrill@oarcorp.com>
 

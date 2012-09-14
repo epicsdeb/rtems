@@ -44,9 +44,9 @@ BSP_VMEchipTypes BSP_getVMEchipType();
 /* The version of Discovery system controller */
 
 typedef enum {
-	notdefined, 
+	notdefined,
 	GT64260A,
-	GT64260B,	    
+	GT64260B,
 	MV64360,
 } DiscoveryChipVersion;
 
@@ -68,9 +68,9 @@ DiscoveryChipVersion BSP_getDiscoveryChipVersion();
 #define BSP_NVRAM_BASE_ADDR     0xf1110000
 
 #define BSP_RTC_INTA_REG        0x7ff0
-#define BSP_RTC_SECOND	        0x7ff2  
+#define BSP_RTC_SECOND	        0x7ff2
 #define BSP_RTC_MINUTE	        0x7ff3
-#define BSP_RTC_HOUR	        0x7ff4  
+#define BSP_RTC_HOUR	        0x7ff4
 #define BSP_RTC_DATE	        0x7ff5
 #define BSP_RTC_INTERRUPTS      0x7ff6
 #define BSP_RTC_WATCHDOG        0x7ff7
@@ -103,20 +103,13 @@ DiscoveryChipVersion BSP_getDiscoveryChipVersion();
 
 /* The glues to Till's vmeUniverse, although the name does not
  * actually reflect the relevant architect of the MVME5500.
- * Till TODO ? :  BSP_PCI_DO_EOI instead ? 
- * BSP_EXT_IRQ0 instead of BSP_PCI_IRQ0 ?
- *
  */
-#define BSP_PIC_DO_EOI  inl(0xc34)  /* PCI IACK */
 #define BSP_PCI_IRQ0 BSP_GPP_IRQ_LOWEST_OFFSET
 
 /*
  *  confdefs.h overrides for this BSP:
- *   - termios serial ports (defaults to 1)
  *   - Interrupt stack space is not minimum if defined.
  */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
 #define BSP_INTERRUPT_STACK_SIZE  (16 * 1024) /* <skf> 2/09 wants it to be adjustable by BSP */
 
 /* uart.c uses out_8 instead of outb  */
@@ -155,8 +148,6 @@ extern int BSP_connect_clock_handler (void);
 
 extern unsigned long _BSP_clear_hostbridge_errors();
 
-extern unsigned int BSP_heap_start;
-
 #if 0
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"gt1"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_GT64260eth_driver_attach
@@ -166,11 +157,6 @@ extern unsigned int BSP_heap_start;
 #endif
 
 extern int RTEMS_BSP_NETWORK_DRIVER_ATTACH();
-
-/*
- *  BSP Configuration Default Overrides
- */
-#define BSP_ZERO_WORKSPACE_AUTOMATICALLY TRUE
 
 #define gccMemBar() RTEMS_COMPILER_MEMORY_BARRIER()
 
@@ -192,4 +178,4 @@ static inline void ioBar()
     asm volatile("eieio":::"memory");
 }
 
-#endif 
+#endif

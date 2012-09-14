@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.14 2004/04/01 15:16:29 ralf Exp $
+ *  $Id: system.h,v 1.16 2009/06/12 14:01:50 joel Exp $
  */
 
 #include <tmacros.h>
@@ -44,6 +44,12 @@ rtems_task Task_3(
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 #define CONFIGURE_MAXIMUM_TASKS             4
+
+/*
+ *  Deliberately configure the IDLE Task's stack as greater than minimum
+ *  so it will have to be increased.
+ */
+#define CONFIGURE_IDLE_TASK_STACK_SIZE (2 * RTEMS_MINIMUM_STACK_SIZE)
 
 #include <rtems/confdefs.h>
 

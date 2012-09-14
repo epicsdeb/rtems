@@ -1,14 +1,14 @@
 /*
  *  This file contains the TTY driver table for the EP1A
- * 
- *  COPYRIGHT (c) 1989-2009.
+ *
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: config.c,v 1.5.2.1 2009/10/16 16:42:02 joel Exp $
+ *  $Id: config.c,v 1.8 2009/11/30 04:25:26 ralf Exp $
  */
 
 #include <libchip/serial.h>
@@ -16,17 +16,12 @@
 #include <bsp.h>
 #include <libcpu/io.h>
 #include "m68360.h"
+
 /*
  *  Based on BSP configuration information decide whether to do polling IO
  *  or interrupt driven IO.
  */
-
-#if 1 
 #define NS16550_FUNCTIONS &ns16550_fns_polled
-#else
-#define NS16550_FUNCTIONS &ns16550_fns
-#endif
-
 #define MC68360_SCC_FUNCTIONS &mc68360_scc_fns
 
 /*
@@ -127,7 +122,6 @@ console_tbl	Console_Port_Tbl[] = {
                 7372800,                        /* ulClock */
                 0                               /* ulIntVector */
         },
-
         /*
          * Up to 12 serial ports are provided by MC68360 SCC ports.
          *     EP1A may have one MC68360 providing 4 ports (A,B,C,D).
@@ -392,53 +386,48 @@ static bool config_68360_scc_base_probe(int minor, unsigned long busNo, unsigned
 static bool config_68360_scc_base_probe_1( int minor ) {
   return config_68360_scc_base_probe(minor, 0, 11, 1);
 }
-                                                                                                                
+
 static bool config_68360_scc_base_probe_2( int minor ) {
   return config_68360_scc_base_probe(minor, 0, 11, 2);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_3( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 11, 3);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_4( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 11, 4);
 }
-                                                                                                                
+
 static bool config_68360_scc_base_probe_5( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 16, 1);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_6( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 16, 2);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_7( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 16, 3);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_8( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 16, 4);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_9( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 15, 1);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_10( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 15, 2);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_11( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 15, 3);
 }
-                                                                                                                 
+
 static bool config_68360_scc_base_probe_12( int minor ) {
   return config_68360_scc_base_probe( minor, 0, 15, 4);
-}
-
-
-void Force_mc8360_interrupt( int d ) {
-  mc68360_sccInterruptHandler( M68360_chips->next );
 }
 

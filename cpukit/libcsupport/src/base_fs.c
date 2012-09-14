@@ -1,14 +1,14 @@
 /*
  *  Base file system initialization
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: base_fs.c,v 1.18 2008/05/27 10:34:14 thomas Exp $
+ *  $Id: base_fs.c,v 1.22 2010/05/31 13:56:36 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -18,13 +18,6 @@
 #include <rtems.h>
 #include <rtems/libio.h>
 #include <rtems/libio_.h>
-
-/*
- *  Global information for the base file system.
- */
-
-rtems_user_env_t   rtems_global_user_env;
-rtems_user_env_t * rtems_current_user_env = &rtems_global_user_env;
 
 /*
  *  Default mode for created files.
@@ -42,9 +35,7 @@ rtems_user_env_t * rtems_current_user_env = &rtems_global_user_env;
 
 void rtems_filesystem_initialize( void )
 {
-#if !defined(RTEMS_UNIX)
   int                                   status;
-  rtems_filesystem_mount_table_entry_t *entry;
   const rtems_filesystem_mount_table_t *mt;
   rtems_filesystem_location_info_t      loc;
 
@@ -53,9 +44,6 @@ void rtems_filesystem_initialize( void )
    */
 
   rtems_filesystem_umask = 022;
-
-
-  init_fs_mount_table();
 
   /*
    *  mount the first filesystem.
@@ -66,8 +54,7 @@ void rtems_filesystem_initialize( void )
 
   mt = &rtems_filesystem_mount_table[0];
 
-  status = mount(
-     &entry, mt->fs_ops, mt->fsoptions, mt->device, mt->mount_point );
+  status = mount( mt->device, mt->mount_point, mt->type, mt->fsoptions, NULL );
 
   if ( status == -1 )
     rtems_fatal_error_occurred( 0xABCD0002 );
@@ -94,12 +81,11 @@ void rtems_filesystem_initialize( void )
    *
    *       Till Straumann, 10/25/2002
    */
-  rtems_filesystem_root        = entry->mt_fs_root;
   /* Clone the root pathloc */
-  rtems_filesystem_evaluate_path("/", 0, &loc, 0);
+  rtems_filesystem_evaluate_path("/", 1, 0, &loc, 0);
   rtems_filesystem_root        = loc;
   /* One more clone for the current node */
-  rtems_filesystem_evaluate_path("/", 0, &loc, 0);
+  rtems_filesystem_evaluate_path("/", 1, 0, &loc, 0);
   rtems_filesystem_current     = loc;
 
   /* Note: the global_env's refcnt doesn't matter
@@ -127,6 +113,4 @@ void rtems_filesystem_initialize( void )
    *  before device drivers are initialized.  So we return via a base
    *  filesystem image and nothing auto-mounted at this point.
    */
-
-#endif
 }

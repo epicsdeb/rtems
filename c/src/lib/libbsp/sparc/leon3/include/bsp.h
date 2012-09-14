@@ -10,13 +10,13 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *  Ported to ERC32 implementation of the SPARC by On-Line Applications
- *  Research Corporation (OAR) under contract to the European Space 
+ *  Research Corporation (OAR) under contract to the European Space
  *  Agency (ESA).
  *
- *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995. 
+ *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: bsp.h,v 1.10 2007/12/11 15:46:19 joel Exp $
+ *  $Id: bsp.h,v 1.13.2.1 2011/04/25 19:39:42 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -37,17 +37,14 @@ extern "C" {
 #define LEON3 1
 
 /*
- *  confdefs.h overrides for this BSP:
- *   - two termios serial ports
- *   - Interrupt stack space is not minimum if defined.
+ *  BSP provides its own Idle thread body
  */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
+void *bsp_idle_thread( uintptr_t ignored );
+#define BSP_IDLE_TASK_BODY bsp_idle_thread
 
 /*
  * Network driver configuration
  */
-
 struct rtems_bsdnet_ifconfig;
 extern int rtems_leon_open_eth_driver_attach(
   struct rtems_bsdnet_ifconfig *config,
@@ -74,14 +71,6 @@ extern int rtems_leon_greth_driver_attach(
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH RTEMS_BSP_NETWORK_DRIVER_ATTACH_GRETH
 #endif
 
-/*
- *  Simple spin delay in microsecond units for device drivers.
- *  This is very dependent on the clock speed of the target.
- */
-
-extern void Clock_delay(uint32_t microseconds);
-
-#define delay( microseconds ) Clock_delay(microseconds)
 extern int   CPU_SPARC_HAS_SNOOPING;
 
 
@@ -94,20 +83,16 @@ extern int   CPU_SPARC_HAS_SNOOPING;
 extern int   RAM_START;
 extern int   RAM_END;
 extern int   RAM_SIZE;
- 
+
 extern int   PROM_START;
 extern int   PROM_END;
 extern int   PROM_SIZE;
 
 extern int   CLOCK_SPEED;
- 
+
 extern int   end;        /* last address in the program */
 
 /* miscellaneous stuff assumed to exist */
-
-void bsp_cleanup( void );
-
-void bsp_start( void );
 
 rtems_isr_entry set_vector(                     /* returns old vector */
     rtems_isr_entry     handler,                /* isr routine        */

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: partcreate.c,v 1.9 2005/01/18 09:03:44 ralf Exp $
+ *  $Id: partcreate.c,v 1.11 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -47,12 +47,12 @@
  */
 
 rtems_status_code rtems_partition_create(
-  rtems_name          name,
-  void               *starting_address,
-  uint32_t            length,
-  uint32_t            buffer_size,
-  rtems_attribute     attribute_set,
-  Objects_Id         *id
+  rtems_name       name,
+  void            *starting_address,
+  uint32_t         length,
+  uint32_t         buffer_size,
+  rtems_attribute  attribute_set,
+  rtems_id        *id
 )
 {
   register Partition_Control *the_partition;
@@ -91,7 +91,7 @@ rtems_status_code rtems_partition_create(
 #if defined(RTEMS_MULTIPROCESSING)
   if ( _Attributes_Is_global( attribute_set ) &&
        !( _Objects_MP_Allocate_and_open( &_Partition_Information, name,
-                            the_partition->Object.id, FALSE ) ) ) {
+                            the_partition->Object.id, false ) ) ) {
     _Partition_Free( the_partition );
     _Thread_Enable_dispatch();
     return RTEMS_TOO_MANY;

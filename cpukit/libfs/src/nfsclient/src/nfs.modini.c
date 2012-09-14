@@ -1,10 +1,14 @@
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "librtemsNfs.h"
 
 /* CEXP dynamic loader support */
 
 void
 _cexpModuleInitialize(void *mod)
-{	
+{
 #if defined(DEBUG)
 	/* print load address (in case we crash while initializing) */
 unsigned lr;
@@ -20,7 +24,7 @@ unsigned lr;
 
 int
 _cexpModuleFinalize(void *mod)
-{	
+{
 	return nfsCleanup();
 }
 

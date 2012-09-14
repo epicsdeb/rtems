@@ -1,4 +1,4 @@
-/* $Id: nfsTest.c,v 1.1 2008/02/26 19:23:53 joel Exp $ */
+/* $Id: nfsTest.c,v 1.4 2010/03/27 04:04:39 ccj Exp $ */
 
 /* Test program for evaluating NFS read throughput */
 
@@ -16,7 +16,7 @@
  *    reply to come back. Performance enhancement can be expected
  *    by requesting multiple blocks in parallel rather than
  *    sequentially.
- * 
+ *
  * rtems_interval
  * nfsTestRead(char *file_name, int chunk_size, int num_readers);
  *
@@ -50,19 +50,19 @@
  *    performed at 'big block' boundaries (num_readers * chunk_size).
  */
 
-/* 
+/*
  * Authorship
  * ----------
  * This software (NFS-2 client implementation for RTEMS) was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2002-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The NFS-2 client implementation for RTEMS was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -71,18 +71,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -91,9 +91,13 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <rtems.h>
 #include <rtems/error.h>
 
@@ -181,7 +185,7 @@ rtems_id          tid;
 			rtems_build_name('n','t','t','0'+inst),
 			nfsTestReaderPri,
 			1400,
-			RTEMS_DEFAULT_MODES,	
+			RTEMS_DEFAULT_MODES,
 			RTEMS_DEFAULT_ATTRIBUTES,
 			&tid);
 	if ( RTEMS_SUCCESSFUL != sc ) {
@@ -329,7 +333,7 @@ char	          *buf=0;
 	}
 
 	/* Timed main loop */
-	rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &then);
+        then = rtems_clock_get_ticks_since_boot();
 
 	if ( nrd ) {
 		off = 0;
@@ -345,12 +349,12 @@ char	          *buf=0;
 		if ( i < 0 ) {
 			perror("reading");
 			goto cleanup;
-		} 
+		}
 	}
 
-	rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
+        now = rtems_clock_get_ticks_since_boot();
 	now = (now-then)*1000;
-	rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, &tickspsec);
+	ticksspec = rtems_clock_get_ticks_per_second();
 	now /= tickspsec; /* time in ms */
 
 cleanup:

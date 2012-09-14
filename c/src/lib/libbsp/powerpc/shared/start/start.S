@@ -7,8 +7,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.20 2005/11/04 03:20:29 strauman Exp $
- *
+ *  $Id: start.S,v 1.26.2.1 2011/03/04 16:56:23 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -60,6 +59,21 @@ __rtems_entry_point:
 	mr	r29,r5
 	mr	r28,r6
 	mr	r27,r7
+
+#ifdef __ALTIVEC__
+	/* enable altivec; gcc may use it! */
+	mfmsr r0
+	oris  r0, r0, (1<<(31-16-6))
+	mtmsr r0
+	/*
+	 * set vscr and vrsave to known values
+	 */
+	li    r0, 0
+	mtvrsave r0
+	vxor   0,0,0
+	mtvscr 0
+#endif
+
 	/*
 	 * Make sure we have nothing in BATS and TLB
 	 */
@@ -71,7 +85,7 @@ __rtems_entry_point:
  */
 	lis	r11,KERNELBASE@h
 /* set up BAT registers for 604 */
-	ori	r11,r11,0x1ffe		
+	ori	r11,r11,0x1ffe
 	li	r8,2			/* R/W access */
 	isync
 	mtspr	DBAT0L,r8		/* N.B. 6xx (not 601) have valid */
@@ -105,17 +119,20 @@ enter_C_code:
 	/*
 	 * stack = &__rtems_end + 4096
 	 */
-	addis	r9,r0, __rtems_end+(4096-PPC_MINIMUM_STACK_FRAME_SIZE)@ha
-        addi	r9,r9, __rtems_end+(4096-PPC_MINIMUM_STACK_FRAME_SIZE)@l
-	mr	r1, r9
+	addis	r9,r0, __stack-PPC_MINIMUM_STACK_FRAME_SIZE@ha
+	addi	r9,r9, __stack-PPC_MINIMUM_STACK_FRAME_SIZE@l
 	/*
-	 * We are now in a environment that is totally independent from 
-         * bootloader setup.
+	 * align initial stack
+	 * (we hope that the bootloader stack was 16-byte aligned
+	 * or we haven't used altivec yet...)
 	 */
-        lis	r5,environ@ha
-        la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
+	li   r0, (CPU_STACK_ALIGNMENT-1)
+	andc r1, r9, r0
+	/*
+	 * We are now in a environment that is totally independent from
+	 * bootloader setup.
+	 */
+    /* pass result of 'save_boot_params' to 'boot_card' in R3 */
 	bl	boot_card
 	bl	_return_to_ppcbug
 

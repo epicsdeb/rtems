@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: exinit.c,v 1.45 2008/05/12 18:40:59 joel Exp $
+ *  $Id: exinit.c,v 1.53 2009/08/28 18:26:05 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -53,71 +53,57 @@
 
 #include <rtems/rtems/rtemsapi.h>
 #ifdef RTEMS_POSIX_API
-#include <rtems/posix/posixapi.h>
+  #include <rtems/posix/posixapi.h>
 #endif
 #ifdef RTEMS_ITRON_API
-#include <rtems/itron/itronapi.h>
+  #include <rtems/itron/itronapi.h>
 #endif
 
 Objects_Information *_Internal_Objects[ OBJECTS_INTERNAL_CLASSES_LAST + 1 ];
 
-void rtems_initialize_data_structures(
-  rtems_configuration_table *configuration_table
-)
+void rtems_initialize_data_structures(void)
 {
-  rtems_interrupt_level        bsp_level;
-
   /*
    *  Dispatching and interrupts are disabled until the end of the
    *  initialization sequence.  This prevents an inadvertent context
    *  switch before the executive is initialized.
+   *
+   *  WARNING: Interrupts should have been disabled by the BSP and
+   *           are disabled by boot_card().
    */
-  _ISR_Disable( bsp_level );
 
-  /*
-   *  Make sure the parameters were not NULL.
-   */
-  if ( configuration_table == NULL )
-    _Internal_error_Occurred(
-      INTERNAL_ERROR_CORE,
-      TRUE,
-      INTERNAL_ERROR_NO_CONFIGURATION_TABLE
-    );
+  #if defined(RTEMS_MULTIPROCESSING)
+    /*
+     *  Initialize the system state based on whether this is an MP system.
+     *  In an MP configuration, internally we view single processor
+     *  systems as a very restricted multiprocessor system.
+     */
+    _Configuration_MP_table = Configuration.User_multiprocessing_table;
 
-  /*
-   *  Provide pointers just for later convenience.
-   */
-  _Configuration_Table    = configuration_table;
+    if ( _Configuration_MP_table == NULL ) {
+      _Configuration_MP_table =
+	(void *)&_Initialization_Default_multiprocessing_table;
+      _System_state_Handler_initialization( FALSE );
+    } else {
+      _System_state_Handler_initialization( TRUE );
+    }
+  #else
+    _System_state_Handler_initialization( FALSE );
+  #endif
 
   /*
    * Initialize any target architecture specific support as early as possible
    */
-  _CPU_Initialize( _Thread_Dispatch );
+  _CPU_Initialize();
 
-#if defined(RTEMS_MULTIPROCESSING)
-  /*
-   *  Initialize the system state based on whether this is an MP system.
-   *  In an MP configuration, internally we view single processor
-   *  systems as a very restricted multiprocessor system.
-   */
-  _Configuration_MP_table = configuration_table->User_multiprocessing_table;
-
-  if ( _Configuration_MP_table == NULL ) {
-    _Configuration_MP_table =
-      (void *)&_Initialization_Default_multiprocessing_table;
-    _System_state_Handler_initialization( FALSE );
-  } else {
-    _System_state_Handler_initialization( TRUE );
-  }
-#else
-  _System_state_Handler_initialization( FALSE );
-#endif
+  #if defined(RTEMS_MULTIPROCESSING)
+    _Objects_MP_Handler_early_initialization();
+  #endif
 
   /*
-   *  Do this as early as possible to insure no debugging output
+   *  Do this as early as possible to ensure no debugging output
    *  is even attempted to be printed.
    */
-
   _Debug_Manager_initialization();
 
   _API_extensions_Initialization();
@@ -128,75 +114,45 @@ void rtems_initialize_data_structures(
    *  Before this is called, we are not allowed to allocate memory
    *  from the Workspace because it is not initialized.
    */
-  _Workspace_Handler_initialization(
-     (void *)configuration_table->work_space_start,
-     configuration_table->work_space_size
-  );
+  _Workspace_Handler_initialization();
 
-  _User_extensions_Handler_initialization(
-    configuration_table->number_of_initial_extensions,
-    configuration_table->User_extension_table
-  );
-
+  _User_extensions_Handler_initialization();
   _ISR_Handler_initialization();
 
-  _Objects_Handler_initialization(
-#if defined(RTEMS_MULTIPROCESSING)
-    _Configuration_MP_table->node,
-    _Configuration_MP_table->maximum_nodes,
-    _Configuration_MP_table->maximum_global_objects
-#endif
-  );
-
+  /*
+   * Initialize the internal support API and allocator Mutex
+   */
   _Objects_Information_table[OBJECTS_INTERNAL_API] = _Internal_Objects;
 
-  /*
-   * Initialize the internal allocator Mutex
-   */
   _API_Mutex_Initialization( 1 );
   _API_Mutex_Allocate( &_RTEMS_Allocator_Mutex );
 
   _Priority_Handler_initialization();
-
   _Watchdog_Handler_initialization();
+  _TOD_Handler_initialization();
 
-  _TOD_Handler_initialization( configuration_table->microseconds_per_tick );
+  _Thread_Handler_initialization();
 
-  _Thread_Handler_initialization(
-    configuration_table->ticks_per_timeslice,
-    configuration_table->maximum_extensions
-#if defined(RTEMS_MULTIPROCESSING)
-    ,
-    _Configuration_MP_table->maximum_proxies
-#endif
-  );
-
-#if defined(RTEMS_MULTIPROCESSING)
-  _MPCI_Handler_initialization(
-    _Configuration_MP_table->User_mpci_table,
-    RTEMS_TIMEOUT
-  );
-#endif
+  #if defined(RTEMS_MULTIPROCESSING)
+    _Objects_MP_Handler_initialization();
+    _MPCI_Handler_initialization( RTEMS_TIMEOUT );
+  #endif
 
 /* MANAGERS */
 
-  _RTEMS_API_Initialize( configuration_table );
+  _RTEMS_API_Initialize();
 
-  _Extension_Manager_initialization( configuration_table->maximum_extensions );
+  _Extension_Manager_initialization();
 
-  _IO_Manager_initialization(
-    configuration_table->Device_driver_table,
-    configuration_table->number_of_device_drivers,
-    configuration_table->maximum_drivers
-  );
+  _IO_Manager_initialization();
 
-#ifdef RTEMS_POSIX_API
-  _POSIX_API_Initialize( configuration_table );
-#endif
+  #ifdef RTEMS_POSIX_API
+    _POSIX_API_Initialize();
+  #endif
 
-#ifdef RTEMS_ITRON_API
-  _ITRON_API_Initialize( configuration_table );
-#endif
+  #ifdef RTEMS_ITRON_API
+    _ITRON_API_Initialize();
+  #endif
 
   _System_state_Set( SYSTEM_STATE_BEFORE_MULTITASKING );
 
@@ -207,7 +163,6 @@ void rtems_initialize_data_structures(
    *  At this point all API extensions are in place.  After the call to
    *  _Thread_Create_idle() _Thread_Executing and _Thread_Heir will be set.
    */
-
   _Thread_Create_idle();
 
   /*
@@ -218,16 +173,16 @@ void rtems_initialize_data_structures(
 void rtems_initialize_before_drivers(void)
 {
 
-#if defined(RTEMS_MULTIPROCESSING)
-  _MPCI_Create_server();
-#endif
+  #if defined(RTEMS_MULTIPROCESSING)
+    _MPCI_Create_server();
+  #endif
 
-  /*
-   *  Run the API and BSPs predriver hook.
-   */
-
-  _API_extensions_Run_predriver();
-
+  #if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+    /*
+     *  Run the API and BSPs predriver hook.
+     */
+    _API_extensions_Run_predriver();
+  #endif
 }
 
 void rtems_initialize_device_drivers(void)
@@ -240,21 +195,20 @@ void rtems_initialize_device_drivers(void)
 
   _IO_Initialize_all_drivers();
 
-#if defined(RTEMS_MULTIPROCESSING)
-  if ( _System_state_Is_multiprocessing ) {
-    _MPCI_Initialization();
-    _MPCI_Internal_packets_Send_process_packet(
-      MPCI_PACKETS_SYSTEM_VERIFY
-    );
-  }
-#endif
+  #if defined(RTEMS_MULTIPROCESSING)
+    if ( _System_state_Is_multiprocessing ) {
+      _MPCI_Initialization();
+      _MPCI_Internal_packets_Send_process_packet(
+	MPCI_PACKETS_SYSTEM_VERIFY
+      );
+    }
+  #endif
 
   /*
    *  Run the APIs and BSPs postdriver hooks.
    *
    *  The API extensions are supposed to create user initialization tasks.
    */
-
   _API_extensions_Run_postdriver();
 }
 

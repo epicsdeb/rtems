@@ -1,20 +1,22 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.13 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.17 2009/12/08 17:52:53 joel Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
 #include <errno.h>
 
+extern void Key_destructor( void *key_data );
+
 void Key_destructor(
-   void *key_data
+ void *key_data
 )
 {
   Destructor_invoked++;
@@ -45,15 +47,15 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   /* create a couple of threads */
 
   status = pthread_create( &Task_id, NULL, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = pthread_create( &Task2_id, NULL, Task_2, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create a key */
 
@@ -64,31 +66,31 @@ void *POSIX_Init(
   status = pthread_key_create( &Key_id, Key_destructor );
   if ( status )
     printf( "status = %d\n", status );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   printf( "Destructor invoked %d times\n", Destructor_invoked );
 
   puts( "Init: pthread_key_create - EAGAIN (too many keys)" );
   status = pthread_key_create( &Key_id, Key_destructor );
-  assert( status == EAGAIN );
+  rtems_test_assert(  status == EAGAIN );
 
   puts( "Init: pthread_setspecific - EINVAL (invalid key)" );
-  status = pthread_setspecific( -1, &Data_array[ 0 ] );
-  assert( status == EINVAL );
+  status = pthread_setspecific( (pthread_t) -1, &Data_array[ 0 ] );
+  rtems_test_assert(  status == EINVAL );
 
   puts( "Init: pthread_getspecific - EINVAL (invalid key)" );
-  key_data = pthread_getspecific( -1 );
-  assert( !key_data );
+  key_data = pthread_getspecific( (pthread_t) -1 );
+  rtems_test_assert(  !key_data );
 
   puts( "Init: pthread_key_delete - EINVAL (invalid key)" );
-  status = pthread_key_delete( -1 );
-  assert( status == EINVAL );
+  status = pthread_key_delete( (pthread_t) -1 );
+  rtems_test_assert(  status == EINVAL );
 
   printf( "Init: Setting the key to %d\n", 0 );
   status = pthread_setspecific( Key_id, &Data_array[ 0 ] );
   if ( status )
     printf( "status = %d\n", status );
-  assert( !status );
+  rtems_test_assert(  !status );
 
      /* switch to task 1 */
 
@@ -99,7 +101,7 @@ void *POSIX_Init(
   remaining = sleep( 3 );
   if ( remaining )
      printf( "seconds remaining = %d\n", remaining );
-  assert( !remaining );
+  rtems_test_assert(  !remaining );
 
      /* switch to task 1 */
 
@@ -109,7 +111,7 @@ void *POSIX_Init(
   status = pthread_key_delete( Key_id );
   if ( status )
     printf( "status = %d\n", status );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   printf( "Destructor invoked %d times\n", Destructor_invoked );
 

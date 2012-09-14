@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: msgqcreate.c,v 1.13 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: msgqcreate.c,v 1.15 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -55,11 +55,11 @@
  */
 
 rtems_status_code rtems_message_queue_create(
-  rtems_name          name,
-  uint32_t            count,
-  size_t              max_message_size,
-  rtems_attribute     attribute_set,
-  Objects_Id         *id
+  rtems_name       name,
+  uint32_t         count,
+  size_t           max_message_size,
+  rtems_attribute  attribute_set,
+  rtems_id        *id
 )
 {
   register Message_queue_Control *the_message_queue;
@@ -111,7 +111,7 @@ rtems_status_code rtems_message_queue_create(
 #if defined(RTEMS_MULTIPROCESSING)
   if ( is_global &&
     !( _Objects_MP_Allocate_and_open( &_Message_queue_Information,
-                              name, the_message_queue->Object.id, FALSE ) ) ) {
+                              name, the_message_queue->Object.id, false ) ) ) {
     _Message_queue_Free( the_message_queue );
     _Thread_Enable_dispatch();
     return RTEMS_TOO_MANY;

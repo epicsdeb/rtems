@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.9 2008/09/03 22:06:22 joel Exp $
+ *  $Id: task1.c,v 1.10 2009/08/12 20:50:29 joel Exp $
  */
 
 #include "system.h"
@@ -73,7 +73,7 @@ rtems_task Test_task(
 
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     Stop_Test_TSR,
     NULL
   );

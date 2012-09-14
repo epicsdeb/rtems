@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.18 2007/12/11 15:46:39 joel Exp $
+ *  $Id: bsp.h,v 1.21 2008/09/18 17:40:50 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -69,40 +69,10 @@ extern int rtems_enet_driver_attach (struct rtems_bsdnet_ifconfig *config, int a
  */
 #define NOCACHE_MEM_SIZE 512*1024
 
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /*
  * indicate, that BSP has IDE driver
  */
 #define RTEMS_BSP_HAS_IDE_DRIVER
-
-/*
- * How many libio files we want
- */
-
-#define BSP_LIBIO_MAX_FDS       20
-
-/* functions */
-
-void bsp_cleanup( void );
-
-rtems_isr_entry set_vector(                    /* returns old vector */
-  rtems_isr_entry     handler,                  /* isr routine        */
-  rtems_vector_number vector,                   /* vector number      */
-  int                 type                      /* RTEMS or RAW intr  */
-);
 
 #ifdef __cplusplus
 }

@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console-io.c,v 1.6 2008/08/19 14:45:45 ralf Exp $
+ *  $Id: console-io.c,v 1.7 2008/09/30 16:12:37 joel Exp $
  */
 
 #include <bsp.h>
@@ -19,11 +19,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define SYS_exit        1
-#define SYS_read        3
-#define SYS_write       4
+#include <syscall.h>
 
-int errno ;
+int errno;
 
 extern int __trap34(int, int, void*, int );
 

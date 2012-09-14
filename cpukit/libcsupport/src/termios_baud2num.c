@@ -6,23 +6,28 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: termios_baud2num.c,v 1.1 2008/05/22 20:35:40 joel Exp $
+ *  $Id: termios_baud2num.c,v 1.4 2010/03/27 05:36:47 ralf Exp $
  */
 
-#include <sys/termios.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-int termios_baud_to_number(
+#include <sys/termios.h>
+#include <rtems/termiostypes.h>
+
+int32_t rtems_termios_baud_to_number(
   int termios_baud
 )
 {
-  int baud;
+  int32_t baud;
 
   switch (termios_baud) {
     case B0:        baud =      0;  break;
     case B50:       baud =     50;  break;
     case B75:       baud =     75;  break;
     case B110:      baud =    110;  break;
-    case B134:      baud =    135;  break;
+    case B134:      baud =    134;  break;
     case B150:      baud =    150;  break;
     case B200:      baud =    200;  break;
     case B300:      baud =    300;  break;

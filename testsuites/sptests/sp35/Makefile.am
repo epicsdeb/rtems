@@ -1,11 +1,11 @@
 ##
-## $Id: Makefile.am,v 1.2 2007/05/11 19:44:27 joel Exp $
+## $Id: Makefile.am,v 1.3 2009/04/03 12:48:13 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = sp35.exe
-sp35_exe_SOURCES = priinv.c
+rtems_tests_PROGRAMS = sp35
+sp35_SOURCES = priinv.c
 
 dist_rtems_tests_DATA = sp35.scn
 dist_rtems_tests_DATA += sp35.doc
@@ -16,11 +16,11 @@ include $(top_srcdir)/../automake/leaf.am
 
 AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(sp35_exe_OBJECTS) $(sp35_exe_LDADD)
-LINK_LIBS = $(sp35_exe_LDLIBS)
+LINK_OBJS = $(sp35_OBJECTS) $(sp35_LDADD)
+LINK_LIBS = $(sp35_LDLIBS)
 
-sp35.exe$(EXEEXT): $(sp35_exe_OBJECTS) $(sp35_exe_DEPENDENCIES)
-	@rm -f sp35.exe$(EXEEXT)
+sp35$(EXEEXT): $(sp35_OBJECTS) $(sp35_DEPENDENCIES)
+	@rm -f sp35$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

@@ -1,3 +1,11 @@
+/**
+ * @file
+ *
+ * @ingroup ScoreUserExt
+ *
+ * @brief User Extension Handler implementation.
+ */
+
 /*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: userextthreaddelete.c,v 1.1 2007/05/09 18:27:26 joel Exp $
+ *  $Id: userextthreaddelete.c,v 1.2 2009/09/25 17:51:46 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -15,11 +23,6 @@
 
 #include <rtems/system.h>
 #include <rtems/score/userext.h>
-
-/*PAGE
- *
- *  _User_extensions_Thread_delete
- */
 
 void _User_extensions_Thread_delete (
   Thread_Control *the_thread

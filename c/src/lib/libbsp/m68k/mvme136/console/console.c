@@ -8,13 +8,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console.c,v 1.14 2008/09/05 08:35:21 ralf Exp $
+ *  $Id: console.c,v 1.15 2008/09/18 17:38:26 joel Exp $
  */
-
-#define M136_INIT
 
 #include <bsp.h>
 #include <rtems/libio.h>
+
+volatile struct r_m681_info *_Read_m681;  /* M68681 read registers */
+volatile struct w_m681_info *_Write_m681; /* M68681 write registers */
+
+
 
 /*  console_initialize
  *

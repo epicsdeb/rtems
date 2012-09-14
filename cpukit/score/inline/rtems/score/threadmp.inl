@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadmp.inl,v 1.19 2008/09/05 14:50:10 joel Exp $
+ *  $Id: threadmp.inl,v 1.19.4.1 2011/11/09 18:44:01 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_THREADMP_H
@@ -38,7 +38,7 @@
  *        _MPCI_Receive_server_tcb until it is used.
  */
 #define _Thread_MP_Is_receive(_the_thread) \
-  (_the_thread == _MPCI_Receive_server_tcb)
+  ((_the_thread) == _MPCI_Receive_server_tcb)
 
 /**
  *  This routine frees a proxy control block to the

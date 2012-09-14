@@ -7,14 +7,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.14 2008/01/29 21:53:04 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/10/26 11:29:24 ralf Exp $
  */
 
 #include "system.h"
@@ -30,14 +30,13 @@ rtems_task Task_1(
   uint32_t    previous_priority;
 
   puts( "TA1 - rtems_task_wake_after - sleep 1 second" );
-  status = rtems_task_wake_after( 1*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   status = rtems_task_ident( Task_name[ 2 ], RTEMS_SEARCH_ALL_NODES, &tid2 );
   directive_failed( status, "rtems_task_ident of TA2" );
 
-  printf( "TA1 - rtems_task_ident - tid of TA2 (0x%.8x)\n", tid2 );
-
+  printf( "TA1 - rtems_task_ident - tid of TA2 (0x%.8" PRIxrtems_id ")\n", tid2 );
   status = rtems_object_get_classic_name( tid2, &tid2_name );
   directive_failed( status, "rtems_object_get_classic_name of TA2" );
 
@@ -47,7 +46,7 @@ rtems_task Task_1(
   status = rtems_task_ident( Task_name[ 3 ], RTEMS_SEARCH_ALL_NODES, &tid3 );
   directive_failed( status, "rtems_task_ident of TA3" );
 
-  printf( "TA1 - rtems_task_ident - tid of TA3 (0x%.8x)\n", tid3 );
+  printf( "TA1 - rtems_task_ident - tid of TA3 (0x%.8" PRIxrtems_id ")\n", tid3 );
 
   status = rtems_task_set_priority( tid3, 2, &previous_priority );
   directive_failed( status, "rtems_task_set_priority" );
@@ -64,7 +63,7 @@ rtems_task Task_1(
   directive_failed( status, "rtems_task_delete of TA2" );
 
   puts( "TA1 - rtems_task_wake_after - sleep for 5 seconds" );
-  status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   puts( "*** END OF TEST 2 ***" );

@@ -5,7 +5,7 @@
  *
  * See the file "license.txt" for usage and redistribution license requirements
  *
- * $Id: websuemf.c,v 1.5 2008/09/01 07:02:00 ralf Exp $
+ * $Id: websuemf.c,v 1.8 2010/03/12 16:26:14 joel Exp $
  */
 
 /********************************** Description *******************************/
@@ -84,7 +84,7 @@ int strcmpci(char_t *s1, char_t *s2)
 	}
 
 	do {
-		rc = gtolower(*s1) - gtolower(*s2);
+		rc = gtolower((unsigned char)*s1) - gtolower((unsigned char)*s2);
 		if (*s1 == '\0') {
 			break;
 		}
@@ -147,7 +147,7 @@ void emfReschedCallback(int schedid, int delay)
 {
 	sched_t	*s;
 
-	if (sched == NULL || schedid == -1 || schedid >= schedMax || 
+	if (sched == NULL || schedid == -1 || schedid >= schedMax ||
 		(s = sched[schedid]) == NULL) {
 		return;
 	}
@@ -160,7 +160,7 @@ void emfUnschedCallback(int schedid)
 {
 	sched_t	*s;
 
-	if (sched == NULL || schedid == -1 || schedid >= schedMax || 
+	if (sched == NULL || schedid == -1 || schedid >= schedMax ||
 		(s = sched[schedid]) == NULL) {
 		return;
 	}
@@ -177,7 +177,7 @@ void emfSchedProcess(void)
 {
 	sched_t		*s;
 	int			schedid;
-	static int	next = 0;	
+	static int	next = 0;
 
 /*
  *	If schedMax is 0, there are no tasks scheduled, so just return.
@@ -206,7 +206,7 @@ void emfSchedProcess(void)
 		}
 		if (schedid == next) {
 /*
- *			We've gone all the way through the queue without finding 
+ *			We've gone all the way through the queue without finding
  *			anything to do so just return.
  */
 			return;

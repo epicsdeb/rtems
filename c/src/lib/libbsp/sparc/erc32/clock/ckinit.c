@@ -21,7 +21,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: ckinit.c,v 1.15 2008/05/07 17:39:48 joel Exp $
+ *  $Id: ckinit.c,v 1.17.2.1 2011/03/04 14:07:04 joel Exp $
  */
 
 #include <bsp.h>
@@ -49,11 +49,17 @@ extern int CLOCK_SPEED;
 uint32_t bsp_clock_nanoseconds_since_last_tick(void)
 {
   uint32_t clicks;
+  uint32_t usecs;
 
   clicks = ERC32_MEC.Real_Time_Clock_Counter;
 
-  return (uint32_t) 
-    (rtems_configuration_get_microseconds_per_tick() - clicks) * 1000;
+  if ( ERC32_Is_interrupt_pending( ERC32_INTERRUPT_REAL_TIME_CLOCK ) ) {
+    clicks = ERC32_MEC.Real_Time_Clock_Counter;
+    usecs = (2*rtems_configuration_get_microseconds_per_tick() - clicks);
+  } else {
+    usecs = (rtems_configuration_get_microseconds_per_tick() - clicks);
+  }
+  return usecs * 1000;
 }
 
 #define Clock_driver_nanoseconds_since_last_tick \
@@ -87,5 +93,5 @@ uint32_t bsp_clock_nanoseconds_since_last_tick(void)
     ); \
   } while (0)
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"
 

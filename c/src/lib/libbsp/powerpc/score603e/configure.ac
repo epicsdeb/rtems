@@ -1,17 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.25.2.2 2009/10/16 16:22:26 joel Exp $
+##
+## $Id: configure.ac,v 1.34.2.2 2011/05/18 05:08:36 strauman Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-ep1a],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -61,6 +61,16 @@ RTEMS_BSPOPTS_HELP([PPC_USE_DATA_CACHE],
  of PowerPC 603e revisions and emulator versions.
  The BSP actually contains the call that enables this.])
 
+RTEMS_BSPOPTS_SET([CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK], [*], [1])
+RTEMS_BSPOPTS_HELP([CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK],
+[If defined then the BSP may reduce the available memory size
+initially. This can be useful for debugging (reduce the core
+size) or dynamic loading (std gcc text offsets/jumps are < +/-32M).
+Note that the policy can still be defined by the application
+(see sbrk.c, BSP_sbrk_policy). By undefining
+CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK this feature is removed
+and a little memory is saved.])
+
 RTEMS_BSPOPTS_SET([PPC_VECTOR_FILE_BASE],[*],[0x0100])
 RTEMS_BSPOPTS_HELP([PPC_VECTOR_FILE_BASE],
 [This defines the base address of the exception table.
@@ -68,6 +78,8 @@ RTEMS_BSPOPTS_HELP([PPC_VECTOR_FILE_BASE],
 
 RTEMS_CHECK_NETWORKING
 AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

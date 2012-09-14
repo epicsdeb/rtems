@@ -1,5 +1,5 @@
 #
-#  $Id: sp14.doc,v 1.8 2003/09/04 18:53:48 joel Exp $
+#  $Id: sp14.doc,v 1.10 2009/12/10 22:58:05 joel Exp $
 #
 #  COPYRIGHT (c) 1989-1999.
 #  On-Line Applications Research Corporation (OAR).
@@ -15,8 +15,12 @@ This file describes the directives and concepts tested by this test set.
 test set name:  test14
 
 directives:
-  ex_init, ex_start, t_create, t_start, t_delete, tm_tick, i_return,
-  as_catch, as_return, as_send, tm_wkafter
+  rtems_task_create
+  rtems_task_start
+  rtems_task_delete
+  rtems_signal_catch
+  rtems_signal_send
+  rtems_task_wake_after
 
 concepts:
 

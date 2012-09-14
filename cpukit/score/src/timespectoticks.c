@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  score/src/timespectoticks.c
  */
 
@@ -10,16 +10,18 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespectoticks.c,v 1.1 2007/04/05 21:17:27 joel Exp $
+ *  $Id: timespectoticks.c,v 1.3.2.1 2011/09/01 18:24:57 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems/system.h>
-#include <rtems/score/timespec.h>
 #include <sys/types.h>
+
+#include <rtems/system.h>
+#include <rtems/config.h>
+#include <rtems/score/timespec.h>
 #include <rtems/score/tod.h>
 #include <rtems/score/watchdog.h>
 
@@ -33,17 +35,22 @@ uint32_t _Timespec_To_ticks(
 )
 {
   uint32_t  ticks;
+  uint32_t  nanoseconds_per_tick;
 
-  if ( (time->tv_sec == 0) && (time->tv_nsec == 0) ) 
+  if ( (time->tv_sec == 0) && (time->tv_nsec == 0) )
     return 0;
 
-  ticks  = time->tv_sec * TOD_TICKS_PER_SECOND;
+  /**
+   *  We should ensure the ticks not be truncated by integer division.  We
+   *  need to have it be greater than or equal to the requested time.  It
+   *  should not be shorter.
+   */
+  ticks                 = time->tv_sec * TOD_TICKS_PER_SECOND;
+  nanoseconds_per_tick  = rtems_configuration_get_nanoseconds_per_tick();
+  ticks                += time->tv_nsec / nanoseconds_per_tick;
 
-  ticks += (time->tv_nsec / TOD_NANOSECONDS_PER_MICROSECOND) /
-             _TOD_Microseconds_per_tick;
+  if ( (time->tv_nsec % nanoseconds_per_tick) != 0 )
+    ticks += 1;
 
-  if (ticks)
-    return ticks;
-
-  return 1;
+  return ticks;
 }

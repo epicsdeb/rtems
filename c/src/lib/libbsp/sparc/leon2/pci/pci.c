@@ -13,13 +13,12 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  pci.c,v 1.2.4.4 2004/11/10 22:15:01 joel Exp
+ *  $Id: pci.c,v 1.6 2009/12/11 13:00:27 ralf Exp $
  *
  *  Till Straumann, <strauman@slac.stanford.edu>, 1/2002
  *   - separated bridge detection code out of this file
  *
- *
- *  Adapted to LEON2 AT697 PCI 
+ *  Adapted to LEON2 AT697 PCI
  *  Copyright (C) 2006 Gaisler Research
  *
  */
@@ -29,14 +28,14 @@
 #include <stdlib.h>
 
 /* Define PCI_INFO to get a listing of configured devices at boot time */
-#define PCI_INFO 1 
+#define PCI_INFO 1
 
 /* #define DEBUG 1 */
 
 #ifdef DEBUG
 #define DBG(x...) printk(x)
 #else
-#define DBG(x...) 
+#define DBG(x...)
 #endif
 
 /* allow for overriding these definitions */
@@ -56,7 +55,7 @@
 /*
  * Bit encode for PCI_CONFIG_HEADER_TYPE register
  */
-unsigned char ucMaxPCIBus;  
+unsigned char ucMaxPCIBus;
 
 typedef struct {
     volatile unsigned int pciid1;        /* 0x80000100 - PCI Device identification register 1         */
@@ -66,7 +65,7 @@ typedef struct {
     volatile unsigned int mbar1;         /* 0x80000110 - Memory Base Address Register 1               */
     volatile unsigned int mbar2;         /* 0x80000114 - Memory Base Address Register 2               */
     volatile unsigned int iobar3;        /* 0x80000118 - IO Base Address Register 3                   */
-    volatile unsigned int dummy1[4];     /* 0x8000011c - 0x80000128                                   */ 
+    volatile unsigned int dummy1[4];     /* 0x8000011c - 0x80000128                                   */
     volatile unsigned int pcisid;        /* 0x8000012c - Subsystem identification register            */
     volatile unsigned int dummy2;        /* 0x80000130                                                */
     volatile unsigned int pcicp;         /* 0x80000134 - PCI capabilities pointer register            */
@@ -79,12 +78,12 @@ typedef struct {
     volatile unsigned int pcidma;        /* 0x80000150 - PCI DMA configuration register               */
     volatile unsigned int pciis;         /* 0x80000154 - PCI Initiator Status Register                */
     volatile unsigned int pciic;         /* 0x80000158 - PCI Initiator Configuration                  */
-    volatile unsigned int pcitpa;        /* 0x8000015c - PCI Target Page Address Register             */   
+    volatile unsigned int pcitpa;        /* 0x8000015c - PCI Target Page Address Register             */
     volatile unsigned int pcitsc;        /* 0x80000160 - PCI Target Status-Command Register           */
     volatile unsigned int pciite;        /* 0x80000164 - PCI Interrupt Enable Register                */
     volatile unsigned int pciitp;        /* 0x80000168 - PCI Interrupt Pending Register               */
     volatile unsigned int pciitf;        /* 0x8000016c - PCI Interrupt Force Register                 */
-    volatile unsigned int pcid;          /* 0x80000170 - PCI Data Register                            */   
+    volatile unsigned int pcid;          /* 0x80000170 - PCI Data Register                            */
     volatile unsigned int pcibe;         /* 0x80000174 - PCI Burst End Register                       */
     volatile unsigned int pcidmaa;       /* 0x80000178 - PCI DMA Address Register                     */
 } AT697_PCI_Map;
@@ -105,15 +104,15 @@ struct pci_res {
 /*  The configuration access functions uses the DMA functionality of the
  *  AT697 pci controller to be able access all slots
  */
- 
-int
-pci_read_config_dword(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned int *val) {
+
+static int
+BSP_pci_read_config_dword(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned int *val) {
 
     volatile unsigned int data;
 
     if (offset & 3) return PCIBIOS_BAD_REGISTER_NUMBER;
 
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     pcic->pcisa = (  1<<(11+slot) ) | ((function & 7)<<8) |  (offset&0x3f);
     pcic->pcidma = 0xa01;
@@ -121,8 +120,8 @@ pci_read_config_dword(unsigned char bus, unsigned char slot, unsigned char funct
 
     while (pcic->pciitp == 0)
         ;
-    
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     if (pcic->pcisc & 0x20000000)  { /* Master Abort */
         pcic->pcisc |= 0x20000000;
@@ -131,14 +130,14 @@ pci_read_config_dword(unsigned char bus, unsigned char slot, unsigned char funct
     else
         *val = data;
 
-    DBG("pci_read - bus: %d, dev: %d, fn: %d, off: %d => addr: %x, val: %x\n", bus, slot, function, offset,  (1<<(11+slot) ) | ((function & 7)<<8) |  (offset&0x3f), *val); 
+    DBG("pci_read - bus: %d, dev: %d, fn: %d, off: %d => addr: %x, val: %x\n", bus, slot, function, offset,  (1<<(11+slot) ) | ((function & 7)<<8) |  (offset&0x3f), *val);
 
     return PCIBIOS_SUCCESSFUL;
 }
 
 
-int 
-pci_read_config_word(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned short *val) {
+static int
+BSP_pci_read_config_word(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned short *val) {
     unsigned int v;
 
     if (offset & 1) return PCIBIOS_BAD_REGISTER_NUMBER;
@@ -150,8 +149,8 @@ pci_read_config_word(unsigned char bus, unsigned char slot, unsigned char functi
 }
 
 
-int 
-pci_read_config_byte(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned char *val) {
+static int
+BSP_pci_read_config_byte(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned char *val) {
     unsigned int v;
 
     pci_read_config_dword(bus, slot, function, offset&~3, &v);
@@ -162,13 +161,13 @@ pci_read_config_byte(unsigned char bus, unsigned char slot, unsigned char functi
 }
 
 
-int
-pci_write_config_dword(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned int val) {
+static int
+BSP_pci_write_config_dword(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned int val) {
 
     if (offset & 3) return PCIBIOS_BAD_REGISTER_NUMBER;
 
     pcic->pciitp = 0xff; /* clear interrupts */
-  
+
     pcic->pcisa = (  1<<(11+slot) ) | ((function & 7)<<8) |  (offset&0x3f);
     pcic->pcidma = 0xb01;
     pcic->pcidmaa = (unsigned int) &val;
@@ -188,8 +187,8 @@ pci_write_config_dword(unsigned char bus, unsigned char slot, unsigned char func
 }
 
 
-int 
-pci_write_config_word(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned short val) {
+static int
+BSP_pci_write_config_word(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned short val) {
     unsigned int v;
 
     if (offset & 1) return PCIBIOS_BAD_REGISTER_NUMBER;
@@ -202,33 +201,33 @@ pci_write_config_word(unsigned char bus, unsigned char slot, unsigned char funct
 }
 
 
-int 
-pci_write_config_byte(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned char val) {
+static int
+BSP_pci_write_config_byte(unsigned char bus, unsigned char slot, unsigned char function, unsigned char offset, unsigned char val) {
     unsigned int v;
 
     pci_read_config_dword(bus, slot, function, offset&~3, &v);
 
     v = (v & ~(0xff << (8*(offset&3)))) | ((0xff&val) << (8*(offset&3)));
-    
+
     return pci_write_config_dword(bus, slot, function, offset&~3, v);
 }
 
 
 
 const pci_config_access_functions pci_access_functions = {
-    pci_read_config_byte,
-    pci_read_config_word,
-    pci_read_config_dword,
-    pci_write_config_byte,
-    pci_write_config_word,
-    pci_write_config_dword
+    BSP_pci_read_config_byte,
+    BSP_pci_read_config_word,
+    BSP_pci_read_config_dword,
+    BSP_pci_write_config_byte,
+    BSP_pci_write_config_word,
+    BSP_pci_write_config_dword
 };
 
-pci_config BSP_pci_configuration = { (volatile unsigned char*)PCI_CONFIG_ADDR,
-			             (volatile unsigned char*)PCI_CONFIG_DATA,
-			             &pci_access_functions };
-
-
+rtems_pci_config_t BSP_pci_configuration = {
+    (volatile unsigned char*)PCI_CONFIG_ADDR,
+    (volatile unsigned char*)PCI_CONFIG_DATA,
+    &pci_access_functions 
+};
 
 
 void init_at697_pci(void) {
@@ -263,7 +262,7 @@ int dma_from_pci_1k(unsigned int addr, unsigned int paddr, unsigned char len) {
         return -1;
     }
 
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     pcic->pcisa = paddr;
     pcic->pcidma = 0xc00 | len;
@@ -272,17 +271,17 @@ int dma_from_pci_1k(unsigned int addr, unsigned int paddr, unsigned char len) {
     while (pcic->pciitp == 0)
         ;
 
-    if (pcic->pciitp & 0x7F) { 
+    if (pcic->pciitp & 0x7F) {
         retval = -1;
     }
 
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     if (pcic->pcisc & 0x20000000)  { /* Master Abort */
         pcic->pcisc |= 0x20000000;
         retval = -1;
     }
-   
+
     return retval;
 }
 
@@ -293,7 +292,7 @@ int dma_to_pci_1k(unsigned int addr, unsigned int paddr, unsigned char len) {
 
     if (addr & 3) return -1;
 
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     pcic->pcisa = paddr;
     pcic->pcidma = 0x700 | len;
@@ -301,10 +300,10 @@ int dma_to_pci_1k(unsigned int addr, unsigned int paddr, unsigned char len) {
 
     while (pcic->pciitp == 0)
         ;
-    
+
     if (pcic->pciitp & 0x7F) retval = -1;
 
-    pcic->pciitp = 0xff; /* clear interrupts */ 
+    pcic->pciitp = 0xff; /* clear interrupts */
 
     if (pcic->pcisc & 0x20000000)  { /* Master Abort */
         pcic->pcisc |= 0x20000000;
@@ -316,7 +315,7 @@ int dma_to_pci_1k(unsigned int addr, unsigned int paddr, unsigned char len) {
 
 /* Transfer len number of words from addr to paddr */
 int dma_to_pci(unsigned int addr, unsigned int paddr, unsigned int len) {
-    
+
     int tmp_len;
 
     /* Align to 1k boundary */
@@ -330,11 +329,11 @@ int dma_to_pci(unsigned int addr, unsigned int paddr, unsigned int len) {
     addr += tmp_len;
     paddr += tmp_len;
     len -= tmp_len/4;
-    
+
     /* Transfer all 1k blocks */
     while (len >= 128) {
 
-        if (dma_to_pci_1k(addr, paddr, 128) < 0) 
+        if (dma_to_pci_1k(addr, paddr, 128) < 0)
             return -1;
 
         addr += 512;
@@ -365,7 +364,7 @@ int dma_from_pci(unsigned int addr, unsigned int paddr, unsigned int len) {
     addr += tmp_len;
     paddr += tmp_len;
     len -= tmp_len/4;
-    
+
     /* Transfer all 1k blocks */
     while (len >= 128) {
 
@@ -387,7 +386,7 @@ void pci_mem_enable(unsigned char bus, unsigned char slot, unsigned char functio
     unsigned int data;
 
     pci_read_config_dword(0, slot, function, PCI_COMMAND, &data);
-    pci_write_config_dword(0, slot, function, PCI_COMMAND, data | PCI_COMMAND_MEMORY);  
+    pci_write_config_dword(0, slot, function, PCI_COMMAND, data | PCI_COMMAND_MEMORY);
 
 }
 
@@ -395,7 +394,7 @@ void pci_master_enable(unsigned char bus, unsigned char slot, unsigned char func
     unsigned int data;
 
     pci_read_config_dword(0, slot, function, PCI_COMMAND, &data);
-    pci_write_config_dword(0, slot, function, PCI_COMMAND, data | PCI_COMMAND_MASTER);  
+    pci_write_config_dword(0, slot, function, PCI_COMMAND, data | PCI_COMMAND_MASTER);
 
 }
 
@@ -414,7 +413,7 @@ static inline void swap_res(struct pci_res **p1, struct pci_res **p2) {
  * latency timers are set to 40.
  *
  * NOTE that it only allocates PCI memory space devices. IO spaces are not enabled.
- * Also, it does not handle pci-pci bridges. They are left disabled. 
+ * Also, it does not handle pci-pci bridges. They are left disabled.
  *
  *
 */
@@ -427,7 +426,7 @@ void pci_allocate_resources(void) {
     res = (struct pci_res **) malloc(sizeof(struct pci_res *)*32*8*6);
 
     for (i = 0; i < 32*8*6; i++) {
-        res[i] = (struct pci_res *) malloc(sizeof(struct pci_res));     
+        res[i] = (struct pci_res *) malloc(sizeof(struct pci_res));
         res[i]->size = 0;
         res[i]->devfn = i;
     }
@@ -444,7 +443,7 @@ void pci_allocate_resources(void) {
         }
 
         pci_read_config_byte(0, slot, 0, PCI_HEADER_TYPE, &header);
-      
+
         if(header & PCI_MULTI_FUNCTION)	{
             numfuncs = PCI_MAX_FUNCTIONS;
         }
@@ -464,7 +463,7 @@ void pci_allocate_resources(void) {
             if (tmp == PCI_CLASS_BRIDGE_PCI) {
                 continue;
             }
-            
+
             for (pos = 0; pos < 6; pos++) {
                 pci_write_config_dword(0, slot, func, PCI_BASE_ADDRESS_0 + (pos<<2), 0xffffffff);
                 pci_read_config_dword(0, slot, func, PCI_BASE_ADDRESS_0 + (pos<<2), &size);
@@ -486,7 +485,7 @@ void pci_allocate_resources(void) {
     }
 
 
-    /* Sort the resources in descending order */ 
+    /* Sort the resources in descending order */
 
     swapped = 1;
     while (swapped == 1) {
@@ -512,32 +511,32 @@ void pci_allocate_resources(void) {
             printk("Out of PCI memory space, all devices not configured.\n");
             goto done;
         }
-    
+
         dev = res[i]->devfn >> 3;
         fn  = res[i]->devfn & 7;
-    
+
         DBG("Assigning PCI addr %x to device %d, function %d, bar %d\n", addr, dev, fn, res[i]->bar);
         pci_write_config_dword(0, dev, fn, PCI_BASE_ADDRESS_0+res[i]->bar*4, addr);
         addr += res[i]->size;
 
         /* Set latency timer to 64 */
-        pci_read_config_dword(0, dev, fn, 0xC, &tmp);    
+        pci_read_config_dword(0, dev, fn, 0xC, &tmp);
         pci_write_config_dword(0, dev, fn, 0xC, tmp|0x4000);
 
-        pci_mem_enable(0, dev, fn);  
+        pci_mem_enable(0, dev, fn);
 
-    } 
+    }
 
 
-    
+
 done:
 
 #ifdef PCI_INFO
     printk("\nPCI devices found and configured:\n");
     for (slot = 0; slot < PCI_MAX_DEVICES; slot++) {
-        
-        pci_read_config_byte(0, slot, 0, PCI_HEADER_TYPE, &header); 
-        
+
+        pci_read_config_byte(0, slot, 0, PCI_HEADER_TYPE, &header);
+
         if(header & PCI_MULTI_FUNCTION)	{
             numfuncs = PCI_MAX_FUNCTIONS;
         }
@@ -546,15 +545,15 @@ done:
         }
 
         for (func = 0; func < numfuncs; func++) {
-            
+
             pci_read_config_dword(0, slot, func, PCI_COMMAND, &tmp);
 
-            if (tmp & PCI_COMMAND_MEMORY) { 
-                
+            if (tmp & PCI_COMMAND_MEMORY) {
+
                 pci_read_config_dword(0, slot, func, PCI_VENDOR_ID,  &id);
 
                 if (id == PCI_INVALID_VENDORDEVICEID || id == 0) continue;
-                
+
                 printk("\nSlot %d function: %d\nVendor id: 0x%x, device id: 0x%x\n", slot, func, id & 0xffff, id>>16);
 
                 for (pos = 0; pos < 6; pos++) {
@@ -564,17 +563,17 @@ done:
 
                         printk("\tBAR %d: %x\n", pos, tmp);
                     }
-                
+
                 }
                 printk("\n");
 
-            } 
+            }
 
         }
      }
     printk("\n");
 #endif
-    
+
     for (i = 0; i < 1536; i++) {
         free(res[i]);
     }
@@ -590,12 +589,12 @@ done:
 /*
  * This routine determines the maximum bus number in the system
  */
-int init_pci()
+int init_pci(void)
 {
     unsigned char ucSlotNumber, ucFnNumber, ucNumFuncs;
     unsigned char ucHeader;
     unsigned char ucMaxSubordinate;
-    unsigned int  ulClass, ulDeviceID; 
+    unsigned int  ulClass, ulDeviceID;
 
     init_at697_pci();
     pci_allocate_resources();
@@ -669,7 +668,7 @@ int init_pci()
 /*
  * Return the number of PCI busses in the system
  */
-unsigned char BusCountPCI()
+unsigned char BusCountPCI(void)
 {
     return(ucMaxPCIBus+1);
 }

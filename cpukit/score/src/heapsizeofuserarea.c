@@ -1,6 +1,12 @@
-/*
- *  Heap Handler
+/**
+ * @file
  *
+ * @ingroup ScoreHeap
+ *
+ * @brief Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-1999.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -8,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: heapsizeofuserarea.c,v 1.11 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: heapsizeofuserarea.c,v 1.17 2009/09/06 15:24:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -19,69 +25,34 @@
 #include <rtems/score/sysstate.h>
 #include <rtems/score/heap.h>
 
-/*PAGE
- *
- *  _Heap_Size_of_user_area
- *
- *  This kernel routine sets '*size' to the size of the block of memory
- *  which begins at 'starting_address'.
- *  It returns TRUE if the 'starting_address' is in the heap, and FALSE
- *  otherwise.
- *
- *  Input parameters:
- *    the_heap         - pointer to heap header
- *    starting_address - starting address of the memory block
- *    size             - pointer to size of area
- *
- *  Output parameters:
- *    size  - size of area filled in
- *    TRUE  - if starting_address is valid heap address
- *    FALSE - if starting_address is invalid heap address
- */
-
-bool _Heap_Size_of_user_area(
-  Heap_Control        *the_heap,
-  void                *starting_address,
-  size_t              *size
+bool _Heap_Size_of_alloc_area(
+  Heap_Control *heap,
+  void *alloc_begin_ptr,
+  uintptr_t *alloc_size
 )
 {
-  Heap_Block        *the_block;
-  Heap_Block        *next_block;
-  uint32_t           the_size;
+  uintptr_t const page_size = heap->page_size;
+  uintptr_t const alloc_begin = (uintptr_t) alloc_begin_ptr;
+  Heap_Block *block = _Heap_Block_of_alloc_area( alloc_begin, page_size );
+  Heap_Block *next_block = NULL;
+  uintptr_t block_size = 0;
 
-  if ( !_Addresses_Is_in_range(
-         starting_address, (void *)the_heap->start, (void *)the_heap->final ) )
-    return( FALSE );
+  if ( !_Heap_Is_block_in_heap( heap, block ) ) {
+    return false;
+  }
 
-  _Heap_Start_of_block( the_heap, starting_address, &the_block );
+  block_size = _Heap_Block_size( block );
+  next_block = _Heap_Block_at( block, block_size );
 
-  _HAssert(_Heap_Is_block_in( the_heap, the_block ));
-  if ( !_Heap_Is_block_in( the_heap, the_block ) )
-    return( FALSE );
-
-  the_size   = _Heap_Block_size( the_block );
-  next_block = _Heap_Block_at( the_block, the_size );
-
-  _HAssert(_Heap_Is_block_in( the_heap, next_block ));
-  _HAssert(_Heap_Is_prev_used( next_block ));
   if (
-    !_Heap_Is_block_in( the_heap, next_block ) ||
-    !_Heap_Is_prev_used( next_block )
-  )
-    return( FALSE );
+    !_Heap_Is_block_in_heap( heap, next_block )
+      || !_Heap_Is_prev_used( next_block )
+  ) {
+    return false;
+  }
 
-  /* 'starting_address' could be greater than 'the_block' address plus
-     HEAP_BLOCK_USER_OFFSET as _Heap_Allocate_aligned() may produce such user
-     pointers. To get rid of this offset we calculate user size as difference
-     between the end of 'the_block' (='next_block') and 'starting_address'
-     and then add correction equal to the offset of the 'size' field of the
-     'Heap_Block' structure. The correction is due to the fact that
-     'prev_size' field of the next block is actually used as user accessible
-     area of 'the_block'. */
+  *alloc_size = (uintptr_t) next_block + HEAP_BLOCK_SIZE_OFFSET - alloc_begin;
 
-  *size = _Addresses_Subtract ( next_block, starting_address )
-    + HEAP_BLOCK_HEADER_OFFSET;
-
-  return( TRUE );
+  return true;
 }
 

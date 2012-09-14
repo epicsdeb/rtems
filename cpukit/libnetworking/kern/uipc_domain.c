@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  *
  *	@(#)uipc_domain.c	8.2 (Berkeley) 10/18/93
- * $Id: uipc_domain.c,v 1.5 2008/09/01 03:35:37 ralf Exp $
+ * $Id: uipc_domain.c,v 1.6 2009/02/11 03:07:33 ralf Exp $
  */
 
 #include <sys/param.h>
@@ -75,8 +75,6 @@ struct domain *domains;
 	__CONCAT(x,domain.dom_next) = domains; \
 	domains = &__CONCAT(x,domain); \
 }
-
-extern struct linker_set domain_set;
 
 /* ARGSUSED*/
 void

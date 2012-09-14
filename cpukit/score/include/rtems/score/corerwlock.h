@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/corerwlock.h
  *
  *  This include file contains all the constants and structures associated
@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: corerwlock.h,v 1.4 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: corerwlock.h,v 1.6 2009/11/28 05:58:53 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_CORERWLOCK_H
@@ -140,9 +140,9 @@ void _CORE_RWLock_Initialize(
  *
  *  @param[in] the_rwlock is the RWLock to wait for
  *  @param[in] id is the id of the object being waited upon
- *  @param[in] wait is TRUE if the calling thread is willing to wait
+ *  @param[in] wait is true if the calling thread is willing to wait
  *  @param[in] timeout is the number of ticks the calling thread is willing
- *         to wait if @a wait is TRUE.
+ *         to wait if @a wait is true.
  *  @param[in] api_rwlock_mp_support is the routine to invoke if the
  *         thread unblocked is remote
  *
@@ -161,9 +161,9 @@ void _CORE_RWLock_Obtain_for_reading(
  *
  *  @param[in] the_rwlock is the RWLock to wait for
  *  @param[in] id is the id of the object being waited upon
- *  @param[in] wait is TRUE if the calling thread is willing to wait
+ *  @param[in] wait is true if the calling thread is willing to wait
  *  @param[in] timeout is the number of ticks the calling thread is willing
- *         to wait if @a wait is TRUE.
+ *         to wait if @a wait is true.
  *  @param[in] api_rwlock_mp_support is the routine to invoke if the
  *         thread unblocked is remote
  *

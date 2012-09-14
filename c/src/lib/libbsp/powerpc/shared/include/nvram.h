@@ -3,7 +3,7 @@
  *
  * This file can be found in motorla or IBP PPC site.
  *
- * $Id: nvram.h,v 1.3 2004/04/21 16:01:45 ralf Exp $
+ * $Id: nvram.h,v 1.4 2008/09/16 19:26:21 joel Exp $
  */
 
 #ifndef _PPC_NVRAM_H
@@ -146,7 +146,7 @@ typedef struct _HEADER {
   void* 		OSAreaAddress;
   unsigned long 	OSAreaLength;
 
-  /* Date&Time from RTC of last change to OSAreaArea */
+  /* Date&Time from RTC of last change to OSArea */
   unsigned long 	OSAreaLastWriteDT[2];
 } HEADER;
 

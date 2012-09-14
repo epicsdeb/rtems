@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: object.inl,v 1.38 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: object.inl,v 1.44 2009/10/10 15:19:15 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_OBJECT_H
@@ -45,7 +45,9 @@ RTEMS_INLINE_ROUTINE Objects_Id _Objects_Build_id(
 {
   return (( (Objects_Id) the_api )   << OBJECTS_API_START_BIT)   |
          (( (Objects_Id) the_class ) << OBJECTS_CLASS_START_BIT) |
-         (( (Objects_Id) node )      << OBJECTS_NODE_START_BIT)  |
+         #if !defined(RTEMS_USE_16_BIT_OBJECT)
+           (( (Objects_Id) node )    << OBJECTS_NODE_START_BIT)  |
+         #endif
          (( (Objects_Id) index )     << OBJECTS_INDEX_START_BIT);
 }
 
@@ -87,7 +89,15 @@ RTEMS_INLINE_ROUTINE uint32_t _Objects_Get_node(
   Objects_Id id
 )
 {
-  return (id >> OBJECTS_NODE_START_BIT) & OBJECTS_NODE_VALID_BITS;
+  /*
+   * If using 16-bit Ids, then there is no node field and it MUST
+   * be a single processor system.
+   */
+  #if defined(RTEMS_USE_16_BIT_OBJECT)
+    return 1;
+  #else
+    return (id >> OBJECTS_NODE_START_BIT) & OBJECTS_NODE_VALID_BITS;
+  #endif
 }
 
 /**
@@ -97,39 +107,41 @@ RTEMS_INLINE_ROUTINE uint32_t _Objects_Get_node(
  *
  *  @return This method returns the class portion of the specified object ID.
  */
-RTEMS_INLINE_ROUTINE uint32_t _Objects_Get_index(
+RTEMS_INLINE_ROUTINE Objects_Maximum _Objects_Get_index(
   Objects_Id id
 )
 {
-  return (id >> OBJECTS_INDEX_START_BIT) & OBJECTS_INDEX_VALID_BITS;
+  return
+    (Objects_Maximum)((id >> OBJECTS_INDEX_START_BIT) &
+                                          OBJECTS_INDEX_VALID_BITS);
 }
 
 /**
- *  This function returns TRUE if the api is valid.
+ *  This function returns true if the api is valid.
  *
  *  @param[in] the_api is the api portion of an object ID.
  *
- *  @return This method returns TRUE if the specified api value is valid
- *          and FALSE otherwise.
+ *  @return This method returns true if the specified api value is valid
+ *          and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Objects_Is_api_valid(
   uint32_t   the_api
 )
 {
   if ( !the_api || the_api > OBJECTS_APIS_LAST )
-   return FALSE;
-  return TRUE;
+   return false;
+  return true;
 }
    
 /**
- *  This function returns TRUE if the node is of the local object, and
- *  FALSE otherwise.
+ *  This function returns true if the node is of the local object, and
+ *  false otherwise.
  *
  *  @param[in] node is the node number and corresponds to the node number
  *         portion of an object ID.
  *
- *  @return This method returns TRUE if the specified node is the local node
- *          and FALSE otherwise.
+ *  @return This method returns true if the specified node is the local node
+ *          and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Objects_Is_local_node(
   uint32_t   node
@@ -139,15 +151,15 @@ RTEMS_INLINE_ROUTINE bool _Objects_Is_local_node(
 }
 
 /**
- *  This function returns TRUE if the id is of a local object, and
- *  FALSE otherwise.
+ *  This function returns true if the id is of a local object, and
+ *  false otherwise.
  *
  *  @param[in] id is an object ID
  *
- *  @return This method returns TRUE if the specified object Id is local
- *          and FALSE otherwise.
+ *  @return This method returns true if the specified object Id is local
+ *          and false otherwise.
  *
- *  @note On a single processor configuration, this always returns TRUE.
+ *  @note On a single processor configuration, this always returns true.
  */
 RTEMS_INLINE_ROUTINE bool _Objects_Is_local_id(
   Objects_Id id
@@ -156,19 +168,19 @@ RTEMS_INLINE_ROUTINE bool _Objects_Is_local_id(
 #if defined(RTEMS_MULTIPROCESSING)
   return _Objects_Is_local_node( _Objects_Get_node(id) );
 #else
-  return TRUE;
+  return true;
 #endif
 }
 
 /**
- *  This function returns TRUE if left and right are equal,
- *  and FALSE otherwise.
+ *  This function returns true if left and right are equal,
+ *  and false otherwise.
  *
  *  @param[in] left is the Id on the left hand side of the comparison
  *  @param[in] right is the Id on the right hand side of the comparison
  *
- *  @return This method returns TRUE if the specified object IDs are equal
- *          and FALSE otherwise.
+ *  @return This method returns true if the specified object IDs are equal
+ *          and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Objects_Are_ids_equal(
   Objects_Id left,
@@ -186,15 +198,22 @@ RTEMS_INLINE_ROUTINE bool _Objects_Are_ids_equal(
  *  @param[in] index is the index of the object the caller wants to access
  *
  *  @return This method returns a pointer to a local object or NULL if the
- *          index is invalid.
+ *          index is invalid and RTEMS_DEBUG is enabled.
  */
 RTEMS_INLINE_ROUTINE Objects_Control *_Objects_Get_local_object(
   Objects_Information *information,
   uint16_t             index
 )
 {
-  if ( index > information->maximum )
-    return NULL;
+  /*
+   *  This routine is ONLY to be called from places in the code
+   *  where the Id is known to be good.  Therefore, this should NOT
+   *  occur in normal situations.
+   */ 
+  #if defined(RTEMS_DEBUG)
+    if ( index > information->maximum )
+      return NULL;
+  #endif
   return information->local_table[ index ];
 }
 
@@ -214,7 +233,7 @@ RTEMS_INLINE_ROUTINE Objects_Control *_Objects_Get_local_object(
 
 RTEMS_INLINE_ROUTINE void _Objects_Set_local_object(
   Objects_Information *information,
-  uint16_t             index,
+  uint32_t             index,
   Objects_Control     *the_object
 )
 {
@@ -300,7 +319,7 @@ RTEMS_INLINE_ROUTINE void _Objects_Open_u32(
     the_object
   );
 
-  /* ASSERT: information->is_string == FALSE */ 
+  /* ASSERT: information->is_string == false */ 
   the_object->name.name_u32 = name;
 }
 
@@ -324,8 +343,10 @@ RTEMS_INLINE_ROUTINE void _Objects_Open_string(
     the_object
   );
 
-  /* ASSERT: information->is_string */ 
-  the_object->name.name_p = name;
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    /* ASSERT: information->is_string */ 
+    the_object->name.name_p = name;
+  #endif
 }
 
 #endif

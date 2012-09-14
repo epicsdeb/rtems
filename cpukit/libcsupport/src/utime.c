@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: utime.c,v 1.12 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: utime.c,v 1.13 2009/06/12 01:53:32 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,7 @@ int utime(
   rtems_filesystem_location_info_t   temp_loc;
   int                                result;
 
-  if ( rtems_filesystem_evaluate_path( path, 0x00, &temp_loc, true ) )
+  if ( rtems_filesystem_evaluate_path( path, strlen( path ), 0x00, &temp_loc, true ) )
     return -1;
 
   if ( !temp_loc.ops->utime_h ){

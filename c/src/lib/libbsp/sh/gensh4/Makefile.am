@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.25.2.1 2008/09/29 01:47:58 ralf Exp $
+## $Id: Makefile.am,v 1.33 2008/10/02 16:38:33 joel Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,29 +14,32 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 include_HEADERS += include/sdram.h
-include_HEADERS += include/coverhd.h
+include_HEADERS += ../../shared/include/coverhd.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds startup/linkcmds.rom \
     startup/linkcmds.rom2ram
 
-startup_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
-    ../../shared/bsppredriverhook.c startup/bspstart.c \
-    ../../shared/bspclean.c ../../shared/sbrk.c ../../shared/bootcard.c \
-    ../../shared/gnatinstallhandler.c
-console_SOURCES = console/console.c ../../shared/dummy_printk_support.c
-hw_init_SOURCES = hw_init/hw_init.c
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(hw_init_SOURCES) $(console_SOURCES)
+# startup
+libbsp_a_SOURCES += ../../shared/bsplibc.c ../../shared/bsppost.c \
+    ../../shared/bsppredriverhook.c ../shared/bspstart.c \
+    ../../shared/bsppretaskinghook.c ../../shared/bspgetworkarea.c \
+    ../../shared/bspclean.c ../../shared/sbrk.c ../../shared/bootcard.c \
+    ../../shared/gnatinstallhandler.c ../shared/bsphwinit.c
+# console
+libbsp_a_SOURCES += console/console.c ../../shared/dummy_printk_support.c
+# hw_init
+libbsp_a_SOURCES += hw_init/hw_init.c
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/clock.rel \
@@ -43,7 +47,7 @@ libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/sci.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/score.rel
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

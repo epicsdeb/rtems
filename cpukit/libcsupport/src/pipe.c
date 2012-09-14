@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pipe.c,v 1.4 2003/09/04 18:54:13 joel Exp $
+ *  $Id: pipe.c,v 1.5 2008/10/14 15:06:25 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,11 +16,17 @@
 #endif
 
 #include <errno.h>
+#include <sys/types.h>
+
+extern int pipe_create(int filsdes[2]);
 
 int pipe(
   int filsdes[2]
 )
 {
-  errno = ENOSYS;
-  return -1;
+  if (filsdes == NULL) {
+    errno = EFAULT;
+    return -1;
+  }
+  return pipe_create(filsdes);
 }

@@ -2,14 +2,14 @@
  *  Thread Handler
  *
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadcreateidle.c,v 1.12 2008/07/23 17:25:31 joel Exp $
+ *  $Id: threadcreateidle.c,v 1.15.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,7 +40,7 @@ void _Thread_Create_idle( void )
 {
   Objects_Name name;
 
-  name.name_p = "IDLE";
+  name.name_u32 = _Objects_Build_name( 'I', 'D', 'L', 'E' );
 
   /*
    *  The entire workspace is zeroed during its initialization.  Thus, all
@@ -60,10 +60,10 @@ void _Thread_Create_idle( void )
     &_Thread_Internal_information,
     _Thread_Idle,
     NULL,        /* allocate the stack */
-    _Stack_Ensure_minimum( _Configuration_Table->idle_task_stack_size ),
+    _Stack_Ensure_minimum( Configuration.idle_task_stack_size ),
     CPU_IDLE_TASK_IS_FP,
     PRIORITY_MAXIMUM,
-    TRUE,        /* preemptable */
+    true,        /* preemptable */
     THREAD_CPU_BUDGET_ALGORITHM_NONE,
     NULL,        /* no budget algorithm callout */
     0,           /* all interrupts enabled */
@@ -82,7 +82,7 @@ void _Thread_Create_idle( void )
   _Thread_Start(
     _Thread_Idle,
     THREAD_START_NUMERIC,
-    _Configuration_Table->idle_task,
+    Configuration.idle_task,
     NULL,
     0
   );

@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.5 2008/05/07 17:39:50 joel Exp $
+ *  $Id: ckinit.c,v 1.7.2.2 2011/07/21 20:52:27 joel Exp $
  */
 
 #include <bsp.h>
@@ -62,14 +62,19 @@ extern int CLOCK_SPEED;
 uint32_t bsp_clock_nanoseconds_since_last_tick(void)
 {
   uint32_t clicks;
+  uint32_t usecs;
 
   clicks = LEON_REG.Timer_Counter_1;
 
-  /* Down counter */
-  return (uint32_t) 
-     (rtems_configuration_get_microseconds_per_tick() - clicks) * 1000;
+  if ( LEON_Is_interrupt_pending( LEON_INTERRUPT_TIMER1 ) ) {
+    clicks = LEON_REG.Timer_Counter_1;
+    usecs = (2*rtems_configuration_get_microseconds_per_tick() - clicks);
+  } else {
+    usecs = (rtems_configuration_get_microseconds_per_tick() - clicks);
+  }
+  return usecs * 1000;
 }
 
 #define Clock_driver_nanoseconds_since_last_tick bsp_clock_nanoseconds_since_last_tick
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

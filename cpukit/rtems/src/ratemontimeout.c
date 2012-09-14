@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemontimeout.c,v 1.9.2.1 2009/10/30 17:54:15 joel Exp $
+ *  $Id: ratemontimeout.c,v 1.10 2009/10/30 17:54:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H

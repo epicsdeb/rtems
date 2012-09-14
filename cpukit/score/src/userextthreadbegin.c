@@ -1,3 +1,11 @@
+/**
+ * @file
+ *
+ * @ingroup ScoreUserExt
+ *
+ * @brief User Extension Handler implementation.
+ */
+
 /*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: userextthreadbegin.c,v 1.2 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: userextthreadbegin.c,v 1.4 2009/10/12 12:16:22 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -15,12 +23,6 @@
 
 #include <rtems/system.h>
 #include <rtems/score/userext.h>
-
-/*PAGE
- *
- *  _User_extensions_Thread_begin
- *
- */
 
 void _User_extensions_Thread_begin (
   Thread_Control *executing
@@ -40,11 +42,6 @@ void _User_extensions_Thread_begin (
   }
 }
 
-/*PAGE
- *
- *  _User_extensions_Thread_exitted
- */
-
 void _User_extensions_Thread_exitted (
   Thread_Control *executing
 )
@@ -63,15 +60,10 @@ void _User_extensions_Thread_exitted (
   }
 }
 
-/*PAGE
- *
- *  _User_extensions_Fatal
- */
-
 void _User_extensions_Fatal (
   Internal_errors_Source  the_source,
   bool                    is_internal,
-  uint32_t                the_error
+  Internal_errors_t       the_error
 )
 {
   Chain_Node              *the_node;

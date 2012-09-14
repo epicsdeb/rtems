@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: ide_part_table.h,v 1.11 2008/07/29 02:21:14 ccj Exp $
+ * $Id: ide_part_table.h,v 1.13 2009/09/14 14:48:38 joel Exp $
  *
  *****************************************************************************/
 
@@ -51,6 +51,7 @@
 #define RTEMS_IDE_PARTITION_MSDOS_SIGNATURE_DATA2         0xaa
 #define RTEMS_IDE_PARTITION_MSDOS_SIGNATURE_OFFSET        0x1fe
 #define RTEMS_IDE_PARTITION_TABLE_OFFSET                  0x1be
+#define RTEMS_IDE_PARTITION_TABLE_SIZE                    (4 * 16)
 #define RTEMS_IDE_PARTITION_BOOTABLE_OFFSET               0
 #define RTEMS_IDE_PARTITION_SYS_TYPE_OFFSET               4
 #define RTEMS_IDE_PARTITION_START_OFFSET                  8
@@ -164,8 +165,12 @@ extern "C" {
  * RETURNS:
  *      N/A
  */
-void
-rtems_ide_part_table_free(rtems_disk_desc_t *disk_desc);
+/**
+ * @deprecated Use the @ref rtems_bdpart "block device partition module" instead.
+ */
+void rtems_ide_part_table_free(
+  rtems_disk_desc_t *disk_desc
+) RTEMS_COMPILER_DEPRECATED_ATTRIBUTE;
 
 
 /*
@@ -180,8 +185,13 @@ rtems_ide_part_table_free(rtems_disk_desc_t *disk_desc);
  * RETURNS:
  *      RTEMS_SUCCESSFUL if success, or -1 and corresponding errno else
  */
-rtems_status_code
-rtems_ide_part_table_get(const char *dev_name, rtems_disk_desc_t *disk_desc);
+/**
+ * @deprecated Use the @ref rtems_bdpart "block device partition module" instead.
+ */
+rtems_status_code rtems_ide_part_table_get(
+  const char *dev_name,
+  rtems_disk_desc_t *disk_desc
+) RTEMS_COMPILER_DEPRECATED_ATTRIBUTE;
 
 
 /*
@@ -194,8 +204,12 @@ rtems_ide_part_table_get(const char *dev_name, rtems_disk_desc_t *disk_desc);
  * RETURNS:
  *      RTEMS_SUCCESSFUL if success, or -1 and corresponding errno else
  */
-rtems_status_code
-rtems_ide_part_table_initialize(char *dev_name);
+/**
+ * @deprecated Use the @ref rtems_bdpart "block device partition module" instead.
+ */
+rtems_status_code rtems_ide_part_table_initialize(
+  char *dev_name
+) RTEMS_COMPILER_DEPRECATED_ATTRIBUTE;
 
 #ifdef __cplusplus
 }

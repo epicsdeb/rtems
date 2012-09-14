@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1997.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may in
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.11 2008/09/06 03:31:20 ralf Exp $
+ *  $Id: system.h,v 1.16 2009/10/24 05:52:23 ralf Exp $
  */
 
 #include <rtems.h>
@@ -34,9 +34,9 @@ bool status_code_bad(
   rtems_status_code status_code
 );
 
-void test1();
-void test2();
-void test3();
+extern void test1(void);
+extern void test2(void);
+extern void test3(void);
 
 /* configuration information */
 
@@ -46,11 +46,12 @@ void test3();
 #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 
+#define CONFIGURE_UNIFIED_WORK_AREAS
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 
 #define TASK_ALLOCATION_SIZE     (5)
 #define CONFIGURE_MAXIMUM_TASKS  rtems_resource_unlimited(TASK_ALLOCATION_SIZE)
-#define CONFIGURE_EXTRA_TASK_STACKS (75 * RTEMS_MINIMUM_STACK_SIZE)
+#define CONFIGURE_INIT_TASK_STACK_SIZE (8 * 1024)
 
 
 #include <rtems/confdefs.h>

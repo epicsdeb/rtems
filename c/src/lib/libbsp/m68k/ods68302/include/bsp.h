@@ -2,16 +2,14 @@
  *
  *  This include file contains all board IO definitions.
  *
- *  XXX : put yours in here
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.23 2007/12/11 15:49:32 joel Exp $
+ *  $Id: bsp.h,v 1.26 2010/04/30 16:44:17 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -23,6 +21,7 @@ extern "C" {
 
 #include <bspopts.h>
 
+#define BSP_SMALL_MEMORY 1
 #include <rtems.h>
 #include <rtems/console.h>
 #include <rtems/iosupp.h>
@@ -69,25 +68,9 @@ extern "C" {
 #define EXTERN extern
 #endif
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
-
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

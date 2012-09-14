@@ -7,19 +7,19 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.19 2008/08/31 17:21:47 joel Exp $
+ *  $Id: task1.c,v 1.23 2009/10/27 04:00:10 ralf Exp $
  */
 
 
 #define CONFIGURE_INIT
 #include "system.h"
 
-#define MAXIMUM_DISTRIBUTION 10000
+#define MAXIMUM_DISTRIBUTION 1000
 
 #undef OPERATION_COUNT
 #define OPERATION_COUNT    100000
 
-int Distribution[ MAXIMUM_DISTRIBUTION + 1 ];
+uint32_t Distribution[ MAXIMUM_DISTRIBUTION + 1 ];
 
 rtems_task Task_1(
   rtems_task_argument argument
@@ -147,7 +147,7 @@ void check_read_timer()
   for ( index = 1 ; index <= MAXIMUM_DISTRIBUTION ; index++ )
     Distribution[ index ] = 0;
 
-  for ( index = 1 ; index <= OPERATION_COUNT ; index++ ) {
+  for ( index = 1 ; index <= OPERATION_COUNT ; ) {
     benchmark_timer_initialize();
     end_time = benchmark_timer_read();
     if ( end_time > MAXIMUM_DISTRIBUTION ) {
@@ -155,16 +155,11 @@ void check_read_timer()
        *  Under UNIX a simple process swap takes longer than we
        *  consider valid for our testing purposes.
        */
-      printf( "TOO LONG (%d) at index %d!!!\n", end_time, index );
-#if defined(unix)
-      index--;
+      printf( "TOO LONG (%" PRIu32 ") at index %" PRIu32 "!!!\n", end_time, index );
       continue;
-#else
-      rtems_test_exit( 1 );
-#endif
     }
-    else
-      Distribution[ end_time ]++;
+    Distribution[ end_time ]++;
+    index++;
   }
 
   printf( "Units may not be in microseconds for this test!!!\n" );
@@ -172,8 +167,8 @@ void check_read_timer()
   for ( index = 0 ; index <= MAXIMUM_DISTRIBUTION ; index++ ) {
     time += (Distribution[ index ] * index);
     if ( Distribution[ index ] != 0 )
-      printf( "%d %d\n", index, Distribution[ index ] );
+      printf( "%" PRId32 " %" PRId32 "\n", index, Distribution[ index ] );
   }
-  printf( "Total time = %d\n", time );
-  printf( "Average time = %d\n", time / OPERATION_COUNT );
+  printf( "Total time = %" PRId32 "\n", time );
+  printf( "Average time = %" PRId32 "\n", time / OPERATION_COUNT );
 }

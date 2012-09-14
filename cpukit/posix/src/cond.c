@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cond.c,v 1.31 2008/02/15 07:39:27 ralf Exp $
+ *  $Id: cond.c,v 1.33 2009/02/03 10:10:42 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -18,6 +18,7 @@
 #include <limits.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/object.h>
 #include <rtems/score/states.h>
 #include <rtems/score/watchdog.h>
@@ -32,28 +33,26 @@
  *  This routine initializes all condition variable manager related data
  *  structures.
  *
- *  Input parameters:
- *    maximum_condition_variables - maximum configured condition_variables
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _POSIX_Condition_variables_Manager_initialization(
-  uint32_t   maximum_condition_variables
-)
+void _POSIX_Condition_variables_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_POSIX_Condition_variables_Information, /* object information table */
     OBJECTS_POSIX_API,                       /* object API */
     OBJECTS_POSIX_CONDITION_VARIABLES,       /* object class */
-    maximum_condition_variables,             /* maximum objects of this class */
+    Configuration_POSIX_API.maximum_condition_variables,
+                                /* maximum objects of this class */
     sizeof( POSIX_Condition_variables_Control ),
                                 /* size of this object's control block */
-    TRUE,                       /* TRUE if names for this object are strings */
+    true,                       /* true if names for this object are strings */
     _POSIX_PATH_MAX             /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                      /* TRUE if this is a global object class */
+    false,                      /* true if this is a global object class */
     NULL                        /* Proxy extraction support callout */
 #endif
   );

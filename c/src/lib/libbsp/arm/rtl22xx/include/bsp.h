@@ -2,14 +2,14 @@
  * Philips LPC22XX/LPC21xx BSP header file
  *
  * by Ray,Xu <Rayx.cn@gmail.com>
- *  
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: bsp.h,v 1.5.2.1 2009/03/02 17:03:05 joel Exp $
+ *  $Id: bsp.h,v 1.12 2010/04/30 16:44:40 joel Exp $
 */
 #ifndef _BSP_H
 #define _BSP_H
@@ -20,13 +20,16 @@ extern "C" {
 
 #include <bspopts.h>
 
+#define BSP_SMALL_MEMORY 1
+
 #include <rtems.h>
 #include <rtems/iosupp.h>
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
 
+#define BSP_FEATURE_IRQ_EXTENSION
 
-#define CONFIG_ARM_CLK 60000000L 
+#define CONFIG_ARM_CLK 60000000L
 /* cclk=cco/(2*P) */
 /* cco = cclk*2*P 	*/
 
@@ -77,7 +80,7 @@ extern "C" {
 // Core clk [Hz]
 #define FCCLK	          FOSC<<2
 /**
-* help file 
+* help file
 */
 /* System configure, Fosc Fcclk Fcco Fpclk must be defined*/
 #define Fosc    11059200          // osc freq,10MHz~25MHz,
@@ -85,7 +88,11 @@ extern "C" {
 #define Fcclk   (Fosc << 2)       //system freq 2^n time of  Fosc(1~32) <=60MHZ
 #define Fcco    (Fcclk <<2)       //CCO freq 2,4,8,16 time of Fcclk 156MHz~320MHz
 #define Fpclk   (Fcclk >>2) * 1   //VPB freq only(Fcclk / 4) 1~4
-#define M       Fcclk / Fosc
+/* This was M.  That is a BAD BAD public constant.  I renamed it to
+ * JOEL_M so it wouldn't conflict with user code.  If you can find
+ * a better name, fix this.  But nothing I found uses it.
+ */
+#define JOEL_M       Fcclk / Fosc
 #define P_min   Fcco_MIN / (2*Fcclk) + 1;
 #define P_max   Fcco_MAX / (2*Fcclk);
 
@@ -129,18 +136,11 @@ struct rtems_bsdnet_ifconfig;
 int cs8900_driver_attach (struct rtems_bsdnet_ifconfig *config,
                           int                          attaching);
 
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
-
 /*
  * Network driver configuration
  */
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"eth0"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	cs8900_driver_attach
-
-/*
- *  BSP Configuration Default Overrides
- */
-#define BSP_ZERO_WORKSPACE_AUTOMATICALLY TRUE
 
 #ifdef __cplusplus
 }

@@ -6,13 +6,18 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: termios_num2baud.c,v 1.1 2008/05/22 20:35:41 joel Exp $
+ *  $Id: termios_num2baud.c,v 1.3 2010/03/27 05:36:47 ralf Exp $
  */
 
-#include <sys/termios.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-int termios_number_to_baud(
-  int baud
+#include <sys/termios.h>
+#include <rtems/termiostypes.h>
+
+int rtems_termios_number_to_baud(
+  int32_t baud
 )
 {
   int termios_baud;

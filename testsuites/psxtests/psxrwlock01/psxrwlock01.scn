@@ -39,6 +39,8 @@ pthread_rwlockattr_init( &attr ) -- OK
 pthread_rwlock_init( &rwlock, &attr ) -- OK
 pthread_rwlock_init( &rwlock, &attr ) -- EAGAIN
 pthread_rwlock_destroy( &rwlock ) -- OK
+pthread_rwlock_init( &rwlock, NULL ) -- OK
+pthread_rwlock_destroy( &rwlock ) -- OK
 pthread_rwlock_init( &RWLock, &attr ) -- OK
 pthread_rwlock_tryrdlock(RWLock) -- OK
 Init: pthread_create - thread 1 OK
@@ -71,6 +73,13 @@ WriteThread - pthread_rwlock_wrlock(RWLock) unblocked -- OK
 clock_gettime(CLOCK_REALTIME, &abstime) -- OK
 pthread_rwlock_timedwrlock( &RWLock, &abstime) -- OK
 WriteThread - pthread_rwlock_unlock(RWLock) -- OK
-pthread_rwlock_timedrdlock( &RWLock, &abstime) -- OK
+pthread_rwlock_timedrdlock( &RWLock, &abstime) -- ETIMEDOUT
+pthread_rwlock_timedrdlock( &RWLock, &abstime) -- ETIMEDOUT
+pthread_rwlock_timedwrlock( &RWLock, &abstime) -- ETIMEDOUT
+pthread_rwlock_timedrdlock( &RWLock, &abstime) -- in past -- OK
+pthread_rwlock_timedwrlock( &RWLock, &abstime) -- in past -- OK
 pthread_rwlock_destroy( &RWLock ) -- OK
+pthread_rwlock_init( &rwlock, NULL ) -- OK
+pthread_rwlock_unlock ( &rwlock ) -- OK
+pthread_rwlock_unlock ( &rwlock ) -- OK
 *** END OF POSIX RWLOCK TEST 01 ***

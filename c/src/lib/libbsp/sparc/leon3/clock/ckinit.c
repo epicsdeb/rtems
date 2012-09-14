@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.13 2008/05/07 17:40:52 joel Exp $
+ *  $Id: ckinit.c,v 1.15.2.1 2011/03/04 14:07:08 joel Exp $
  */
 
 #include <bsp.h>
@@ -36,7 +36,7 @@
     (rtems_configuration_get_user_multiprocessing_table() ? LEON3_Cpu_Index : 0)
 #else
   #define LEON3_CLOCK_INDEX 0
-#endif 
+#endif
 
 
 volatile LEON3_Timer_Regs_Map *LEON3_Timer_Regs = 0;
@@ -97,16 +97,24 @@ static int clkirq;
 uint32_t bsp_clock_nanoseconds_since_last_tick(void)
 {
   uint32_t clicks;
+  uint32_t usecs;
+
   if ( !LEON3_Timer_Regs )
     return 0;
 
   clicks = LEON3_Timer_Regs->timer[0].value;
 
-  /* Down counter */
-  return (uint32_t)
-     (rtems_configuration_get_microseconds_per_tick() - clicks) * 1000;
+  if ( LEON_Is_interrupt_pending( clkirq ) ) {
+    clicks = LEON3_Timer_Regs->timer[0].value;
+    usecs = (2*rtems_configuration_get_microseconds_per_tick() - clicks);
+  } else {
+    usecs = (rtems_configuration_get_microseconds_per_tick() - clicks);
+  }
+  return usecs * 1000;
 }
 
-#define Clock_driver_nanoseconds_since_last_tick bsp_clock_nanoseconds_since_last_tick
 
-#include "../../../shared/clockdrv_shell.c"
+#define Clock_driver_nanoseconds_since_last_tick \
+        bsp_clock_nanoseconds_since_last_tick
+
+#include "../../../shared/clockdrv_shell.h"

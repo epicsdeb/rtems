@@ -1,4 +1,24 @@
-2008-09-18	Ralf Corsépius <ralf.corsepius@rtems.org>
+2010-03-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.c: Add include of config.h
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Change prototype of IDLE thread to
+	consistently return void * and take a uintptr_t argument.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Eliminate _CPU_Thread_dispatch_pointer and
+	passing address of _Thread_Dispatch to _CPU_Initialize. Clean up
+	comments.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu_asm.c, rtems/score/cpu.h, rtems/score/types.h: Corrections and
+	updates.
+
+2008-09-11	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* rtems/score/types.h: Do not define boolean, single_precision,
 	double_precision unless RTEMS_DEPRECATED_TYPES is given.

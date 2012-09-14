@@ -1,9 +1,13 @@
 /**
- * @file rtems/score/arm.h
+ * @file
+ *
+ * @ingroup ScoreCPU
+ *
+ * @brief ARM assembler support API.
  */
 
-/*  
- *  $Id: arm.h,v 1.13 2005/09/15 18:44:19 jtm Exp $
+/*
+ *  $Id: arm.h,v 1.19 2010/05/10 20:29:13 joel Exp $
  *
  *  COPYRIGHT (c) 2000 Canon Research Centre France SA.
  *  Emmanuel Raguet, mailto:raguet@crf.canon.fr
@@ -23,6 +27,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @addtogroup ScoreCPU
+ *
+ * @{
+ */
 
 /*
  *  This file contains the information required to build
@@ -50,6 +60,15 @@ extern "C" {
 #elif defined(__ARM_ARCH_5TE__)
 #  define CPU_MODEL_NAME  "ARMv5TE"
 
+#elif defined(__ARM_ARCH_5TEJ__)
+#  define CPU_MODEL_NAME  "ARMv5TEJ"
+
+#elif defined(__ARM_ARCH_6J__)
+#  define CPU_MODEL_NAME  "ARMv6J"
+
+#elif defined(__ARM_ARCH_7A__)
+#  define CPU_MODEL_NAME  "ARMv7A"
+
 #else
 #  error "Unsupported CPU Model"
 
@@ -60,7 +79,7 @@ extern "C" {
 #define ARM_HAS_FPU     0
 #else
 #define ARM_HAS_FPU	1
-# error "FPU-support not yet implemented for the arm"
+#warning "FPU-support not yet implemented for the arm"
 #endif
 
 
@@ -69,6 +88,8 @@ extern "C" {
  */
 
 #define CPU_NAME "ARM"
+
+/** @} */
 
 #ifdef __cplusplus
 }

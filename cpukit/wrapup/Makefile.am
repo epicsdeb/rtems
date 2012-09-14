@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.65 2008/06/30 14:49:37 ralf Exp $
+## $Id: Makefile.am,v 1.71 2010/02/18 00:24:25 ccj Exp $
 ##
 
 include $(top_srcdir)/automake/multilib.am
@@ -16,10 +16,7 @@ TMP_LIBS += ../score/cpu/@RTEMS_CPU@/libscorecpu.a
 TMP_LIBS += ../score/libscore.a
 TMP_LIBS += ../sapi/libsapi.a
 TMP_LIBS += ../rtems/librtems.a
-
-if LIBPOSIX
 TMP_LIBS += ../posix/libposix.a
-endif
 
 if LIBGNAT
 TMP_LIBS += ../libgnat/libgnat.a
@@ -30,13 +27,12 @@ TMP_LIBS += ../itron/libitron.a
 endif
 
 TMP_LIBS += ../libcsupport/libcsupport.a
-if !UNIX
 TMP_LIBS += ../libblock/libblock.a
-endif
 if LIBDOSFS
 TMP_LIBS += ../libfs/libdosfs.a
 endif
 TMP_LIBS += ../libfs/libimfs.a
+TMP_LIBS += ../libfs/librfs.a
 
 TMP_LIBS += ../libmisc/libmonitor.a
 TMP_LIBS += ../libmisc/libuntar.a
@@ -53,12 +49,15 @@ if LIBSHELL
 TMP_LIBS += ../libmisc/libshell.a
 endif
 
+TMP_LIBS += ../libmisc/libbspcmdline.a
+TMP_LIBS += ../libmisc/libcapture.a
 TMP_LIBS += ../libmisc/libdumpbuf.a
 TMP_LIBS += ../libmisc/libdevnull.a
 TMP_LIBS += ../libmisc/libdummy.a
-TMP_LIBS += ../libmisc/libmw-fb.a
-TMP_LIBS += ../libmisc/libcapture.a
 TMP_LIBS += ../libmisc/libfsmount.a
+TMP_LIBS += ../libmisc/libmw-fb.a
+TMP_LIBS += ../libmisc/libstringto.a
+TMP_LIBS += ../libmisc/libuuid.a
 
 TMP_LIBS += ../libi2c/libi2c.a
 

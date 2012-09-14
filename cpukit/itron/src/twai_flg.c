@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: twai_flg.c,v 1.1 2007/04/17 20:32:13 joel Exp $
+ *  $Id: twai_flg.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,11 +22,11 @@
  */
 
 ER twai_flg(
-  UINT *p_flgptn,
-  ID    flgid,
-  UINT  waiptn,
-  UINT  wfmode,
-  TMO   tmout
+  UINT *p_flgptn __attribute__((unused)),
+  ID    flgid __attribute__((unused)),
+  UINT  waiptn __attribute__((unused)),
+  UINT  wfmode __attribute__((unused)),
+  TMO   tmout __attribute__((unused))
 )
 {
   return E_OK;

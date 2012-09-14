@@ -1,28 +1,84 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* if having union semum */
-#undef HAS_UNION_SEMUN
-
 /* Define to 1 if you have the `bcmp' function. */
 #undef HAVE_BCMP
 
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
 
+/* Define to 1 if you have the `closedir' function. */
+#undef HAVE_CLOSEDIR
+
+/* Define to 1 if you have the `creat' function. */
+#undef HAVE_CREAT
+
 /* Define to 1 if you have the declaration of `CHAR_BIT', and to 0 if you
    don't. */
 #undef HAVE_DECL_CHAR_BIT
+
+/* Define to 1 if you have the declaration of `flockfile', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FLOCKFILE
+
+/* Define to 1 if you have the declaration of `ftrylockfile', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FTRYLOCKFILE
+
+/* Define to 1 if you have the declaration of `funlockfile', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FUNLOCKFILE
+
+/* Define to 1 if you have the declaration of `LONG_BIT', and to 0 if you
+   don't. */
+#undef HAVE_DECL_LONG_BIT
 
 /* Define to 1 if you have the declaration of `sbrk', and to 0 if you don't.
    */
 #undef HAVE_DECL_SBRK
 
+/* Define to 1 if you have the declaration of `WORD_BIT', and to 0 if you
+   don't. */
+#undef HAVE_DECL_WORD_BIT
+
 /* Define to 1 if you have the declaration of `_POSIX_LOGIN_NAME_MAX', and to
    0 if you don't. */
 #undef HAVE_DECL__POSIX_LOGIN_NAME_MAX
 
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the `execl' function. */
+#undef HAVE_EXECL
+
+/* Define to 1 if you have the `execle' function. */
+#undef HAVE_EXECLE
+
+/* Define to 1 if you have the `execlp' function. */
+#undef HAVE_EXECLP
+
+/* Define to 1 if you have the `execv' function. */
+#undef HAVE_EXECV
+
+/* Define to 1 if you have the `execve' function. */
+#undef HAVE_EXECVE
+
+/* Define to 1 if you have the `execvp' function. */
+#undef HAVE_EXECVP
+
 /* Define to 1 if you have the `fileno' function. */
 #undef HAVE_FILENO
+
+/* Define to 1 if you have the `flockfile' function. */
+#undef HAVE_FLOCKFILE
+
+/* Define to 1 if you have the `ftrylockfile' function. */
+#undef HAVE_FTRYLOCKFILE
+
+/* Define to 1 if you have the `funlockfile' function. */
+#undef HAVE_FUNLOCKFILE
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
 
 /* Define to 1 if the system has the type `int16_t'. */
 #undef HAVE_INT16_T
@@ -48,8 +104,14 @@
 /* Define to 1 if you have the `isascii' function. */
 #undef HAVE_ISASCII
 
+/* Define to 1 if you have the `isatty' function. */
+#undef HAVE_ISATTY
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `opendir' function. */
+#undef HAVE_OPENDIR
 
 /* Define to 1 if the system has the type `pthread_barrier_t'. */
 #undef HAVE_PTHREAD_BARRIER_T
@@ -59,6 +121,39 @@
 
 /* Define to 1 if the system has the type `pthread_spinlock_t'. */
 #undef HAVE_PTHREAD_SPINLOCK_T
+
+/* Define to 1 if you have the `readdir' function. */
+#undef HAVE_READDIR
+
+/* Define to 1 if you have the `readdir_r' function. */
+#undef HAVE_READDIR_R
+
+/* Define to 1 if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
+
+/* Define to 1 if you have the `regerror' function. */
+#undef HAVE_REGERROR
+
+/* Define to 1 if you have the `regexec' function. */
+#undef HAVE_REGEXEC
+
+/* Define to 1 if you have the `regfree' function. */
+#undef HAVE_REGFREE
+
+/* Define to 1 if you have the `rewinddir' function. */
+#undef HAVE_REWINDDIR
+
+/* Define to 1 if you have the `scandir' function. */
+#undef HAVE_SCANDIR
+
+/* Define to 1 if you have the <sched.h> header file. */
+#undef HAVE_SCHED_H
+
+/* Define to 1 if you have the `seekdir' function. */
+#undef HAVE_SEEKDIR
+
+/* Define to 1 if you have the `sleep' function. */
+#undef HAVE_SLEEP
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
@@ -111,6 +206,15 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if you have the <tar.h> header file. */
+#undef HAVE_TAR_H
+
+/* Define to 1 if you have the `telldir' function. */
+#undef HAVE_TELLDIR
+
+/* Define to 1 if you have the `ttyname' function. */
+#undef HAVE_TTYNAME
+
 /* Define to 1 if the system has the type `uint16_t'. */
 #undef HAVE_UINT16_T
 
@@ -132,8 +236,14 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+
+/* Define to 1 if you have the `__assert' function. */
+#undef HAVE___ASSERT
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
@@ -149,6 +259,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
@@ -171,23 +284,14 @@
 /* if posix api is supported */
 #undef RTEMS_POSIX_API
 
-/* to indicate RTEMS unix */
-#undef RTEMS_UNIX
-
-/* to indicate RTEMS using RTEMS's unixlib */
-#undef RTEMS_UNIXLIB
-
-/* if RTEMS uses stdint.h */
-#undef RTEMS_USES_STDINT_H
-
-/* if RTEMS uses tar.h */
-#undef RTEMS_USES_TAR_H
-
 /* RTEMS version string */
 #undef RTEMS_VERSION
 
-/* The size of a 'CPU_CONTEXT', as computed by sizeof */
-#undef SIZEOF_CPU_CONTEXT
+/* The size of `mode_t', as computed by sizeof. */
+#undef SIZEOF_MODE_T
+
+/* The size of `off_t', as computed by sizeof. */
+#undef SIZEOF_OFF_T
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -200,6 +304,9 @@
 
 /* disable inlining _Thread_Enable_dispatch */
 #undef __RTEMS_DO_NOT_INLINE_THREAD_ENABLE_DISPATCH__
+
+/* disable inlining _Thread_queue_Enqueue_priority */
+#undef __RTEMS_DO_NOT_UNROLL_THREADQ_ENQUEUE_PRIORITY__
 
 /* major version portion of an RTEMS release */
 #undef __RTEMS_MAJOR__
@@ -215,6 +322,9 @@
 
 /* disable nanosecond granularity for cpu usage statistics */
 #undef __RTEMS_USE_TICKS_CPU_USAGE_STATISTICS__
+
+/* disable nanosecond granularity for statistics */
+#undef __RTEMS_USE_TICKS_FOR_STATISTICS__
 
 /* disable nanosecond granularity for period statistics */
 #undef __RTEMS_USE_TICKS_RATE_MONOTONIC_STATISTICS__

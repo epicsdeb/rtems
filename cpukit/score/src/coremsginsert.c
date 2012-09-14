@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremsginsert.c,v 1.7 2008/09/05 21:54:20 joel Exp $
+ *  $Id: coremsginsert.c,v 1.9 2009/09/13 16:05:14 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -56,59 +56,76 @@ void _CORE_message_queue_Insert_message(
 )
 {
   ISR_Level  level;
-  bool       notify = false;
+  #if defined(RTEMS_SCORE_COREMSG_ENABLE_NOTIFICATION)
+    bool    notify = false;
+    #define SET_NOTIFY() \
+      if ( the_message_queue->number_of_pending_messages == 0 )
+        notify = true;
+  #else
+    #define SET_NOTIFY()
+  #endif
 
-  the_message->priority = submit_type;
+  _CORE_message_queue_Set_message_priority( the_message, submit_type );
 
-  switch ( submit_type ) {
-    case CORE_MESSAGE_QUEUE_SEND_REQUEST:
+  #if !defined(RTEMS_SCORE_COREMSG_ENABLE_MESSAGE_PRIORITY)
+    _ISR_Disable( level );
+      SET_NOTIFY();
+      the_message_queue->number_of_pending_messages++;
+      if ( submit_type == CORE_MESSAGE_QUEUE_SEND_REQUEST )
+        _CORE_message_queue_Append_unprotected(the_message_queue, the_message);
+      else
+        _CORE_message_queue_Prepend_unprotected(the_message_queue, the_message);
+    _ISR_Enable( level );
+  #else
+    if ( submit_type == CORE_MESSAGE_QUEUE_SEND_REQUEST ) {
       _ISR_Disable( level );
-        if ( the_message_queue->number_of_pending_messages++ == 0 )
-          notify = true;
+        SET_NOTIFY();
+        the_message_queue->number_of_pending_messages++;
         _CORE_message_queue_Append_unprotected(the_message_queue, the_message);
       _ISR_Enable( level );
-      break;
-    case CORE_MESSAGE_QUEUE_URGENT_REQUEST:
+    } else if ( submit_type == CORE_MESSAGE_QUEUE_URGENT_REQUEST ) {
       _ISR_Disable( level );
-        if ( the_message_queue->number_of_pending_messages++ == 0 )
-          notify = true;
+        SET_NOTIFY();
+        the_message_queue->number_of_pending_messages++;
         _CORE_message_queue_Prepend_unprotected(the_message_queue, the_message);
       _ISR_Enable( level );
-      break;
-    default:
-      {
-        CORE_message_queue_Buffer_control *this_message;
-        Chain_Node                        *the_node;
-        Chain_Control                     *the_header;
+    } else {
+      CORE_message_queue_Buffer_control *this_message;
+      Chain_Node                        *the_node;
+      Chain_Control                     *the_header;
+      int                                the_priority;
 
-        the_header = &the_message_queue->Pending_messages;
-        the_node = the_header->first;
-        while ( !_Chain_Is_tail( the_header, the_node ) ) {
+      the_priority = _CORE_message_queue_Get_message_priority(the_message);
+      the_header = &the_message_queue->Pending_messages;
+      the_node = the_header->first;
+      while ( !_Chain_Is_tail( the_header, the_node ) ) {
+        int this_priority;
 
-          this_message = (CORE_message_queue_Buffer_control *) the_node;
+        this_message = (CORE_message_queue_Buffer_control *) the_node;
 
-          if ( this_message->priority <= the_message->priority ) {
-            the_node = the_node->next;
-            continue;
-          }
+        this_priority = _CORE_message_queue_Get_message_priority(this_message);
 
-          break;
+        if ( this_priority <= the_priority ) {
+          the_node = the_node->next;
+          continue;
         }
-        _ISR_Disable( level );
-          if ( the_message_queue->number_of_pending_messages++ == 0 )
-            notify = true;
-          _Chain_Insert_unprotected( the_node->previous, &the_message->Node );
-        _ISR_Enable( level );
+        break;
       }
-      break;
-  }
+      _ISR_Disable( level );
+        SET_NOTIFY();
+        the_message_queue->number_of_pending_messages++;
+        _Chain_Insert_unprotected( the_node->previous, &the_message->Node );
+      _ISR_Enable( level );
+    }
+  #endif
 
-  /*
-   *  According to POSIX, does this happen before or after the message
-   *  is actually enqueued.  It is logical to think afterwards, because
-   *  the message is actually in the queue at this point.
-   */
-
-  if ( notify && the_message_queue->notify_handler )
-    (*the_message_queue->notify_handler)( the_message_queue->notify_argument );
+  #if defined(RTEMS_SCORE_COREMSG_ENABLE_NOTIFICATION)
+    /*
+     *  According to POSIX, does this happen before or after the message
+     *  is actually enqueued.  It is logical to think afterwards, because
+     *  the message is actually in the queue at this point.
+     */
+    if ( notify && the_message_queue->notify_handler )
+      (*the_message_queue->notify_handler)(the_message_queue->notify_argument);
+  #endif
 }

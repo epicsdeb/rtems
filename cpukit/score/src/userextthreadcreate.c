@@ -1,3 +1,11 @@
+/**
+ * @file
+ *
+ * @ingroup ScoreUserExt
+ *
+ * @brief User Extension Handler implementation.
+ */
+
 /*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: userextthreadcreate.c,v 1.2 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: userextthreadcreate.c,v 1.4 2009/09/25 17:51:46 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -15,11 +23,6 @@
 
 #include <rtems/system.h>
 #include <rtems/score/userext.h>
-
-/*PAGE
- *
- *  _User_extensions_Thread_create
- */
 
 bool _User_extensions_Thread_create (
   Thread_Control *the_thread
@@ -41,9 +44,9 @@ bool _User_extensions_Thread_create (
         the_thread
       );
       if ( !status )
-        return FALSE;
+        return false;
     }
   }
 
-  return TRUE;
+  return true;
 }

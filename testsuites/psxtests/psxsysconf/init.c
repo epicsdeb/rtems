@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.1 2007/12/17 17:57:47 joel Exp $
+ *  $Id: init.c,v 1.6 2009/11/30 03:33:23 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -28,35 +28,51 @@ void *POSIX_Init(
   puts( "sysconf -- bad configuration parameter - negative" );
   sc = sysconf( -1 );
   fatal_posix_service_status_errno( sc, EINVAL, "bad conf name" );
-  
+
+#if UNUSED
+/* FIXME: This test doesn't make sense.
+ * On targets with sizeof(int) < sizeof(long), compilation will fail,
+ * On targets with sizeof(int) == sizeof(long) the call is valid.
+ */
   puts( "sysconf -- bad configuration parameter - too large" );
   sc = sysconf( LONG_MAX );
   fatal_posix_service_status_errno( sc, EINVAL, "bad conf name" );
-  
+#endif
+
   sc = sysconf( _SC_CLK_TCK );
-  printf( "sysconf - _SC_CLK_TCK=%d\n", sc );
+  printf( "sysconf - _SC_CLK_TCK=%ld\n", sc );
   if ( sc == -1 )
    rtems_test_exit(0);
 
   sc = sysconf( _SC_OPEN_MAX );
-  printf( "sysconf - _SC_OPEN_MAX=%d\n", sc );
+  printf( "sysconf - _SC_OPEN_MAX=%ld\n", sc );
   if ( sc == -1 )
    rtems_test_exit(0);
 
   sc = sysconf( _SC_GETPW_R_SIZE_MAX );
-  printf( "sysconf - _SC_GETPW_R_SIZE_MAX=%d\n", sc );
+  printf( "sysconf - _SC_GETPW_R_SIZE_MAX=%ld\n", sc );
   if ( sc == -1 )
    rtems_test_exit(0);
 
   sc = sysconf( _SC_PAGESIZE );
-  printf( "sysconf - _SC_PAGESIZE=%d\n", sc );
+  printf( "sysconf - _SC_PAGESIZE=%ld\n", sc );
   if ( sc == -1 )
+   rtems_test_exit(0);
+
+  sc = getpagesize();
+  printf( "getpagesize = %ld\n", sc );
+  if ( sc == -1 )
+   rtems_test_exit(0);
+
+  sc = sysconf( INT_MAX );
+  printf( "sysconf - bad parameter = %ld errno=%s\n", sc, strerror(errno) );
+  if ( (sc != -1) || (errno != EINVAL) )
    rtems_test_exit(0);
 
 #if defined(__sparc__)
   /* Solaris _SC_STACK_PROT - 515 */
   sc = sysconf( _SC_PAGESIZE );
-  printf( "sysconf - (SPARC only) _SC_STACK_PROT=%d\n", sc );
+  printf( "sysconf - (SPARC only) _SC_STACK_PROT=%ld\n", sc );
   if ( sc == -1 )
    rtems_test_exit(0);
 #endif

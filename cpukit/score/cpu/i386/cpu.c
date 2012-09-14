@@ -9,8 +9,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.38.2.1 2009/11/10 04:03:39 strauman Exp $
+ *  $Id: cpu.c,v 1.46 2010/03/27 15:01:47 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems.h>
 #include <rtems/system.h>
@@ -25,14 +29,10 @@
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  */
 
-
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
 #if CPU_HARDWARE_FP
   register uint16_t		fp_status asm ("ax");
@@ -60,12 +60,38 @@ void _CPU_Initialize(
 
     fp_context = &_CPU_Null_fp_context;
 
+#ifdef __SSE__
+	asm volatile( "fstcw %0":"=m"(fp_context->fpucw) );
+#else
     asm volatile( "fsave (%0)" : "=r" (fp_context)
                                : "0"  (fp_context)
                 );
+#endif
   }
 #endif
 
+#ifdef __SSE__
+
+  asm volatile("stmxcsr %0":"=m"(fp_context->mxcsr));
+
+  /* The BSP must enable the SSE extensions (early).
+   * If any SSE instruction was already attempted
+   * then that crashed the system.
+   * As a courtesy, we double-check here but it
+   * may be too late (which is also why we don't
+   * enable SSE here).
+   */
+  {
+  uint32_t cr4;
+    __asm__ __volatile__("mov %%cr4, %0":"=r"(cr4));
+    if ( 0x600 != (cr4 & 0x600) ) {
+      printk("PANIC: RTEMS was compiled for SSE but BSP did not enable it (CR4: 0x%08x)\n", cr4);
+      while ( 1 ) {
+        __asm__ __volatile__("hlt");
+	  }
+	}
+  }
+#endif
 }
 
 /*PAGE
@@ -82,13 +108,18 @@ uint32_t   _CPU_ISR_Get_level( void )
   return level;
 }
 
-void *_CPU_Thread_Idle_body (uint32_t ignored)
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
   while(1){
     asm volatile ("hlt");
   }
   return NULL;
 }
+
+struct Frame_ {
+	struct Frame_  *up;
+	uintptr_t		pc;
+};
 
 void _defaultExcHandler (CPU_Exception_frame *ctx)
 {
@@ -124,12 +155,24 @@ void _defaultExcHandler (CPU_Exception_frame *ctx)
     _CPU_Fatal_halt(faultAddr);
   }
   else {
+  	struct Frame_ *fp = (struct Frame_*)ctx->ebp;
+	int           i;
+
+	printk("Call Stack Trace of EIP:\n");
+	if ( fp ) {
+		for ( i=1; fp->up; fp=fp->up, i++ ) {
+			printk("0x%08x ",fp->pc);
+			if ( ! (i&3) )
+				printk("\n");
+		}
+	}
+	printk("\n");
     /*
      * OK I could probably use a simplified version but at least this
      * should work.
      */
-    printk(" ************ FAULTY THREAD WILL BE DELETED **************\n");
-    rtems_task_delete(_Thread_Executing->Object.id);
+    printk(" ************ FAULTY THREAD WILL BE SUSPENDED **************\n");
+    rtems_task_suspend(_Thread_Executing->Object.id);
   }
 }
 
@@ -153,6 +196,9 @@ extern void rtems_exception_prologue_14(void);
 extern void rtems_exception_prologue_16(void);
 extern void rtems_exception_prologue_17(void);
 extern void rtems_exception_prologue_18(void);
+#ifdef __SSE__
+extern void rtems_exception_prologue_19(void);
+#endif
 
 static rtems_raw_irq_hdl tbl[] = {
 	 rtems_exception_prologue_0,
@@ -174,6 +220,9 @@ static rtems_raw_irq_hdl tbl[] = {
 	 rtems_exception_prologue_16,
 	 rtems_exception_prologue_17,
 	 rtems_exception_prologue_18,
+#ifdef __SSE__
+	 rtems_exception_prologue_19,
+#endif
 };
 
 void rtems_exception_init_mngt(void)

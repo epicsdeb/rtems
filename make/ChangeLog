@@ -1,3 +1,196 @@
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/bare.cfg: Remove (Abandoned).
+	* Makefile.am: Remove custom/bare.cfg.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Remove custom/no_bsp.cfg.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/no_bsp.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Reflect custom/*.cfg having moved.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/av5282.cfg, custom/csb360.cfg, custom/gen68302.cfg,
+	custom/gen68340.cfg, custom/gen68360_040.cfg, custom/gen68360.cfg,
+	custom/pgh360.cfg, custom/genmcf548x.cfg,
+	custom/m5484FireEngine.cfg, custom/idp.cfg, custom/mcf5206elite.cfg,
+	custom/mcf52235.cfg, custom/mcf5235.cfg, custom/mcf5329.cfg,
+	custom/mrm332.cfg, custom/mvme136.cfg, custom/mvme147.cfg, 
+	custom/mvme147s.cfg, custom/mvme162.cfg, custom/mvme162lx.cfg,
+	custom/mvme167.cfg, custom/ods68302.cfg, custom/sim68000.cfg,
+	custom/simcpu32.cfg, custom/uC5282.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/csb336.cfg, custom/csb337.cfg, custom/csb637.cfg,
+	custom/edb7312.cfg, custom/gba.cfg, custom/arm1136jfs.cfg,
+	custom/arm1136js.cfg, custom/arm7tdmi.cfg, custom/arm920.cfg,
+	custom/armcortexa9.cfg, custom/gp32.cfg, custom/gumstix.cfg,
+	custom/lpc24xx.cfg, custom/lpc24xx_ea.cfg,
+	custom/lpc24xx_ncs_ram.cfg, custom/lpc24xx_ncs_rom_ext.cfg,
+	custom/lpc24xx_ncs_rom_int.cfg, custom/nds.cfg,
+	custom/rtl22xx.cfg, custom/rtl22xx_t.cfg,
+	custom/smdk2410.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/csb350.cfg, custom/genmongoosev.cfg,
+	custom/hurricane.cfg, custom/jmr3904.cfg, custom/rbtx4925.cfg
+	custom/rbtx4938.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/m32csim.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/m32rsim.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/lm32_evr.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/icecube.cfg, custom/pm520_cr825.cfg, pm520_ze30.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/hsc_cm01.cfg, custom/mpc8313erdb.cfg,
+	custom/mpc8349eamds.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/bf537Stamp.cfg, custom/eZKit533.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/brs5l.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/h8sim.cfg, custom/h8sxsim.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/c3xsim.cfg, custom/c4xsim.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/pghplus.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/ep1a.cfg, custom/gen5200.cfg, custom/gen83xx.cfg,
+	custom/haleakala.cfg, custom/mbx821_001.cfg, 
+	custom/mbx821_002.cfg, custom/mbx821_002b.cfg,
+	custom/mbx860_001b.cfg, custom/mbx860_002.cfg,
+	custom/mbx860_005b.cfg, custom/mbx860_1b.cfg,
+	custom/mbx8xx.cfg, custom/mcp750.cfg, custom/mpc5566evb.cfg,
+	custom/mpc55xx.cfg, custom/mpc8260ads.cfg, custom/mtx603e.cfg,
+	custom/mvme2100.cfg, custom/mvme2307.cfg, custom/mvme3100.cfg,
+	custom/mvme5500.cfg, custom/psim.cfg, custom/qemuppc.cfg,
+	custom/score603e.cfg, custom/ss555.cfg, custom/tqm8xx.cfg,
+	custom/tqm8xx_stk8xx.cfg, custom/virtex.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/nios2_iss.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/leon3.cfg, custom/leon2.cfg, custom/sis.cfg,
+	custom/erc32.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/avrtest.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/i386ex.cfg, custom/pc486.cfg, custom/ts_386ex.cfg,
+	custom/pc386.cfg, custom/pc586.cfg, custom/pc386dx.cfg,
+	custom/pc686.cfg:
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/gensh1.cfg, custom/gensh2.cfg, custom/gensh4.cfg,
+	custom/simsh1.cfg, custom/simsh2.cfg, custom/simsh2e.cfg,
+	custom/simsh4.cfg: 
+	Remove (Moved to c/src/lib/libbsp/<cpu>/<bsp>).
+
+2009-10-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/Cygwin-posix.cfg, custom/FreeBSD-posix.cfg,
+	custom/Linux-posix.cfg, custom/Solaris-posix.cfg, custom/posix.cfg:
+	Remove.
+
+2009-10-04	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* custom/lpc2478.cfg, custom/lpc2478_ncs.cfg,
+	custom/lpc2478_ncs_ram.cfg: Removed files.
+	* custom/lpc24xx_ea.cfg, custom/lpc24xx_ncs_ram.cfg,
+	custom/lpc24xx_ncs_rom_ext.cfg, custom/lpc24xx_ncs_rom_int.cfg: New
+	files.
+
+2009-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am: Add new BSP variants for ARM simulator in GDB.
+	* custom/arm1136jfs.cfg, custom/arm1136js.cfg, custom/arm7tdmi.cfg,
+	custom/arm920.cfg, custom/armcortexa9.cfg: New files.
+
+2009-09-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am: Add qemuppc.cfg.
+	* custom/qemuppc.cfg: New file.
+
+2009-09-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/gen83xx.cfg: Remove -funit-at-a-time.
+
+2009-08-27	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* custom/leon2.cfg, custom/leon3.cfg: Fix typo.
+
+2009-06-04	Xi Yang <hiyangxi@gmail.com>
+
+	* Makefile.am: New Gumstix BSP.
+	* custom/gumstix.cfg: New file.
+
+2009-05-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* custom/csb637.cfg: New file.
+
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/simsh2e.cfg: New file.
+
 2009-02-17	Till Straumann <strauman@slac.stanford.edu>
 
 	PR 1371/bsps
@@ -7,35 +200,196 @@
 
 	* custom/uC5282.cfg: Add cvs Id.
 
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/h8sxsim.cfg: Small H8SX should be optimized for size.
+
+2009-02-06	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Regenerate list of custom/*.cfg.
+	* Makefile.am: Remove custom/HPUX9-posix.cfg.
+	* custom/HPUX9-posix.cfg: Remove.
+
+2009-02-05	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/pck6.cfg: Remove.
+
+2008-12-04	Jukka Pietarinen <jukka.pietarinen@mrf.fi>
+
+	* Makefile.am: Add Lattice Mico32 support.
+	* custom/lm32_evr.cfg: New file.
+
+2008-11-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/avrtest.cfg: New file.
+
 2008-11-20	Daron Chabot <daronchabot@gmail.com>
 
 	PR 1337/bsps
 	* custom/pc386.cfg: Stripping .rodata section produces unusable
 	executables for the i386-rtems target.
 
+2008-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am: Add h8sxsim BSP variant.
+	* custom/h8sxsim.cfg: New file.
+
+2008-10-02	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* custom/mpc55xx.cfg: Added -msoft-float and removed -funit-at-a-time
+	in CPU_CFLAGS
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/m32rsim.cfg: New file.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/m32csim.cfg: New file.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/virtex.cfg: Remove -Dvirtex.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/pghplus.cfg, custom/tqm8xx.cfg, custom/tqm8xx_stk8xx.cfg:
+	Remove RTEMS_TQM_MODEL.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/mpc5566evb.cfg, custom/mpc55xx.cfg: Remove
+	RTEMS_BOARD_MODEL.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/pgh360.cfg: Remove RTEMS_BOARD_MODEL.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/m5484FireEngine.cfg: Remove RTEMS_BOARD_MODEL.
+	Remove RTEMS_54XX_DERIVATE (Unused).
+	* custom/genmcf548x.cfg: Remove RTEMS_BOARD_MODEL.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	*  custom/brs5l.cfg, custom/gen5200.cfg, custom/icecube.cfg,
+	custom/pm520_cr825.cfg, custom/pm520_ze30.cfg: Remove RTEMS_BOARD_MODEL.
+
+2008-10-02	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/gen83xx.cfg, custom/hsc_cm01.cfg, custom/mpc8313erdb.cfg,
+	custom/mpc8349eamds.cfg: Remove RTEMS_BOARD_MODEL,
+	RTEMS_83XX_DERIVATE.
+
+2008-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/erc32.cfg: Revert accidental commit.
+
+2008-10-01	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/brs5l.cfg, custom/gen5200.cfg, custom/gen83xx.cfg,
+	custom/genmcf548x.cfg, custom/hsc_cm01.cfg, custom/icecube.cfg,
+	custom/m5484FireEngine.cfg, custom/mpc5566evb.cfg,
+	custom/mpc55xx.cfg, custom/mpc8313erdb.cfg, custom/mpc8349eamds.cfg,
+	custom/pgh360.cfg, custom/pghplus.cfg, custom/pm520_cr825.cfg,
+	custom/pm520_ze30.cfg, custom/tqm8xx.cfg, custom/tqm8xx_stk8xx.cfg:
+	Back out parts of yesterdays changes.
+
+2008-10-01	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/gen83xx.cfg, custom/lpc2478.cfg: Remove warning flags.
+
 2008-09-30	Jennifer Averett <jennifer.averett@oarcorp.com>
 
 	* custom/score603e.cfg: Modifications required to run on hardware. Some
 	cleanup.
+
+2008-09-30	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/m5484FireEngine.cfg:
+	Eliminate RTEMS_54XX_DERIVATE (Unused).
+
+2008-09-30	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/pghplus.cfg, custom/tqm8xx.cfg, custom/tqm8xx_stk8xx.cfg:
+	Eliminate RTEMS_TQM_MODEL (Unused).
+
+2008-09-30	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* custom/brs5l.cfg, custom/gen5200.cfg, custom/gen83xx.cfg,
+	custom/genmcf548x.cfg, custom/hsc_cm01.cfg, custom/icecube.cfg,
+	custom/lpc2478.cfg, custom/m5484FireEngine.cfg,
+	custom/mpc5566evb.cfg, custom/mpc55xx.cfg, custom/mpc8313erdb.cfg,
+	custom/mpc8349eamds.cfg, custom/pgh360.cfg, custom/pm520_cr825.cfg
+	custom/pm520_ze30.cfg: Remove RTEMS_BOARD_MODEL.
+
+2008-09-30	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/simsh1.cfg, custom/simsh2.cfg, custom/simsh4.cfg: Make all use
+	RTEMS_BSP_FAMILY.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* custom/simsh1.cfg, custom/simsh2.cfg: Remove Author notice.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, custom/simsh4.cfg: Recognize the the GDB SuperH
+	simulator is just an architectural simulator and does not include
+	devices. Rename existing simulator BSP configurations to simsh1 and
+	simsh2 and add simsh4.
+	* custom/simsh1.cfg, custom/simsh2.cfg: New files.
+	* custom/shsim.cfg, custom/simsh7032.cfg, custom/simsh7045.cfg: Removed.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/bf537skyeye.cfg: Removed.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/bf537Stamp.cfg, custom/erc32.cfg: Add skyeye alias for
+	bf537stamp.
+	* custom/bf537skyeye.cfg: New file.
+
+2008-09-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* custom/lpc2478.cfg: Comment out use of U-Boot specific mkimage since
+	we do not reliably know it is installed.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* custom/lpc2478.cfg: New file.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* custom/ep1a.cfg, custom/mtx603e.cfg, custom/mvme2100.cfg,
+	custom/psim.cfg, custom/score603e.cfg: Eliminate vestiges of mpc603e
+	define.
+
+2008-09-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* compilers/gcc-no_bsp.cfg, compilers/gcc-target-default.cfg,
+	custom/bare.cfg, custom/c3xsim.cfg, custom/c4xsim.cfg,
+	custom/default.cfg, custom/haleakala.cfg, custom/mbx8xx.cfg,
+	custom/mvme2307.cfg, custom/mvme3100.cfg, custom/mvme5500.cfg,
+	custom/posix.cfg, custom/ss555.cfg, custom/virtex.cfg: Eliminate
+	START_BASE and START_FILE.
 
 2008-09-18	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	PR 1314/bsps
 	* custom/mvme3100.cfg: Remove old stuff.
 
-2008-09-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* compilers/gcc-no_bsp.cfg: Eliminate some obsolete junk.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* leaf.cfg: LINK.c and LINK.cc include LDFLAGS so do not include it in
 	make-exe and make-cxx-exe definitions. This was resulting in the
 	linker script being processed twice and breaking some BSPs.
-
-2008-09-10	Ralf Corsépius <ralf.corsepius@rtems.org>
-
-	* custom/nios2_iss.cfg: Remove.
-
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
-
-	* custom/c3xsim.cfg, custom/c4xsim.cfg: Removed.
 
 2008-09-09	Joel Sherrill <joel.sherrill@OARcorp.com>
 

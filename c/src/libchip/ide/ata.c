@@ -2,7 +2,7 @@
  * ata.c
  *
  * ATA RTEMS driver. ATA driver is hardware independant implementation of
- * ATA-2 standart, working draft X3T10/0948D, revision 4c. ATA driver bases
+ * ATA-2 standard, working draft X3T10/0948D, revision 4c. ATA driver bases
  * on RTEMS IDE controller driver.
  *
  * Copyright (C) 2001 OKTET Ltd., St.-Petersburg, Russia
@@ -12,7 +12,7 @@
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.com/license/LICENSE.
  *
- * $Id: ata.c,v 1.22 2008/09/07 03:35:29 ralf Exp $
+ * $Id: ata.c,v 1.38.2.1 2011/01/19 14:51:54 joel Exp $
  *
  */
 #include <errno.h>
@@ -26,26 +26,17 @@
 #include <libchip/ide_ctrl_cfg.h>
 #include "ata_internal.h"
 #include <libchip/ata.h>
-/* #define DEBUG */
 
-#ifdef DEBUG
+#define ATA_DEBUG 0
+
+#if ATA_DEBUG
 #include <stdio.h>
+bool ata_trace;
+#define ata_printf if (ata_trace) printf
 #endif
 
-/*
- * FIXME: make this better...
- * find out, which exception model is used
- * assume, that all i386 BSPs use new exception handling
- * assume, that some PPC BSPs use new exception handling
- * assume, that all other BSPs use old exception handling
- */
-#if defined(_OLD_EXCEPTIONS) || (!defined(__i386__) && !defined(__PPC__))
-
-#define ATA_USE_OLD_EXCEPTIONS
-#endif
-
-#if !defined(ATA_USE_OLD_EXCEPTIONS)
-#include <bsp/irq.h>
+#if !defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
+#include <rtems/irq.h>
 #define ATA_IRQ_CHAIN_MAX_CNT 4 /* support up to 4 ATA devices */
 typedef struct {
   rtems_irq_number name;
@@ -152,7 +143,7 @@ static bool ata_initialized = false;
 static rtems_id ata_task_id;
 static rtems_id ata_queue_id;
 
-#if defined (ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
 /* Mapping of interrupt vectors to devices */
 static rtems_chain_control ata_int_vec[ATA_MAX_RTEMS_INT_VEC_NUMBER + 1];
 #endif
@@ -237,45 +228,23 @@ ata_io_data_request(dev_t device, rtems_blkdev_request *req)
     {
         if (req->req == RTEMS_BLKDEV_REQ_READ)
         {
-#ifdef DEBUG
-            printf("ata_io_data_request: type: READ: %d, %d\n",
-                   req->bufs[0].block, req->bufnum);
-#endif            
             areq->type = ATA_COMMAND_TYPE_PIO_IN;
-
-            /*
-             * choose command to issue: if the number of blocks to be
-             * exchanged is greater then 1 and for ATA command READ MULTIPLE
-             * data block consists of more then 1 sector choose READ MULTIPLE
-             * otherwise READ SECTORS
-             */
-            areq->regs.regs[IDE_REGISTER_COMMAND] =
-                ((ATA_DEV_INFO(ctrl_minor, dev).max_multiple) &&
-                 (req->bufnum > 1) &&
-                 (ATA_DEV_INFO(ctrl_minor, dev).current_multiple > 1)) ?
-                 ATA_COMMAND_READ_MULTIPLE :
-                 ATA_COMMAND_READ_SECTORS;
+            areq->regs.regs[IDE_REGISTER_COMMAND] = ATA_COMMAND_READ_SECTORS;
+#if ATA_DEBUG
+            ata_printf("ata_io_data_request: type: READ: %lu, %lu cmd:%02x\n",
+                       req->bufs[0].block, req->bufnum,
+                       areq->regs.regs[IDE_REGISTER_COMMAND]);
+#endif
         }
         else
         {
-#ifdef DEBUG
-            printf("ata_io_data_request: type: WRITE: %d, %d\n",
-                   req->bufs[0].block, req->bufnum);
-#endif            
             areq->type = ATA_COMMAND_TYPE_PIO_OUT;
-
-            /*
-             * choose command to issue: if the number of blocks to be
-             * exchanged is greater then 1 and for ATA command WRITE MULTIPLE
-             * data block consists of more then 1 sector choose WRITE MULTIPLE
-             * otherwise WRITE SECTORS
-             */
-            areq->regs.regs[IDE_REGISTER_COMMAND] =
-              ((ATA_DEV_INFO(ctrl_minor, dev).max_multiple) &&
-               (req->bufnum > 1) &&
-               (ATA_DEV_INFO(ctrl_minor, dev).current_multiple > 1)) ?
-               ATA_COMMAND_WRITE_MULTIPLE :
-               ATA_COMMAND_WRITE_SECTORS;
+            areq->regs.regs[IDE_REGISTER_COMMAND] = ATA_COMMAND_WRITE_SECTORS;
+#if ATA_DEBUG
+            ata_printf("ata_io_data_request: type: WRITE: %lu, %lu cmd:%02x\n",
+                       req->bufs[0].block, req->bufnum,
+                       areq->regs.regs[IDE_REGISTER_COMMAND]);
+#endif
         }
     }
 
@@ -288,6 +257,7 @@ ata_io_data_request(dev_t device, rtems_blkdev_request *req)
         areq->regs.regs[IDE_REGISTER_LBA0] = (uint8_t)start;
         areq->regs.regs[IDE_REGISTER_LBA1] = (uint8_t)(start >> 8);
         areq->regs.regs[IDE_REGISTER_LBA2] = (uint8_t)(start >> 16);
+        /* Set as the head register write above */
         areq->regs.regs[IDE_REGISTER_LBA3] |= (uint8_t) (start >> 24);
         areq->regs.regs[IDE_REGISTER_LBA3] |= IDE_REGISTER_LBA3_L;
     }
@@ -311,12 +281,16 @@ ata_io_data_request(dev_t device, rtems_blkdev_request *req)
                                                 ~IDE_REGISTER_DEVICE_HEAD_L;
     }
 
-    /* fill sector count register */
-    areq->regs.regs[IDE_REGISTER_SECTOR_COUNT] = areq->breq->bufnum;
+    /*
+     * Fill sector count register. We have a number of buffers (bufnum) which
+     * can be of a specific length (bufs[0].length / ATA_SECTOR_SIZE).
+     */
+    areq->regs.regs[IDE_REGISTER_SECTOR_COUNT] =
+      areq->breq->bufnum * (areq->breq->bufs[0].length / ATA_SECTOR_SIZE);
 
     /* add request to the queue of awaiting requests to the controller */
     ata_add_to_controller_queue(ctrl_minor, areq);
-    
+
     return RTEMS_SUCCESSFUL;
 }
 
@@ -334,7 +308,7 @@ ata_io_data_request(dev_t device, rtems_blkdev_request *req)
  *     error occured
  */
 static rtems_status_code
-ata_non_data_request(dev_t device, int cmd, void *argp)
+ata_non_data_request(dev_t device, uint32_t cmd, void *argp)
 {
     rtems_status_code          rc;
     ata_req_t                 *areq;       /* ATA request */
@@ -423,10 +397,7 @@ ata_non_data_request(dev_t device, int cmd, void *argp)
         switch(cmd)
         {
             case ATAIO_SET_MULTIPLE_MODE:
-                ATA_DEV_INFO(ctrl_minor, dev).current_multiple =
-                                                           *(uint8_t*)argp;
-                break;
-
+              /* invalid operation now */
             default:
                 rc = RTEMS_INVALID_NUMBER;
                 break;
@@ -463,11 +434,8 @@ ata_process_request(rtems_device_minor_number ctrl_minor)
     ata_queue_msg_t  msg;
     uint8_t          i, dev;
     uint16_t         val;
-    uint16_t         data_bs; /* the number of 512-bytes sectors in one
-                               * data block
-                               */
     ISR_Level        level;
-    
+
     /* if no requests to controller then do nothing */
     if (rtems_chain_is_empty(&ata_ide_ctrls[ctrl_minor].reqs))
         return;
@@ -480,10 +448,6 @@ ata_process_request(rtems_device_minor_number ctrl_minor)
     /* get ATA device identifier (0 or 1) */
     dev =  areq->regs.regs[IDE_REGISTER_DEVICE_HEAD] &
            IDE_REGISTER_DEVICE_HEAD_DEV;
-
-    /* get data block size */
-    data_bs = ATA_DEV_INFO(ctrl_minor, dev).current_multiple ?
-              ATA_DEV_INFO(ctrl_minor, dev).current_multiple : 1;
 
     /* execute device select protocol */
     ide_controller_write_register(ctrl_minor, IDE_REGISTER_DEVICE_HEAD,
@@ -502,10 +466,10 @@ ata_process_request(rtems_device_minor_number ctrl_minor)
             ide_controller_write_register(ctrl_minor, i, areq->regs.regs[i]);
     }
 
-#ifdef DEBUG
-    printf("ata_process_request: type: %d\n", areq->type);
+#if ATA_DEBUG
+    ata_printf("ata_process_request: type: %d\n", areq->type);
 #endif
-    
+
     /* continue to execute ATA protocols depending on type of request */
     if (areq->type == ATA_COMMAND_TYPE_PIO_OUT)
     {
@@ -516,12 +480,16 @@ ata_process_request(rtems_device_minor_number ctrl_minor)
 
         if (byte & IDE_REGISTER_STATUS_DRQ)
         {
-            ide_controller_write_data_block(
-                ctrl_minor,
-                MIN(data_bs, areq->cnt) * ATA_SECTOR_SIZE,
-                areq->breq->bufs, &areq->cbuf,
-                &areq->pos);
-            areq->cnt -= MIN(data_bs, areq->cnt);
+            if (areq->cnt)
+            {
+              int ccbuf = areq->cbuf;
+              ide_controller_write_data_block(ctrl_minor,
+                                              areq->breq->bufs[0].length * areq->cnt,
+                                              areq->breq->bufs, &areq->cbuf,
+                                              &areq->pos);
+              ccbuf = areq->cbuf - ccbuf;
+              areq->cnt -= ccbuf;
+            }
         }
         else
         {
@@ -566,28 +534,28 @@ ata_process_request(rtems_device_minor_number ctrl_minor)
  */
 static inline void
 ata_request_done(ata_req_t *areq, rtems_device_minor_number ctrl_minor,
-                 rtems_status_code status, int error)
+                 rtems_status_code status)
 {
     assert(areq);
 
-#ifdef DEBUG
-    printf("ata_request_done: entry\n");
+#if ATA_DEBUG
+    ata_printf("ata_request_done: entry\n");
 #endif
-    
-    ATA_EXEC_CALLBACK(areq, status, error);
+
+    ATA_EXEC_CALLBACK(areq, status);
     rtems_chain_extract(&areq->link);
-    
+
     if (!rtems_chain_is_empty(&ata_ide_ctrls[ctrl_minor].reqs))
     {
         free(areq);
         ata_process_request(ctrl_minor);
         return;
     }
-    
+
     free(areq);
-    
-#ifdef DEBUG
-    printf("ata_request_done: exit\n");
+
+#if ATA_DEBUG
+    ata_printf("ata_request_done: exit\n");
 #endif
 }
 
@@ -606,10 +574,14 @@ ata_request_done(ata_req_t *areq, rtems_device_minor_number ctrl_minor,
 static inline void
 ata_non_data_request_done(ata_req_t *areq,
                           rtems_device_minor_number ctrl_minor,
-                          rtems_status_code status, int error)
+                          rtems_status_code status, int info)
 {
+#if ATA_DEBUG
+    ata_printf("ata_non_data_request_done: entry\n");
+#endif
+
     areq->status = status;
-    areq->error = error;
+    areq->info = info;
     rtems_semaphore_release(areq->sema);
 }
 
@@ -629,16 +601,16 @@ ata_add_to_controller_queue(rtems_device_minor_number  ctrl_minor,
                             ata_req_t                 *areq)
 {
     PREEMPTION_KEY(key);
-    
+
     DISABLE_PREEMPTION(key);
-    
+
     rtems_chain_append(&ata_ide_ctrls[ctrl_minor].reqs, &areq->link);
     if (rtems_chain_has_only_one_node(&ata_ide_ctrls[ctrl_minor].reqs))
     {
 
         ata_queue_msg_t msg;
 
-#ifdef DEBUG
+#if ATA_DEBUG_DOES_NOT_WORK_WITH_QEMU
 	uint16_t      val;
         /*
          * read IDE_REGISTER_ALTERNATE_STATUS instead IDE_REGISTER_STATUS
@@ -668,7 +640,7 @@ ata_add_to_controller_queue(rtems_device_minor_number  ctrl_minor,
  * RETURNS:
  *     NONE
  */
-#if defined(ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
 rtems_isr
 ata_interrupt_handler(rtems_vector_number vec)
 {
@@ -781,25 +753,26 @@ static rtems_irq_connect_data ata_irq_data =
 static inline void
 ata_pio_in_protocol(rtems_device_minor_number ctrl_minor, ata_req_t *areq)
 {
-    uint16_t        bs, val;
+    uint16_t        val;
     uint8_t         dev;
-    uint32_t        min_val;
     ata_queue_msg_t msg;
 
     dev =  areq->regs.regs[IDE_REGISTER_DEVICE_HEAD] &
            IDE_REGISTER_DEVICE_HEAD_DEV;
 
-    bs = ATA_DEV_INFO(ctrl_minor, dev).current_multiple ?
-         ATA_DEV_INFO(ctrl_minor, dev).current_multiple : 1;
-    min_val = MIN(bs, areq->cnt);
+    if (areq->cnt)
+    {
+      int ccbuf = areq->cbuf;
+      ide_controller_read_data_block(ctrl_minor,
+                                     areq->breq->bufs[0].length * areq->cnt,
+                                     areq->breq->bufs, &areq->cbuf, &areq->pos);
+      ccbuf = areq->cbuf - ccbuf;
+      areq->cnt -= ccbuf;
+    }
 
-    ide_controller_read_data_block(ctrl_minor, min_val * ATA_SECTOR_SIZE,
-                                   areq->breq->bufs, &areq->cbuf, &areq->pos);
-
-    areq->cnt -= min_val;
     if (areq->cnt == 0)
     {
-        ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL, RTEMS_SUCCESSFUL);
+        ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL);
     }
     else if (IDE_Controller_Table[ctrl_minor].int_driven == false)
     {
@@ -824,33 +797,33 @@ ata_pio_in_protocol(rtems_device_minor_number ctrl_minor, ata_req_t *areq)
 static inline void
 ata_pio_out_protocol(rtems_device_minor_number ctrl_minor, ata_req_t *areq)
 {
-    uint16_t        bs, val;
+    uint16_t        val;
     uint8_t         dev;
-    uint32_t        min_val;
     ata_queue_msg_t msg;
 
-#ifdef DEBUG
-    printf("ata_pio_out_protocol:\n");
+#if ATA_DEBUG
+    ata_printf("ata_pio_out_protocol:\n");
 #endif
-    
+
     dev =  areq->regs.regs[IDE_REGISTER_DEVICE_HEAD] &
            IDE_REGISTER_DEVICE_HEAD_DEV;
 
-    bs = ATA_DEV_INFO(ctrl_minor, dev).current_multiple ?
-         ATA_DEV_INFO(ctrl_minor, dev).current_multiple : 1;
-
-    min_val = MIN(bs, areq->cnt);
-
     if (areq->cnt == 0)
     {
-        ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL, RTEMS_SUCCESSFUL);
+        ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL);
     }
     else
     {
-        ide_controller_write_data_block(ctrl_minor, min_val * ATA_SECTOR_SIZE,
-                                        areq->breq->bufs, &areq->cbuf,
-                                        &areq->pos);
-        areq->cnt -= min_val;
+        if (areq->cnt)
+        {
+          int ccbuf = areq->cbuf;
+          ide_controller_write_data_block(ctrl_minor,
+                                          areq->breq->bufs[0].length * areq->cnt,
+                                          areq->breq->bufs, &areq->cbuf,
+                                          &areq->pos);
+          ccbuf = areq->cbuf - ccbuf;
+          areq->cnt -= ccbuf;
+        }
         if (IDE_Controller_Table[ctrl_minor].int_driven == false)
         {
             do {
@@ -886,15 +859,15 @@ ata_queue_task(rtems_task_argument arg)
     uint16_t                   val1;
     rtems_status_code          rc;
     ISR_Level                  level;
-    
+
     PREEMPTION_KEY(key);
 
     DISABLE_PREEMPTION(key);
-    
+
     while (1)
     {
         ENABLE_PREEMPTION(key);
-        
+
         /* get event which has happend */
         rc = rtems_message_queue_receive(ata_queue_id, &msg, &size, RTEMS_WAIT,
                                          RTEMS_NO_TIMEOUT);
@@ -905,12 +878,12 @@ ata_queue_task(rtems_task_argument arg)
         ctrl_minor = msg.ctrl_minor;
 
         DISABLE_PREEMPTION(key);
-        
+
         /* get current request to the controller */
         _ISR_Disable(level);
         areq = (ata_req_t *)(ata_ide_ctrls[ctrl_minor].reqs.first);
         _ISR_Enable(level);
-        
+
         switch(msg.type)
         {
             case ATA_MSG_PROCESS_NEXT_EVT:
@@ -924,8 +897,7 @@ ata_queue_task(rtems_task_argument arg)
                  * status and start processing of the next request in the
                  * controller queue
                  */
-                ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL,
-                                 msg.error);
+                ata_request_done(areq, ctrl_minor, RTEMS_SUCCESSFUL);
                 break;
 
             case ATA_MSG_ERROR_EVT:
@@ -934,8 +906,7 @@ ata_queue_task(rtems_task_argument arg)
                  * status and start processing of the next request in the
                  * controller queue
                  */
-                ata_request_done(areq, ctrl_minor, RTEMS_UNSATISFIED,
-                                 msg.error);
+                ata_request_done(areq, ctrl_minor, RTEMS_IO_ERROR);
                 break;
 
             case ATA_MSG_GEN_EVT:
@@ -952,14 +923,20 @@ ata_queue_task(rtems_task_argument arg)
                     ide_controller_read_register(ctrl_minor,
                                                  IDE_REGISTER_ERROR,
                                                  &val);
-                    if (areq->type == ATA_COMMAND_TYPE_NON_DATA)
-                        ata_non_data_request_done(areq, ctrl_minor,
-                                                  RTEMS_UNSATISFIED,
-                                                  RTEMS_IO_ERROR);
-                    else
-                        ata_request_done(areq, ctrl_minor, RTEMS_UNSATISFIED,
-                                         RTEMS_IO_ERROR);
-                    break;
+                    if (val & (IDE_REGISTER_ERROR_UNC |
+                               IDE_REGISTER_ERROR_ICRC |
+                               IDE_REGISTER_ERROR_IDNF |
+                               IDE_REGISTER_ERROR_NM |
+                               IDE_REGISTER_ERROR_MED))
+                    {
+                        if (areq->type == ATA_COMMAND_TYPE_NON_DATA)
+                            ata_non_data_request_done(areq, ctrl_minor,
+                                                      RTEMS_UNSATISFIED,
+                                                      RTEMS_IO_ERROR);
+                        else
+                            ata_request_done(areq, ctrl_minor, RTEMS_IO_ERROR);
+                        break;
+                    }
                 }
 
                 switch(areq->type)
@@ -982,19 +959,17 @@ ata_queue_task(rtems_task_argument arg)
                         break;
 
                     default:
-#ifdef DEBUG
-                        printf("ata_queue_task: non-supported command type\n");
+#if ATA_DEBUG
+                        ata_printf("ata_queue_task: non-supported command type\n");
 #endif
-                        ata_request_done(areq, ctrl_minor,
-                                         RTEMS_UNSATISFIED,
-                                         RTEMS_NOT_IMPLEMENTED);
+                        ata_request_done(areq, ctrl_minor, RTEMS_IO_ERROR);
                         break;
                 }
                 break;
 
             default:
-#ifdef DEBUG
-                printf("ata_queue_task: internal error\n");
+#if ATA_DEBUG
+                ata_printf("ata_queue_task: internal error\n");
                 rtems_task_delete (RTEMS_SELF);
 #endif
                 rtems_fatal_error_occurred(RTEMS_INTERNAL_ERROR);
@@ -1014,9 +989,10 @@ ata_queue_task(rtems_task_argument arg)
  * RETURNS:
  *     depend on 'cmd'
  */
-int
-ata_ioctl(dev_t device, int cmd, void *argp)
+static int
+ata_ioctl(rtems_disk_device *dd, uint32_t cmd, void *argp)
 {
+    dev_t                     device = rtems_disk_get_device_identifier(dd);
     rtems_status_code         status;
     rtems_device_minor_number rel_minor;
 
@@ -1043,14 +1019,13 @@ ata_ioctl(dev_t device, int cmd, void *argp)
             status = ata_non_data_request(device, cmd, argp);
             break;
 
-        case RTEMS_BLKDEV_CAPABILITIES:
+        case RTEMS_BLKIO_CAPABILITIES:
             *((uint32_t*) argp)  = RTEMS_BLKDEV_CAP_MULTISECTOR_CONT;
             status = RTEMS_SUCCESSFUL;
             break;
 
         default:
-            errno = EBADRQC;
-            return -1;
+            return rtems_blkdev_ioctl (dd, cmd, argp);
             break;
     }
 
@@ -1086,12 +1061,14 @@ rtems_ata_initialize(rtems_device_major_number major,
     blkdev_request1    breq;
     uint8_t            i, dev = 0;
     uint16_t          *buffer;
+#if ATA_EXEC_DEVICE_DIAGNOSTIC
     uint16_t           ec;
+#endif
     char               name[ATA_MAX_NAME_LENGTH];
     dev_t              device;
     ata_int_st_t      *int_st;
 
-#if defined(ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
     rtems_isr_entry    old_isr;
 #else
     int ata_irq_chain_use;
@@ -1114,7 +1091,7 @@ rtems_ata_initialize(rtems_device_major_number major,
         return status;
 #endif
 #endif
-    
+
     /* create queue for asynchronous requests handling */
     status = rtems_message_queue_create(
                  rtems_build_name('A', 'T', 'A', 'Q'),
@@ -1134,7 +1111,7 @@ rtems_ata_initialize(rtems_device_major_number major,
      */
     status = rtems_task_create(
                  rtems_build_name ('A', 'T', 'A', 'T'),
-                 ((rtems_ata_driver_task_priority > 0) 
+                 ((rtems_ata_driver_task_priority > 0)
 		  ? rtems_ata_driver_task_priority
 		  : ATA_DRIVER_TASK_DEFAULT_PRIORITY),
                  ATA_DRIVER_TASK_STACK_SIZE,
@@ -1176,7 +1153,7 @@ rtems_ata_initialize(rtems_device_major_number major,
     for (i = 0; i < (2 * IDE_CTRL_MAX_MINOR_NUMBER); i++)
         ata_devs[i].device = ATA_UNDEFINED_VALUE;
 
-#if defined(ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
     /* prepare ATA driver for handling  interrupt driven devices */
     for (i = 0; i < ATA_MAX_RTEMS_INT_VEC_NUMBER; i++)
         rtems_chain_initialize_empty(&ata_int_vec[i]);
@@ -1222,7 +1199,7 @@ rtems_ata_initialize(rtems_device_major_number major,
             }
 
             int_st->ctrl_minor = ctrl_minor;
-#if defined(ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
             status = rtems_interrupt_catch(
                          ata_interrupt_handler,
                          IDE_Controller_Table[ctrl_minor].int_vec,
@@ -1274,7 +1251,7 @@ rtems_ata_initialize(rtems_device_major_number major,
                 rtems_disk_io_done();
                 return status;
             }
-#if defined(ATA_USE_OLD_EXCEPTIONS)
+#if defined(CPU_SIMPLE_VECTORED_INTERRUPTS)
             rtems_chain_append(
                 &ata_int_vec[IDE_Controller_Table[ctrl_minor].int_vec],
                 &int_st->link);
@@ -1290,9 +1267,14 @@ rtems_ata_initialize(rtems_device_major_number major,
                                           IDE_REGISTER_DEVICE_CONTROL_nIEN);
         }
 
+#if ATA_EXEC_DEVICE_DIAGNOSTIC
         /*
          * Issue EXECUTE DEVICE DIAGNOSTIC ATA command for explore is
          * there any ATA device on the controller.
+         *
+         * This command may fail and it assumes we have a master device and may
+         * be a slave device. I think the identify command will handle
+         * detection better than this method.
          */
         memset(&areq, 0, sizeof(ata_req_t));
         areq.type = ATA_COMMAND_TYPE_NON_DATA;
@@ -1313,39 +1295,55 @@ rtems_ata_initialize(rtems_device_major_number major,
         /*
          * check status of I/O operation
          */
-        if (breq.req.status != RTEMS_SUCCESSFUL)
-            continue;
-
-        /* disassemble returned diagnostic codes */
-        if (breq.req.error == ATA_DEV0_PASSED_DEV1_PASSED_OR_NOT_PRSNT)
+        if (breq.req.status == RTEMS_SUCCESSFUL)
         {
-            ATA_DEV_INFO(ctrl_minor, 0).present = true;
+          /* disassemble returned diagnostic codes */
+          if (areq.info == ATA_DEV0_PASSED_DEV1_PASSED_OR_NOT_PRSNT)
+          {
+            printk("ATA: ctrl:%d: primary, secondary\n", ctrl_minor);
+            ATA_DEV_INFO(ctrl_minor,0).present = true;
             ATA_DEV_INFO(ctrl_minor,1).present = true;
-        }
-        else if (breq.req.error == ATA_DEV0_PASSED_DEV1_FAILED)
-        {
+          }
+          else if (areq.info == ATA_DEV0_PASSED_DEV1_FAILED)
+          {
+            printk("ATA: ctrl:%d: primary\n", ctrl_minor);
             ATA_DEV_INFO(ctrl_minor,0).present = true;
             ATA_DEV_INFO(ctrl_minor,1).present = false;
-        }
-        else if (breq.req.error < ATA_DEV1_PASSED_DEV0_FAILED)
-        {
+          }
+          else if (areq.info < ATA_DEV1_PASSED_DEV0_FAILED)
+          {
+            printk("ATA: ctrl:%d: secondary\n", ctrl_minor);
             ATA_DEV_INFO(ctrl_minor,0).present = false;
             ATA_DEV_INFO(ctrl_minor,1).present = true;
-        }
-        else
-        {
+          }
+          else
+          {
+            printk("ATA: ctrl:%d: none\n", ctrl_minor);
             ATA_DEV_INFO(ctrl_minor, 0).present = false;
             ATA_DEV_INFO(ctrl_minor, 1).present = false;
-        }
+          }
 
-        /* refine the returned codes */
-        if (ATA_DEV_INFO(ctrl_minor, 1).present != false)
-        {
+          /* refine the returned codes */
+          if (ATA_DEV_INFO(ctrl_minor, 1).present)
+          {
             ide_controller_read_register(ctrl_minor, IDE_REGISTER_ERROR, &ec);
             if (ec & ATA_DEV1_PASSED_DEV0_FAILED)
-                ATA_DEV_INFO(ctrl_minor, 1).present = true;
+            {
+              printk("ATA: ctrl:%d: secondary inforced\n", ctrl_minor);
+              ATA_DEV_INFO(ctrl_minor, 1).present = true;
+            }
             else
-                ATA_DEV_INFO(ctrl_minor, 1).present = false;
+            {
+              printk("ATA: ctrl:%d: secondary removed\n", ctrl_minor);
+              ATA_DEV_INFO(ctrl_minor, 1).present = false;
+            }
+          }
+        }
+        else
+#endif
+        {
+          ATA_DEV_INFO(ctrl_minor, 0).present = true;
+          ATA_DEV_INFO(ctrl_minor,1).present = true;
         }
 
         /* for each found ATA device obtain it configuration */
@@ -1391,16 +1389,11 @@ rtems_ata_initialize(rtems_device_major_number major,
             ATA_DEV_INFO(ctrl_minor, dev).sectors =
                 CF_LE_W(buffer[ATA_IDENT_WORD_NUM_OF_CURR_LOG_SECS]);
             ATA_DEV_INFO(ctrl_minor, dev).lba_sectors =
-                (CF_LE_W(buffer[ATA_IDENT_WORD_NUM_OF_USR_SECS0]) << 16) +
-                 CF_LE_W(buffer[ATA_IDENT_WORD_NUM_OF_USR_SECS1]);
+                CF_LE_W(buffer[ATA_IDENT_WORD_NUM_OF_USR_SECS1]);
+            ATA_DEV_INFO(ctrl_minor, dev).lba_sectors <<= 16;
+            ATA_DEV_INFO(ctrl_minor, dev).lba_sectors += CF_LE_W(buffer[ATA_IDENT_WORD_NUM_OF_USR_SECS0]);
             ATA_DEV_INFO(ctrl_minor, dev).lba_avaible =
                 (CF_LE_W(buffer[ATA_IDENT_WORD_CAPABILITIES]) >> 9) & 0x1;
-            ATA_DEV_INFO(ctrl_minor, dev).max_multiple =
-                (uint8_t) (CF_LE_W(buffer[ATA_IDENT_WORD_RW_MULT]));
-            ATA_DEV_INFO(ctrl_minor, dev).current_multiple =
-                (CF_LE_W(buffer[ATA_IDENT_WORD_MULT_SECS]) & 0x100) ?
-                (uint8_t)(CF_LE_W(buffer[ATA_IDENT_WORD_MULT_SECS])) :
-                 0;
 
             if ((CF_LE_W(buffer[ATA_IDENT_WORD_FIELD_VALIDITY]) &
                  ATA_IDENT_BIT_VALID) == 0) {
@@ -1442,14 +1435,13 @@ rtems_ata_initialize(rtems_device_major_number major,
                          major,
                          (ata_devs_number *
                           ATA_MINOR_NUM_RESERVED_PER_ATA_DEVICE));
-
             status = rtems_disk_create_phys(device, ATA_SECTOR_SIZE,
                 ATA_DEV_INFO(ctrl_minor, dev).lba_avaible ?
                 ATA_DEV_INFO(ctrl_minor, dev).lba_sectors :
                 (ATA_DEV_INFO(ctrl_minor, dev).heads *
                  ATA_DEV_INFO(ctrl_minor, dev).cylinders *
                  ATA_DEV_INFO(ctrl_minor, dev).sectors),
-                (rtems_block_device_ioctl) ata_ioctl, name);
+                ata_ioctl, NULL, name);
             if (status != RTEMS_SUCCESSFUL)
             {
                 ata_devs[ata_devs_number].device = ATA_UNDEFINED_VALUE;
@@ -1488,17 +1480,12 @@ ata_process_request_on_init_phase(rtems_device_minor_number  ctrl_minor,
     uint16_t           byte;/* emphasize that only 8 low bits is meaningful */
     uint8_t            i, dev;
     uint16_t           val, val1;
-    uint16_t           data_bs; /* the number of 512 bytes sectors into one
-                                 * data block
-                                 */
-	unsigned           retries;
+    volatile unsigned  retries;
+
     assert(areq);
 
     dev =  areq->regs.regs[IDE_REGISTER_DEVICE_HEAD] &
            IDE_REGISTER_DEVICE_HEAD_DEV;
-
-    data_bs = ATA_DEV_INFO(ctrl_minor, dev).current_multiple ?
-              ATA_DEV_INFO(ctrl_minor, dev).current_multiple : 1;
 
     ide_controller_write_register(ctrl_minor, IDE_REGISTER_DEVICE_HEAD,
                                   areq->regs.regs[IDE_REGISTER_DEVICE_HEAD]);
@@ -1512,15 +1499,13 @@ ata_process_request_on_init_phase(rtems_device_minor_number  ctrl_minor,
          * I'd like to do a proper timeout but don't know of a portable
          * timeout routine (w/o using multitasking / rtems_task_wake_after())
          */
-        if ( ! (byte & (IDE_REGISTER_STATUS_BSY | IDE_REGISTER_STATUS_DRDY)))
+        if ( ! (byte & (IDE_REGISTER_STATUS_BSY | IDE_REGISTER_STATUS_DRDY))) {
             retries++;
-        else
-            retries=0;
-        if ( 10000 == retries ) {
-            /* probably no drive connected */
-            areq->breq->status = RTEMS_UNSATISFIED;
-            areq->breq->error = RTEMS_IO_ERROR;
-            return;
+            if ( 10000 == retries ) {
+              /* probably no drive connected */
+              areq->breq->status = RTEMS_UNSATISFIED;
+              return;
+            }
         }
     } while ((byte & IDE_REGISTER_STATUS_BSY) ||
              (!(byte & IDE_REGISTER_STATUS_DRDY)));
@@ -1542,21 +1527,23 @@ ata_process_request_on_init_phase(rtems_device_minor_number  ctrl_minor,
 
     if (val & IDE_REGISTER_STATUS_ERR)
     {
-        areq->breq->status = RTEMS_UNSATISFIED;
-        areq->breq->error = RTEMS_IO_ERROR;
+        areq->breq->status = RTEMS_IO_ERROR;
         return;
     }
 
     switch(areq->type)
     {
         case ATA_COMMAND_TYPE_PIO_IN:
-            ide_controller_read_data_block(
-                ctrl_minor,
-                MIN(data_bs, areq->cnt) * ATA_SECTOR_SIZE,
-                areq->breq->bufs, &areq->cbuf,
-                &areq->pos);
-
-            areq->cnt -= MIN(data_bs, areq->cnt);
+            if (areq->cnt)
+            {
+              int ccbuf = areq->cbuf;
+              ide_controller_read_data_block(ctrl_minor,
+                                             areq->breq->bufs[0].length * areq->cnt,
+                                             areq->breq->bufs, &areq->cbuf,
+                                             &areq->pos);
+              ccbuf = areq->cbuf - ccbuf;
+              areq->cnt -= ccbuf;
+            }
             if (areq->cnt == 0)
             {
                 areq->breq->status = RTEMS_SUCCESSFUL;
@@ -1573,15 +1560,14 @@ ata_process_request_on_init_phase(rtems_device_minor_number  ctrl_minor,
 
         case ATA_COMMAND_TYPE_NON_DATA:
             areq->breq->status = RTEMS_SUCCESSFUL;
-            areq->breq->error = val1;
+            areq->info = val1;
             break;
 
         default:
-#ifdef DEBUG
-            printf("ata_queue_task: non-supported command type\n");
+#if ATA_DEBUG
+            ata_printf("ata_queue_task: non-supported command type\n");
 #endif
-            areq->breq->status = RTEMS_UNSATISFIED;
-            areq->breq->error = RTEMS_NOT_IMPLEMENTED;
+            areq->breq->status = RTEMS_IO_ERROR;
             break;
     }
 }

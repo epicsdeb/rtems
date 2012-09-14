@@ -19,7 +19,7 @@
  * National Research Council of Canada
  * charles.gauthier@nrc.ca
  *
- *  $Id: init.c,v 1.12 2004/11/22 10:38:22 ralf Exp $
+ *  $Id: init.c,v 1.16 2009/11/01 06:36:22 ralf Exp $
  */
 
 #include <bsp.h>
@@ -243,9 +243,7 @@ void print_c_cflag( struct termios * tp )
   printf( "c_cflag = 0x%08x\n", tp->c_cflag );
 
   baud = (tp->c_cflag & CBAUD) ;
-#if defined(__sh2__)
   if ( tp->c_cflag & CBAUDEX )
-#endif
   switch( baud ) {
     case B0:
       printf( "\tCBAUD =\tB0\n" );
@@ -310,12 +308,7 @@ void print_c_cflag( struct termios * tp )
     case B38400:
       printf( "\tCBAUD =\tB38400\n" );
       break;
-#if defined(__sh2__)
-    }
-    else
-    switch ( baud )
-    {
-#endif
+
     case B57600:
       printf( "\tCBAUD =\tB57600\n" );
       break;
@@ -446,7 +439,7 @@ unsigned long get_baud_rate( void )
 {
   unsigned long baud_rate;
 
-  while( TRUE ) {
+  while( 1 ) {
     printf( "Enter the numerical value for the new baud rate.\n" );
     printf( "Choices are: 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800\n" );
     printf( "2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800\n" );
@@ -482,11 +475,11 @@ unsigned long get_baud_rate( void )
 }
 
 
-unsigned long get_parity()
+unsigned long get_parity(void)
 {
   int parity;
 
-  while( TRUE ) {
+  while( 1 ) {
     printf( "Enter the numerical value for the new parity\n" );
     printf( "Choices are: 0 for no parity, 1 for even parity, 2 for odd parity\n" );
     printf( "\nYour choice: " );
@@ -510,11 +503,11 @@ unsigned long get_parity()
 }
 
 
-unsigned long get_stop_bits()
+unsigned long get_stop_bits(void)
 {
   int stop_bits;
 
-  while( TRUE ) {
+  while( 1 ) {
     printf( "Enter the numerical value for the new number of stop bits\n" );
     printf( "Choices are: 1 or 2\n" );
     printf( "\nYour choice: " );
@@ -535,11 +528,11 @@ unsigned long get_stop_bits()
 }
 
 
-unsigned long get_data_bits()
+unsigned long get_data_bits(void)
 {
   int data_bits;
 
-  while( TRUE ) {
+  while( 1 ) {
     printf( "Enter the numerical value for the new number of data bits\n" );
     printf( "Choices are: 5, 6, 7 or 8\n" );
     printf( "\nYour choice: " );
@@ -599,7 +592,8 @@ void change_line_settings( struct termios *tp )
 
 void canonical_input( struct termios *tp )
 {
-  char c, first_time = TRUE;
+  char c;
+  bool first_time = true;
 
   printf( "\nTesting canonical input\n\n" );
 
@@ -617,7 +611,7 @@ void canonical_input( struct termios *tp )
   while ( ( c = getchar () ) != '\n') {
     if( first_time ) {
       printf( "\nYou typed:\n");
-      first_time = FALSE;
+      first_time = false;
     }
     printf( "%c", c );
   }
@@ -640,7 +634,7 @@ void do_raw_input( int vmin, int vtime )
 
   printf( "Raw input test with VMIN=%d  VTIME=%d\n", vmin, vtime );
 
-  rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticksPerSecond );
+  ticksPerSecond = rtems_clock_get_ticks_per_second();
   if ( tcgetattr( fileno ( stdin ), &old ) < 0 ) {
     perror( "do_raw_input(): tcgetattr() failed" );
     return;
@@ -656,7 +650,7 @@ void do_raw_input( int vmin, int vtime )
   }
 
   do {
-    rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &then );
+    then = rtems_clock_get_ticks_since_boot();
     count = 0;
     for(;;) {
       nread = read( fileno( stdin ), cbuf, sizeof cbuf );
@@ -668,7 +662,7 @@ void do_raw_input( int vmin, int vtime )
       if( nread != 0 )
         break;
     }
-    rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now );
+    now = rtems_clock_get_ticks_since_boot();
     msec = (now - then) * 1000 / ticksPerSecond;
     printf( "Count:%-10lu  Interval:%3u.%3.3d  Char:",
           count, msec / 1000, msec % 1000 );

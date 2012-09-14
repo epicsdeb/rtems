@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fs.h,v 1.4 2008/05/27 10:34:14 thomas Exp $
+ *  $Id: fs.h,v 1.7 2010/05/31 13:56:36 ccj Exp $
  */
 
 #ifndef _RTEMS_FS_H
@@ -24,7 +24,7 @@ extern "C" {
 
 /* Forward declarations */
 
-/* FIXME: shouldn't this better not be here? */ 
+/* FIXME: shouldn't this better not be here? */
 typedef struct rtems_libio_tt rtems_libio_t;
 
 typedef struct rtems_filesystem_location_info_tt
@@ -34,22 +34,28 @@ struct rtems_filesystem_mount_table_entry_tt;
 typedef struct rtems_filesystem_mount_table_entry_tt
     rtems_filesystem_mount_table_entry_t;
 
-typedef struct _rtems_filesystem_file_handlers_r 
+typedef struct _rtems_filesystem_file_handlers_r
     rtems_filesystem_file_handlers_r;
-typedef struct _rtems_filesystem_operations_table 
+typedef struct _rtems_filesystem_operations_table
     rtems_filesystem_operations_table;
 
 /*
  * Structure used to determine a location/filesystem in the tree.
  */
-  
+
 struct rtems_filesystem_location_info_tt
 {
    void                                    *node_access;
+   void                                    *node_access_2;
    const rtems_filesystem_file_handlers_r  *handlers;
    const rtems_filesystem_operations_table *ops;
    rtems_filesystem_mount_table_entry_t    *mt_entry;
 };
+
+/*
+ * Return the mount table entry for a path location.
+ */
+#define rtems_filesystem_location_mount(_pl) ((_pl)->mt_entry)
 
 #ifdef __cplusplus
 }

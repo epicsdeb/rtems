@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_logoff.c,v 1.5 2008/09/01 11:28:56 ralf Exp $
+ *  $Id: main_logoff.c,v 1.6 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,8 +23,8 @@
 #include "internal.h"
 
 int rtems_shell_main_logoff(
-  int   argc,
-  char *argv[]
+  int   argc __attribute__((unused)),
+  char *argv[] __attribute__((unused))
 )
 {
   printf("logoff from the system...");

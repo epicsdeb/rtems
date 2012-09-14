@@ -1,3 +1,12 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-02-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bin2boot.c: Use stdint/inttypes to workaround build warnings on
+	  64bit hosts.
+
 2008-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* bin2boot.c: Fix uninitialized variable warning.

@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  score/src/timespeclessthan.c
  */
 
@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespeclessthan.c,v 1.2 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: timespeclessthan.c,v 1.4 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -29,14 +29,14 @@ bool _Timespec_Less_than(
 )
 {
   if ( lhs->tv_sec < rhs->tv_sec )
-    return TRUE;
+    return true;
 
   if ( lhs->tv_sec > rhs->tv_sec )
-    return FALSE;
+    return false;
 
   /* ASSERT: lhs->tv_sec == rhs->tv_sec */
   if ( lhs->tv_nsec < rhs->tv_nsec )
-    return TRUE; 
+    return true;
 
-  return FALSE;
+  return false;
 }

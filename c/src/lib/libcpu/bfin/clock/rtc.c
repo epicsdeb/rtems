@@ -8,21 +8,20 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtc.c,v 1.1 2008/08/15 20:18:40 joel Exp $
+ *  $Id: rtc.c,v 1.4 2009/11/30 05:03:49 ralf Exp $
  */
- 
+
 
 #include <rtems.h>
 #include "tod.h"
+#include <rtems/rtc.h>
 #include <rtems/libio.h>
-#include <rtems/score/tod.h>
-#include <rtems/rtems/types.h>
 #include <bsp.h>
 #include <libcpu/rtcRegs.h>
 
 /* The following are inside RTEMS -- we are violating visibility!!!
  * Perhaps an API could be defined to get days since 1 Jan.
- */ 
+ */
 extern const uint16_t   _TOD_Days_to_date[2][13];
 
 /*
@@ -35,29 +34,6 @@ void Init_RTC(void)
   *((uint16_t*)RTC_PREN)    = RTC_PREN_PREN; /* Enable Prescaler */
 }
 
-rtems_device_driver rtc_initialize(
-  rtems_device_major_number  major,
-  rtems_device_minor_number  minor_arg,
-  void                      *arg
-)
-{
-  rtems_status_code          status;
-
-  /*
-   *  Register and initialize the primary RTC's
-   */
-
-  status = rtems_io_register_name( "/dev/rtc", major, 0 );
-  if (status != RTEMS_SUCCESSFUL) {
-    rtems_fatal_error_occurred(status);
-  }
-
-  Init_RTC();
-
-  setRealTimeToRTEMS();
-  return RTEMS_SUCCESSFUL;
-}
-
 /*
  *  Read time from RTEMS' clock manager and set it to RTC
  */
@@ -66,8 +42,8 @@ void setRealTimeFromRTEMS (void)
 {
   rtems_time_of_day time_buffer;
   rtems_status_code status;
-  
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time_buffer );  
+
+  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time_buffer );
   if (status == RTEMS_SUCCESSFUL){
     setRealTime(&time_buffer);
   }
@@ -80,30 +56,30 @@ void setRealTimeFromRTEMS (void)
 void setRealTimeToRTEMS (void)
 {
   rtems_time_of_day time_buffer;
-  
-  getRealTime(&time_buffer);  
-  rtems_clock_set( &time_buffer );  
+
+  getRealTime(&time_buffer);
+  rtems_clock_set( &time_buffer );
 }
 
  /*
   * Set the RTC time
   */
 int setRealTime(
-  rtems_time_of_day *tod
+  const rtems_time_of_day *tod
 )
 {
   uint32_t days;
   rtems_time_of_day tod_temp;
-  
+
   tod_temp = *tod;
-  
+
   days = (tod_temp.year - TOD_BASE_YEAR) * 365 + \
           _TOD_Days_to_date[0][tod_temp.month] + tod_temp.day - 1;
   if (tod_temp.month < 3)
     days +=  Leap_years_until_now (tod_temp.year - 1);
   else
     days +=  Leap_years_until_now (tod_temp.year);
-  
+
   *((uint32_t volatile *)RTC_STAT) = (days << RTC_STAT_DAYS_SHIFT)|
                                      (tod_temp.hour << RTC_STAT_HOURS_SHIFT)|
                                      (tod_temp.minute << RTC_STAT_MINUTES_SHIFT)|
@@ -121,23 +97,23 @@ void getRealTime(
 )
 {
   uint32_t days, rtc_reg;
-  rtems_time_of_day tod_temp;
+  rtems_time_of_day tod_temp = { 0, 0, 0 };
   int n, Leap_year;
-  
-  rtc_reg = *((uint32_t volatile *)RTC_STAT); 
-  
+
+  rtc_reg = *((uint32_t volatile *)RTC_STAT);
+
   days = (rtc_reg >> RTC_STAT_DAYS_SHIFT) + 1;
-  
+
   /* finding year */
   tod_temp.year = days/365 + TOD_BASE_YEAR;
   if (days%365 >  Leap_years_until_now (tod_temp.year - 1)) {
     days = (days%365) -  Leap_years_until_now (tod_temp.year - 1);
-  } else { 
+  } else {
     tod_temp.year--;
     days = (days%365) + 365 -  Leap_years_until_now (tod_temp.year - 1);
   }
 
-  /* finding month and day */  
+  /* finding month and day */
   Leap_year = (((!(tod_temp.year%4)) && (tod_temp.year%100)) ||
               (!(tod_temp.year%400)))?1:0;
   for (n=1; n<=12; n++) {
@@ -181,4 +157,104 @@ int Leap_years_until_now (int year)
   return ((year/4 - year/100 + year/400) -
          ((TOD_BASE_YEAR - 1)/4 - (TOD_BASE_YEAR - 1)/100 +
           (TOD_BASE_YEAR - 1)/400));
+}
+
+rtems_device_driver rtc_initialize(
+  rtems_device_major_number  major,
+  rtems_device_minor_number  minor_arg,
+  void                      *arg
+)
+{
+  rtems_status_code          status;
+
+  /*
+   *  Register and initialize the primary RTC's
+   */
+
+  status = rtems_io_register_name( RTC_DEVICE_NAME, major, 0 );
+  if (status != RTEMS_SUCCESSFUL) {
+    rtems_fatal_error_occurred(status);
+  }
+
+  Init_RTC();
+
+  setRealTimeToRTEMS();
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_read(
+  rtems_device_major_number  major,
+  rtems_device_minor_number  minor,
+  void *arg
+)
+{
+  rtems_libio_rw_args_t *rw = arg;
+  rtems_time_of_day *tod = (rtems_time_of_day *) rw->buffer;
+
+  rw->offset = 0;
+  rw->bytes_moved = 0;
+
+  if (rw->count != sizeof( rtems_time_of_day)) {
+    return RTEMS_INVALID_SIZE;
+  }
+
+  getRealTime( tod);
+
+  rw->bytes_moved = rw->count;
+
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_write(
+  rtems_device_major_number  major,
+  rtems_device_minor_number  minor,
+  void *arg
+)
+{
+  int rv = 0;
+  rtems_libio_rw_args_t *rw = arg;
+  const rtems_time_of_day *tod = (const rtems_time_of_day *) rw->buffer;
+
+  rw->offset = 0;
+  rw->bytes_moved = 0;
+
+  if (rw->count != sizeof( rtems_time_of_day)) {
+    return RTEMS_INVALID_SIZE;
+  }
+
+  rv = setRealTime( tod);
+  if (rv != 0) {
+    return RTEMS_IO_ERROR;
+  }
+
+  rw->bytes_moved = rw->count;
+
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_open(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_close(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_control(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_NOT_IMPLEMENTED;
 }

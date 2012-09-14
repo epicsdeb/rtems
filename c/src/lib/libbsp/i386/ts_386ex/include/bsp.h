@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.20 2007/12/11 15:49:53 joel Exp $
+ *  $Id: bsp.h,v 1.22 2008/09/18 17:34:49 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -97,53 +97,12 @@ extern void Wait_X_ms (unsigned);
 
 #define RAM_END   0x200000
 
-/* I/O addressing */
-
-/*
- *#define Is_tx_ready( _status ) ( (_status) & 0x20 )
- */
-/* dec 20. try the TE instead of TBE as the check */
-
-#define Is_tx_ready( _status ) ( (_status) & 0x40 )
-
-#define Is_rx_ready( _status ) ( (_status) & 0x01 )
-
 /* Structures */
-
-#ifdef F386_INIT
-#undef BSP_EXTERN
-#define BSP_EXTERN
-#else
-#undef BSP_EXTERN
-#define BSP_EXTERN extern
-#endif
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
 
 #define IDT_SIZE 256
 #define GDT_SIZE 3
 
 extern interrupt_gate_descriptor Interrupt_descriptor_table[IDT_SIZE];
-extern segment_descriptors Global_descriptor_table   [GDT_SIZE];
-
-BSP_EXTERN unsigned short Idt[3];  /* Interrupt Descriptor Table Address */
-BSP_EXTERN unsigned short Gdt[3];  /* Global Descriptor Table Address */
-BSP_EXTERN unsigned int   Idt_base;
-BSP_EXTERN unsigned int   Gdt_base;
-
-/* routines */
 
 #ifdef __cplusplus
 }

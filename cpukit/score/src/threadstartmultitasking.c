@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadstartmultitasking.c,v 1.8 2008/05/06 23:17:07 joel Exp $
+ *  $Id: threadstartmultitasking.c,v 1.10 2009/08/28 18:26:05 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -61,7 +61,7 @@ void _Thread_Start_multitasking( void )
 
   _System_state_Set( SYSTEM_STATE_UP );
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Executing = _Thread_Heir;
 
@@ -78,8 +78,6 @@ void _Thread_Start_multitasking( void )
     *       Ignore the CPU_USE_DEFERRED_FP_SWITCH because we must always
     *       switch in the first thread if it is FP.
     */
-
-
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
    /*
     *  don't need to worry about saving BSP's floating point state

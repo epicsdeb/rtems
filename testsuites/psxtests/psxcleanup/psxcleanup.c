@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psxcleanup.c,v 1.2 2008/09/06 03:33:11 ralf Exp $
+ *  $Id: psxcleanup.c,v 1.4 2009/11/30 03:33:23 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -37,6 +37,16 @@ typedef struct {
 volatile bool reader_cleanup_ran;
 volatile bool release_read_lock_ran;
 volatile bool writer_cleanup_ran;
+
+void waiting_reader_cleanup(void *arg);
+void lock_for_read(void *arg);
+void release_read_lock(void *arg);
+void waiting_writer_cleanup(void *arg);
+void lock_for_write(lock_t *l);
+void release_write_lock(void *arg);
+void initialize_lock_t(lock_t *l);
+void *ReaderThread(void *arg);
+void *WriterThread(void *arg);
 
 void waiting_reader_cleanup(void *arg)
 {
@@ -145,7 +155,7 @@ void initialize_lock_t(lock_t *l)
 {
   pthread_mutexattr_t mutexattr;    /* mutex attributes */
   pthread_condattr_t  condattr;     /* condition attributes */
-  
+
   if (pthread_mutexattr_init (&mutexattr) != 0) {
     perror ("Error in mutex attribute init\n");
   }
@@ -211,7 +221,7 @@ void *WriterThread(void *arg)
  *  main entry point to the test
  */
 
-void *POSIX_Init (
+void *POSIX_Init(
   void *argument
 )
 {
@@ -240,12 +250,12 @@ void *POSIX_Init (
   sleep(1);
 
   /*************** ERROR CASES  ***************/
-  puts("Call pthread_cleanup_push with NULL handler"); 
+  puts("Call pthread_cleanup_push with NULL handler");
   pthread_cleanup_push(NULL, NULL);
 
-  puts("Call pthread_cleanup_pop with no push"); 
+  puts("Call pthread_cleanup_pop with no push");
   pthread_cleanup_pop(1);
- 
+
   /*************** END OF TEST *****************/
   puts( "*** END OF POSIX CLEANUP TEST ***\n" );
   rtems_test_exit(0);

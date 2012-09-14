@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/watchdog.h
  *
  *  This include file contains all the constants and structures associated
@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: watchdog.h,v 1.26.2.1 2008/12/03 21:01:09 joel Exp $
+ *  $Id: watchdog.h,v 1.29.2.1 2010/06/12 05:56:32 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_WATCHDOG_H
@@ -58,7 +58,7 @@ typedef uint32_t   Watchdog_Interval;
 typedef uint32_t (*Watchdog_Nanoseconds_since_last_tick_routine)(void);
 
 /** @brief Watchdog Service Routine Return Type
- * 
+ *
  *  This type defines the return type from a Watchdog Service Routine.
  */
 typedef void Watchdog_Service_routine;
@@ -197,7 +197,7 @@ void _Watchdog_Handler_initialization( void );
  *
  *  This routine removes @a the_watchdog from the watchdog chain on which
  *  it resides and returns the state @a the_watchdog timer was in.
- *  
+ *
  *  @param[in] the_watchdog will be removed
  *  @return the state in which @a the_watchdog was in when removed
  */
@@ -226,7 +226,7 @@ void _Watchdog_Adjust (
  *  @a direction for @a units_arg ticks.
  *
  *  @param[in] header is the watchdog chain to adjust
- *  @param[in] units is the number of units to adjust @a header
+ *  @param[in] units_arg is the number of units to adjust @a header
  *  @param[in] to_fire is a pointer to an initialized Chain_Control to which
  *             all watchdog instances that are to be fired will be placed.
  *
@@ -242,7 +242,7 @@ void _Watchdog_Adjust_to_chain(
 /** @brief Watchdog Insert
  *
  *  This routine inserts @a the_watchdog into the @a header watchdog chain
- *  for a time of @a units.  
+ *  for a time of @a units.
  *
  *  @param[in] header is @a the_watchdog list to insert @a the_watchdog on
  *  @param[in] the_watchdog is the watchdog to insert
@@ -259,9 +259,47 @@ void _Watchdog_Insert (
  *
  *  @param[in] header is the watchdog chain to tickle
  */
-
 void _Watchdog_Tickle (
   Chain_Control *header
+);
+
+/**
+ *  @brief Report Information on a Single Watchdog Instance
+ *
+ *  This method prints a one line report on the watchdog instance
+ *  provided.  The @a name may be used to identify the watchdog and
+ *  a space will be printed after @a name if it is not NULL.
+ *
+ *  @param[in] name is a string to prefix the line with.  If NULL,
+ *             nothing is printed.
+ *  @param[in] watch is the watchdog instance to be printed.
+ *
+ *  @note This is a debug routine.  It uses printk() and prudence should
+ *        exercised when using it.
+ */
+void _Watchdog_Report(
+  const char        *name,
+  Watchdog_Control  *watch
+);
+
+/**
+ *  @brief Report Information on a Watchdog Chain
+ *
+ *  This method prints report on the watchdog chain provided.
+ *  The @a name may be used to identify the watchdog chain and
+ *  a space will be printed after @a name if it is not NULL.
+ *
+ *  @param[in] name is a string to prefix the line with.  If NULL,
+ *             nothing is printed.
+ *  @param[in] header is the watchdog chain to be printed.
+ *
+ *  @note This is a debug routine.  It uses printk() and prudence should
+ *        exercised when using it.  It also disables interrupts so the
+ *        chain can be traversed in a single atomic pass.
+ */
+void _Watchdog_Report_chain(
+  const char        *name,
+  Chain_Control     *header
 );
 
 #ifndef __RTEMS_APPLICATION__

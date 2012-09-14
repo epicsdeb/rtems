@@ -1,6 +1,6 @@
 /*  start.S
  *
- *  $Id: start.S,v 1.7 2008/08/05 13:33:02 joel Exp $
+ *  $Id: start.S,v 1.9 2009/11/03 18:45:04 thomas Exp $
  *
  *  Modified for the Motorola PQII ADS board by
  *  Andy Dachs <a.dachs@sstl.co.uk> 23-11-00.
@@ -139,10 +139,8 @@ text_length:
         /* Set up stack pointer = beginning of text section - 56 */
         addi    r1, r1, -56-4
 
-        /* Clear argc, argv and envp */
+        /* Clear cmdline */
         xor r3, r3, r3
-        xor r4, r4, r4
-        xor r5, r5, r5
 
         .extern SYM (boot_card)
         bl       SYM (boot_card)	/* call the first C routine */

@@ -1,37 +1,65 @@
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+2011-05-18	Till Straumann <strauman@slac.stanford.edu>
 
-	* c4x/.cvsignore, c4x/ChangeLog, c4x/Makefile.am, c4x/acinclude.m4,
-	c4x/configure.ac, c4x/c4xsim/.cvsignore, c4x/c4xsim/ChangeLog,
-	c4x/c4xsim/Makefile.am, c4x/c4xsim/README, c4x/c4xsim/bsp_specs,
-	c4x/c4xsim/configure.ac, c4x/c4xsim/preinstall.am,
-	c4x/c4xsim/clock/clock.c, c4x/c4xsim/console/console.c,
-	c4x/c4xsim/console/consolereserveresources.c,
-	c4x/c4xsim/console/debugio.c, c4x/c4xsim/console/simio.c,
-	c4x/c4xsim/include/.cvsignore, c4x/c4xsim/include/bsp.h,
-	c4x/c4xsim/include/simio.h, c4x/c4xsim/include/tm27.h,
-	c4x/c4xsim/start/start.S, c4x/c4xsim/startup/bspstart.c,
-	c4x/c4xsim/startup/linkcmds, c4x/c4xsim/startup/spurious.c,
-	c4x/c4xsim/timer/timer.c, c4x/c4xsim/tools/.cvsignore,
-	c4x/c4xsim/tools/ChangeLog, c4x/c4xsim/tools/Makefile.am,
-	c4x/c4xsim/tools/configure.ac, c4x/c4xsim/tools/runtest.in,
-	c4x/shared/bspspuriousinit.c, c4x/shared/c3xspurious.c,
-	c4x/shared/c4xspurious.c, nios2/.cvsignore, nios2/ChangeLog,
-	nios2/Makefile.am, nios2/README, nios2/acinclude.m4,
-	nios2/configure.ac, nios2/nios2_iss/.cvsignore,
-	nios2/nios2_iss/ChangeLog, nios2/nios2_iss/Makefile.am,
-	nios2/nios2_iss/bsp_specs, nios2/nios2_iss/configure.ac,
-	nios2/nios2_iss/nios2_iss.ptf, nios2/nios2_iss/nios2_iss.sh,
-	nios2/nios2_iss/preinstall.am, nios2/nios2_iss/times,
-	nios2/nios2_iss/clock/clock.c, nios2/nios2_iss/console/console.c,
-	nios2/nios2_iss/include/.cvsignore, nios2/nios2_iss/include/bsp.h,
-	nios2/nios2_iss/include/coverhd.h, nios2/nios2_iss/include/tm27.h,
-	nios2/nios2_iss/shmsupp/addrconv.c, nios2/nios2_iss/shmsupp/getcfg.c,
-	nios2/nios2_iss/shmsupp/lock.c, nios2/nios2_iss/shmsupp/mpisr.c,
-	nios2/nios2_iss/start/crtnn.s, nios2/nios2_iss/start/start.S,
-	nios2/nios2_iss/startup/bspclean.c,
-	nios2/nios2_iss/startup/bspstart.c, nios2/nios2_iss/startup/linkcmds,
-	nios2/nios2_iss/startup/main.c, nios2/nios2_iss/startup/setvec.c,
-	nios2/nios2_iss/timer/timer.c: Removed.
+	PR1797/bsps
+	* shared/bootcard.c: Fixed a typo (in code, not comment) which
+	I introduced with the last change.
+
+2011-05-17	Till Straumann <strauman@slac.stanford.edu>
+
+	PR1797/bsps
+	* shared/bootcard.c, shared/include/bootcard.h: cleaned-up and
+	applied fixes proposed by PR#1797.
+
+2011-05-12  Joel Sherrill <joel.sherrill@OARcorp.com>  
+
+	PR1797/bsps
+	* bootcard.c:
+	Added #ifdef CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK to minimize code
+	for small targets.
+
+2011-05-12  Kate Feng <feng@bnl.gov>
+	
+	PR1797/bsps
+	* bootcard.c:
+	Fixed the value of heap_start & heap_size for the single-heap case.
+	Added bsp_sbrk_init() to fix PPC memory allocation beyond 32 MB.
+
+2010-04-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/umon/umoncons.c:
+	Reflect changes to rtems_termios_callbacks->write.
+
+2009-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/console-polled.c:
+	Reflect changes to rtems_termios_callbacks->write.
+
+2009-11-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/umon/tfsDriver.c (rtems_tfs_eval_path):
+	Add missing parameter.
+
+2009-10-09	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/vmeUniverse/vmeUniverse.c: print message and
+	let vmeUniverseIntLoopbackTst() fail if odd-numbered
+	vector is used (cannot program the chip to reply with
+	such a vector).
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* Makefile.am: Add bspinit.c, a common Init task that manages
+	command line arguments from a BSP.
+
+2008-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/clockdrv_shell.c: Turn warning into error.
+
+2008-08-27	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Don't install files from shared/.
+	Remove references to preinstall.am.
+	* preinstall.am: Remove.
 
 2008-07-24	Joel Sherrill <joel.sherrill@oarcorp.com>
 

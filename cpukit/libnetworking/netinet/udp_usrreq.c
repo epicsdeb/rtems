@@ -30,6 +30,10 @@
  * $FreeBSD: src/sys/netinet/udp_usrreq.c,v 1.170 2004/11/08 14:44:53 phk Exp $
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
 #include <sys/systm.h>
@@ -38,7 +42,7 @@
 #include <sys/protosw.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/kernel.h>
 #include <sys/sysctl.h>
@@ -84,7 +88,7 @@ struct	inpcbinfo udbinfo;
 SYSCTL_STRUCT(_net_inet_udp, UDPCTL_STATS, stats, CTLFLAG_RD,
 	&udpstat, udpstat, "");
 
-static struct	sockaddr_in udp_in = { sizeof(udp_in), AF_INET };
+static struct	sockaddr_in udp_in = { sizeof(udp_in), AF_INET, 0, {0}, {0} };
 
 static	void udp_detach(struct inpcb *);
 static	int udp_output(struct inpcb *, struct mbuf *, struct mbuf *,
@@ -590,7 +594,7 @@ udp_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *addr,
 	int s;
 
 	if (req == PRU_CONTROL)
-		return (in_control(so, (u_long)m, (caddr_t)addr,
+		return (in_control(so, (uintptr_t)m, (caddr_t)addr,
 			(struct ifnet *)control));
 	if (inp == NULL && req != PRU_ATTACH) {
 		error = EINVAL;

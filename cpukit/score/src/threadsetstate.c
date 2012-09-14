@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Thread Set State
  *
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadsetstate.c,v 1.5 2007/03/05 21:01:40 joel Exp $
+ *  $Id: threadsetstate.c,v 1.6.2.1 2011/05/25 14:17:53 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -81,7 +80,7 @@ void _Thread_Set_state(
      _Thread_Calculate_heir();
 
   if ( _Thread_Is_executing( the_thread ) )
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
 
   _ISR_Enable( level );
 }

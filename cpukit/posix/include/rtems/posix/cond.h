@@ -6,14 +6,14 @@
  *  This include file contains all the private support information for
  *  POSIX condition variables.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cond.h,v 1.22 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: cond.h,v 1.23 2008/12/17 21:23:35 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_COND_H
@@ -65,9 +65,7 @@ extern const pthread_condattr_t _POSIX_Condition_variables_Default_attributes;
  *  This routine performs the initialization necessary for this manager.
  */
 
-void _POSIX_Condition_variables_Manager_initialization(
-  uint32_t   maximum_condition_variables
-);
+void _POSIX_Condition_variables_Manager_initialization(void);
 
 /*
  *  _POSIX_Condition_variables_Allocate

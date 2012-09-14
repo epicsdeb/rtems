@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fs_null_handlers.c,v 1.6 2003/09/04 18:54:13 joel Exp $
+ *  $Id: fs_null_handlers.c,v 1.7 2009/08/05 18:17:11 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,7 +23,7 @@
  *  Set of null operations handlers.
  */
 
-rtems_filesystem_file_handlers_r rtems_filesystem_null_handlers = {
+const rtems_filesystem_file_handlers_r rtems_filesystem_null_handlers = {
   NULL,       /* open */
   NULL,       /* close */
   NULL,       /* read */

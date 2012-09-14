@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: gen2.h,v 1.12.2.1 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: gen2.h,v 1.15 2009/05/05 16:24:04 jennifer Exp $
  */
 
 #ifndef __SCORE_GENERATION_2_h

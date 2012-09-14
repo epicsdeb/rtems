@@ -1,4 +1,152 @@
-2008-09-18	Ralf Corsépius <ralf.corsepius@rtems.org>
+2010-05-10	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* Makefile.am, cpu_asm.S, avr/boot.h, avr/common.h, avr/crc16.h,
+	avr/delay.h, avr/eeprom.h, avr/fuse.h, avr/interrupt.h, avr/io.h,
+	avr/io1200.h, avr/io2313.h, avr/io2323.h, avr/io2333.h, avr/io2343.h,
+	avr/io43u32x.h, avr/io43u35x.h, avr/io4414.h, avr/io4433.h,
+	avr/io4434.h, avr/io76c711.h, avr/io8515.h, avr/io8534.h,
+	avr/io8535.h, avr/io86r401.h, avr/io90pwm1.h, avr/io90pwm216.h,
+	avr/io90pwm2b.h, avr/io90pwm316.h, avr/io90pwm3b.h, avr/io90pwm81.h,
+	avr/io90pwmx.h, avr/io90scr100.h, avr/ioa6289.h, avr/ioat94k.h,
+	avr/iocan128.h, avr/iocan32.h, avr/iocan64.h, avr/iocanxx.h,
+	avr/iom103.h, avr/iom128.h, avr/iom1280.h, avr/iom1281.h,
+	avr/iom1284p.h, avr/iom128rfa1.h, avr/iom16.h, avr/iom161.h,
+	avr/iom162.h, avr/iom163.h, avr/iom164.h, avr/iom165.h,
+	avr/iom165p.h, avr/iom168.h, avr/iom168p.h, avr/iom169.h,
+	avr/iom169p.h, avr/iom16hva.h, avr/iom16m1.h, avr/iom16u4.h,
+	avr/iom2560.h, avr/iom2561.h, avr/iom32.h, avr/iom323.h,
+	avr/iom324.h, avr/iom325.h, avr/iom3250.h, avr/iom328p.h,
+	avr/iom329.h, avr/iom3290.h, avr/iom32c1.h, avr/iom32hvb.h,
+	avr/iom32m1.h, avr/iom32u4.h, avr/iom32u6.h, avr/iom406.h,
+	avr/iom48.h, avr/iom48p.h, avr/iom64.h, avr/iom640.h, avr/iom644.h,
+	avr/iom645.h, avr/iom6450.h, avr/iom649.h, avr/iom6490.h,
+	avr/iom64c1.h, avr/iom64m1.h, avr/iom8.h, avr/iom8515.h,
+	avr/iom8535.h, avr/iom88.h, avr/iom88p.h, avr/iom8hva.h, avr/iomx8.h,
+	avr/iomxx0_1.h, avr/iomxx4.h, avr/iomxxhva.h, avr/iotn11.h,
+	avr/iotn12.h, avr/iotn13.h, avr/iotn13a.h, avr/iotn15.h,
+	avr/iotn167.h, avr/iotn22.h, avr/iotn2313.h, avr/iotn24.h,
+	avr/iotn25.h, avr/iotn26.h, avr/iotn261.h, avr/iotn28.h,
+	avr/iotn43u.h, avr/iotn44.h, avr/iotn45.h, avr/iotn461.h,
+	avr/iotn48.h, avr/iotn84.h, avr/iotn85.h, avr/iotn861.h,
+	avr/iotn87.h, avr/iotn88.h, avr/iotnx4.h, avr/iotnx5.h,
+	avr/iotnx61.h, avr/iousb1286.h, avr/iousb1287.h, avr/iousb162.h,
+	avr/iousb646.h, avr/iousb647.h, avr/iousb82.h, avr/iousbxx2.h,
+	avr/iousbxx6_7.h, avr/iox128a1.h, avr/iox128a3.h, avr/iox16a4.h,
+	avr/iox16d4.h, avr/iox256a3.h, avr/iox256a3b.h, avr/iox32a4.h,
+	avr/iox32d4.h, avr/iox64a1.h, avr/iox64a3.h, avr/lock.h,
+	avr/parity.h, avr/pgmspace.h, avr/portpins.h, avr/power.h,
+	avr/sfr_defs.h, avr/signal.h, avr/sleep.h, avr/version.h, avr/wdt.h,
+	rtems/asm.h, rtems/score/cpu.h: Update to avr .h files from avr-libc
+	1.6.8. Tinker with code and includes to eliminate warnings. Now
+	builds multilib.
+	* avr/iom169pa.h, avr/iom16a.h, avr/iom16hva2.h, avr/iom16hvb.h,
+	avr/iom16u2.h, avr/iom324pa.h, avr/iom32u2.h, avr/iom644p.h,
+	avr/iom644pa.h, avr/iom649p.h, avr/iom64hve.h, avr/iom88pa.h,
+	avr/iom8u2.h, avr/iotn2313a.h, avr/iotn24a.h, avr/iotn261a.h,
+	avr/iotn4313.h, avr/iotn44a.h, avr/iotn461a.h, avr/iotn861a.h,
+	avr/iox128d3.h, avr/iox192a3.h, avr/iox192d3.h, avr/iox256d3.h,
+	avr/iox64d3.h, avr/signature.h: New files.
+
+2010-03-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.S: Add include of config.h
+
+2009-12-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* rtems/score/avr.h: Add avr6.
+
+2009-08-11	Josh Switnicki <josh.switnicki@utoronto.ca>
+
+	* cpu.c, cpu_asm.S, rtems/score/cpu.h: Fix bug in
+	_CPU_Context_Initialize.
+
+2009-08-05	Josh Switnicki <josh.switnicki@utoronto.ca>
+
+	* Makefile.am: added AVR specific Header files to score/cpu/avr/avr.
+	These are from avr-libc 1.6 and assumed to exist by AVR applications.
+	* preinstall.am: Regenerated.
+
+2009-07-28	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.S, rtems/score/cpu.h: Context switch now works well
+	enough to run ticker to completion with the simulator clock idle
+	task. But if you comment out the printk's in _CPU_Context_Initialize,
+	it hangs. This remains to be investigated.
+
+2009-07-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.S: Unsuccessful attempt to fix.
+
+2009-07-17	Josh Switnicki	<josh.switnicki@utoronto.ca>
+	
+	*cpu_asm.S: implemented _CPU_Context_Restore by adding tags to
+	restore section of context switch.
+	Fixed bug in _CPU_Context_Switch. The wrong registers were being
+	used for pointer to running task Context_Control struct.
+
+2009-07-09 	Josh Switnicki <josh.switnicki@utoronto.ca>
+
+	* cpu_asm.S: Fixed bug in _CPU_Context_Switch. The wrong registers
+	were being used for pointer to running task Context_Control
+	struct.
+
+2009-07-03  	Josh Switnicki <josh.switnicki@utoronto.ca>
+
+	* cpu.c: Implemented _CPU_Context_Initialize as a C function instead
+	of a macro.  It works with limited functionality.  Implemented
+	_CPU_Thread_Idle_body to use sleep instruction.
+	* Makefile.am: Changed cpu_asm.c -> cpu_asm.S
+	* cpu_asm.S: renamed from cpu_asm.c and implemented functions is asm
+	* rtems/asm.h: Appended "macros.inc" to the end of "asm.h" 
+	* rtems/score/cpu.h:
+	  + Included "avr/io.h".
+	  + Added use 16 bit object definition. 
+	  + Modified Context_Control struct to relect the registers
+	    that need to be saved.
+	  + Implemented _CPU_ISR_Disable, _CPU_ISR_Enable, and _CPU_ISR_Flash.
+	    Added function definitions for _CPU_Context_Initialize and
+	    _CPU_Push.
+
+2009-05-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: Lower number of priorities and do not inline as
+	much.
+
+2009-05-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: Lower minimum stack size to 512 and CPU alignment
+	to 4.
+
+2009-05-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu_asm.c: Add stub for setjmp/longjmp. Remove when in newlib.
+
+2009-02-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: AVR stack grows down.
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Change prototype of IDLE thread to
+	consistently return void * and take a uintptr_t argument.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Eliminate _CPU_Thread_dispatch_pointer and
+	passing address of _Thread_Dispatch to _CPU_Initialize. Clean up
+	comments.
+
+2008-12-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.c: Remove warnings -- even if code is just temporary.
+
+2008-11-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.c: Add debug printk() calls until the BSP/port can
+	initialize and shutdown completely cleanly. When this works,
+	implement context switch. Testing on avrtest and simulavr.
+
+2008-09-11	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* rtems/score/types.h: Do not define boolean, single_precision,
 	double_precision unless RTEMS_DEPRECATED_TYPES is given.

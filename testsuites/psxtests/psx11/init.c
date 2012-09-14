@@ -1,13 +1,15 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.8 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.13 2009/12/08 17:52:53 joel Exp $
  */
+
+#include <sched.h>
 
 #define CONFIGURE_INIT
 #include "system.h"
@@ -20,6 +22,10 @@ void *POSIX_Init(
   int                  status;
   struct sched_param   param;
   pthread_attr_t       attr;
+  int                  priority_1;
+  int                  priority_2;
+  int                  priority_3;
+  int                  priority_4;
 
   puts( "\n\n*** POSIX TEST 11 ***" );
 
@@ -30,75 +36,93 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   /* exercise pthread_setschedparam */
 
-  param.sched_priority = 127;
+  priority_1 = sched_get_priority_max( SCHED_FIFO );      /* was 127 */
+  priority_2 = sched_get_priority_max( SCHED_FIFO ) - 2;  /* was 125 */
+  priority_3 = sched_get_priority_max( SCHED_FIFO ) - 6;  /* was 121 */
+  priority_4 = sched_get_priority_max( SCHED_FIFO ) - 7;  /* was 120 */
 
-  puts( "Init: Setting scheduling parameters to FIFO with priority 127" );
+  param.sched_priority = priority_1;
+
+  printf(
+    "Init: Setting scheduling parameters to FIFO with priority %d\n",
+    priority_1
+  );
   status = pthread_setschedparam( Init_id, SCHED_FIFO, &param );
-  assert( !status );
+  rtems_test_assert(  !status );
 
-  param.sched_priority = 125;
+  param.sched_priority = priority_2;
 
-  puts( "Init: Setting scheduling parameters to RR with priority 125" );
+  printf(
+    "Init: Setting scheduling parameters to RR with priority %d\n",
+    priority_2
+  );
   status = pthread_setschedparam( Init_id, SCHED_RR, &param );
-  assert( !status );
+  rtems_test_assert(  !status );
 
-  param.sched_priority = 121;
+  param.sched_priority = priority_3;
 
-  puts( "Init: Setting scheduling parameters to OTHER with priority 121" );
+  printf(
+    "Init: Setting scheduling parameters to OTHER with priority %d\n",
+    priority_3
+  );
   status = pthread_setschedparam( Init_id, SCHED_OTHER, &param );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create a thread as SCHED_FIFO */
 
-  puts( "Init: create a thread of SCHED_FIFO with priority 120" );
+  printf(
+    "Init: create a thread of SCHED_FIFO with priority %d\n", priority_4 );
   status = pthread_attr_init( &attr );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   attr.schedpolicy = SCHED_FIFO;
-  attr.schedparam.sched_priority = 120;
+  attr.schedparam.sched_priority = priority_4;
 
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: join with the other thread" );
   status = pthread_join( Task_id, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create a thread as SCHED_RR */
 
-  puts( "Init: create a thread of SCHED_RR with priority 120" );
+  printf( "Init: create a thread of SCHED_RR with priority %d\n", priority_4 );
   status = pthread_attr_init( &attr );
-  assert( !status );
+  rtems_test_assert(  !status );
 
+  status = pthread_attr_setinheritsched( &attr, PTHREAD_EXPLICIT_SCHED );
+  rtems_test_assert(  !status );
   attr.schedpolicy = SCHED_RR;
-  attr.schedparam.sched_priority = 120;
+  attr.schedparam.sched_priority = priority_4;
 
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: join with the other thread" );
   status = pthread_join( Task_id, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create a thread as SCHED_OTHER */
 
-  puts( "Init: create a thread of SCHED_OTHER with priority 120" );
+  printf(
+    "Init: create a thread of SCHED_OTHER with priority %d\n", priority_4 );
   status = pthread_attr_init( &attr );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   attr.schedpolicy = SCHED_OTHER;
-  attr.schedparam.sched_priority = 120;
+  attr.schedparam.sched_priority = priority_4;
 
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: join with the other thread" );
   status = pthread_join( Task_id, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "*** END OF POSIX TEST 11 ***" );
   rtems_test_exit( 0 );

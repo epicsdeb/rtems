@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.8 2004/04/21 16:01:34 ralf Exp $
+ *  $Id: start.S,v 1.9 2009/04/28 06:25:48 ccj Exp $
  */
 
 #include <rtems/asm.h>
@@ -220,9 +220,7 @@ loop:   movel   d0,a1@+                | to zero out uninitialized
         movec   a0,isp                | set interrupt stack
 #endif
 
-        move.l  #0,a7@-               | environp
-        move.l  #0,a7@-               | argv
-        move.l  #0,a7@-               | argc
+        move.l  #0,a7@-               | command line
         jsr     SYM (boot_card)
 
 	nop

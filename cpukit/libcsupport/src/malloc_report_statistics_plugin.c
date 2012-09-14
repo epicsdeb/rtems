@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: malloc_report_statistics_plugin.c,v 1.2 2007/12/19 16:03:54 joel Exp $
+ *  $Id: malloc_report_statistics_plugin.c,v 1.3 2009/09/14 14:48:38 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,7 +25,7 @@ void malloc_report_statistics_with_plugin(
 )
 {
   rtems_malloc_statistics_t *s;
-  uint32_t                   allocated;
+  uintmax_t allocated;
 
   s = &rtems_malloc_statistics;
 
@@ -48,9 +48,10 @@ void malloc_report_statistics_with_plugin(
   );
   (*print)(
     context,
-    "  Call counts:   malloc:%"PRIu32"   free:%"PRIu32
+    "  Call counts:   malloc:%"PRIu32"   memalign:%"PRIu32"   free:%"PRIu32
        "   realloc:%"PRIu32"   calloc:%"PRIu32"\n",
     s->malloc_calls,
+    s->memalign_calls,
     s->free_calls,
     s->realloc_calls,
     s->calloc_calls

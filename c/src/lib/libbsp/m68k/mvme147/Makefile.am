@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.29 2008/09/03 19:28:19 joel Exp $
+## $Id: Makefile.am,v 1.35 2008/09/30 10:34:31 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,37 +14,39 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 noinst_PROGRAMS =
 
 include_HEADERS += include/coverhd.h
 
-EXTRA_DIST = ../../m68k/shared/start.S
-start.$(OBJEXT): ../../m68k/shared/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = ../../m68k/shared/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-startup_SOURCES = startup/bspclean.c ../../shared/bsplibc.c \
-    ../../shared/bsppost.c startup/bspstart.c ../../shared/bootcard.c \
-    ../../m68k/shared/m68kpretaskinghook.c ../../shared/bsppredriverhook.c \
-    ../../shared/sbrk.c ../../m68k/shared/setvec.c \
-    ../../shared/gnatinstallhandler.c
-clock_SOURCES = clock/ckinit.c
-console_SOURCES = console/console.c ../../shared/dummy_printk_support.c
-timer_SOURCES = timer/timer.c timer/timerisr.S
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
-    $(timer_SOURCES)
+# startup
+libbsp_a_SOURCES += startup/bspclean.c ../../shared/bsplibc.c \
+    ../../shared/bsppost.c startup/bspstart.c ../../shared/bootcard.c \
+    ../../shared/bsppretaskinghook.c ../../shared/bsppredriverhook.c \
+    ../../shared/bspgetworkarea.c ../../shared/sbrk.c \
+    ../../m68k/shared/setvec.c ../../shared/gnatinstallhandler.c
+# clock
+libbsp_a_SOURCES += clock/ckinit.c
+# console
+libbsp_a_SOURCES += console/console.c ../../shared/dummy_printk_support.c
+# timer
+libbsp_a_SOURCES += timer/timer.c timer/timerisr.S
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/misc.rel
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

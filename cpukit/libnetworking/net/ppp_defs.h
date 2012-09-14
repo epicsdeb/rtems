@@ -28,13 +28,13 @@
  */
 
 /*
- * $Id: ppp_defs.h,v 1.4 2007/09/16 06:23:26 ralf Exp $
+ * $Id: ppp_defs.h,v 1.5 2008/12/11 00:40:41 ralf Exp $
  */
 
 #ifndef _PPP_DEFS_H_
 #define _PPP_DEFS_H_
 
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 /*
  * The basic PPP frame.

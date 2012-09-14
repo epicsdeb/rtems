@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.11 2008/01/29 19:00:38 jennifer Exp $
+ *  $Id: system.h,v 1.12 2009/08/19 14:55:24 joel Exp $
  */
 
 /* functions */
@@ -24,6 +24,11 @@ void *POSIX_Init(
 void *Task_1(
   void *argument
 );
+
+void *Task_2(
+  void *argument
+);
+
 
 /* configuration information */
 
@@ -45,7 +50,7 @@ void *Task_1(
 #endif
 
 TEST_EXTERN pthread_t        Init_id;
-TEST_EXTERN pthread_t        Task_id;
+TEST_EXTERN pthread_t        Task_id, Task2_id;
 
 #undef TEST_EXTERN
 

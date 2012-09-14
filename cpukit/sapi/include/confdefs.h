@@ -24,16 +24,16 @@
  *         support the RTEMS Test Suites into something that can be
  *         used remarkably reliably by most applications.
  */
- 
-/* 
- *  COPYRIGHT (c) 1989-2008.
+
+/*
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: confdefs.h,v 1.108.2.5 2009/10/15 18:56:17 joel Exp $
+ *  $Id: confdefs.h,v 1.135.2.8 2011/01/19 14:50:20 joel Exp $
  */
 
 #ifndef __CONFIGURATION_TEMPLATE_h
@@ -42,7 +42,7 @@
 /*
  * Include the executive's configuration
  */
-#include <rtems/score/cpuopts.h>
+#include <rtems.h>
 #include <rtems/score/apimutex.h>
 
 #ifdef __cplusplus
@@ -72,8 +72,42 @@ extern rtems_configuration_table        Configuration;
   #define CONFIGURE_NEWLIB_EXTENSION 0
 #endif
 
+#include <rtems/libio.h>
+
+#ifdef CONFIGURE_INIT
+rtems_libio_init_functions_t rtems_libio_init_helper =
+    #ifdef CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+    NULL;
+    #else
+    rtems_libio_init;
+    #endif
+
+rtems_libio_supp_functions_t rtems_libio_supp_helper =
+    #ifdef CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+    NULL;
+    #else
+    open_dev_console;
+    #endif
+
+rtems_fs_init_functions_t    rtems_fs_init_helper =
+    #ifdef CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+    NULL;
+    #else
+    rtems_filesystem_initialize;
+    #endif
+#endif
+
+
+/*
+ *  If the application disables the filesystem, they will not need
+ *  a mount table, so do not produce one.
+ */
+#ifdef CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+  #define CONFIGURE_HAS_OWN_MOUNT_TABLE
+#endif
+
 /**
- *  This macro defines the number of POSIX file descriptors allocated 
+ *  This macro defines the number of POSIX file descriptors allocated
  *  and managed by libio.  These are the "integer" file descriptors that
  *  are used by calls like open(2) and read(2).
  */
@@ -139,31 +173,287 @@ extern rtems_configuration_table        Configuration;
 #endif
 
 /*
- *  Mount Table Configuration
+ *  Filesystems and Mount Table Configuration.
+ *
+ *  Defines to control the file system:
+ *
+ *   CONFIGURE_APPLICATION_DISABLE_FILESYSTEM:
+ *     Disable the RTEMS filesystems. You get an empty DEVFS.
+ *
+ *   CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM:
+ *     Use the DEVFS as the root file system. Limited functions are
+ *     provided when this is used.
+ *
+ *   CONFIGURE_FILESYSTEM_ALL:
+ *     Add file filesystems to the default filesystem table.
+ *
+ *   List of available file systems. You can define as many as you like:
+ *     CONFIGURE_FILESYSTEM_MINIIMFS - MiniIMFS, use DEVFS now
+ *     CONFIGURE_FILESYSTEM_IMFS     - In Memory File System (IMFS)
+ *     CONFIGURE_FILESYSTEM_DEVFS    - Device File System (DSVFS)
+ *     CONFIGURE_FILESYSTEM_TFTPFS   - TFTP File System, networking enabled
+ *     CONFIGURE_FILESYSTEM_FTPFS    - FTP File System, networking enabled
+ *     CONFIGURE_FILESYSTEM_NFS      - Network File System, networking enabled
+ *     CONFIGURE_FILESYSTEM_DOSFS    - DOS File System, uses libblock
+ *     CONFIGURE_FILESYSTEM_RFS      - RTEMS File System (RFS), uses libblock
+ *
+ *   Combinations:
+ *
+ *    - If nothing is defined the base file system is the IMFS.
+ *
+ *    - If CONFIGURE_APPLICATION_DISABLE_FILESYSTEM is defined all filesystem
+ *      are disabled by force and an empty DEVFS is created.
+ *
+ *    - If CONFIGURE_USE_DEV_AS_BASE_FILESYSTEM is defined all filesystem
+ *      are disabled by force and DEVFS is defined.
+ */
+
+#ifdef CONFIGURE_INIT
+
+  /*
+   * Include all file systems. Do this before checking if the filesystem has
+   * been disabled.
+   */
+  #ifdef CONFIGURE_FILESYSTEM_ALL
+    #define CONFIGURE_FILESYSTEM_MINIIMFS
+    #define CONFIGURE_FILESYSTEM_IMFS
+    #define CONFIGURE_FILESYSTEM_DEVFS
+    #define CONFIGURE_FILESYSTEM_TFTPFS
+    #define CONFIGURE_FILESYSTEM_FTPFS
+    #define CONFIGURE_FILESYSTEM_NFS
+    #define CONFIGURE_FILESYSTEM_DOSFS
+    #define CONFIGURE_FILESYSTEM_RFS
+  #endif
+
+  /*
+   * If disabling the file system undef everything. If DEVFS as the base
+   * filesystem undefine all other filesystems because you cannot mount other
+   * filesystems. Same for miniIMFS.
+   */
+  #if defined(CONFIGURE_APPLICATION_DISABLE_FILESYSTEM) || \
+      defined(CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM) || \
+      defined(CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM)
+    #if defined(CONFIGURE_APPLICATION_DISABLE_FILESYSTEM)
+      #undef CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM
+      #undef CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM
+    #elif defined(CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM)
+      #undef CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM
+    #endif
+    #undef CONFIGURE_FILESYSTEM_MINIIMFS
+    #undef CONFIGURE_FILESYSTEM_IMFS
+    #undef CONFIGURE_FILESYSTEM_DEVFS
+    #undef CONFIGURE_FILESYSTEM_TFTPFS
+    #undef CONFIGURE_FILESYSTEM_FTPFS
+    #undef CONFIGURE_FILESYSTEM_NFS
+    #undef CONFIGURE_FILESYSTEM_DOSFS
+    #undef CONFIGURE_FILESYSTEM_RFS
+  #endif
+
+  /*
+   * If the base filesystem is DEVFS define it else define IMFS.
+   * We will have either DEVFS or IMFS defined after this.
+   */
+  #if !defined(CONFIGURE_APPLICATION_DISABLE_FILESYSTEM)
+    #if defined(CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM)
+      #define CONFIGURE_FILESYSTEM_DEVFS
+    #elif defined(CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM)
+      #define CONFIGURE_FILESYSTEM_MINIIMFS
+    #elif !defined(CONFIGURE_FILESYSTEM_IMFS)
+      #define CONFIGURE_FILESYSTEM_IMFS
+    #endif
+  #endif
+
+#endif
+
+/**
+ * IMFS
  */
 #include <rtems/imfs.h>
 
 /**
- *  This specifies the number of bytes per block for files within
- *  the IMFS.  There are a maximum number of blocks per file so
- *  this dictates the maximum size of a file.  This has to be balanced
- *  with the unused portion of each block that might be wasted.
+ *  This specifies the number of bytes per block for files within the IMFS.
+ *  There are a maximum number of blocks per file so this dictates the maximum
+ *  size of a file.  This has to be balanced with the unused portion of each
+ *  block that might be wasted.
  */
 #ifndef CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK
   #define CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK \
                     IMFS_MEMFILE_DEFAULT_BYTES_PER_BLOCK
 #endif
-#ifdef CONFIGURE_INIT
-  int imfs_rq_memfile_bytes_per_block = CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK;
-#endif /* CONFIGURE_INIT */
+
+/**
+ *  This defines the miniIMFS file system table entry.
+ */ 
+#if !defined(CONFIGURE_FILESYSTEM_ENTRY_miniIMFS) && \
+    defined(CONFIGURE_FILESYSTEM_MINIIMFS)
+  #define CONFIGURE_FILESYSTEM_ENTRY_miniIMFS \
+    { RTEMS_FILESYSTEM_TYPE_MINIIMFS, miniIMFS_initialize }
+#endif
+
+/**
+ *  This defines the IMFS file system table entry.
+ */ 
+#if !defined(CONFIGURE_FILESYSTEM_ENTRY_IMFS) && \
+    defined(CONFIGURE_FILESYSTEM_IMFS)
+#define CONFIGURE_FILESYSTEM_ENTRY_IMFS { "imfs", IMFS_initialize }
+#endif
+
+/**
+ * DEVFS
+ */ 
+#if !defined(CONFIGURE_FILESYSTEM_ENTRY_DEVFS) && \
+    defined(CONFIGURE_FILESYSTEM_DEVFS)
+#include <rtems/devfs.h>
+  #define CONFIGURE_FILESYSTEM_ENTRY_DEVFS \
+    { RTEMS_FILESYSTEM_TYPE_DEVFS, devFS_initialize }
+#endif
+
+#ifdef RTEMS_NETWORKING
+  /**
+   * FTPFS
+   */ 
+  #if !defined(CONFIGURE_FILESYSTEM_ENTRY_FTPFS) && \
+      defined(CONFIGURE_FILESYSTEM_FTPFS) 
+    #include <rtems/ftpfs.h>
+    #define CONFIGURE_FILESYSTEM_ENTRY_FTPFS \
+      { RTEMS_FILESYSTEM_TYPE_FTPFS, rtems_ftpfs_initialize }
+  #endif
+
+  /**
+   * TFTPFS
+   */ 
+  #if !defined(CONFIGURE_FILESYSTEM_ENTRY_TFTPFS) && \
+      defined(CONFIGURE_FILESYSTEM_TFTPFS)
+    #include <rtems/tftp.h>
+    #define CONFIGURE_FILESYSTEM_ENTRY_TFTPFS \
+      { RTEMS_FILESYSTEM_TYPE_TFTPFS, rtems_tftpfs_initialize }
+  #endif
+
+  /**
+   * NFS
+   */ 
+  #if !defined(CONFIGURE_FILESYSTEM_ENTRY_NFS) && \
+      defined(CONFIGURE_FILESYSTEM_NFS)
+    #include <librtemsNfs.h>
+    #define CONFIGURE_FILESYSTEM_ENTRY_NFS \
+      { RTEMS_FILESYSTEM_TYPE_NFS, rtems_nfs_initialize }
+  #endif
+#endif
+
+/**
+ * DOSFS
+ */ 
+#if !defined(CONFIGURE_FILESYSTEM_ENTRY_DOSFS) && \
+    defined(CONFIGURE_FILESYSTEM_DOSFS)
+  #include <rtems/dosfs.h>
+  #define CONFIGURE_FILESYSTEM_ENTRY_DOSFS \
+    { RTEMS_FILESYSTEM_TYPE_DOSFS, rtems_dosfs_initialize }
+#endif
+
+/**
+ * RFS
+ */ 
+#if !defined(CONFIGURE_FILESYSTEM_ENTRY_RFS) && \
+    defined(CONFIGURE_FILESYSTEM_RFS)
+  #include <rtems/rtems-rfs.h>
+  #define CONFIGURE_FILESYSTEM_ENTRY_RFS \
+    { RTEMS_FILESYSTEM_TYPE_RFS, rtems_rfs_rtems_initialise }
+#endif
 
 #ifdef CONFIGURE_INIT
+
+  /*
+   *  DEVFS variables.
+   */
+  #if defined(CONFIGURE_APPLICATION_DISABLE_FILESYSTEM)
+    #define CONFIGURE_MEMORY_FOR_DEVFS  0
+  #elif defined(CONFIGURE_FILESYSTEM_DEVFS)
+    #ifndef CONFIGURE_MAXIMUM_DEVICES
+      #define CONFIGURE_MAXIMUM_DEVICES 4
+    #endif
+    #include <rtems/devfs.h>
+    uint32_t rtems_device_table_size = CONFIGURE_MAXIMUM_DEVICES;
+    #define CONFIGURE_MEMORY_FOR_DEVFS \
+      _Configure_Object_RAM(CONFIGURE_MAXIMUM_DEVICES, \
+         sizeof (rtems_device_name_t))
+  #else
+    #define CONFIGURE_MEMORY_FOR_DEVFS  0
+  #endif
+
+  #if defined(CONFIGURE_FILESYSTEM_IMFS) || \
+      defined(CONFIGURE_FILESYSTEM_MINIIMFS)
+    int imfs_rq_memfile_bytes_per_block = CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK;
+  #endif
+
+  /**
+   * Table termination record.
+   */
+  #define CONFIGURE_FILESYSTEM_NULL { NULL, NULL }
+
+  /**
+   * The default file system table. Must be terminated with the NULL entry if
+   * you provide your own.
+   */
+  #ifndef CONFIGURE_HAS_OWN_FILESYSTEM_TABLE
+    const rtems_filesystem_table_t rtems_filesystem_table[] = {
+      #if defined(CONFIGURE_FILESYSTEM_MINIIMFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_miniIMFS)
+        CONFIGURE_FILESYSTEM_ENTRY_miniIMFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_IMFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_IMFS)
+        CONFIGURE_FILESYSTEM_ENTRY_IMFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_DEVFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_DEVFS)
+        CONFIGURE_FILESYSTEM_ENTRY_DEVFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_TFTPFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_TFTPFS)
+        CONFIGURE_FILESYSTEM_ENTRY_TFTPFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_FTPFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_FTPFS)
+        CONFIGURE_FILESYSTEM_ENTRY_FTPFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_NFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_NFS)
+        CONFIGURE_FILESYSTEM_ENTRY_NFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_DOSFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_DOSFS)
+        CONFIGURE_FILESYSTEM_ENTRY_DOSFS,
+      #endif
+      #if defined(CONFIGURE_FILESYSTEM_RFS) && \
+          defined(CONFIGURE_FILESYSTEM_ENTRY_RFS)
+        CONFIGURE_FILESYSTEM_ENTRY_RFS,
+      #endif
+      CONFIGURE_FILESYSTEM_NULL
+    };
+  #endif
+
+  /**
+   *  This disables the inclusion of pipe support in the full IMFS.
+   *
+   *  NOTE: When building for coverage, we need this variable all the time.
+   */
+  #if !defined(CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM) || \
+      defined(RTEMS_COVERAGE)
+    #if defined(CONFIGURE_PIPES_ENABLED)
+      bool rtems_pipe_configured = true;
+    #else
+      bool rtems_pipe_configured = false;
+    #endif
+  #endif
+
   #ifndef CONFIGURE_HAS_OWN_MOUNT_TABLE
     const rtems_filesystem_mount_table_t configuration_mount_table = {
-      #ifdef CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
-        &IMFS_ops,
-      #else  /* using miniIMFS as base filesystem */
-        &miniIMFS_ops,
+      #if defined(CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM)
+        RTEMS_FILESYSTEM_TYPE_DEVFS,
+      #elif defined(CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM)
+        RTEMS_FILESYSTEM_TYPE_MINIIMFS,
+      #else  /* using IMFS as base filesystem */
+        RTEMS_FILESYSTEM_TYPE_IMFS,
       #endif
       RTEMS_FILESYSTEM_READ_WRITE,
       NULL,
@@ -174,12 +464,21 @@ extern rtems_configuration_table        Configuration;
         *rtems_filesystem_mount_table = &configuration_mount_table;
     const int rtems_filesystem_mount_table_size = 1;
   #endif
+
+#endif
+
+/*
+ *  STACK_CHECER_ON was still available in 4.9 so give a warning for now.
+ */
+#if defined(STACK_CHECKER_ON)
+  #define CONFIGURE_STACK_CHECKER_ENABLED
+  #warning "STACK_CHECKER_ON deprecated -- use CONFIGURE_STACK_CHECKER_ENABLED"
 #endif
 
 /**
  *  This configures the stack checker user extension.
  */
-#ifdef STACK_CHECKER_ON
+#ifdef CONFIGURE_STACK_CHECKER_ENABLED
   #define CONFIGURE_STACK_CHECKER_EXTENSION 1
 #else
   #define CONFIGURE_STACK_CHECKER_EXTENSION 0
@@ -240,6 +539,14 @@ extern rtems_configuration_table        Configuration;
   #elif (CPU_PROVIDES_IDLE_THREAD_BODY == TRUE)
     #define CONFIGURE_IDLE_TASK_BODY _CPU_Thread_Idle_body
   #else
+    /* only instantiate and compile if used */
+    #ifdef CONFIGURE_INIT
+      void *_Thread_Idle_body(uintptr_t ignored)
+      {
+        for( ; ; ) ;
+        return 0;   /* to avoid warning */
+      }
+    #endif
     #define CONFIGURE_IDLE_TASK_BODY _Thread_Idle_body
   #endif
 #endif
@@ -328,6 +635,24 @@ extern rtems_configuration_table        Configuration;
 
 #ifdef CONFIGURE_INIT
   /**
+   *  By default, RTEMS uses separate heaps for the RTEMS Workspace and
+   *  the C Program Heap.  On many BSPs, these can be optionally
+   *  combined provided one larger memory pool. This is particularly
+   *  useful in combination with the unlimited objects configuration.
+   */
+  #ifdef CONFIGURE_UNIFIED_WORK_AREAS
+    #include <rtems/score/wkspace.h>
+    Heap_Control  *RTEMS_Malloc_Heap = &_Workspace_Area;
+    bool           rtems_unified_work_area = true;
+  #else
+    Heap_Control   RTEMS_Malloc_Area;
+    Heap_Control  *RTEMS_Malloc_Heap = &RTEMS_Malloc_Area;
+    bool           rtems_unified_work_area = false;
+  #endif
+#endif
+
+#ifdef CONFIGURE_INIT
+  /**
    *  This configures the malloc family statistics to be available.
    *  By default only function call counts are kept.
    */
@@ -358,7 +683,7 @@ extern rtems_configuration_table        Configuration;
   /**
    *  This configures the malloc family plugin which dirties memory
    *  allocated.  This is helpful for finding unitialized data structure
-   *  problems. 
+   *  problems.
    */
   rtems_malloc_dirtier_t rtems_malloc_dirty_helper =
     #if defined(CONFIGURE_MALLOC_DIRTY)
@@ -375,7 +700,7 @@ extern rtems_configuration_table        Configuration;
  *  may be applied.
  */
 #define _Configure_From_workspace(_size) \
-  ((_size) + (2 * sizeof(uint32_t)) + CPU_ALIGNMENT)
+  (ssize_t)((_size) + (2 * sizeof(uint32_t)) + CPU_ALIGNMENT)
 
 /**
  *  Do not use the unlimited bit as part of the multiplication
@@ -385,8 +710,8 @@ extern rtems_configuration_table        Configuration;
   ((_max) & ~RTEMS_UNLIMITED_OBJECTS)
 
 /**
- *  This macro accounts for how memory for a set of configured objects is 
- *  allocated from the Executive Workspace.  
+ *  This macro accounts for how memory for a set of configured objects is
+ *  allocated from the Executive Workspace.
  *
  *  NOTE: It does NOT attempt to address the more complex case of unlimited
  *        objects.
@@ -432,7 +757,16 @@ extern rtems_configuration_table        Configuration;
 #endif
 
 #ifndef CONFIGURE_INIT_TASK_ENTRY_POINT
+  #ifdef __cplusplus
+  extern "C" {
+  #endif
+    rtems_task Init (rtems_task_argument );
+  #ifdef __cplusplus
+  }
+  #endif
   #define CONFIGURE_INIT_TASK_ENTRY_POINT   Init
+  extern const char* bsp_boot_cmdline;
+  #define CONFIGURE_INIT_TASK_ARGUMENTS     ((rtems_task_argument) &bsp_boot_cmdline)
 #endif
 
 #ifndef CONFIGURE_INIT_TASK_INITIAL_MODES
@@ -499,6 +833,10 @@ extern rtems_configuration_table        Configuration;
   #include <rtems/watchdogdrv.h>
 #endif
 
+#ifdef CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
+  #include <rtems/framebuffer.h>
+#endif
+
 #ifdef CONFIGURE_APPLICATION_NEEDS_STUB_DRIVER
   #include <rtems/devnull.h>
 #endif
@@ -546,6 +884,9 @@ extern rtems_configuration_table        Configuration;
     #ifdef CONFIGURE_APPLICATION_NEEDS_ATA_DRIVER
       ATA_DRIVER_TABLE_ENTRY,
     #endif
+    #ifdef CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
+      FRAME_BUFFER_DRIVER_TABLE_ENTRY,
+    #endif
     #ifdef CONFIGURE_APPLICATION_EXTRA_DRIVERS
       CONFIGURE_APPLICATION_EXTRA_DRIVERS,
     #endif
@@ -557,6 +898,7 @@ extern rtems_configuration_table        Configuration;
         !defined(CONFIGURE_APPLICATION_NEEDS_STUB_DRIVER) && \
         !defined(CONFIGURE_APPLICATION_NEEDS_IDE_DRIVER) && \
         !defined(CONFIGURE_APPLICATION_NEEDS_ATA_DRIVER) && \
+        !defined(CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER) && \
         !defined(CONFIGURE_APPLICATION_EXTRA_DRIVERS)
       NULL_DRIVER_TABLE_ENTRY
     #endif
@@ -582,16 +924,6 @@ extern rtems_configuration_table        Configuration;
   #define CONFIGURE_MAXIMUM_DRIVERS CONFIGURE_NUMBER_OF_DRIVERS
 #endif
 
-/**
- *  Default the number of devices per device driver.  This value may be
- *  overridden by the user.
- *
- *  @note This configuration parameter is obsolete. Thus we will warn the
- *        user that it is obsolete.
- */
-#ifdef CONFIGURE_MAXIMUM_DEVICES
-  #warning "CONFIGURE_MAXIMUM_DEVICES is obsolete.  Do not use any longer."
-#endif
 
 #ifdef CONFIGURE_APPLICATION_NEEDS_ATA_DRIVER
   /*
@@ -634,32 +966,59 @@ extern rtems_configuration_table        Configuration;
     #define CONFIGURE_SWAPOUT_BLOCK_HOLD \
                               RTEMS_BDBUF_SWAPOUT_TASK_BLOCK_HOLD_DEFAULT
   #endif
+  #ifndef CONFIGURE_SWAPOUT_WORKER_TASKS
+    #define CONFIGURE_SWAPOUT_WORKER_TASKS \
+                              RTEMS_BDBUF_SWAPOUT_WORKER_TASKS_DEFAULT
+  #endif
+  #ifndef CONFIGURE_SWAPOUT_WORKER_TASK_PRIORITY
+    #define CONFIGURE_SWAPOUT_WORKER_TASK_PRIORITY \
+                              RTEMS_BDBUF_SWAPOUT_WORKER_TASK_PRIORITY_DEFAULT
+  #endif
+  #ifndef CONFIGURE_BDBUF_CACHE_MEMORY_SIZE
+    #define CONFIGURE_BDBUF_CACHE_MEMORY_SIZE \
+                              RTEMS_BDBUF_CACHE_MEMORY_SIZE_DEFAULT
+  #endif
+  #ifndef CONFIGURE_BDBUF_BUFFER_MIN_SIZE
+    #define CONFIGURE_BDBUF_BUFFER_MIN_SIZE \
+                              RTEMS_BDBUF_BUFFER_MIN_SIZE_DEFAULT
+  #endif
+  #ifndef CONFIGURE_BDBUF_BUFFER_MAX_SIZE
+    #define CONFIGURE_BDBUF_BUFFER_MAX_SIZE \
+                              RTEMS_BDBUF_BUFFER_MAX_SIZE_DEFAULT
+  #endif
   #ifdef CONFIGURE_INIT
-    rtems_bdbuf_config rtems_bdbuf_configuration = { 
+    const rtems_bdbuf_config rtems_bdbuf_configuration = {
       CONFIGURE_BDBUF_MAX_READ_AHEAD_BLOCKS,
       CONFIGURE_BDBUF_MAX_WRITE_BLOCKS,
       CONFIGURE_SWAPOUT_TASK_PRIORITY,
       CONFIGURE_SWAPOUT_SWAP_PERIOD,
-      CONFIGURE_SWAPOUT_BLOCK_HOLD
+      CONFIGURE_SWAPOUT_BLOCK_HOLD,
+      CONFIGURE_SWAPOUT_WORKER_TASKS,
+      CONFIGURE_SWAPOUT_WORKER_TASK_PRIORITY,
+      CONFIGURE_BDBUF_CACHE_MEMORY_SIZE,
+      CONFIGURE_BDBUF_BUFFER_MIN_SIZE,
+      CONFIGURE_BDBUF_BUFFER_MAX_SIZE
     };
   #endif
-  #ifndef CONFIGURE_HAS_OWN_BDBUF_TABLE
-    #ifndef CONFIGURE_BDBUF_BUFFER_COUNT
-      #define CONFIGURE_BDBUF_BUFFER_COUNT 64
-    #endif
 
-    #ifndef CONFIGURE_BDBUF_BUFFER_SIZE
-      #define CONFIGURE_BDBUF_BUFFER_SIZE 512
-    #endif
-    #ifdef CONFIGURE_INIT
-      rtems_bdbuf_pool_config rtems_bdbuf_pool_configuration[] = {
-        {CONFIGURE_BDBUF_BUFFER_SIZE, CONFIGURE_BDBUF_BUFFER_COUNT, NULL}
-      };
-      int rtems_bdbuf_pool_configuration_size = 
-        (sizeof(rtems_bdbuf_pool_configuration) /
-         sizeof(rtems_bdbuf_pool_configuration[0]));
-    #endif /* CONFIGURE_INIT */
-  #endif /* CONFIGURE_HAS_OWN_BDBUF_TABLE        */
+  /*
+   *  Semaphores:
+   *    o disk lock
+   *    o bdbuf lock
+   *    o bdbuf sync lock
+   *    o bdbuf access condition
+   *    o bdbuf transfer condition
+   *    o bdbuf buffer condition
+   */
+  #define CONFIGURE_LIBBLOCK_SEMAPHORES 6
+
+  #if defined(CONFIGURE_HAS_OWN_BDBUF_TABLE) || \
+      defined(CONFIGURE_BDBUF_BUFFER_SIZE) || \
+      defined(CONFIGURE_BDBUF_BUFFER_COUNT)
+    #error BDBUF Cache does not use a buffer configuration table. Please remove.
+  #endif
+#else
+  #define CONFIGURE_LIBBLOCK_SEMAPHORES 0
 #endif /* CONFIGURE_APPLICATION_NEEDS_LIBBLOCK */
 
 #if defined(RTEMS_MULTIPROCESSING)
@@ -736,10 +1095,6 @@ extern rtems_configuration_table        Configuration;
 
 #ifndef CONFIGURE_HAS_OWN_CONFIGURATION_TABLE
 
-  #ifndef CONFIGURE_EXECUTIVE_RAM_WORK_AREA
-    #define CONFIGURE_EXECUTIVE_RAM_WORK_AREA     NULL
-  #endif
-
   #ifndef CONFIGURE_MAXIMUM_TASKS
     #define CONFIGURE_MAXIMUM_TASKS               0
   #endif
@@ -750,7 +1105,7 @@ extern rtems_configuration_table        Configuration;
     #define CONFIGURE_NOTEPADS_ENABLED           FALSE
   #endif
 
-  #ifndef CONFIGURE_DISABLE_CLASSIC_NOTEPADS
+  #ifndef CONFIGURE_DISABLE_CLASSIC_API_NOTEPADS
     #define CONFIGURE_MEMORY_PER_TASK_FOR_CLASSIC_API \
       _Configure_From_workspace( sizeof(RTEMS_API_Control) )
   #else
@@ -784,16 +1139,17 @@ extern rtems_configuration_table        Configuration;
 
   #ifndef CONFIGURE_MAXIMUM_SEMAPHORES
     #define CONFIGURE_MAXIMUM_SEMAPHORES                 0
-  #else
   #endif
+
+  #define CONFIGURE_SEMAPHORES \
+    (CONFIGURE_MAXIMUM_SEMAPHORES + CONFIGURE_LIBIO_SEMAPHORES + \
+      CONFIGURE_TERMIOS_SEMAPHORES + CONFIGURE_LIBBLOCK_SEMAPHORES)
 
   /*
    * If there are no user or support semaphores defined, then we can assume
    * that no memory need be allocated at all for semaphores.
    */
-  #if  ((CONFIGURE_MAXIMUM_SEMAPHORES == 0) && \
-        (CONFIGURE_LIBIO_SEMAPHORES == 0) && \
-        (CONFIGURE_TERMIOS_SEMAPHORES == 0))
+  #if CONFIGURE_SEMAPHORES == 0
     #define CONFIGURE_MEMORY_FOR_SEMAPHORES(_semaphores) 0
   #else
     #define CONFIGURE_MEMORY_FOR_SEMAPHORES(_semaphores) \
@@ -870,19 +1226,19 @@ extern rtems_configuration_table        Configuration;
  */
 
 #ifdef CONFIGURE_INIT
-#ifdef STACK_CHECKER_ON
+#ifdef CONFIGURE_STACK_CHECKER_ENABLED
 #include <rtems/stackchk.h>
 #endif
 #include <rtems/libcsupport.h>
 
 #if defined(CONFIGURE_INITIAL_EXTENSIONS) || \
-    defined(STACK_CHECKER_ON) || \
+    defined(CONFIGURE_STACK_CHECKER_ENABLED) || \
     (defined(RTEMS_NEWLIB) && !defined(CONFIGURE_DISABLE_NEWLIB_REENTRANCY))
   rtems_extensions_table Configuration_Initial_Extensions[] = {
     #if !defined(CONFIGURE_DISABLE_NEWLIB_REENTRANCY)
       RTEMS_NEWLIB_EXTENSION,
     #endif
-    #if defined(STACK_CHECKER_ON)
+    #if defined(CONFIGURE_STACK_CHECKER_ENABLED)
       RTEMS_STACK_CHECKER_EXTENSION,
     #endif
     #if defined(CONFIGURE_INITIAL_EXTENSIONS)
@@ -938,6 +1294,7 @@ extern rtems_configuration_table        Configuration;
 
   #define CONFIGURE_MEMORY_PER_TASK_FOR_POSIX_API \
     _Configure_From_workspace( \
+      CONFIGURE_MINIMUM_TASK_STACK_SIZE + \
       sizeof (POSIX_API_Control) + \
      (sizeof (void *) * (CONFIGURE_MAXIMUM_POSIX_KEYS)) \
     )
@@ -987,10 +1344,22 @@ extern rtems_configuration_table        Configuration;
   #ifndef CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES
     #define CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES                     0
     #define CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUES(_message_queues) 0
+    #define CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS          0
+    #define CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUE_DESCRIPTORS(_fds) 0
   #else
     #define CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUES(_message_queues) \
       _Configure_POSIX_Named_Object_RAM( \
          _message_queues, sizeof(POSIX_Message_queue_Control) )
+
+    /* default to same number */
+    #ifndef CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS
+       #define CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS \
+               CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES
+    #endif
+
+    #define CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUE_DESCRIPTORS(_mqueue_fds) \
+      _Configure_POSIX_Named_Object_RAM( \
+         _mqueue_fds, sizeof(POSIX_Message_queue_Control_fd) )
   #endif
 
   #ifndef CONFIGURE_MAXIMUM_POSIX_SEMAPHORES
@@ -1078,6 +1447,8 @@ extern rtems_configuration_table        Configuration;
           CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS ) + \
       CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUES( \
           CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES ) + \
+      CONFIGURE_MEMORY_FOR_POSIX_MESSAGE_QUEUE_DESCRIPTORS( \
+          CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS ) + \
       CONFIGURE_MEMORY_FOR_POSIX_SEMAPHORES( \
           CONFIGURE_MAXIMUM_POSIX_SEMAPHORES ) + \
       CONFIGURE_MEMORY_FOR_POSIX_BARRIERS(CONFIGURE_MAXIMUM_POSIX_BARRIERS) + \
@@ -1114,7 +1485,7 @@ extern rtems_configuration_table        Configuration;
 
   /**
    *  This is the maximum number of Ada tasks which can be concurrently
-   *  in existence.  Twenty (20) are required to run all tests in the 
+   *  in existence.  Twenty (20) are required to run all tests in the
    *  ACATS (formerly ACVC).
    */
   #ifndef CONFIGURE_MAXIMUM_ADA_TASKS
@@ -1343,12 +1714,14 @@ extern rtems_configuration_table        Configuration;
   _Configure_Object_RAM(_tasks, sizeof(Thread_Control)) + \
   (_Configure_Max_Objects(_tasks) * \
    (_Configure_From_workspace(CONFIGURE_MINIMUM_TASK_STACK_SIZE) + \
-    _Configure_From_workspace(CONFIGURE_MEMORY_PER_TASK_FOR_CLASSIC_API) + \
+    CONFIGURE_MEMORY_PER_TASK_FOR_CLASSIC_API + \
     CONFIGURE_MEMORY_PER_TASK_FOR_NEWLIB + \
     CONFIGURE_MEMORY_PER_TASK_FOR_POSIX_API + \
     CONFIGURE_MEMORY_PER_TASK_FOR_ITRON_API))  + \
   _Configure_From_workspace( \
-    _Configure_Max_Objects(_number_FP_tasks) * CONTEXT_FP_SIZE) \
+    _Configure_Max_Objects(_number_FP_tasks) * CONTEXT_FP_SIZE) + \
+  _Configure_From_workspace( \
+          (CONFIGURE_MAXIMUM_USER_EXTENSIONS + 1) * sizeof(void *)) \
  )
 
 /**
@@ -1524,7 +1897,7 @@ extern rtems_configuration_table        Configuration;
    (CONFIGURE_MAXIMUM_TASKS + \
     CONFIGURE_MAXIMUM_POSIX_THREADS + CONFIGURE_MAXIMUM_ADA_TASKS + \
     CONFIGURE_MAXIMUM_ITRON_TASKS \
-   ) 
+   )
 
 /**
  *  This macro reserves the memory required by the statically configured
@@ -1545,8 +1918,7 @@ extern rtems_configuration_table        Configuration;
   (CONFIGURE_MEMORY_FOR_TASK_VARIABLES(CONFIGURE_MAXIMUM_TASK_VARIABLES) + \
    CONFIGURE_MEMORY_FOR_TIMERS(CONFIGURE_MAXIMUM_TIMERS + \
     CONFIGURE_TIMER_FOR_SHARED_MEMORY_DRIVER ) + \
-   CONFIGURE_MEMORY_FOR_SEMAPHORES(CONFIGURE_MAXIMUM_SEMAPHORES + \
-     CONFIGURE_LIBIO_SEMAPHORES + CONFIGURE_TERMIOS_SEMAPHORES) + \
+   CONFIGURE_MEMORY_FOR_SEMAPHORES(CONFIGURE_SEMAPHORES) + \
    CONFIGURE_MEMORY_FOR_MESSAGE_QUEUES(CONFIGURE_MAXIMUM_MESSAGE_QUEUES) + \
    CONFIGURE_MEMORY_FOR_PARTITIONS(CONFIGURE_MAXIMUM_PARTITIONS) + \
    CONFIGURE_MEMORY_FOR_REGIONS( CONFIGURE_MAXIMUM_REGIONS ) + \
@@ -1639,8 +2011,7 @@ extern rtems_configuration_table        Configuration;
     CONFIGURE_MEMORY_FOR_TASKS(CONFIGURE_MAXIMUM_TASKS, 0),
     CONFIGURE_MEMORY_FOR_TASK_VARIABLES(CONFIGURE_MAXIMUM_TASK_VARIABLES),
     CONFIGURE_MEMORY_FOR_TIMERS(CONFIGURE_MAXIMUM_TIMERS),
-    CONFIGURE_MEMORY_FOR_SEMAPHORES(CONFIGURE_MAXIMUM_SEMAPHORES +
-       CONFIGURE_LIBIO_SEMAPHORES + CONFIGURE_TERMIOS_SEMAPHORES),
+    CONFIGURE_MEMORY_FOR_SEMAPHORES(CONFIGURE_SEMAPHORES),
     CONFIGURE_MEMORY_FOR_MESSAGE_QUEUES(CONFIGURE_MAXIMUM_MESSAGE_QUEUES),
     CONFIGURE_MEMORY_FOR_PARTITIONS(CONFIGURE_MAXIMUM_PARTITIONS),
     CONFIGURE_MEMORY_FOR_REGIONS( CONFIGURE_MAXIMUM_REGIONS ),
@@ -1674,7 +2045,7 @@ extern rtems_configuration_table        Configuration;
     CONFIGURE_MEMORY_FOR_ITRON_MESSAGE_BUFFERS(
         CONFIGURE_MAXIMUM_ITRON_MESSAGE_BUFFERS ),
     CONFIGURE_MEMORY_FOR_ITRON_PORTS( CONFIGURE_MAXIMUM_ITRON_PORTS ),
-    CONFIGURE_MEMORY_FOR_ITRON_MEMORY_POOLS( 
+    CONFIGURE_MEMORY_FOR_ITRON_MEMORY_POOLS(
         CONFIGURE_MAXIMUM_ITRON_MEMORY_POOLS ),
     CONFIGURE_MEMORY_FOR_ITRON_FIXED_MEMORY_POOLS(
         CONFIGURE_MAXIMUM_ITRON_FIXED_MEMORY_POOLS ),
@@ -1688,6 +2059,7 @@ extern rtems_configuration_table        Configuration;
 #define CONFIGURE_EXECUTIVE_RAM_SIZE \
 (( \
    CONFIGURE_MEMORY_FOR_SYSTEM_OVERHEAD + \
+   CONFIGURE_MEMORY_FOR_DEVFS + \
    CONFIGURE_MEMORY_FOR_TASKS( \
      CONFIGURE_TOTAL_TASKS_AND_THREADS, CONFIGURE_TOTAL_TASKS_AND_THREADS) + \
    CONFIGURE_MEMORY_FOR_CLASSIC + \
@@ -1711,8 +2083,7 @@ extern rtems_configuration_table        Configuration;
     CONFIGURE_MAXIMUM_TASKS,
     CONFIGURE_NOTEPADS_ENABLED,
     CONFIGURE_MAXIMUM_TIMERS + CONFIGURE_TIMER_FOR_SHARED_MEMORY_DRIVER,
-    CONFIGURE_MAXIMUM_SEMAPHORES + CONFIGURE_LIBIO_SEMAPHORES +
-      CONFIGURE_TERMIOS_SEMAPHORES,
+    CONFIGURE_SEMAPHORES,
     CONFIGURE_MAXIMUM_MESSAGE_QUEUES,
     CONFIGURE_MAXIMUM_PARTITIONS,
     CONFIGURE_MAXIMUM_REGIONS,
@@ -1737,6 +2108,7 @@ extern rtems_configuration_table        Configuration;
       CONFIGURE_MAXIMUM_POSIX_TIMERS,
       CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS,
       CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES,
+      CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS,
       CONFIGURE_MAXIMUM_POSIX_SEMAPHORES,
       CONFIGURE_MAXIMUM_POSIX_BARRIERS,
       CONFIGURE_MAXIMUM_POSIX_RWLOCKS,
@@ -1771,7 +2143,7 @@ extern rtems_configuration_table        Configuration;
    *        needed without requring being high enough logical to
    *        include the full configuration table.
    */
-  uint32_t rtems_minimum_stack_size = 
+  uint32_t rtems_minimum_stack_size =
     CONFIGURE_MINIMUM_TASK_STACK_SIZE;
 
   /** This variable specifies the maximum priority value that
@@ -1789,7 +2161,7 @@ extern rtems_configuration_table        Configuration;
    *  This is the primary Configuration Table for this application.
    */
   rtems_configuration_table Configuration = {
-    CONFIGURE_EXECUTIVE_RAM_WORK_AREA,
+    NULL,                                     /* filled in by BSP */
     CONFIGURE_EXECUTIVE_RAM_SIZE,             /* required RTEMS workspace */
     CONFIGURE_MAXIMUM_USER_EXTENSIONS,        /* maximum dynamic extensions */
     CONFIGURE_MICROSECONDS_PER_TICK,          /* microseconds per clock tick */
@@ -1808,17 +2180,6 @@ extern rtems_configuration_table        Configuration;
     #if defined(RTEMS_MULTIPROCESSING)
       CONFIGURE_MULTIPROCESSING_TABLE,        /* pointer to MP config table */
     #endif
-    &Configuration_RTEMS_API,                 /* pointer to RTEMS API config */
-    #ifdef RTEMS_POSIX_API
-      &Configuration_POSIX_API,               /* pointer to POSIX API config */
-    #else
-      NULL,                                   /* pointer to POSIX API config */
-    #endif
-    #ifdef RTEMS_ITRON_API
-      &Configuration_ITRON_API                /* pointer to ITRON API config */
-    #else
-      NULL                                    /* pointer to ITRON API config */
-    #endif
   };
 #endif
 
@@ -1829,7 +2190,8 @@ extern rtems_configuration_table        Configuration;
  *  then we need to install the code that runs that loop.
  */
 #ifdef CONFIGURE_INIT
-  #ifdef CONFIGURE_RTEMS_INIT_TASKS_TABLE
+  #if defined(CONFIGURE_RTEMS_INIT_TASKS_TABLE) || \
+      defined(CONFIGURE_HAS_OWN_INIT_TASK_TABLE)
     void (_RTEMS_tasks_Initialize_user_tasks_body)(void);
     void (*_RTEMS_tasks_Initialize_user_tasks_p)(void) =
               _RTEMS_tasks_Initialize_user_tasks_body;
@@ -1844,9 +2206,10 @@ extern rtems_configuration_table        Configuration;
  */
 #ifdef RTEMS_POSIX_API
   #ifdef CONFIGURE_INIT
-    #ifdef CONFIGURE_POSIX_INIT_THREAD_TABLE
+    #if defined(CONFIGURE_POSIX_INIT_THREAD_TABLE) || \
+        defined(CONFIGURE_POSIX_HAS_OWN_INIT_THREAD_TABLE)
       void _POSIX_Threads_Initialize_user_threads_body(void);
-      void (*_POSIX_Threads_Initialize_user_threads_p)(void) = 
+      void (*_POSIX_Threads_Initialize_user_threads_p)(void) =
                 _POSIX_Threads_Initialize_user_threads_body;
     #else
       void (*_POSIX_Threads_Initialize_user_threads_p)(void) = NULL;
@@ -1860,9 +2223,10 @@ extern rtems_configuration_table        Configuration;
  */
 #ifdef RTEMS_ITRON_API
   #ifdef CONFIGURE_INIT
-    #ifdef CONFIGURE_ITRON_INIT_TASK_TABLE
+    #if defined(CONFIGURE_ITRON_INIT_TASK_TABLE) || \
+        defined(CONFIGURE_ITRON_HAS_OWN_INIT_TASK_TABLE)
       void _ITRON_Task_Initialize_user_tasks_body(void);
-      void (*_ITRON_Initialize_user_tasks_p)(void) = 
+      void (*_ITRON_Initialize_user_tasks_p)(void) =
                 _ITRON_Task_Initialize_user_tasks_body;
     #else
       void (*_ITRON_Initialize_user_tasks_p)(void) = NULL;
@@ -1932,6 +2296,7 @@ extern rtems_configuration_table        Configuration;
        (CONFIGURE_MAXIMUM_POSIX_TIMERS != 0) || \
        (CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS != 0) || \
        (CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES != 0) || \
+       (CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS != 0) || \
        (CONFIGURE_MAXIMUM_POSIX_SEMAPHORES != 0) || \
        (CONFIGURE_MAXIMUM_POSIX_BARRIERS != 0) || \
        (CONFIGURE_MAXIMUM_POSIX_SPINLOCKS != 0) || \
@@ -1963,8 +2328,8 @@ extern rtems_configuration_table        Configuration;
  *  You must either explicity include or exclude the clock driver.
  *  It is such a common newbie error to leave it out.  Maybe this
  *  will put an end to it.
- *  
- *  NOTE: If you are using the timer driver, it is considered 
+ *
+ *  NOTE: If you are using the timer driver, it is considered
  *        mutually exclusive with the clock driver because the
  *        drivers are assumed to use the same "timer" hardware
  *        on many boards.
@@ -2000,9 +2365,19 @@ extern rtems_configuration_table        Configuration;
      (CONFIGURE_MAXIMUM_PRIORITY != 255))
   #error "Maximum priority is not 1 less than a power of 2 between 4 and 256"
 #endif
-    
+
 #if (CONFIGURE_MAXIMUM_PRIORITY > PRIORITY_DEFAULT_MAXIMUM)
   #error "Maximum priority configured higher than supported by target."
+#endif
+
+/*
+ *  If you have fewer POSIX Message Queue Descriptors than actual
+ *  POSIX Message Queues, then you will not be able to open all the
+ *  queues.
+ */
+#if (CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS < \
+     CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES)
+  #error "Fewer POSIX Message Queue descriptors than Queues!"
 #endif
 
 #endif

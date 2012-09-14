@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_wkspaceinfo.c,v 1.5 2008/07/31 06:31:04 ralf Exp $
+ *  $Id: main_wkspaceinfo.c,v 1.7 2009/01/02 13:01:21 ralf Exp $
  */
 
 #define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
@@ -24,12 +24,23 @@
 #include <rtems/score/protectedheap.h>
 #include "internal.h"
 
+extern bool rtems_unified_work_area;
+
+void rtems_shell_print_unified_work_area_message(void)
+{
+  printf( "\nC Program Heap and RTEMS Workspace are %s.\n",
+    ((rtems_unified_work_area) ? "the same" : "separate")
+  );
+}
+
 int rtems_shell_main_wkspace_info(
-  int   argc,
-  char *argv[]
+  int   argc __attribute__((unused)),
+  char *argv[] __attribute__((unused))
 )
 {
   Heap_Information_block info;
+
+  rtems_shell_print_unified_work_area_message();
 
   _Protected_heap_Get_information( &_Workspace_Area, &info );
   rtems_shell_print_heap_info( "free", &info.Free );
@@ -46,4 +57,3 @@ rtems_shell_cmd_t rtems_shell_WKSPACE_INFO_Command = {
   NULL,                                       /* alias */
   NULL                                        /* next */
 };
-

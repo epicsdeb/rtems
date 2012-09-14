@@ -22,7 +22,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semtranslatereturncode.c,v 1.19.2.1 2009/05/28 20:38:22 joel Exp $
+ *  $Id: semtranslatereturncode.c,v 1.20 2009/05/28 20:38:12 joel Exp $
  */
 
 #if HAVE_CONFIG_H

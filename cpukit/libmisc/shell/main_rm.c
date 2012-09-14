@@ -65,6 +65,9 @@ __FBSDID("$FreeBSD: src/bin/rm/rm.c,v 1.58 2006/10/31 02:22:36 delphij Exp $");
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #include <unistd.h>
 
 /* RTEMS specific changes */
@@ -145,10 +148,10 @@ main_rm(rtems_shell_rm_globals* globals, int argc, char *argv[])
 {
 	int ch;
 	char *p;
-  
+
   struct getopt_data getopt_reent;
   memset(&getopt_reent, 0, sizeof(getopt_data));
-  
+
 	/*
 	 * Test for the special case where the utility is called as
 	 * "unlink", for which the functionality provided is greatly
@@ -579,7 +582,9 @@ check_rm(rtems_shell_rm_globals* globals, char *path, char *name, struct stat *s
 		    group_from_gid(sp->st_gid, 0),
 		    *flagsp ? flagsp : "", *flagsp ? " " : "",
 		    path);
+#if RTEMS_REMOVED
 		free(flagsp);
+#endif
 	}
 	(void)fflush(stderr);
 

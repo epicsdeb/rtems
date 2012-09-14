@@ -1,19 +1,19 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/11/01 03:44:24 ralf Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
 
-uint32_t   time_set, eventout;
+bool     time_set;
+uint32_t eventout;
 
 rtems_task High_tasks(
   rtems_task_argument argument
@@ -23,7 +23,7 @@ rtems_task Low_task(
   rtems_task_argument argument
 );
 
-void test_init();
+void test_init(void);
 
 rtems_task Init(
   rtems_task_argument argument
@@ -41,14 +41,14 @@ rtems_task Init(
   directive_failed( status, "rtems_task_delete of RTEMS_SELF" );
 }
 
-void test_init()
+void test_init(void)
 {
   rtems_id          id;
   uint32_t    index;
   rtems_event_set   event_out;
   rtems_status_code status;
 
-  time_set = FALSE;
+  time_set = false;
 
   status = rtems_task_create(
     rtems_build_name( 'L', 'O', 'W', ' ' ),
@@ -209,7 +209,7 @@ rtems_task High_tasks(
       &eventout
     );
   else {
-    time_set = 1;
+    time_set = true;
     benchmark_timer_initialize();            /* start blocking rtems_event_receive time */
     status = rtems_event_receive(
       RTEMS_EVENT_16,

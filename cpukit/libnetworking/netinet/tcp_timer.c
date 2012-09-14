@@ -27,8 +27,12 @@
  * SUCH DAMAGE.
  *
  *	@(#)tcp_timer.c	8.2 (Berkeley) 5/24/95
- *	$Id: tcp_timer.c,v 1.4 2008/09/01 06:36:17 ralf Exp $
+ *	$Id: tcp_timer.c,v 1.6 2010/03/28 05:47:49 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_tcpdebug.h"
 
@@ -43,7 +47,7 @@
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/protosw.h>
-#include <sys/errno.h>
+#include <errno.h>
 
 #include <machine/cpu.h>	/* before tcp_seq.h, for tcp_random18() */
 

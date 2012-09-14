@@ -1,14 +1,14 @@
 /*
  *  Event Manager
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: no-event.c,v 1.13 2007/05/09 18:44:20 joel Exp $
+ *  $Id: no-event.c,v 1.14 2008/12/17 20:25:42 joel Exp $
  */
 
 #include <rtems/system.h>
@@ -21,7 +21,7 @@
 #include <rtems/score/thread.h>
 #include <rtems/score/interr.h>
 
-void _Event_Manager_initialization( void )
+void _Event_Manager_initialization(void)
 {
 }
 

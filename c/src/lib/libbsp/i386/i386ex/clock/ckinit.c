@@ -16,7 +16,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.19 2008/09/05 22:04:54 joel Exp $
+ *  $Id: ckinit.c,v 1.22 2009/11/06 07:50:43 ralf Exp $
  */
 #define TMR0	  0xF040
 #define TMR1	  0xF041
@@ -26,8 +26,6 @@
 
 #include <bsp.h>
 #include <bsp/irq.h>
-
-#include <rtems/libio.h>
 
 #include <stdlib.h>
 
@@ -49,7 +47,7 @@ rtems_device_major_number rtems_clock_minor = 0;
  *  This is the ISR handler.
  */
 
-void Clock_isr()
+void Clock_isr(rtems_irq_hdl_param unused)
 {
   /* enable_tracing(); */
   Clock_driver_ticks += 1;

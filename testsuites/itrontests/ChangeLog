@@ -1,3 +1,66 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* itronmbf01/init.c, itronsem01/init.c, itronsem01/system.h,
+	itrontask02/dormant.c, itrontask02/init.c, itrontask03/init.c,
+	itrontask03/preempt.c: Use rtems_test_assert() consistently instead
+	of system assert(). rtems_test_assert() is designed to integrate into
+	the RTEMS test suite infrastructure.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* itrontime01/init.c: Use %ld to print "time"s.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* itrontime01/init.c: Use "long"s for "time"s (16bit compliance).
+	* itrontask04/task3.c: Add missing prototypes.
+	* itrontask02/system.h, itrontask03/system.h, itrontask04/system.h:
+	Add missing prototypes.
+	* itrontask02/dormant.c: Add missing prototypes.
+	* itrontask01/task1.c: Add missing prototypes.
+	* itrontask01/system.h: Add missing prototypes.
+	* itronsem01/init.c: Use PRId32 to print INT's.
+	* itronmbf01/init.c: Add missing prototypes.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* itrontask01/task1.c, itrontask02/dormant.c, itrontask03/task1.c,
+	itrontask03/task2.c, itrontask03/task3.c, itrontask04/task3.c:
+	Eliminate test routines TICKS_PER_SECOND and get_ticks_per_second()
+	in favor of new rtems_clock_get_ticks_per_second().
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* itrontask01/task1.c: Convert calls to legacy routine rtems_clock_get(
+	RTEMS_CLOCK_GET_TOD, ..) to rtems_clock_get_tod(..).
+
+2009-04-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* itronhello/Makefile.am, itronmbf01/Makefile.am,
+	itronmbox01/Makefile.am, itronsem01/Makefile.am,
+	itrontask01/Makefile.am, itrontask02/Makefile.am,
+	itrontask03/Makefile.am, itrontask04/Makefile.am,
+	itrontime01/Makefile.am: 
+	Eliminate _exe_/.exe.
+
+2008-12-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* itrontask04/init.c: Run all tests successfully with maxixum number of
+	priorities as 16 instead of 256. This was done by temporarily
+	modifying the score priority.h maximum. This allowed testing of all
+	API code to ensure that it worked properly with a reduced number of
+	priorities. Most modifications were to switch from hard-coded maximum
+	to using the API provided methods to determine maximum number of
+	priority levels.
+
 2008-05-21	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* itronhello/system.h, itronmbox01/system.h, itrontask02/system.h,

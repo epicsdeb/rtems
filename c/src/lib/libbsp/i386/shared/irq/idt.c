@@ -15,7 +15,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: idt.c,v 1.13 2007/09/12 15:16:02 joel Exp $
+ * $Id: idt.c,v 1.14 2009/10/16 22:14:01 ccj Exp $
  */
 
 #include <libcpu/cpu.h>
@@ -87,7 +87,8 @@ int i386_set_idt_entry  (const rtems_raw_irq_connect_data* irq)
 
     raw_irq_table [irq->idtIndex] = *irq;
     create_interrupt_gate_descriptor (&idt_entry_tbl[irq->idtIndex], irq->hdl);
-    irq->on(irq);
+    if (irq->on)
+      irq->on(irq);
 
     rtems_interrupt_enable(level);
     return 1;
@@ -168,7 +169,8 @@ int i386_delete_idt_entry (const rtems_raw_irq_connect_data* irq)
 
     idt_entry_tbl[irq->idtIndex] = default_idt_entry;
 
-    irq->off(irq);
+    if (irq->off)
+      irq->off(irq);
 
     raw_irq_table[irq->idtIndex] = default_raw_irq_entry;
     raw_irq_table[irq->idtIndex].idtIndex = irq->idtIndex;

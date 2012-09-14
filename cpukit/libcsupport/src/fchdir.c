@@ -1,14 +1,14 @@
 /*
  *  fchdir() - compatible with SVr4, 4.4BSD and X/OPEN - Change Directory
  *
- *  COPYRIGHT (c) 1989-2000.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fchdir.c,v 1.8 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: fchdir.c,v 1.9.2.1 2011/07/31 14:12:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -34,12 +34,6 @@ int fchdir(
   rtems_libio_check_fd( fd );
   iop = rtems_libio_iop( fd );
   rtems_libio_check_is_open(iop);
-
-  /*
-   *  Now process the fchmod().
-   */
-
-  rtems_libio_check_permissions( iop, LIBIO_FLAGS_READ );
 
   /*
    * Verify you can change directory into this node.
@@ -76,7 +70,7 @@ int fchdir(
   rtems_filesystem_current = iop->pathinfo;
 
   /* clone the current node */
-  if (rtems_filesystem_evaluate_path(".", 0, &loc, 0)) {
+  if (rtems_filesystem_evaluate_path(".", 1, 0, &loc, 0)) {
     /* cloning failed; restore original and bail out */
     rtems_filesystem_current = saved;
 	return -1;

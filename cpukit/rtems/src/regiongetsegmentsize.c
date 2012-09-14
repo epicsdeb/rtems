@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regiongetsegmentsize.c,v 1.10 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regiongetsegmentsize.c,v 1.18 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,13 +43,13 @@
  */
 
 rtems_status_code rtems_region_get_segment_size(
-  Objects_Id         id,
-  void              *segment,
-  size_t            *size
+  rtems_id   id,
+  void      *segment,
+  uintptr_t *size
 )
 {
   Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
+  rtems_status_code        return_status = RTEMS_SUCCESSFUL;
   register Region_Control *the_region;
 
   if ( !segment )
@@ -64,10 +64,8 @@ rtems_status_code rtems_region_get_segment_size(
     switch ( location ) {
 
       case OBJECTS_LOCAL:
-        if ( !_Heap_Size_of_user_area( &the_region->Memory, segment, size ) )
+        if ( !_Heap_Size_of_alloc_area( &the_region->Memory, segment, size ) )
           return_status = RTEMS_INVALID_ADDRESS;
-        else
-          return_status = RTEMS_SUCCESSFUL;
         break;
 
 #if defined(RTEMS_MULTIPROCESSING)

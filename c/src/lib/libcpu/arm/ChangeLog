@@ -1,3 +1,183 @@
+2011-07-13	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	PR 1832/libcpu
+	* at91rm9200/irq/irq.c: he bsp_interrupt_dispatch routine does not
+	determine the correct interrupt source number. According to the
+	datasheet, the reading of the interrupt vector register (AIC_IVR)
+	notifies the hardware that the OS is taken care of the interrupt.
+	Only after AIC_IVR have been read can the correct source number be
+	read from the interrupt status register (AIC_ISR).
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* at91rm9200/dbgu/dbgu.c, at91rm9200/usart/usart.c,
+	pxa255/ffuart/ffuart.c: Fixed warnings due to Termios API change.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* at91rm9200/irq/irq.c, at91rm9200/irq/irq.h, lpc22xx/irq/irq.c,
+	lpc22xx/irq/irq.h, mc9328mxl/irq/irq.c, mc9328mxl/irq/irq.h,
+	pxa255/irq/irq.c, pxa255/irq/irq.h, s3c24xx/irq/irq.c,
+	s3c24xx/irq/irq.h: The previous interrupt warning fix changed the
+	interrupt handler API.  To fix this problem the generic interrupt
+	support framework will be used now.  This eliminates a lot of copy and
+	paste code.  The interrupt header file is now <bsp/irq.h>.
+	* at91rm9200/clock/clock.c, lpc22xx/clock/clockdrv.c,
+	mc9328mxl/clock/clockdrv.c, pxa255/clock/clock.c,
+	s3c24xx/clock/clockdrv.c: Include <bsp/irq.h> instead of <irq.h>.
+	* at91rm9200/irq/bsp_irq_asm.S, at91rm9200/irq/bsp_irq_init.c,
+	mc9328mxl/irq/bsp_irq_asm.S, mc9328mxl/irq/bsp_irq_init.c,
+	s3c24xx/irq/bsp_irq_asm.S, s3c24xx/irq/bsp_irq_init.c: Removed files.
+	* Makefile.am, preinstall.am: Reflect changes above.
+
+2010-04-09	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* configure.ac, Makefile.am, at91rm9200/clock/clock.c,
+	at91rm9200/irq/bsp_irq_init.c,
+	at91rm9200/irq/irq.h, at91rm9200/usart/usart.c,
+	lpc22xx/clock/clockdrv.c, lpc22xx/irq/bsp_irq_init.c,
+	lpc22xx/irq/irq.h, mc9328mxl/irq/bsp_irq_init.c,
+	mc9328mxl/irq/irq.h libcpu/arm/pxa255/clock/clock.c,
+	pxa255/irq/bsp_irq_init.c, pxa255/irq/irq.h,
+	s3c24xx/clock/clockdrv.c, s3c24xx/irq/bsp_irq_init.c,
+	s3c24xx/irq/irq.h: changes to consolidate s3c24xx support and to
+	make irq system warning-free
+	* s3c2400/clock/clockdrv.c, s3c2400/clock/support.c,
+	s3c2400/include/s3c2400.h, s3c2400/irq/bsp_irq_asm.S,
+	s3c2400/irq/bsp_irq_init.c, s3c2400/irq/irq.c
+	libcpu/arm/s3c2400/irq/irq.h, s3c2400/timer/timer.c,
+	s3c2410/include/s3c2410.h, s3c2410/irq/bsp_irq_asm.S,
+	s3c2410/irq/irq.h: removed after merge into s3c24xx
+
+	* s3c24xx/include/s3c2400.h, s3c24xx/include/s3c2410.h,
+	s3c24xx/rq/bsp_irq_asm.S: moved from s3c2400 or s3c2410 tree
+
+2010-04-08	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/include/arm-cp15.h: Documentation.  Fixed mask defines.
+
+2010-03-03	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/include/cache.h: Fixed _CPU_cache_disable_data().
+
+2010-01-12	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/include/arm-cp15.h, shared/include/cache.h,
+	shared/include/cache_.h: New files.
+	* Makefile.am, preinstall.am: Update for new files.
+	* shared/arm920/mmu.c: Include and use <libcpu/arm-cp15.h>.
+
+2009-11-30	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* at91rm9200/include/at91rm9200.h: Update to match development version.
+
+2009-11-21	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* Makefile.am, preinstall.am, at91rm9200/include/at91rm9200.h: Add
+	initial support for USART on at91rm9200.
+	* at91rm9200/include/at91rm9200_usart.h, at91rm9200/usart/usart.c:
+	New files.
+
+2009-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* pxa255/ffuart/ffuart.c: Add BSP_poll_char.
+
+2009-08-22	Xi Yang <hiyangxi@gmail.com>
+
+	* pxa255/include/pxa255.h: Add constants for LCD, Network, and Timer.
+	* pxa255/irq/bsp_irq_init.c, pxa255/irq/irq.c,
+	pxa255/irq/irq.h: Change to dummy_handler().
+
+2009-08-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* s3c2400/clock/clockdrv.c, s3c24xx/clock/clockdrv.c: Add stubs for
+	nanoseconds since tick handler.
+
+2009-08-06	Xi Yang <hiyangxi@gmail.com>
+
+	* pxa255/clock/clock.c: Adjust clock for Skyeye. Joel added empty
+	nanoseconds since last tick handler.
+
+2009-08-04	Xi Yang <hiyangxi@gmail.com>
+
+	* pxa255/clock/clock.c: Move parentheses to improve math. More tests
+	run.
+
+2009-07-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am: Removed references to deleted file
+	'../../libbsp/arm/shared/irq/irq_asm.S'.
+	* s3c2410/irq/bsp_irq_asm.S, lpc22xx/irq/bsp_irq_asm.S,
+	pxa255/irq/bsp_irq_asm.S, mc9328mxl/irq/bsp_irq_asm.S,
+	at91rm9200/irq/bsp_irq_asm.S, s3c2400/irq/bsp_irq_asm.S: Renamed
+	ExecuteITHandler() into bsp_interrupt_dispatch().
+
+2009-07-10	Xi Yang <hiyangxi@gmail.com>
+
+	* Makefile.am, pxa255/ffuart/ffuart.c, pxa255/include/pxa255.h,
+	pxa255/pmc/pmc.c: Add PMC support.
+
+2009-06-29	Xi Yang <hiyangxi@gmail.com>
+
+	* pxa255/ffuart/ffuart.c, pxa255/include/pxa255.h: Add Skyeye support.
+	* pxa255/include/bits.h: Removed.
+
+2009-06-05	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* preinstall.am, pxa255/clock/clock.c, pxa255/ffuart/ffuart.c,
+	pxa255/irq/bsp_irq_init.c, pxa255/timer/timer.c: Fix typos and update
+	timer.
+
+2009-06-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* pxa255/clock/clock.c: Add ON_SKYEYE option to enable fast idle mode.
+
+2009-06-04	Xi Yang <hiyangxi@gmail.com>
+
+	* Makefile.am, configure.ac, preinstall.am: New Gumstix BSP and PXA255
+	support.
+	* pxa255/clock/clock.c, pxa255/ffuart/ffuart.c, pxa255/include/bits.h,
+	pxa255/include/ffuart.h, pxa255/include/pxa255.h,
+	pxa255/irq/bsp_irq_asm.S, pxa255/irq/bsp_irq_init.c,
+	pxa255/irq/irq.c, pxa255/irq/irq.h, pxa255/pmc/pmc.c,
+	pxa255/timer/timer.c: New files.
+
+2009-06-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* at91rm9200/dbgu/dbgu.c: Needed carriage return on newline.
+
+2009-05-27	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* at91rm9200/clock/clock.c: Add support for nanoseconds since last
+	tick. The resolution is not that high but better than nothing.
+
+2008-12-11	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* at91rm9200/clock/clock.c, lpc22xx/clock/clockdrv.c,
+	mc9328mxl/clock/clockdrv.c, s3c2400/clock/clockdrv.c,
+	s3c24xx/clock/clockdrv.c: 
+	Include ../../../../libbsp/shared/clockdrv_shell.h 
+	instead of ../../../../libbsp/shared/clockdrv_shell.c.
+
+2008-12-11	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* lpc22xx/include/lpc22xx.h, mc9328mxl/include/mc9328mxl.h: 
+	#include <stdint.h> instead of <rtems/stdint.h>.
+	* at91rm9200/dbgu/dbgu.c: Add missing prototype.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* at91rm9200/dbgu/dbgu.c: Use standardized bsp_cleanup() which can
+	optionally print a message, poll for user to press key, and call
+	bsp_reset(). Using this eliminates the various bsp_cleanup()
+	implementations which had their own implementation and variety of
+	string constants. This driver had to support the standard poll
+	key input method.
+
 2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* at91rm9200/timer/timer.c, lpc22xx/timer/timer.c, 

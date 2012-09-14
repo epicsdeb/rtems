@@ -14,6 +14,7 @@ _start:
 	cmp	r1,r0
 	blo	.loop
         ;       call __main
+	mov.w	#0,r0		; pass in NULL
 	jsr	@_boot_card
 	mov.w	#0,r0		; indicate reason to exit
 	sleep

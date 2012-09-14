@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clocktodtoseconds.c,v 1.8 2007/04/05 21:17:26 joel Exp $
+ *  $Id: clocktodtoseconds.c,v 1.9 2009/05/04 11:09:05 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -53,7 +53,7 @@ const uint16_t   _TOD_Days_since_last_leap_year[4] = { 0, 366, 731, 1096 };
  */
 
 uint32_t   _TOD_To_seconds(
-  rtems_time_of_day *the_tod
+  const rtems_time_of_day *the_tod
 )
 {
   uint32_t   time;

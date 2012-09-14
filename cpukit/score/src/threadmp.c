@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadmp.c,v 1.18 2008/09/08 15:19:34 joel Exp $
+ *  $Id: threadmp.c,v 1.19 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -92,7 +92,7 @@ Thread_Control *_Thread_MP_Allocate_proxy (
 
   _Internal_error_Occurred(
     INTERNAL_ERROR_CORE,
-    TRUE,
+    true,
     INTERNAL_ERROR_OUT_OF_PROXIES
   );
 

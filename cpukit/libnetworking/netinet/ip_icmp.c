@@ -31,8 +31,12 @@
  */
 
 /*
- * $Id: ip_icmp.c,v 1.12 2008/09/01 06:36:17 ralf Exp $
+ * $Id: ip_icmp.c,v 1.14 2010/03/28 05:47:49 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -215,9 +219,9 @@ freeit:
 	m_freem(n);
 }
 
-static struct sockaddr_in icmpsrc = { sizeof (struct sockaddr_in), AF_INET };
-static struct sockaddr_in icmpdst = { sizeof (struct sockaddr_in), AF_INET };
-static struct sockaddr_in icmpgw = { sizeof (struct sockaddr_in), AF_INET };
+static struct sockaddr_in icmpsrc = { sizeof (struct sockaddr_in), AF_INET, 0, {0}, {0} };
+static struct sockaddr_in icmpdst = { sizeof (struct sockaddr_in), AF_INET, 0, {0}, {0} };
+static struct sockaddr_in icmpgw = { sizeof (struct sockaddr_in), AF_INET, 0, {0}, {0} };
 
 /*
  * Process a received ICMP message.

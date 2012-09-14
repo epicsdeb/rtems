@@ -30,35 +30,35 @@
    01a,20Dec00,jpb         created
  */
 
-#ifndef __RSPMCQ1_H
-#define __RSPMCQ1_H
+#ifndef __INCPMCQ1H
+#define __INCPMCQ1H
 
 /*
  * PMCQ1 definitions
  */
 
-/* 
- * 360 definitions 
+/*
+ * 360 definitions
  */
 
 #define Q1_360_MBAR		0x0003ff00				/* master base address register */
 
 #define REG_B_OFFSET		0x1000					/* offset to the internal registers */
 
-#define Q1_360_SIM_MCR		(REG_B_OFFSET+0x00)		
-#define Q1_360_SIM_PEPAR	(REG_B_OFFSET+0x16)		
-#define Q1_360_SIM_SYPCR	(REG_B_OFFSET+0x22)		
-#define Q1_360_SIM_PICR		(REG_B_OFFSET+0x26)		
-#define Q1_360_SIM_PITR		(REG_B_OFFSET+0x2A)		
-#define Q1_360_SIM_GMR		(REG_B_OFFSET+0x40)	
-#define Q1_360_SIM_BR0		(REG_B_OFFSET+0x50)	
-#define Q1_360_SIM_OR0		(REG_B_OFFSET+0x54)	
-#define Q1_360_SIM_BR1		(REG_B_OFFSET+0x60)	
-#define Q1_360_SIM_OR1		(REG_B_OFFSET+0x64)	
+#define Q1_360_SIM_MCR		(REG_B_OFFSET+0x00)
+#define Q1_360_SIM_PEPAR	(REG_B_OFFSET+0x16)
+#define Q1_360_SIM_SYPCR	(REG_B_OFFSET+0x22)
+#define Q1_360_SIM_PICR		(REG_B_OFFSET+0x26)
+#define Q1_360_SIM_PITR		(REG_B_OFFSET+0x2A)
+#define Q1_360_SIM_GMR		(REG_B_OFFSET+0x40)
+#define Q1_360_SIM_BR0		(REG_B_OFFSET+0x50)
+#define Q1_360_SIM_OR0		(REG_B_OFFSET+0x54)
+#define Q1_360_SIM_BR1		(REG_B_OFFSET+0x60)
+#define Q1_360_SIM_OR1		(REG_B_OFFSET+0x64)
 
-#define Q1_360_CPM_ICCR		(REG_B_OFFSET+0x500)		
-#define Q1_360_CPM_SDCR		(REG_B_OFFSET+0x51E)		
-#define Q1_360_CPM_CICR		(REG_B_OFFSET+0x540)		
+#define Q1_360_CPM_ICCR		(REG_B_OFFSET+0x500)
+#define Q1_360_CPM_SDCR		(REG_B_OFFSET+0x51E)
+#define Q1_360_CPM_CICR		(REG_B_OFFSET+0x540)
 
 /*
  * EPLD offsets
@@ -95,6 +95,10 @@
 #define PMCQ1_MINIACE_MEM       0x00100000
 #define PMCQ1_RAM               0x00200000
 
+/*
+#define PMCQ1_Read_EPLD( _base, _reg ) ( *((unsigned long *) ((unsigned32)_base + _reg)) )
+#define PMCQ1_Write_EPLD( _base, _reg, _data ) *((unsigned long *) ((unsigned32)_base + _reg)) = _data
+*/
 uint32_t PMCQ1_Read_EPLD( uint32_t base, uint32_t reg );
 void     PMCQ1_Write_EPLD( uint32_t base, uint32_t reg, uint32_t data );
 
@@ -104,7 +108,7 @@ void     PMCQ1_Write_EPLD( uint32_t base, uint32_t reg, uint32_t data );
 
 #define QSPAN2_INT_STATUS	0x00000600
 
-typedef void (*PMCQ1_FUNCTION_PTR) (void *);
+typedef void (*FUNCION_PTR) (int);
 
 #define PCI_ID(v, d) ((d << 16) | v)
 
@@ -119,18 +123,18 @@ typedef void (*PMCQ1_FUNCTION_PTR) (void *);
 
 
 
-typedef struct _PMCQ1BoardData 
+typedef struct _PMCQ1BoardData
 {
-    struct _PMCQ1BoardData              *pNext;     
-    unsigned long                       busNo;
-    unsigned long                       slotNo;
-    unsigned long                       funcNo;
-    unsigned long                       baseaddr;
-    unsigned long                       bridgeaddr;
-    PMCQ1_FUNCTION_PTR                  quiccInt;
-    void *                              quiccArg;
-    PMCQ1_FUNCTION_PTR                  maInt;
-    void *                              maArg;
+    struct _PMCQ1BoardData   		*pNext;
+    unsigned long			busNo;
+    unsigned long			slotNo;
+    unsigned long			funcNo;
+    unsigned long			baseaddr;
+    unsigned long			bridgeaddr;
+    FUNCION_PTR				quiccInt;
+    int					quiccArg;
+    FUNCION_PTR				maInt;
+    int					maArg;
 } PMCQ1BoardData, *PPMCQ1BoardData;
 
 extern PPMCQ1BoardData  pmcq1BoardData;
@@ -139,21 +143,19 @@ extern PPMCQ1BoardData  pmcq1BoardData;
  * Function declarations
  */
 extern unsigned int rsPMCQ1QuiccIntConnect(
-  unsigned long         busNo, 
-  unsigned long         slotNo, 
-  unsigned long         funcNo, 
-  PMCQ1_FUNCTION_PTR    routine, 
-  void *                arg
+  unsigned long         busNo,
+  unsigned long         slotNo,
+  unsigned long         funcNo,
+  FUNCION_PTR           routine,
+  int                   arg
 );
-unsigned int rsPMCQ1Init();
+unsigned int rsPMCQ1Init(void);
 unsigned int rsPMCQ1MaIntConnect (
     unsigned long       busNo,  /* Pci Bus number of PMCQ1 */
     unsigned long       slotNo, /* Pci Slot number of PMCQ1 */
     unsigned long       funcNo, /* Pci Function number of PMCQ1 */
-    PMCQ1_FUNCTION_PTR  routine,/* interrupt routine */
-    void *              arg     /* argument to pass to interrupt routine */
+    FUNCION_PTR         routine,/* interrupt routine */
+    int                 arg     /* argument to pass to interrupt routine */
 );
 
-void rsPMCQ1ShowIntrStatus(void );
-
-#endif				/* __RSPMCQ1_H */
+#endif				/* __INCPMCQ1H */

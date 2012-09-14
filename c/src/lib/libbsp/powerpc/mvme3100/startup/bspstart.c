@@ -16,7 +16,7 @@
  *
  *  Modified for mvme3100 by T. Straumann
  *
- *  $Id: bspstart.c,v 1.7.2.2 2009/03/05 21:20:59 strauman Exp $
+ *  $Id: bspstart.c,v 1.15 2009/11/30 04:34:37 ralf Exp $
  */
 
 #include <string.h>
@@ -28,13 +28,13 @@
 #include <libcpu/spr.h>
 #include <libcpu/io.h>
 #include <libcpu/e500_mmu.h>
-#include <bsp/uart.h> 
-#include <bsp/irq.h> 
-#include <bsp/pci.h> 
+#include <bsp/uart.h>
+#include <bsp/irq.h>
+#include <bsp/pci.h>
 #include <bsp/vpd.h>
 #include <libcpu/cpuIdent.h>
 #include <bsp/vectors.h>
-#include <rtems/powerpc/powerpc.h> 
+#include <rtems/powerpc/powerpc.h>
 
 #define SHOW_MORE_INIT_SETTINGS
 #undef  DEBUG
@@ -48,12 +48,9 @@
 #endif
 
 extern unsigned long __rtems_end[];
-extern void			 BSP_vme_config(void);
-
-void bsp_cleanup(void)
-{
-    bsp_reset();
-}
+extern void	         BSP_vme_config(void);
+extern void          BSP_pciConfigDump_early( void );
+extern unsigned      ppc_exc_lock_std, ppc_exc_gpr3_std;
 
 /*
  * Copy Additional boot param passed by boot loader
@@ -62,8 +59,6 @@ void bsp_cleanup(void)
 
 static char cmdline_buf[CMDLINE_BUF_SIZE] = {0};
 char *BSP_commandline_string         = cmdline_buf;
-
-extern const char *BSP_build_date;
 
 /*
  * Vital Board data Start using DATA RESIDUAL
@@ -74,14 +69,10 @@ uint32_t bsp_clicks_per_usec         = 0;
  */
 unsigned int BSP_mem_size            = 0;
 /*
- * Where the heap starts; is used by bsp_pretasking_hook;
- */
-unsigned int BSP_heap_start          = 0;
-/* 
  * PCI Bus Frequency
  */
 unsigned int BSP_pci_bus_frequency   = 0xdeadbeef;
-/* 
+/*
  * PPC Bus Frequency
  */
 unsigned int BSP_bus_frequency       = 0;
@@ -113,11 +104,6 @@ int i;
 	printk("\n");
 }
 
-/*
- * system init stack and soft ir stack size
- */
-#define INIT_STACK_SIZE 0x1000
-#define INTR_STACK_SIZE rtems_configuration_get_interrupt_stack_size()
 
 BSP_output_char_function_type BSP_output_char = BSP_output_char_via_serial;
 
@@ -146,11 +132,12 @@ char *rtems_progname;
  *  Use the shared implementations of the following routines
  */
 
-void save_boot_params(void* r3, void *r4, void* r5, char *additional_boot_options)
+char * save_boot_params(void* r3, void *r4, void* r5, char *additional_boot_options)
 {
 
   strncpy(cmdline_buf, additional_boot_options, CMDLINE_BUF_SIZE);
   cmdline_buf[CMDLINE_BUF_SIZE - 1] ='\0';
+  return cmdline_buf;
 }
 
 #define CS_CONFIG_CS_EN (1<<31)
@@ -171,7 +158,7 @@ _ccsr_wr32(uint32_t off, uint32_t val)
 
 
 STATIC uint32_t
-BSP_get_mem_size()
+BSP_get_mem_size( void )
 {
 int i;
 uint32_t	cs_bnds, cs_config;
@@ -189,7 +176,7 @@ uint32_t	v;
 }
 
 STATIC void
-BSP_calc_freqs()
+BSP_calc_freqs( void )
 {
 uint32_t	porpllsr   = _ccsr_rd32( 0xe0000 );
 unsigned	plat_ratio = (porpllsr >> (31-30)) & 0x1f;
@@ -281,10 +268,10 @@ SPR_RW(HID1)
 
 void bsp_start( void )
 {
+rtems_status_code   sc;
 unsigned char       *stack;
-uint32_t            intrStackStart;
-uint32_t            intrStackSize;
-unsigned char       *work_space_start;
+uintptr_t           intrStackStart;
+uintptr_t           intrStackSize;
 char                *chpt;
 ppc_cpu_id_t        myCpu;
 ppc_cpu_revision_t  myCpuRevision;
@@ -306,14 +293,14 @@ VpdBufRec          vpdData [] = {
 
 	/*
 	 * Get CPU identification dynamically. Note that the get_ppc_cpu_type()
-	 * function store the result in global variables so that it can be used 
+	 * function store the result in global variables so that it can be used
 	 * later...
 	 */
 	myCpu 	      = get_ppc_cpu_type();
 	myCpuRevision = get_ppc_cpu_revision();
 
 	printk("Welcome to %s\n", _RTEMS_version);
-	printk("BSP: %s, CVS Release ($Name: rtems-4-9-3 $)\n", "mvme3100");
+	printk("BSP: %s, CVS Release ($Name: rtems-4-10-2 $)\n", "mvme3100");
 
 	/*
 	 * the initial stack  has aready been set to this value in start.S
@@ -321,10 +308,6 @@ VpdBufRec          vpdData [] = {
 	 * so that It can be printed without accessing R1.
 	 */
 	asm volatile("mr %0, 1":"=r"(stack));
-#if 0
-	stack = ((unsigned char*) __rtems_end) +
-		INIT_STACK_SIZE - PPC_MINIMUM_STACK_FRAME_SIZE;
-#endif
 
 	/* tag the bottom */
 	*((uint32_t*)stack) = 0;
@@ -332,18 +315,20 @@ VpdBufRec          vpdData [] = {
 	/*
 	 * Initialize the interrupt related settings.
 	 */
-	intrStackStart = (uint32_t) __rtems_end + INIT_STACK_SIZE;
-	intrStackSize = INTR_STACK_SIZE;
-	BSP_heap_start = intrStackStart + intrStackSize;
+	intrStackStart = (uintptr_t) __rtems_end;
+	intrStackSize = rtems_configuration_get_interrupt_stack_size();
 
 	/*
 	 * Initialize default raw exception handlers.
 	 */
-	ppc_exc_initialize(
+	sc = ppc_exc_initialize(
 		PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
 		intrStackStart,
 		intrStackSize
 	);
+	if (sc != RTEMS_SUCCESSFUL) {
+		BSP_panic("cannot initialize exceptions");
+	}
 
 	printk("CPU 0x%x - rev 0x%x\n", myCpu, myCpuRevision);
 
@@ -400,8 +385,6 @@ VpdBufRec          vpdData [] = {
 		_ccsr_wr32(0x2e44, _ccsr_rd32(0x2e44) & ~1 );
 	}
 
-	printk("Build Date: %s\n",BSP_build_date);
-
 	BSP_vpdRetrieveFields( vpdData );
 
 	printk("Board Type: %s (S/N %s)\n",
@@ -433,7 +416,6 @@ VpdBufRec          vpdData [] = {
 #ifdef SHOW_MORE_INIT_SETTINGS
 	printk("Number of PCI buses found is : %d\n", pci_bus_count());
 	{
-		void BSP_pciConfigDump_early();
 		BSP_pciConfigDump_early();
 	}
 #endif
@@ -458,29 +440,7 @@ VpdBufRec          vpdData [] = {
 	 */
 	_BSP_clear_hostbridge_errors(0 /* enableMCP */, 0/*quiet*/);
 
-	/*
-	 * Set up our hooks
-	 * Make sure libc_init is done before drivers initialized so that
-	 * they can use atexit()
-	 */
-
-	bsp_clicks_per_usec            = BSP_bus_frequency/(BSP_time_base_divisor * 1000);
-
-#ifdef SHOW_MORE_INIT_SETTINGS
-	printk("Configuration.work_space_size = %x\n",
-			Configuration.work_space_size);
-#endif
-
-	work_space_start =
-		(unsigned char *)BSP_mem_size - Configuration.work_space_size;
-
-	if ( work_space_start <=
-			((unsigned char *)__rtems_end) + INIT_STACK_SIZE + INTR_STACK_SIZE) {
-		printk( "bspstart: Not enough RAM!!!\n" );
-		bsp_cleanup();
-	}
-
-	Configuration.work_space_start = work_space_start;
+	bsp_clicks_per_usec = BSP_bus_frequency/(BSP_time_base_divisor * 1000);
 
 	/*
 	 * Initalize RTEMS IRQ system
@@ -497,13 +457,12 @@ VpdBufRec          vpdData [] = {
 		if (0) {
 			asm volatile("mtmsr %0"::"r"(msr|0x8000));
 			for (i=0; i<12; i++)
-				BSP_enable_irq_at_pic(i); 
+				BSP_enable_irq_at_pic(i);
 			printk("IRQS enabled\n");
 		}
 	}
 
 	if (0) {
-		extern unsigned ppc_exc_lock_std, ppc_exc_gpr3_std;
 		unsigned x;
 		asm volatile("mfivpr %0":"=r"(x));
 		printk("IVPR: 0x%08x\n",x);

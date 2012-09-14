@@ -8,14 +8,14 @@
  *  If the times are skewed from these values, then the calendar time
  *  does not correspond correctly with the number of ticks.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.9 2003/09/04 18:53:48 joel Exp $
+ *  $Id: task1.c,v 1.11 2009/08/12 20:50:43 joel Exp $
  */
 
 #include "system.h"
@@ -34,14 +34,14 @@ rtems_task Task_1_through_3(
   while ( FOREVER )  {
     status = rtems_timer_fire_after(
       Timer_id[ argument ],
-      task_number( tid ) * 5 * TICKS_PER_SECOND,
+      task_number( tid ) * 5 * rtems_clock_get_ticks_per_second(),
       Resume_task,
       NULL
     );
     directive_failed( status, "tm_fire_after failed" );
 
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get failed" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod failed" );
 
     if ( time.second >= 35 ) {
       puts( "*** END OF TEST 24 ***" );
@@ -49,7 +49,7 @@ rtems_task Task_1_through_3(
     }
 
     put_name( Task_name[ task_number( tid ) ], FALSE );
-    print_time( " - rtems_clock_get - ", &time, "\n" );
+    print_time( " - rtems_clock_get_tod - ", &time, "\n" );
 
     status = rtems_task_suspend( RTEMS_SELF );
     directive_failed( status, "rtems_task_suspend" );

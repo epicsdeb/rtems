@@ -14,16 +14,12 @@
  *  Modified to support the MCP750.
  *  Modifications Copyright (C) 1999 Eric Valette. valette@crf.canon.fr
  *
- *  $Id: bspstart.c,v 1.47.2.1 2008/10/23 13:45:55 ericn Exp $
+ *  $Id: bspstart.c,v 1.55 2010/04/28 18:51:58 joel Exp $
  */
-
-#warning The interrupt disable mask is now stored in SPRG0, please verify that this is compatible to this BSP (see also bootcard.c).
 
 #include <string.h>
 
 #include <bsp.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <rtems/bspIo.h>
 #include <bsp/consoleIo.h>
 #include <libcpu/spr.h>
@@ -43,11 +39,9 @@ extern unsigned long __rtems_end[];
 extern void L1_caches_enables(void);
 extern unsigned get_L2CR(void);
 extern void set_L2CR(unsigned);
-extern Triv121PgTbl BSP_pgtbl_setup(unsigned long);
+extern Triv121PgTbl BSP_pgtbl_setup(unsigned int *);
 extern void			BSP_pgtbl_activate(Triv121PgTbl);
 extern void			BSP_vme_config(void);
-
-void bsp_cleanup(void) { extern void bsp_reset(void); bsp_reset(); }
 
 SPR_RW(SPRG1)
 
@@ -78,10 +72,7 @@ char *BSP_commandline_string = loaderParam;
  * Total memory using RESIDUAL DATA
  */
 unsigned int BSP_mem_size;
-/*
- * Where the heap starts; is used by bsp_pretasking_hook;
- */
-unsigned int BSP_heap_start;
+
 /*
  * PCI Bus Frequency
  */
@@ -94,10 +85,6 @@ unsigned int BSP_processor_frequency;
  * Time base divisior (how many tick for 1 second).
  */
 unsigned int BSP_time_base_divisor;
-/*
- * system init stack
- */
-#define INIT_STACK_SIZE 0x1000
 
 void BSP_panic(char *s)
 {
@@ -115,27 +102,31 @@ void _BSP_Fatal_error(unsigned int v)
  *  Use the shared implementations of the following routines
  */
 
-void bsp_libc_init( void *, uint32_t, int );
-
-void save_boot_params(RESIDUAL* r3, void *r4, void* r5, char *additional_boot_options)
+char * save_boot_params(
+  RESIDUAL *r3,
+  void     *r4,
+  void     *r5,
+  char     *additional_boot_options
+)
 {
 
   residualCopy = *r3;
   strncpy(loaderParam, additional_boot_options, MAX_LOADER_ADD_PARM);
   loaderParam[MAX_LOADER_ADD_PARM - 1] ='\0';
+  return loaderParam;
 }
 
 #if defined(mvme2100)
 unsigned int EUMBBAR;
 
-/* 
+/*
  * Return the current value of the Embedded Utilities Memory Block Base Address
  * Register (EUMBBAR) as read from the processor configuration register using
  * Processor Address Map B (CHRP).
- */ 
+ */
 unsigned int get_eumbbar(void) {
-  out_le32( (uint32_t*)0xfec00000, 0x80000078 );
-  return in_le32( (uint32_t*)0xfee00000 );
+  out_le32( (volatile unsigned *)0xfec00000, 0x80000078 );
+  return in_le32( (volatile unsigned *)0xfee00000 );
 }
 #endif
 
@@ -147,13 +138,12 @@ unsigned int get_eumbbar(void) {
 
 void bsp_start( void )
 {
-  unsigned char *stack;
+  rtems_status_code sc = RTEMS_SUCCESSFUL;
 #if !defined(mvme2100)
   unsigned l2cr;
 #endif
-  uint32_t intrStackStart;
-  uint32_t intrStackSize;
-  unsigned char *work_space_start;
+  uintptr_t intrStackStart;
+  uintptr_t intrStackSize;
   ppc_cpu_id_t myCpu;
   ppc_cpu_revision_t myCpuRevision;
   prep_t boardManufacturer;
@@ -162,7 +152,7 @@ void bsp_start( void )
 
   /*
    * Get CPU identification dynamically. Note that the get_ppc_cpu_type()
-   * function store the result in global variables so that it can be used 
+   * function store the result in global variables so that it can be used
    * later...
    */
   myCpu 	= get_ppc_cpu_type();
@@ -194,7 +184,7 @@ void bsp_start( void )
 
 #if defined(mvme2100)
   /* Need 0xfec00000 mapped for this */
-  EUMBBAR = get_eumbbar(); 
+  EUMBBAR = get_eumbbar();
 #endif
 
   /*
@@ -217,31 +207,22 @@ void bsp_start( void )
 #endif
 
   /*
-   * the initial stack  has aready been set to this value in start.S
-   * so there is no need to set it in r1 again... It is just for info
-   * so that It can be printed without accessing R1.
-   */
-  stack = ((unsigned char*) __rtems_end) +
-               INIT_STACK_SIZE - PPC_MINIMUM_STACK_FRAME_SIZE;
-
-  /* tag the bottom (T. Straumann 6/36/2001 <strauman@slac.stanford.edu>) */
-  *((uint32_t*)stack) = 0;
-
-  /*
    * Initialize the interrupt related settings.
    */
-  intrStackStart = (uint32_t) __rtems_end + INIT_STACK_SIZE;
+  intrStackStart = (uintptr_t) __rtems_end;
   intrStackSize = rtems_configuration_get_interrupt_stack_size();
-  BSP_heap_start = intrStackStart + intrStackSize;
 
   /*
    * Initialize default raw exception handlers.
    */
-  ppc_exc_initialize(
+  sc = ppc_exc_initialize(
     PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
     intrStackStart,
     intrStackSize
   );
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot initialize exceptions");
+  }
 
   select_console(CONSOLE_LOG);
 
@@ -326,7 +307,6 @@ void bsp_start( void )
 #endif
 
 /* See above */
-#warning The interrupt disable mask is now stored in SPRG0, please verify that this is compatible to this BSP (see also bootcard.c).
 
   BSP_mem_size            = residualCopy.TotalMemory;
   BSP_bus_frequency       = residualCopy.VitalProductData.ProcessorBusHz;
@@ -360,22 +340,6 @@ void bsp_start( void )
    */
   bsp_clicks_per_usec 	 = BSP_bus_frequency/(BSP_time_base_divisor * 1000);
 
-#ifdef SHOW_MORE_INIT_SETTINGS
-  printk("rtems_configuration_get_work_space_size() = %x\n",
-          rtems_configuration_get_work_space_size());
-#endif
-
-  work_space_start =
-    (unsigned char *)BSP_mem_size - rtems_configuration_get_work_space_size();
-
-  if ( work_space_start <= ((unsigned char *)__rtems_end) + INIT_STACK_SIZE + 
-        rtems_configuration_get_interrupt_stack_size()) {
-    printk( "bspstart: Not enough RAM!!!\n" );
-    bsp_cleanup();
-  }
-
-  Configuration.work_space_start = work_space_start;
-
   /*
    * Initalize RTEMS IRQ system
    */
@@ -391,7 +355,7 @@ void bsp_start( void )
 #endif
     BSP_pgtbl_activate(pt);
     /* finally, switch off DBAT3 */
-    setdbat(3, 0, 0, 0, 0); 
+    setdbat(3, 0, 0, 0, 0);
   }
 
 #if defined(DEBUG_BATS)

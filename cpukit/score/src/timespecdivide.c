@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  score/src/timespecdivide.c
  */
 
@@ -10,14 +10,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespecdivide.c,v 1.4 2007/10/26 21:30:59 humph Exp $
+ *  $Id: timespecdivide.c,v 1.6 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#include <stdio.h>
 
 #include <rtems/system.h>
 #include <sys/types.h>

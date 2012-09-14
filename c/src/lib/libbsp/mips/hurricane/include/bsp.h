@@ -1,17 +1,12 @@
-/*  bsp.h
- *
- *  This include file contains all board IO definitions.
- *
- *  XXX : put yours in here
- *
- *  COPYRIGHT (c) 1989-1999.
+/*
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.6 2007/12/11 15:48:51 joel Exp $
+ *  $Id: bsp.h,v 1.9 2009/11/29 15:27:06 ralf Exp $
  */
 
 #ifndef _BSP_H
@@ -31,20 +26,6 @@ extern "C" {
 
 extern void WriteDisplay( char * string );
 
-/*
- *  Stuff for Time Test 27
- */
-
-#define MUST_WAIT_FOR_INTERRUPT 0
-
-#define Install_tm27_vector( handler ) set_vector( (handler), 0, 1 )
-
-#define Cause_tm27_intr()
-
-#define Clear_tm27_intr()
-
-#define Lower_tm27_intr()
-
 extern uint32_t mips_get_timer( void );
 
 #define CPU_CLOCK_RATE_MHZ     (200)
@@ -54,7 +35,7 @@ extern uint32_t mips_get_timer( void );
  *  Simple spin delay in microsecond units for device drivers.
  *  This is very dependent on the clock speed of the target.
  *
- *  NOTE: This macro generates a warning like "integer constant out 
+ *  NOTE: This macro generates a warning like "integer constant out
  *        of range" which is safe to ignore.  In 64 bit mode, unsigned32
  *        types are actually 64 bits long so that comparisons between
  *        unsigned32 types and pointers are valid.  The warning is caused
@@ -78,21 +59,7 @@ extern uint32_t mips_get_timer( void );
 #define RAM_START 0
 #define RAM_END   0x100000
 
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
- 
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
+/* functions */
 
 rtems_isr_entry set_vector(
   rtems_isr_entry, rtems_vector_number, int );

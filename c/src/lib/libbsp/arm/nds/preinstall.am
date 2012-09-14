@@ -28,6 +28,11 @@ $(PROJECT_INCLUDE)/$(dirstamp):
 	@: > $(PROJECT_INCLUDE)/$(dirstamp)
 PREINSTALL_DIRS += $(PROJECT_INCLUDE)/$(dirstamp)
 
+$(PROJECT_INCLUDE)/bsp/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
+	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+
 $(PROJECT_LIB)/bsp_specs: bsp_specs $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/bsp_specs
 PREINSTALL_FILES += $(PROJECT_LIB)/bsp_specs
@@ -36,7 +41,7 @@ $(PROJECT_INCLUDE)/bsp.h: include/bsp.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp.h
 
-$(PROJECT_INCLUDE)/tm27.h: include/tm27.h $(PROJECT_INCLUDE)/$(dirstamp)
+$(PROJECT_INCLUDE)/tm27.h: ../../shared/include/tm27.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/tm27.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/tm27.h
 
@@ -48,6 +53,10 @@ $(PROJECT_INCLUDE)/coverhd.h: ../../shared/include/coverhd.h $(PROJECT_INCLUDE)/
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/coverhd.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/coverhd.h
 
+$(PROJECT_INCLUDE)/bsp/bootcard.h: ../../shared/include/bootcard.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/bootcard.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/bootcard.h
+
 $(PROJECT_LIB)/start.$(OBJEXT): start.$(OBJEXT) $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/start.$(OBJEXT)
 TMPINSTALL_FILES += $(PROJECT_LIB)/start.$(OBJEXT)
@@ -56,26 +65,18 @@ $(PROJECT_LIB)/linkcmds: startup/linkcmds $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds
 PREINSTALL_FILES += $(PROJECT_LIB)/linkcmds
 
-$(PROJECT_INCLUDE)/rtems/$(dirstamp):
-	@$(MKDIR_P) $(PROJECT_INCLUDE)/rtems
-	@: > $(PROJECT_INCLUDE)/rtems/$(dirstamp)
-PREINSTALL_DIRS += $(PROJECT_INCLUDE)/rtems/$(dirstamp)
+$(PROJECT_INCLUDE)/nds/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_INCLUDE)/nds
+	@: > $(PROJECT_INCLUDE)/nds/$(dirstamp)
+PREINSTALL_DIRS += $(PROJECT_INCLUDE)/nds/$(dirstamp)
 
-$(PROJECT_INCLUDE)/rtems/fb.h: fb/fb.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/fb.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/fb.h
+$(PROJECT_INCLUDE)/nds/touchscreen.h: touchscreen/touchscreen.h $(PROJECT_INCLUDE)/nds/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/nds/touchscreen.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/nds/touchscreen.h
 
-$(PROJECT_INCLUDE)/rtems/touchscreen.h: touchscreen/touchscreen.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/touchscreen.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/touchscreen.h
-
-$(PROJECT_INCLUDE)/rtems/sound.h: sound/sound.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/sound.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/sound.h
-
-$(PROJECT_INCLUDE)/irq.h: irq/irq.h $(PROJECT_INCLUDE)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/irq.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/irq.h
+$(PROJECT_INCLUDE)/nds/sound.h: sound/sound.h $(PROJECT_INCLUDE)/nds/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/nds/sound.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/nds/sound.h
 
 $(PROJECT_INCLUDE)/libnds/$(dirstamp):
 	@$(MKDIR_P) $(PROJECT_INCLUDE)/libnds

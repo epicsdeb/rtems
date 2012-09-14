@@ -9,13 +9,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.16 2008/09/05 22:05:54 joel Exp $
+ *  $Id: ckinit.c,v 1.17 2008/09/16 19:09:53 joel Exp $
  */
 
 #include <stdlib.h>
 
 #include <rtems.h>
-#include <rtems/libio.h>
 #include <bsp.h>
 
 void Clock_exit( void );

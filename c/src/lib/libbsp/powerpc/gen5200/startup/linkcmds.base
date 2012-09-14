@@ -22,6 +22,10 @@ bsp_dpram_size = LENGTH (DPRAM);
 
 bsp_section_align = 32;
 
+RamBase = bsp_ram_start;
+RamSize = bsp_ram_size;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
+
 SECTIONS {
 	/*
 	 * BSP: MPC5200 registers
@@ -127,10 +131,9 @@ SECTIONS {
 		. = ALIGN (bsp_section_align);
 
 		/*
-		 * BSP: End and size of text section
+		 * BSP: End of text section
 		 */
 		bsp_section_text_end = .;
-		bsp_section_text_size = bsp_section_text_end - bsp_section_text_start;
 	} > RAM
 
 	.data : {
@@ -215,10 +218,9 @@ SECTIONS {
 		PROVIDE (edata = .);
 
 		/*
-		 * BSP: End and size of data section
+		 * BSP: End of data section
 		 */
 		bsp_section_data_end = .;
-		bsp_section_data_size = bsp_section_data_end - bsp_section_data_start;
 	} > RAM
 
 	.sbss : {
@@ -250,24 +252,30 @@ SECTIONS {
 		PROVIDE (end = .);
 
 		/*
-		 * BSP: End and size of bss section
+		 * BSP: End of bss section
 		 */
 		bsp_section_bss_end = .;
-		bsp_section_bss_size = bsp_section_bss_end - bsp_section_bss_start;
 	} > RAM
+
+	/*
+	 * BSP: Section sizes
+	 */
+	bsp_section_text_size = bsp_section_text_end - bsp_section_text_start;
+	bsp_section_data_size = bsp_section_data_end - bsp_section_data_start;
+	bsp_section_bss_size = bsp_section_bss_end - bsp_section_bss_start;
 
 	/*
 	 * BSP: Interrupt stack
 	 */
-	bsp_interrupt_stack_start = .;
+	bsp_interrupt_stack_start = bsp_section_bss_end;
 	bsp_interrupt_stack_end = bsp_interrupt_stack_start + 32k;
 	bsp_interrupt_stack_size = bsp_interrupt_stack_end - bsp_interrupt_stack_start;
-	. = bsp_interrupt_stack_end;
 
 	/*
 	 * BSP: Work area start
 	 */
-	bsp_work_area_start = .;
+	bsp_work_area_start = bsp_interrupt_stack_end;
+	WorkAreaBase = bsp_work_area_start;
 	
 	/* Stabs debugging sections.  */
 	.stab          0 : { *(.stab) }

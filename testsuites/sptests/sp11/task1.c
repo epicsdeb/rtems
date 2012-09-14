@@ -7,14 +7,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.11 2004/03/30 11:15:16 ralf Exp $
+ *  $Id: task1.c,v 1.14 2009/10/27 08:13:58 ralf Exp $
  */
 
 #include "system.h"
@@ -44,7 +44,7 @@ rtems_task Task_1(
   );
   directive_failed( status, "rtems_event_receive" );
   printf(
-    "TA1 - RTEMS_EVENT_14 and RTEMS_EVENT_15 received - eventout => %08x\n",
+    "TA1 - RTEMS_EVENT_14 and RTEMS_EVENT_15 received - eventout => %08" PRIxrtems_event_set "\n",
     eventout
   );
 
@@ -58,26 +58,26 @@ rtems_task Task_1(
   status = rtems_event_receive(
     RTEMS_EVENT_14,
     RTEMS_DEFAULT_OPTIONS,
-    10 * TICKS_PER_SECOND,
+    10 * rtems_clock_get_ticks_per_second(),
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA1 - RTEMS_EVENT_14 received - eventout => %08x\n", eventout );
+  printf( "TA1 - RTEMS_EVENT_14 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_19 to TA2" );
   status = rtems_event_send( Task_id[ 2 ], RTEMS_EVENT_19 );
   directive_failed( status, "rtems_event_send" );
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-  directive_failed( status, "rtems_clock_get" );
-  print_time( "TA1 - rtems_clock_get - ", &time, "\n" );
+  status = rtems_clock_get_tod( &time );
+  directive_failed( status, "rtems_clock_get_tod" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, "\n" );
 
 rtems_test_pause();
 
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_18 to self after 5 seconds");
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    5 * TICKS_PER_SECOND,
+    5 * rtems_clock_get_ticks_per_second(),
     TA1_send_18_to_self_5_seconds,
     NULL
   );
@@ -91,11 +91,11 @@ rtems_test_pause();
     &eventout
   );
   directive_failed( status, "rtems_event_receive of 18" );
-  printf( "TA1 - RTEMS_EVENT_18 received - eventout => %08x\n", eventout );
+  printf( "TA1 - RTEMS_EVENT_18 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-  directive_failed( status, "TA1 rtems_clock_get" );
-  print_time( "TA1 - rtems_clock_get - ", &time, "\n" );
+  status = rtems_clock_get_tod( &time );
+  directive_failed( status, "TA1 rtems_clock_get_tod" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, "\n" );
 
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_3 to self" );
   status = rtems_event_send( RTEMS_SELF, RTEMS_EVENT_3 );
@@ -112,7 +112,7 @@ rtems_test_pause();
     &eventout
   );
   directive_failed( status, "rtems_event_receive of 3 and 22" );
-  printf( "TA1 - RTEMS_EVENT_3 received - eventout => %08x\n", eventout );
+  printf( "TA1 - RTEMS_EVENT_3 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_4 to self" );
   status = rtems_event_send( RTEMS_SELF, RTEMS_EVENT_4 );
@@ -129,14 +129,14 @@ rtems_test_pause();
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA1 - RTEMS_EVENT_4 received - eventout => %08x\n", eventout );
+  printf( "TA1 - RTEMS_EVENT_4 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
 rtems_test_pause();
 
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_18 to self after 5 seconds");
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    5 * TICKS_PER_SECOND,
+    5 * rtems_clock_get_ticks_per_second(),
     TA1_send_18_to_self_5_seconds,
     NULL
   );
@@ -149,7 +149,7 @@ rtems_test_pause();
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_8 to self after 60 seconds");
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    60 * TICKS_PER_SECOND,
+    60 * rtems_clock_get_ticks_per_second(),
     TA1_send_8_to_self_60_seconds,
     NULL
   );
@@ -158,7 +158,7 @@ rtems_test_pause();
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_9 to self after 60 seconds");
   status = rtems_timer_fire_after(
     Timer_id[ 2 ],
-    60 * TICKS_PER_SECOND,
+    60 * rtems_clock_get_ticks_per_second(),
     TA1_send_9_to_self_60_seconds,
     NULL
   );
@@ -169,7 +169,7 @@ rtems_test_pause();
   );
   status = rtems_timer_fire_after(
     Timer_id[ 3 ],
-    60 * TICKS_PER_SECOND,
+    60 * rtems_clock_get_ticks_per_second(),
     TA1_send_10_to_self,
     NULL
   );
@@ -188,7 +188,7 @@ rtems_test_pause();
   puts( "TA1 - rtems_event_send - send RTEMS_EVENT_1 every second" );
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    TICKS_PER_SECOND,
+    rtems_clock_get_ticks_per_second(),
     TA1_send_1_to_self_every_second,
     NULL
   );
@@ -204,10 +204,10 @@ rtems_test_pause();
     );
     directive_failed( status, "rtems_event_receive" );
 
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
-    printf( "TA1 - RTEMS_EVENT_1 received - eventout => %08x - ", eventout );
+    printf( "TA1 - RTEMS_EVENT_1 received - eventout => %08" PRIxrtems_event_set " - ", eventout );
     print_time( "at ", &time, "\n" );
 
     if ( index < 2 ) {
@@ -288,7 +288,7 @@ rtems_test_pause();
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA1 - RTEMS_EVENT_11 received - eventout => %08x\n", eventout );
+  printf( "TA1 - RTEMS_EVENT_11 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
 rtems_test_pause();
 
@@ -361,7 +361,7 @@ rtems_test_pause();
     RTEMS_NO_TIMEOUT,
     &eventout
   );
-  if ( eventout ) printf( "ERROR -0x%08x events received\n", eventout );
+  if ( eventout ) printf( "ERROR -0x%08" PRIxrtems_event_set " events received\n", eventout );
   else            puts( "TA1 - no events received" );
   fatal_directive_status(
     status,
@@ -383,7 +383,7 @@ rtems_test_pause();
     &eventout
   );
   if ( eventout == RTEMS_EVENT_10 ) puts( "TA1 - RTEMS_EVENT_10 received" );
-  else      printf( "ERROR -0x%08x events received\n", eventout );
+  else      printf( "ERROR -0x%08" PRIxrtems_event_set " events received\n", eventout );
   directive_failed( status, "rtems_event_receive all events" );
 
   puts( "TA1 - rtems_event_send - sending RTEMS_EVENT_11 to self in 100 ticks");

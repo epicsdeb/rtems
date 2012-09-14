@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: apimutexallocate.c,v 1.3 2008/01/23 22:57:43 joel Exp $
+ *  $Id: apimutexallocate.c,v 1.4 2008/12/22 05:52:31 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -24,7 +24,7 @@ void _API_Mutex_Allocate(
 
   CORE_mutex_Attributes attr =  {
     CORE_MUTEX_NESTING_IS_ERROR,
-    FALSE,
+    false,
     CORE_MUTEX_DISCIPLINES_PRIORITY_INHERIT,
     0
   };

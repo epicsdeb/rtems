@@ -33,7 +33,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.51 2008/07/31 14:55:48 joel Exp $
+ *  $Id: cpu.h,v 1.56 2010/04/25 21:37:46 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_CPU_H
@@ -391,11 +391,11 @@ extern "C" {
 
 /* WARNING: If this structure is modified, the constants in cpu.h must be updated. */
 #if (__mips == 1) || (__mips == 32)
-#define __MIPS_REGISTER_TYPE     uint32_t  
-#define __MIPS_FPU_REGISTER_TYPE uint32_t  
+#define __MIPS_REGISTER_TYPE     uint32_t
+#define __MIPS_FPU_REGISTER_TYPE uint32_t
 #elif __mips == 3
-#define __MIPS_REGISTER_TYPE     uint64_t  
-#define __MIPS_FPU_REGISTER_TYPE uint64_t  
+#define __MIPS_REGISTER_TYPE     uint64_t
+#define __MIPS_FPU_REGISTER_TYPE uint64_t
 #else
 #error "mips register size: unknown architecture level!!"
 #endif
@@ -416,7 +416,7 @@ typedef struct {
 } Context_Control;
 
 #define _CPU_Context_Get_SP( _context ) \
-  (_context)->sp
+  (uintptr_t) (_context)->sp
 
 /* WARNING: If this structure is modified, the constants in cpu.h
  *          must also be updated.
@@ -464,13 +464,13 @@ typedef struct {
  *  This struct reflects the stack frame employed in ISR_Handler.  Note
  *  that the ISR routine save some of the registers to this frame for
  *  all interrupts and exceptions.  Other registers are saved only on
- *  exceptions, while others are not touched at all.  The untouched 
- *  registers are not normally disturbed by high-level language 
+ *  exceptions, while others are not touched at all.  The untouched
+ *  registers are not normally disturbed by high-level language
  *  programs so they can be accessed when required.
  *
  *  The registers and their ordering in this struct must directly
  *  correspond to the layout and ordering of * shown in iregdef.h,
- *  as cpu_asm.S uses those definitions to fill the stack frame.  
+ *  as cpu_asm.S uses those definitions to fill the stack frame.
  *  This struct provides access to the stack frame for C code.
  *
  *  Similarly, this structure is used by debugger stubs and exception
@@ -631,23 +631,6 @@ SCORE_EXTERN Context_Control_fp  _CPU_Null_fp_context;
 
 SCORE_EXTERN void               *_CPU_Interrupt_stack_low;
 SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
-
-/*
- *  With some compilation systems, it is difficult if not impossible to
- *  call a high-level language routine from assembly language.  This
- *  is especially true of commercial Ada compilers and name mangling
- *  C++ ones.  This variable can be optionally defined by the CPU porter
- *  and contains the address of the routine _Thread_Dispatch.  This
- *  can make it easier to invoke that routine at the end of the interrupt
- *  sequence (if a dispatch is necessary).
- *
-
-SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)();
- *
- *  NOTE: Not needed on this port.
- */
-
-
 
 /*
  *  Nothing prevents the porter from declaring more CPU specific variables.
@@ -837,17 +820,17 @@ void _CPU_ISR_Set_level( uint32_t   );  /* in cpu.c */
  *  The per-thread status register holds the interrupt enable, FP enable
  *  and global interrupt enable for that thread.  It means each thread can
  *  enable its own set of interrupts.  If interrupts are disabled, RTEMS
- *  can still dispatch via blocking calls.  This is the function of the 
- *  "Interrupt Level", and on the MIPS, it controls the IEC bit and all 
+ *  can still dispatch via blocking calls.  This is the function of the
+ *  "Interrupt Level", and on the MIPS, it controls the IEC bit and all
  *  the hardware interrupts as defined in the SR.  Software ints
- *  are automatically enabled for all threads, as they will only occur under 
- *  program control anyhow.  Besides, the interrupt level parm is only 8 bits, 
+ *  are automatically enabled for all threads, as they will only occur under
+ *  program control anyhow.  Besides, the interrupt level parm is only 8 bits,
  *  and controlling the software ints plus the others would require 9.
  *
- *  If the Interrupt Level is 0, all ints are on.  Otherwise, the 
- *  Interrupt Level should supply a bit pattern to impose on the SR 
+ *  If the Interrupt Level is 0, all ints are on.  Otherwise, the
+ *  Interrupt Level should supply a bit pattern to impose on the SR
  *  interrupt bits; bit 0 applies to the mips1 IEC bit/mips3 EXL&IE, bits 1 thru 6
- *  apply to the SR register Intr bits from bit 10 thru bit 15.  Bit 7 of 
+ *  apply to the SR register Intr bits from bit 10 thru bit 15.  Bit 7 of
  *  the Interrupt Level parameter is unused at this time.
  *
  *  These are the only per-thread SR bits, the others are maintained
@@ -868,20 +851,15 @@ void _CPU_ISR_Set_level( uint32_t   );  /* in cpu.c */
 #define _EXTRABITS      0  /* make sure we're in user mode on MIPS1 processors */
 #endif /* __mips == 1 */
 
-#define _CPU_Context_Initialize( _the_context, _stack_base, _size, _isr, _entry_point, _is_fp ) \
-  { \
- 	uintptr_t  _stack_tmp = \
-           (uintptr_t)(_stack_base) + (_size) - CPU_STACK_ALIGNMENT; \
-        uintptr_t  _intlvl = _isr & 0xff; \
-  	_stack_tmp &= ~(CPU_STACK_ALIGNMENT - 1); \
-  	(_the_context)->sp = _stack_tmp; \
-  	(_the_context)->fp = _stack_tmp; \
-	(_the_context)->ra = (__MIPS_REGISTER_TYPE)_entry_point; \
-	(_the_context)->c0_sr = ((_intlvl==0)?(mips_interrupt_mask() | 0x300 | _INTON): \
-		( ((_intlvl<<9) & mips_interrupt_mask()) | 0x300 | ((_intlvl & 1)?_INTON:0)) ) | \
-				SR_CU0 | ((_is_fp)?SR_CU1:0) | _EXTRABITS; \
-  }
 
+void _CPU_Context_Initialize(
+  Context_Control  *the_context,
+  uintptr_t        *stack_base,
+  uint32_t          size,
+  uint32_t          new_level,
+  void             *entry_point,
+  bool              is_fp
+);
 
 
 /*
@@ -1061,9 +1039,7 @@ extern void mips_break( int error );
  *  This routine performs CPU dependent initialization.
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)
-);
+void _CPU_Initialize(void);
 
 /*
  *  _CPU_ISR_install_raw_handler
@@ -1110,7 +1086,7 @@ void _CPU_Install_interrupt_stack( void );
  *         is TRUE.
  */
 
-void *_CPU_Thread_Idle_body( uint32_t );
+void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 /*
  *  _CPU_Context_switch

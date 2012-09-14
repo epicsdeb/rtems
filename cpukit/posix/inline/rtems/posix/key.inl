@@ -1,12 +1,11 @@
 /**
- * @file rtems/posix/key.inl
- */
-
-/*  rtems/posix/key.inl
+ *  @file rtems/posix/key.inl
  *
  *  This include file contains the static inline implementation of the private 
  *  inlined routines for POSIX key's.
- *
+ */
+
+/*
  *  COPYRIGHT (c) 1989-1999.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -14,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: key.inl,v 1.12 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: key.inl,v 1.13 2009/01/05 20:26:01 joel Exp $
  */
  
 #ifndef _RTEMS_POSIX_KEY_H
@@ -24,9 +23,11 @@
 #ifndef _RTEMS_POSIX_KEY_INL
 #define _RTEMS_POSIX_KEY_INL
  
-/*PAGE
+/**
+ *  @brief _POSIX_Keys_Allocate
  *
- *  _POSIX_Keys_Allocate
+ *  This function allocates a keys control block from
+ *  the inactive chain of free keys control blocks.
  */
  
 RTEMS_INLINE_ROUTINE POSIX_Keys_Control *_POSIX_Keys_Allocate( void )
@@ -34,11 +35,12 @@ RTEMS_INLINE_ROUTINE POSIX_Keys_Control *_POSIX_Keys_Allocate( void )
   return (POSIX_Keys_Control *) _Objects_Allocate( &_POSIX_Keys_Information );
 }
  
-/*PAGE
+/**
+ *  @brief _POSIX_Keys_Free
  *
- *  _POSIX_Keys_Free
+ *  This routine frees a keys control block to the
+ *  inactive chain of free keys control blocks.
  */
- 
 RTEMS_INLINE_ROUTINE void _POSIX_Keys_Free (
   POSIX_Keys_Control *the_key
 )
@@ -46,25 +48,32 @@ RTEMS_INLINE_ROUTINE void _POSIX_Keys_Free (
   _Objects_Free( &_POSIX_Keys_Information, &the_key->Object );
 }
  
-/*PAGE
+/**
+ *  @brief _POSIX_Keys_Get
  *
- *  _POSIX_Keys_Get
+ *  This function maps key IDs to key control blocks.
+ *  If ID corresponds to a local keys, then it returns
+ *  the_key control pointer which maps to ID and location
+ *  is set to OBJECTS_LOCAL.  if the keys ID is global and
+ *  resides on a remote node, then location is set to OBJECTS_REMOTE,
+ *  and the_key is undefined.  Otherwise, location is set
+ *  to OBJECTS_ERROR and the_key is undefined.
  */
  
 RTEMS_INLINE_ROUTINE POSIX_Keys_Control *_POSIX_Keys_Get (
-  Objects_Id         id,
+  pthread_key_t      id,
   Objects_Locations *location
 )
 {
   return (POSIX_Keys_Control *)
-    _Objects_Get( &_POSIX_Keys_Information, id, location );
+    _Objects_Get( &_POSIX_Keys_Information, (Objects_Id) id, location );
 }
  
-/*PAGE
+/**
+ *  @brief _POSIX_Keys_Is_null
  *
- *  _POSIX_Keys_Is_null
+ *  This function returns TRUE if the_key is NULL and FALSE otherwise.
  */
- 
 RTEMS_INLINE_ROUTINE bool _POSIX_Keys_Is_null (
   POSIX_Keys_Control *the_key
 )

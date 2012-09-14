@@ -74,7 +74,11 @@
 /* from if_sl.c,v 1.11 84/10/04 12:54:47 rick Exp */
 /* from NetBSD: if_ppp.c,v 1.15.2.2 1994/07/28 05:17:58 cgd Exp */
 
-/* $Id: ppp_tty.c,v 1.12 2008/09/01 04:56:33 ralf Exp $ */
+/* $Id: ppp_tty.c,v 1.14 2010/03/28 05:50:29 ralf Exp $ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_ppp.h"		/* XXX for ppp_defs.h */
 
@@ -242,7 +246,7 @@ pppopen(struct rtems_termios_tty *tty)
     /* initialize values */
     sc->sc_if.if_flags |= IFF_RUNNING;
     sc->sc_if.if_baudrate =
-	termios_baud_to_number(tty->termios.c_cflag & CBAUD);
+	rtems_termios_baud_to_number(tty->termios.c_cflag & CBAUD);
 
     tty->t_sc = (void *)sc;
 

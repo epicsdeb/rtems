@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -117,10 +116,11 @@ rtems_task Init(
     CALLING_OVERHEAD_RATE_MONOTONIC_DELETE
   );
 
+#define LOOP_TASK_PRIORITY ((RTEMS_MAXIMUM_PRIORITY / 2u) + 1u)
   for ( index=1 ; index <= OPERATION_COUNT ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'T', 'E', 'S', 'T' ),
-      128,
+      LOOP_TASK_PRIORITY,
       RTEMS_MINIMUM_STACK_SIZE,
       RTEMS_DEFAULT_MODES,
       RTEMS_DEFAULT_ATTRIBUTES,
@@ -132,9 +132,10 @@ rtems_task Init(
     directive_failed( status, "rtems_task_start LOOP" );
   }
 
+#define MIDDLE_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 2u)
   status = rtems_task_create(
     rtems_build_name( 'L', 'O', 'W', ' ' ),
-    200,
+    MIDDLE_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,

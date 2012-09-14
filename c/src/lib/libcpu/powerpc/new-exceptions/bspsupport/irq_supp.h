@@ -3,12 +3,12 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_supp.h,v 1.2.2.1 2009/05/05 16:20:51 jennifer Exp $
+ *  $Id: irq_supp.h,v 1.5 2009/11/30 05:07:54 ralf Exp $
  */
 
 #ifndef IRQ_SHARED_IRQ_C_GLUE_H
 #define IRQ_SHARED_IRQ_C_GLUE_H
-/* 
+/*
  *  This header describes the routines that are needed by the shared
  *  version of 'irq.c' (implementing the RTEMS irq API). They
  *  must be provided by the BSP.
@@ -24,8 +24,9 @@
 #endif
 
 #include <rtems.h>
-#include <stdint.h>
 #include <rtems/irq.h>
+
+#include <bsp/vectors.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,8 +52,6 @@ extern int  BSP_disable_irq_at_pic(const rtems_irq_number irqLine);
  */
 extern int  BSP_setup_the_pic(rtems_irq_global_settings* config);
 
-struct _BSP_Exception_frame;
-
 /* IRQ dispatcher to be defined by the PIC driver; note that it MUST
  * implement shared interrupts.
  * Note also that the exception frame passed to this handler is not very
@@ -64,7 +63,7 @@ struct _BSP_Exception_frame;
  * uncaught exception.
  *******************************************************************
  */
-int C_dispatch_irq_handler (struct _BSP_Exception_frame *frame, unsigned int excNum);
+int C_dispatch_irq_handler (BSP_Exception_frame *frame, unsigned int excNum);
 
 /*
  * Snippet to be used by PIC drivers and by bsp_irq_dispatch_list

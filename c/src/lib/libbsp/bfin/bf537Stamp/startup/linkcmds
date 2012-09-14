@@ -1,5 +1,5 @@
 /*
- *  $Id: linkcmds,v 1.1 2008/08/15 20:21:00 joel Exp $
+ *  $Id: linkcmds,v 1.5 2009/05/27 11:58:16 joel Exp $
  */
 
 OUTPUT_FORMAT("elf32-bfin", "elf32-bfin",
@@ -12,8 +12,12 @@ ENTRY(__start)
  * Declare some sizes.
  */
 _RamBase = DEFINED(_RamBase) ? _RamBase : 0x0;
-_RamSize = DEFINED(_RamSize) ? _RamSize : 0x04000000;
-/*_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x0200000;*/
+/* bf537stamp has 64MB ram, but dynamic mmu tables have not yet been
+   implemented.  there are not enough static entries to support 64MB
+   along with banks for io and flash, so waste some RAM at the end
+   to free up mmu entries. */
+_RamSize = DEFINED(_RamSize) ? _RamSize : 0x03400000;
+_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x0;
 _StackSize = DEFINED(_StackSize) ? _StackSize : 0x1000;
 
 MEMORY
@@ -112,12 +116,7 @@ SECTIONS
         _stack_init = .;
         . += _StackSize;
         _clear_end = .;
-        _WorkspaceBase = .;
-        . += 512K;      /* reserve some memory for workspace */
-        _HeapBase = .;
-/*
-        . += _HeapSize;
-*/
+        _WorkAreaBase = .;
          _end = .;
          __end = .;
     } > sdram
@@ -163,8 +162,5 @@ SECTIONS
 
 __RamBase = _RamBase;
 __RamSize = _RamSize;
-__HeapBase = _HeapBase;
-/*__HeapSize = _HeapSize;*/
-__WorkspaceBase = _WorkspaceBase;
 __edata = _edata;
 __etext = _etext;

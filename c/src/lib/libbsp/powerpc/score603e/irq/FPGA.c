@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: FPGA.c,v 1.5.2.2 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: FPGA.c,v 1.10 2009/11/30 04:33:54 ralf Exp $
  */
 
 #include <bsp.h>
@@ -25,7 +25,7 @@
  */
 void initialize_PCI_bridge (void)
 {
-  /* Note: Accept DINKs setup of the PCI Bridge and don't 
+  /* Note: Accept DINKs setup of the PCI Bridge and don't
    *       change anything.
    */
 }
@@ -41,7 +41,7 @@ void set_irq_mask(
   *loc = value;
 }
 
-uint16_t         get_irq_mask(voi)
+uint16_t get_irq_mask( void )
 {
   volatile uint16_t  *loc;
   uint16_t            value;

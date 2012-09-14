@@ -10,14 +10,14 @@
  *    /dev
  *    /dev/XXX   [where XXX includes at least console]
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: test.c,v 1.15 2008/07/17 21:23:19 joel Exp $
+ *  $Id: test.c,v 1.23 2010/06/02 00:50:37 ccj Exp $
  */
 
 #include <stdio.h>
@@ -30,14 +30,16 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <rtems/imfs.h>
 
-#include <assert.h>
 #include <rtems.h>
 #include <rtems/libio.h>
 
 void test_case_reopen_append(void);
 
 char test_write_buffer[ 1024 ];
+rtems_filesystem_operations_table  IMFS_ops_no_evalformake;
+rtems_filesystem_operations_table  IMFS_ops_no_rename;
 
 /*
  *  File test support routines.
@@ -78,8 +80,7 @@ void dump_statbuf( struct stat *buf )
   rtems_filesystem_split_dev_t( buf->st_rdev, major2, minor2 );
 
   printf( "....st_dev     (0x%x:0x%x)\n", major1, minor1 );
-  printf( "....st_ino     %x  may vary by small amount\n",
-      (unsigned int) buf->st_ino );
+  printf( "....st_ino     %" PRIxino_t "  may vary by small amount\n", buf->st_ino );
   printf( "....mode  = %08o\n", (unsigned int) buf->st_mode );
   printf( "....nlink = %d\n", buf->st_nlink );
 
@@ -90,11 +91,8 @@ void dump_statbuf( struct stat *buf )
   printf( "....mtime = %s", ctime(&buf->st_mtime) );
   printf( "....ctime = %s", ctime(&buf->st_ctime) );
 
-#if defined(__svr4__) && !defined(__PPC__) && !defined(__sun__)
-  printf( "....st_blksize %x\n", buf.st_blksize );
-  printf( "....st_blocks  %x\n", buf.st_blocks );
-#endif
-
+  printf( "....st_blksize %" PRIxblksize_t "\n", buf->st_blksize );
+  printf( "....st_blocks  %" PRIxblkcnt_t "\n", buf->st_blocks );
 }
 
 void stat_a_file(
@@ -104,7 +102,7 @@ void stat_a_file(
   int         status;
   struct stat statbuf;
 
-  assert( file );
+  rtems_test_assert( file );
 
   printf( "stat( %s ) returned ", file );
   fflush( stdout );
@@ -118,6 +116,32 @@ void stat_a_file(
     dump_statbuf( &statbuf );
   }
 
+}
+
+int no_evalformake_IMFS_initialize(
+  rtems_filesystem_mount_table_entry_t *mt_entry,
+  const void                           *data
+)
+{
+   return IMFS_initialize_support(
+     mt_entry,
+     &IMFS_ops_no_evalformake,
+     &IMFS_memfile_handlers,
+     &IMFS_directory_handlers
+   );
+}
+
+int no_rename_IMFS_initialize(
+  rtems_filesystem_mount_table_entry_t *mt_entry,
+  const void                           *data
+)
+{
+   return IMFS_initialize_support(
+     mt_entry,
+     &IMFS_ops_no_rename,
+     &IMFS_memfile_handlers,
+     &IMFS_directory_handlers
+   );
 }
 
 
@@ -135,7 +159,7 @@ int main(
 #endif
 {
   int               status;
-  int               max_size;
+  size_t            max_size;
   int               fd;
   int               i;
   struct stat       buf;
@@ -150,6 +174,23 @@ int main(
   rtems_status_code rtems_status;
   rtems_time_of_day time;
 
+  IMFS_ops_no_evalformake = IMFS_ops;
+  IMFS_ops_no_rename = IMFS_ops;
+
+  IMFS_ops_no_evalformake.fsmount_me_h = no_evalformake_IMFS_initialize;
+  IMFS_ops_no_evalformake.evalformake_h = NULL;
+
+  IMFS_ops_no_rename.fsmount_me_h = no_rename_IMFS_initialize;
+  IMFS_ops_no_rename.rename_h = NULL;
+
+  puts( "register no eval-for-make filesystem" );
+  status = rtems_filesystem_register( "nefm", no_evalformake_IMFS_initialize );
+  rtems_test_assert( status == 0 );
+  
+  puts( "register no rename filesystem" );
+  status = rtems_filesystem_register( "nren", no_rename_IMFS_initialize );
+  rtems_test_assert( status == 0 );
+  
   printf( "\n\n*** FILE TEST 1 ***\n" );
 
   /*
@@ -173,7 +214,7 @@ int main(
 
   puts( "stat of /dev/console" );
   status = stat( "/dev/console", &buf );
-  assert( !status );
+  rtems_test_assert( !status );
 
   dump_statbuf( &buf );
 
@@ -184,47 +225,48 @@ int main(
   puts( "" );
   puts( "mkdir /dev/tty" );
   status = mkdir( "/dev/tty", S_IRWXU );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "" );
   puts( "mkdir /usr" );
   status = mkdir( "/usr", S_IRWXU );
-  assert( !status );
+  rtems_test_assert( !status );
   puts( "mkdir /etc" );
   status = mkdir( "/etc", S_IRWXU );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "mkdir /tmp" );
   status = mkdir( "/tmp", S_IRWXU );
-  assert( !status );
+  rtems_test_assert( !status );
 
   /* this tests the ".." path in path name evaluation */
   puts( "mkdir /tmp/.." );
   status = mkdir( "/tmp/..", S_IRWXU );
-  assert( status == -1 );
-  assert( errno == EEXIST );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == EEXIST );
 
   /* now check out trailing separators */
   puts( "mkdir /tmp/" );
   status = mkdir( "/tmp/", S_IRWXU );
-  assert( status == -1 );
-  assert( errno == EEXIST );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == EEXIST );
 
   /* try to make a directory under a non-existent subdirectory */
   puts( "mkdir /j/j1" );
   status = mkdir( "/j/j1", S_IRWXU );
-  assert( status == -1 );
-  assert( errno == ENOENT );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == ENOENT );
 
   /* this tests the ability to make a directory in the current one */
   puts( "mkdir tmp" );
   status = mkdir( "tmp", S_IRWXU );
-  assert( status == -1 );
-  assert( errno == EEXIST );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == EEXIST );
 
   /* test rtems_filesystem_evaluate_path by sending NULL path */
   status = chdir( NULL );
-  assert( status == -1 );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == EFAULT );
 
   /*
    *  Now switch gears and exercise rmdir().
@@ -233,37 +275,37 @@ int main(
   puts( "" );
   puts( "rmdir /usr" );
   status = rmdir( "/usr" );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "rmdir /dev" );
   status = rmdir( "/dev" );
-  assert( status == -1 );
-  assert( errno ==  ENOTEMPTY);
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno ==  ENOTEMPTY);
 
   puts( "rmdir /fred" );
   status = rmdir ("/fred");
-  assert (status == -1);
-  assert( errno == ENOENT );
+  rtems_test_assert (status == -1);
+  rtems_test_assert( errno == ENOENT );
 
   puts( "mknod /dev/test_console" );
   status = mknod( "/dev/test_console", S_IFCHR, 0LL );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "mknod /dev/tty/S3" );
   status = mknod( "/dev/tty/S3", S_IFCHR, 0xFF00000080LL );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts ("mknod /etc/passwd");
   status = mknod( "/etc/passwd", (S_IFREG | S_IRWXU), 0LL );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "mkdir /tmp/my_dir");
   status = mkdir( "/tmp/my_dir", S_IRWXU );
-  assert( status == 0 );
+  rtems_test_assert( status == 0 );
 
   puts("mkfifo /c/my_dir" );
   status = mkfifo( "/c/my_dir", S_IRWXU );
-  assert( status == -1 );
+  rtems_test_assert( status == -1 );
 
   /*
    *  Try to make a directory under a file -- ERROR
@@ -271,8 +313,8 @@ int main(
 
   puts( "mkdir /etc/passwd/j" );
   status = mkdir( "/etc/passwd/j", S_IRWXU );
-  assert( status == -1 );
-  assert( errno == ENOTDIR );
+  rtems_test_assert( status == -1 );
+  rtems_test_assert( errno == ENOTDIR );
 
   /*
    *  Simple open failure case on non-existent file
@@ -280,8 +322,8 @@ int main(
 
   puts( "open /tmp/joel - should fail with ENOENT" );
   fd = open( "/tmp/joel", O_RDONLY );
-  assert( fd == -1 );
-  assert( errno == ENOENT );
+  rtems_test_assert( fd == -1 );
+  rtems_test_assert( errno == ENOENT );
 
   /*
    *  Simple open case where the file is created.
@@ -289,24 +331,24 @@ int main(
 
   puts( "open /tmp/j" );
   fd = open( "/tmp/j", O_RDWR|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO );
-  assert( fd != -1 );
+  rtems_test_assert( fd != -1 );
   printf( "open returned file descriptor %d\n", fd );
 
   puts( "close /tmp/j" );
   status = close( fd );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "close /tmp/j again" );
   status = close( fd );
-  assert( status == -1 );
+  rtems_test_assert( status == -1 );
 
   puts( "unlink /tmp/j" );
   status = unlink( "/tmp/j" );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "unlink /tmp" );
   status = unlink( "/tmp" );
-  assert( status );
+  rtems_test_assert( status );
 
   /*
    *  Simple open failure. Trying to create an existing file.
@@ -314,22 +356,22 @@ int main(
 
   puts("create and close /tmp/tom");
   fd = open( "/tmp/tom", O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO );
-  assert( fd != -1 );
+  rtems_test_assert( fd != -1 );
   status = close( fd );
-  assert( status == 0 );
+  rtems_test_assert( status == 0 );
 
   puts("Attempt to recreate /tmp/tom");
   fd = open( "/tmp/tom", O_CREAT | O_EXCL, S_IRWXU|S_IRWXG|S_IRWXO );
-  assert( fd == -1 );
-  assert( errno == EEXIST );
+  rtems_test_assert( fd == -1 );
+  rtems_test_assert( errno == EEXIST );
 
   puts("create /tmp/john");
   fd = open( "/tmp/john", O_RDWR|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO );
-  assert( fd != -1 );
+  rtems_test_assert( fd != -1 );
 
   puts("tcdrain /tmp/john" );
   status = tcdrain( fd );
-  assert( status == 0 );
+  rtems_test_assert( status == 0 );
 
   /*
    *  Test simple write to a file at offset 0
@@ -340,15 +382,134 @@ int main(
   test_write( "/tmp/joel", 0, "the first write!!!\n" );
   test_cat( "/tmp/joel", 0, 0 );
 
+  /* Exercise _rename_r */
+
+  /* Simple rename test */
+  puts( "rename /tmp/joel to /tmp/drjoel");
+  status = _rename_r(NULL,"/tmp/joel","/tmp/drjoel");
+  rtems_test_assert(status == 0);
+
+  /* Simple rename test */
+  puts("rename /tmp/drjoel to /tmp/joel");
+  status = _rename_r(NULL,"/tmp/drjoel","/tmp/joel");
+  rtems_test_assert(status == 0);
+
+  /* Invalid old path */
+  puts("rename /tmp/drjoel to /tmp/joel - Should result in an error \
+since old path is not valid");
+  status = _rename_r(NULL,"/tmp/drjoel","/tmp/joel");
+  rtems_test_assert(status == -1);
+
+  /* Invalid new path */
+  puts("rename /tmp/joel to /tmp/drjoel/joel - Should result in an error \
+since new path is not valid");
+  status = _rename_r(NULL,"/tmp/joel","/tmp/drjoel/joel");
+  rtems_test_assert(status == -1);
+
+  puts("changing dir to /tmp");
+  status = chdir("/tmp/");
+  rtems_test_assert(status == 0);
+
+  puts("rename joel to drjoel");
+  status = _rename_r(NULL,"joel","drjoel");
+  rtems_test_assert(status == 0);
+
+  puts("rename drjoel to joel");
+  status = _rename_r(NULL,"drjoel","joel");
+  rtems_test_assert(status == 0);
+
+  /* Rename across file systems */
+  puts("creating directory /imfs");
+  status = mkdir("/imfs",0777);
+  rtems_test_assert(status == 0);
+  puts("creating directory /imfs/hidden_on_mount");
+  status = mkdir("/imfs/hidden_on_mount",0777);
+  rtems_test_assert(status == 0);
+
+  puts("mounting filesystem with IMFS_ops at /imfs");
+  status = mount("null", "/imfs", "imfs", RTEMS_FILESYSTEM_READ_WRITE, NULL);
+  rtems_test_assert(status == 0);
+  puts("creating directory /imfs/test (on newly mounted filesystem)");
+  status = mkdir("/imfs/test", 0777);
+  rtems_test_assert(status == 0);
+
+  puts("attempt to rename directory joel to /imfs/test/joel - should fail with EXDEV");
+  status = _rename_r(NULL, "joel", "/imfs/test/joel");
+  rtems_test_assert(status == -1);
+  rtems_test_assert(errno == EXDEV);
+
+  puts("changing dir to /");
+  status = chdir("/");
+  rtems_test_assert(status == 0);
+
+  puts("attempt to rename across filesystem, with old path having a parent node");
+  puts("attempt to rename tmp/joel to /imfs/test/joel");
+  status = _rename_r(NULL, "tmp/joel", "/imfs/test/joel");
+  rtems_test_assert(status == -1);
+  rtems_test_assert(errno == EXDEV);
+
+  puts("Unmounting /imfs");
+  status = unmount("/imfs");
+  rtems_test_assert(status == 0);
+
+  puts("Mounting filesystem @ /imfs with no support for evalformake");
+  
+  status = mount("null", "/imfs", "nefm", RTEMS_FILESYSTEM_READ_WRITE, NULL);
+  rtems_test_assert(status == 0);
+
+  puts("change directory to /imfs");
+  status = chdir("/imfs");
+  rtems_test_assert(status == 0);
+
+  puts("exercise _rename_r, with target on /imfs - expected ENOTSUP");
+  puts("attempt to rename /tmp/joel to joel");
+  status = _rename_r(NULL, "/tmp/joel", "joel");
+  rtems_test_assert(status == -1);
+  rtems_test_assert(errno == ENOTSUP);
+
+  puts("change directory to /");
+  status = chdir("/");
+  rtems_test_assert(status == 0);
+  
+  status = unmount("/imfs");
+  rtems_test_assert(status == 0);
+
+
+  puts("Mounting filesystem @ /imfs with no support for rename");
+  status = mount("null", "/imfs", "nren", RTEMS_FILESYSTEM_READ_WRITE, NULL);
+  rtems_test_assert(status == 0);
+
+  puts("creating directory /imfs/test");
+  status = mkdir("/imfs/test", 0777);
+  rtems_test_assert(status == 0);
+
+  puts("creating directory /imfs/test/old_dir");
+  status = mkdir("/imfs/test/old_dir", 0777);
+  rtems_test_assert(status == 0);
+
+  puts("changing to /");
+  status = chdir("/");
+  
+  puts("attempt to rename imfs/old_dir to imfs/new_dir");
+  status = _rename_r(NULL, "imfs/test/old_dir", "imfs/test/new_dir");
+  rtems_test_assert(status == -1);
+  rtems_test_assert(errno == ENOTSUP);
+
+  puts("unmounting /imfs");
+  status = unmount("/imfs");
+  rtems_test_assert(status == 0);
+
+  puts("End of _rename_r tests");
+
   /*
    *  Test simple write to a file at a non-0 offset in the first block
    */
 
   status = unlink( "/tmp/joel" );
-  assert( !status );
+  rtems_test_assert( !status );
 
   status = mknod( "/tmp/joel", (S_IFREG | S_IRWXU), 0LL );
-  assert( !status );
+  rtems_test_assert( !status );
 
   test_write( "/tmp/joel", 10, "the first write!!!\n" );
   test_cat( "/tmp/joel", 0, 0 );
@@ -361,17 +522,17 @@ int main(
 
   puts("unlink /tmp/joel");
   status = unlink( "/tmp/joel" );
-  assert( !status );
+  rtems_test_assert( !status );
 
   /* Test a failure path */
 
   puts( "unlink /tmp/joel" );
   status = unlink( "/tmp/joel" );
-  assert( status == -1 );
+  rtems_test_assert( status == -1 );
 
   puts( "mknod /tmp/joel");
   status = mknod( "/tmp/joel", (S_IFREG | S_IRWXU), 0LL );
-  assert( !status );
+  rtems_test_assert( !status );
 
   test_write( "/tmp/joel", 514, "the first write!!!\n" );
   test_write( "/tmp/joel", 1, test_write_buffer );
@@ -390,11 +551,11 @@ int main(
    *  triply indirect blocks.
    */
 
-  if ( max_size < 300 * 1024 ) {
+  if ( max_size < (size_t) 300 * 1024 ) {
     test_extend( "/tmp/joel", max_size - 1 );
     test_cat( "/tmp/joel", max_size / 2, 1024 );
   } else {
-    printf( "Skipping maximum file size test since max_size is %d bytes\n", max_size );
+    printf( "Skipping maximum file size test since max_size is %zu bytes\n", max_size );
     puts("That is likely to be bigger than the available RAM on many targets." );
   }
 
@@ -414,26 +575,26 @@ int main(
 
   puts( "fopen of /tmp/j" );
   file = fopen( "/tmp/j", "w+" );
-  assert( file );
+  rtems_test_assert( file );
 
   puts( "fprintf to /tmp/j" );
   for (i=1 ; i<=5 ; i++) {
     status = fprintf( file, "This is call %d to fprintf\n", i );
-    assert( status );
+    rtems_test_assert( status );
     printf( "(%d) %d characters written to the file\n", i, status );
   }
 
   fflush( file );
 
   status = stat( "/tmp/j", &buf );
-  assert( !status );
+  rtems_test_assert( !status );
   dump_statbuf( &buf );
   atime2 = buf.st_atime;
   mtime2 = buf.st_mtime;
   ctime2 = buf.st_ctime;
 
 
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   rewind( file );
   while ( fgets(buffer, 128, file) )
     printf( "%s", buffer );
@@ -442,14 +603,14 @@ int main(
    * Verify only atime changed for a read.
    */
   status = stat( "/tmp/j", &buf );
-  assert( !status );
+  rtems_test_assert( !status );
   dump_statbuf( &buf );
   atime1 = buf.st_atime;
   mtime1 = buf.st_mtime;
   ctime1 = buf.st_ctime;
-  assert( atime1 != atime2);
-  assert( mtime1 == mtime2);
-  assert( ctime1 == ctime2);
+  rtems_test_assert( atime1 != atime2);
+  rtems_test_assert( mtime1 == mtime2);
+  rtems_test_assert( ctime1 == ctime2);
 
   IMFS_dump();
 
@@ -459,44 +620,44 @@ int main(
    *  Now truncate a file
    */
 
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   puts( "truncate /tmp/j to length of 40" );
   status = truncate( "/tmp/j", 40 );
-  assert( !status );
+  rtems_test_assert( !status );
 
   /*
    * Verify truncate changed only atime.
    */
   status = stat( "/tmp/j", &buf );
-  assert( !status );
+  rtems_test_assert( !status );
   dump_statbuf( &buf );
   atime2 = buf.st_atime;
   mtime2 = buf.st_mtime;
   ctime2 = buf.st_ctime;
-  assert( atime1 != atime2);
-  assert( mtime1 == mtime2);
-  assert( ctime1 == ctime2);
+  rtems_test_assert( atime1 != atime2);
+  rtems_test_assert( mtime1 == mtime2);
+  rtems_test_assert( ctime1 == ctime2);
 
   IMFS_dump();
 
   /* try to truncate the console and see what happens */
   status = truncate( "/dev/console", 40 );
-  assert( status == 0 );
+  rtems_test_assert( status == 0 );
 
   puts( "truncate /tmp/j to length of 0" );
   status = truncate( "/tmp/j", 0 );
-  assert( !status );
+  rtems_test_assert( !status );
 
   puts( "truncate /tmp to length of 0 should fail with EISDIR\n");
   status = truncate( "/tmp", 0 );
-  assert( status == -1 );
+  rtems_test_assert( status == -1 );
   printf( "%d: %s\n", errno, strerror( errno ) );
-  assert( errno == EISDIR );
+  rtems_test_assert( errno == EISDIR );
 
   IMFS_dump();
 
   status = truncate( "/tmp/fred", 10 );
-  assert( status == -1);
+  rtems_test_assert( status == -1);
 
   rtems_status = rtems_io_register_name( "/dev/console", 0, 0 );
 

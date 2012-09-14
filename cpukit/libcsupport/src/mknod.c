@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mknod.c,v 1.13 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: mknod.c,v 1.14.2.1 2011/03/03 06:33:15 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,12 +40,21 @@ int mknod(
   const char                         *name_start;
   int                                 result;
 
-  if ( !(mode & (S_IFREG|S_IFCHR|S_IFBLK|S_IFIFO) ) )
-    rtems_set_errno_and_return_minus_one( EINVAL );
-
-  if ( S_ISFIFO(mode) )
-    rtems_set_errno_and_return_minus_one( ENOTSUP );
-
+  /*
+   * The file type is field within the mode. Check we have a sane mode set.
+   */
+  switch (mode & S_IFMT)
+  {
+    case S_IFDIR:
+    case S_IFCHR:
+    case S_IFBLK:
+    case S_IFREG:
+    case S_IFIFO:
+      break;
+    default:
+      rtems_set_errno_and_return_minus_one( EINVAL );
+  }
+  
   rtems_filesystem_get_start_loc( pathname, &i, &temp_loc );
 
   if ( !temp_loc.ops->evalformake_h ) {

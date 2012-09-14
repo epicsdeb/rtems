@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: nanosleep.c,v 1.9 2007/04/13 03:13:23 ralf Exp $
+ *  $Id: nanosleep.c,v 1.10 2009/09/14 00:14:22 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -93,11 +93,15 @@ int nanosleep(
     _Timespec_From_ticks( ticks, rmtp );
 
     /*
-     *  If there is time remaining, then we were interrupted by a signal.
+     *  Only when POSIX is enabled, can a sleep be interrupted.
      */
-
-    if ( ticks )
-      rtems_set_errno_and_return_minus_one( EINTR );
+    #if defined(RTEMS_POSIX_API)
+        /*
+         *  If there is time remaining, then we were interrupted by a signal.
+         */
+        if ( ticks )
+          rtems_set_errno_and_return_minus_one( EINTR );
+    #endif
   }
 
   return 0;

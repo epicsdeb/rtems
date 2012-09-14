@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: unmount.c,v 1.22 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: unmount.c,v 1.25.2.2 2010/07/01 15:18:06 sh Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,7 +22,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <rtems/chain.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -32,61 +31,14 @@
 
 #include <rtems/libio_.h>
 #include <rtems/seterr.h>
+#include <rtems/chain.h>
 
-/*
- *  Data structures and routines private to mount/unmount pair.
- */
-
-extern rtems_chain_control rtems_filesystem_mount_table_control;
-
-int search_mt_for_mount_point(
-  rtems_filesystem_location_info_t *location_of_mount_point
-);
-
-bool rtems_filesystem_nodes_equal(
-  const rtems_filesystem_location_info_t   *loc1,
-  const rtems_filesystem_location_info_t   *loc2
-){
-  return ( loc1->node_access == loc2->node_access );
-}
-
-
-/*
- *  file_systems_below_this_mountpoint
- *
- *  This routine will run through the entries that currently exist in the
- *  mount table chain. For each entry in the mount table chain it will
- *  compare the mount tables mt_fs_root to the new_fs_root_node. If any of the
- *  mount table file system root nodes matches the new file system root node
- *  this indicates that we are trying to mount a file system that has already
- *  been mounted. This is not a permitted operation. temp_loc is set to
- *  the root node of the file system being unmounted.
- */
-
-bool file_systems_below_this_mountpoint(
-  const char                            *path,
-  rtems_filesystem_location_info_t      *fs_root_loc,
-  rtems_filesystem_mount_table_entry_t  *fs_to_unmount
+static bool is_fs_below_mount_point(
+  const rtems_filesystem_mount_table_entry_t *mt_entry,
+  void *arg
 )
 {
-  rtems_chain_node                     *the_node;
-  rtems_filesystem_mount_table_entry_t *the_mount_entry;
-
-  /*
-   * Search the mount table for any mount entries referencing this
-   * mount entry.
-   */
-
-  for ( the_node = rtems_filesystem_mount_table_control.first;
-        !rtems_chain_is_tail( &rtems_filesystem_mount_table_control, the_node );
-        the_node = the_node->next ) {
-     the_mount_entry = ( rtems_filesystem_mount_table_entry_t * )the_node;
-     if (the_mount_entry->mt_point_node.mt_entry  == fs_root_loc->mt_entry ) {
-        return true;
-     }
-  }
-
-  return false;
+  return arg == mt_entry->mt_point_node.mt_entry;
 }
 
 /*
@@ -113,7 +65,7 @@ int unmount(
    *    The mount entry that is being refered to.
    */
 
-  if ( rtems_filesystem_evaluate_path( path, 0x0, &loc, true ) )
+  if ( rtems_filesystem_evaluate_path( path, strlen( path ), 0x0, &loc, true ) )
     return -1;
 
   mt_entry     = loc.mt_entry;
@@ -124,7 +76,7 @@ int unmount(
    * Verify this is the root node for the file system to be unmounted.
    */
 
-  if ( !rtems_filesystem_nodes_equal( fs_root_loc, &loc) ){
+  if ( fs_root_loc->node_access != loc.node_access ){
     rtems_filesystem_freenode( &loc );
     rtems_set_errno_and_return_minus_one( EACCES );
   }
@@ -161,7 +113,8 @@ int unmount(
    *  Verify there are no file systems below the path specified
    */
 
-  if ( file_systems_below_this_mountpoint( path, fs_root_loc, mt_entry ) != 0 )
+  if ( rtems_filesystem_mount_iterate( is_fs_below_mount_point,
+                                       fs_root_loc->mt_entry ) )
     rtems_set_errno_and_return_minus_one( EBUSY );
 
   /*
@@ -205,7 +158,9 @@ int unmount(
    *  Extract the mount table entry from the chain
    */
 
-  rtems_chain_extract( ( rtems_chain_node * ) mt_entry );
+  rtems_libio_lock();
+  rtems_chain_extract( &mt_entry->Node );
+  rtems_libio_unlock();
 
   /*
    *  Free the memory node that was allocated in mount

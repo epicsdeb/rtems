@@ -6,10 +6,10 @@
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threaddelayended.c,v 1.5 2007/10/26 20:19:02 joel Exp $
+ *  $Id: threaddelayended.c,v 1.7.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -45,7 +45,7 @@
 
 void _Thread_Delay_ended(
   Objects_Id  id,
-  void       *ignored
+  void       *ignored __attribute__((unused))
 )
 {
   Thread_Control    *the_thread;
@@ -59,7 +59,12 @@ void _Thread_Delay_ended(
 #endif
       break;
     case OBJECTS_LOCAL:
-      _Thread_Unblock( the_thread );
+      _Thread_Clear_state(
+        the_thread,
+        STATES_DELAYING
+          | STATES_WAITING_FOR_TIME
+          | STATES_INTERRUPTIBLE_BY_SIGNAL
+      );
       _Thread_Unnest_dispatch();
       break;
   }

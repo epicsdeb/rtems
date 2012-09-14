@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rwlockattrinit.c,v 1.2 2007/12/17 16:19:14 joel Exp $
+ *  $Id: rwlockattrinit.c,v 1.3 2009/02/03 10:10:56 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,7 @@ int pthread_rwlockattr_init(
   if ( !attr )
     return EINVAL;
 
-  attr->is_initialized = TRUE;
+  attr->is_initialized = true;
   attr->process_shared = PTHREAD_PROCESS_PRIVATE;
   return 0;
 }

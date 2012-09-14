@@ -1,4 +1,4 @@
-dnl $Id: check-networking.m4,v 1.5 2006/11/18 03:41:42 ralf Exp $
+dnl $Id: check-networking.m4,v 1.8 2009/11/19 14:46:11 ralf Exp $
 dnl
 AC_DEFUN([RTEMS_CHECK_NETWORKING],
 [dnl
@@ -9,9 +9,6 @@ AC_CACHE_CHECK([whether CPU supports networking],
   rtems_cv_HAS_NETWORKING,
   [dnl
     case "$RTEMS_CPU" in
-    unix*)
-      rtems_cv_HAS_NETWORKING="no"
-      ;;
     *)
       AS_IF([test "${RTEMS_HAS_NETWORKING}" = "yes"],[
 # suppress libnetworking if one these types is not available

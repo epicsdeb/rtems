@@ -2,7 +2,7 @@
 /*
  * Use the last periodic interval timer (PIT2) as the system clock.
  *
- *  $Id: clock.c,v 1.2 2008/08/19 11:19:19 ralf Exp $
+ *  $Id: clock.c,v 1.4 2009/11/29 14:59:41 ralf Exp $
  */
 
 #include <rtems.h>
@@ -81,7 +81,7 @@ static void Clock_driver_support_initialize_hardware(void)
   s_nanoScale = 1000000000 / (clk >> preScaleCode);
 
   MCF_INTC1_ICR46 = MCF_INTC_ICR_IL(PIT3_IRQ_LEVEL);
-  
+
   rtems_interrupt_disable(level);
   MCF_INTC1_IMRH &= ~MCF_INTC_IMRH_INT_MASK46;
   MCF_PIT3_PCSR &= ~MCF_PIT_PCSR_EN;
@@ -95,4 +95,4 @@ static void Clock_driver_support_initialize_hardware(void)
   s_pcntrAtTick = MCF_PIT3_PCNTR;
 }
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

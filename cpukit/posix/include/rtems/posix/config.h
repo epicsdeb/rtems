@@ -1,20 +1,19 @@
 /**
  * @file rtems/posix/config.h
- */
-
-/*  config.h
  *
  *  This include file contains the table of user defined configuration
  *  parameters specific for the POSIX API.
- *
- *  COPYRIGHT (c) 1989-1999.
+ */
+
+/*
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: config.h,v 1.18 2006/11/15 14:08:48 joel Exp $
+ *  $Id: config.h,v 1.21 2009/08/05 15:29:19 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_CONFIG_H
@@ -53,6 +52,7 @@ typedef struct {
   int                                 maximum_timers;
   int                                 maximum_queued_signals;
   int                                 maximum_message_queues;
+  int                                 maximum_message_queue_descriptors;
   int                                 maximum_semaphores;
   int                                 maximum_barriers;
   int                                 maximum_rwlocks;
@@ -60,6 +60,14 @@ typedef struct {
   int                                 number_of_initialization_threads;
   posix_initialization_threads_table *User_initialization_threads_table;
 } posix_api_configuration_table;
+
+/**
+ *  @brief POSIX API Configuration Table
+ *
+ *  This is the POSIX API Configuration Table expected to be generated
+ *  by confdefs.h.
+ */
+extern posix_api_configuration_table Configuration_POSIX_API;
 
 #ifdef __cplusplus
 }

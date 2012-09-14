@@ -3,7 +3,7 @@
  *
  * TODO
  *
- *  $Id: mon-mpci.c,v 1.14 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-mpci.c,v 1.15 2008/12/15 19:21:01 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -31,7 +31,7 @@ rtems_monitor_mpci_canonical(
     void                  *config_void
 )
 {
-    rtems_configuration_table *c = _Configuration_Table;
+    rtems_configuration_table *c = &Configuration;
     rtems_multiprocessing_table *m;
     rtems_mpci_table *mt;
 
@@ -73,7 +73,7 @@ rtems_monitor_mpci_next(
     rtems_id              *next_id
 )
 {
-    rtems_configuration_table *c = _Configuration_Table;
+    rtems_configuration_table *c = &Configuration;
     int n = rtems_object_id_get_index(*next_id);
 
     if (n >= 1)

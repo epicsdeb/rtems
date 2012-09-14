@@ -1,5 +1,5 @@
 /*
- *  $Id: clockgetres.c,v 1.8 2007/04/05 21:17:26 joel Exp $
+ *  $Id: clockgetres.c,v 1.11.2.1 2011/05/19 15:32:44 ralf Exp $
  */
 
 /*
@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockgetres.c,v 1.8 2007/04/05 21:17:26 joel Exp $
+ *  $Id: clockgetres.c,v 1.11.2.1 2011/05/19 15:32:44 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -21,12 +21,14 @@
 #include <errno.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/tod.h>
 
 #include <rtems/seterr.h>
-#include <rtems/posix/time.h>
+
+#include "posixtime.h"
 
 /*PAGE
  *
@@ -48,12 +50,12 @@ int clock_getres(
      */
 
     case CLOCK_REALTIME:
-    case CLOCK_PROCESS_CPUTIME:
-    case CLOCK_THREAD_CPUTIME:
+    case CLOCK_PROCESS_CPUTIME_ID:
+    case CLOCK_THREAD_CPUTIME_ID:
       if ( res ) {
-        res->tv_sec = _TOD_Microseconds_per_tick / 1000000;
-        res->tv_nsec = _TOD_Microseconds_per_tick * 1000;
-        /* _TOD_From_ticks( _TOD_Microseconds_per_tick, res );  */
+        res->tv_sec = rtems_configuration_get_microseconds_per_tick() /
+            TOD_MICROSECONDS_PER_SECOND;
+        res->tv_nsec = rtems_configuration_get_nanoseconds_per_tick();
       }
       break;
 

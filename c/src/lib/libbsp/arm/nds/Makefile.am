@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.4 2008/05/20 22:13:16 joel Exp $
+## $Id: Makefile.am,v 1.18 2010/04/30 13:41:52 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
@@ -7,32 +7,37 @@ ACLOCAL_AMFLAGS = -I ../../../../aclocal
 SUBDIRS = . tools
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
 include_HEADERS = include/bsp.h
-include_HEADERS += include/tm27.h
+include_HEADERS += ../../shared/include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
 nodist_include_HEADERS += ../../shared/include/coverhd.h
 
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 noinst_PROGRAMS =
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-include_rtemsdir = $(includedir)/rtems
-include_rtems_HEADERS = fb/fb.h touchscreen/touchscreen.h sound/sound.h
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+include_ndsdir = $(includedir)/nds
+include_nds_HEADERS = touchscreen/touchscreen.h sound/sound.h
 
 noinst_PROGRAMS += startup.rel
 startup_rel_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
-    startup/start.c ../../shared/bsppredriverhook.c \
+    startup/bspstart.c ../../shared/bspclean.c startup/bspreset.c \
+    startup/bspgetworkarea.c ../../shared/bsppredriverhook.c \
     ../../shared/bsppretaskinghook.c ../../shared/bootcard.c
 startup_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/libnds/include
 startup_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
@@ -43,7 +48,7 @@ gnatsupp_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/libnds/include
 gnatsupp_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
 noinst_PROGRAMS += clock.rel
-clock_rel_SOURCES = clock/clock.c
+clock_rel_SOURCES = clock/clock.c ../../../shared/clockdrv_shell.h
 clock_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/libnds/include
 clock_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
@@ -83,8 +88,6 @@ block_rel_SOURCES = block/block.c
 block_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/libnds/include -DNDS -I$(srcdir)/libfat/source/disc_io
 block_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-include_HEADERS += irq/irq.h
-
 noinst_PROGRAMS += irq.rel
 irq_rel_SOURCES = irq/irq.c
 irq_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/libnds/include
@@ -94,7 +97,7 @@ if HAS_NETWORKING
 noinst_PROGRAMS += wifi.rel
 wifi_rel_SOURCES =	wifi/wifi.c					\
 			wifi/compat.c
-wifi_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/dswifi/include -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/include -D_KERNEL
+wifi_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/dswifi/include -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/include -D_KERNEL -D__BSD_VISIBLE
 wifi_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
@@ -144,7 +147,7 @@ if HAS_NETWORKING
 noinst_PROGRAMS += dswifi9.rel
 dswifi9_rel_SOURCES =  	dswifi/arm9/source/wifi_arm9.c			\
 			dswifi/common/source/spinlock.S
-dswifi9_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/dswifi/include -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/common/source -I$(srcdir)/wifi -D_KERNEL -Dcaddr_t=uint32_t
+dswifi9_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM9 -I$(srcdir)/dswifi/include -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/common/source -I$(srcdir)/wifi -D_KERNEL
 dswifi9_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
@@ -184,8 +187,8 @@ libnds7_rel_SOURCES =   libnds/source/common/biosCalls.S		\
 			libnds/source/arm7/touch.c			\
 			libnds/source/arm7/userSettings.c
 libnds7_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM7 -I$(srcdir)/libnds/include
-libnds7_rel_CFLAGS = -mcpu=arm7tdmi -msoft-float
-libnds7_rel_CCASFLAGS = -mcpu=arm7tdmi -msoft-float
+libnds7_rel_CFLAGS = -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft
+libnds7_rel_CCASFLAGS = -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft
 libnds7_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
 if HAS_NETWORKING
@@ -194,8 +197,8 @@ noinst_PROGRAMS += dswifi7.rel
 dswifi7_rel_SOURCES =  	dswifi/arm7/source/wifi_arm7.c			\
 			dswifi/common/source/spinlock.S
 dswifi7_rel_CPPFLAGS = $(AM_CPPFLAGS) -DARM7 -I$(srcdir)/dswifi/include -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/common/source
-dswifi7_rel_CFLAGS = -mcpu=arm7tdmi -msoft-float
-dswifi7_rel_CCASFLAGS = -mcpu=arm7tdmi -msoft-float
+dswifi7_rel_CFLAGS = -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft
+dswifi7_rel_CCASFLAGS = -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft
 dswifi7_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
@@ -241,20 +244,18 @@ include_libndsnds7_HEADERS =	libnds/include/nds/arm7/serial.h	\
 				libnds/include/nds/arm7/audio.h		\
 				libnds/include/nds/arm7/clock.h		\
 				libnds/include/nds/arm7/touch.h
-EXTRA_DIST += coproc/coproc.S coproc/coproc.c
+EXTRA_DIST = coproc/coproc.S coproc/coproc.c
 if HAS_NETWORKING
 coproc.bin: coproc/coproc.S coproc/coproc.c libnds7.rel dswifi7.rel
-	@CC@ -o coproc.elf -mcpu=arm7tdmi -msoft-float -O2 -DARM7 -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/include -DENABLE_WIFI -T $(srcdir)/coproc/coproc.ld $^ -lc
+	@CC@ -o coproc.elf -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft -O2 -DARM7 -I$(srcdir)/libnds/include -I$(srcdir)/dswifi/include -DENABLE_WIFI -T $(srcdir)/coproc/coproc.ld $^ -lc
 	$(OBJCOPY) -O binary coproc.elf coproc.bin
 else
 coproc.bin: coproc/coproc.S coproc/coproc.c libnds7.rel
-	@CC@ -o coproc.elf -mcpu=arm7tdmi -msoft-float -O2 -DARM7 -I$(srcdir)/libnds/include -T $(srcdir)/coproc/coproc.ld $^ -lc
+	@CC@ -o coproc.elf -mcpu=arm7tdmi -mfpu=vfp -mfloat-abi=soft -O2 -DARM7 -I$(srcdir)/libnds/include -T $(srcdir)/coproc/coproc.ld $^ -lc
 	$(OBJCOPY) -O binary coproc.elf coproc.bin
 endif
 project_lib_DATA += coproc.bin
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES =
 libbsp_a_LIBADD = clock.rel console.rel gnatsupp.rel startup.rel irq.rel \
     timer.rel libnds9.rel rtc.rel fb.rel touchscreen.rel sound.rel \
     block.rel libdldi.rel

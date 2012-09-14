@@ -1,7 +1,14 @@
 /*
- * Classic API Init task create failure
+ *  Classic API Init task create failure
  *
- *  $Id: testcase.h,v 1.1 2008/01/28 19:19:35 jennifer Exp $
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: testcase.h,v 1.4 2009/11/30 03:33:25 ralf Exp $
  */
 
 /*
@@ -26,10 +33,13 @@ rtems_initialization_tasks_table Initialization_tasks[] = {
 
 #define SPFATAL_TEST_CASE_EXTRA_TASKS 1
 
+#define FATAL_ERROR_TEST_NAME            "5"
 #define FATAL_ERROR_DESCRIPTION          "Core fall out of a task"
 #define FATAL_ERROR_EXPECTED_SOURCE      INTERNAL_ERROR_CORE
 #define FATAL_ERROR_EXPECTED_IS_INTERNAL TRUE
 #define FATAL_ERROR_EXPECTED_ERROR       INTERNAL_ERROR_THREAD_EXITTED
+
+rtems_task EmptyTask( rtems_task_argument unused );
 
 rtems_task EmptyTask(
   rtems_task_argument unused
@@ -50,13 +60,13 @@ void force_error()
     RTEMS_DEFAULT_ATTRIBUTES,
     &id
   );
-  directive_failed( status, "rtems_task_create" ); 
+  directive_failed( status, "rtems_task_create" );
 
   status = rtems_task_start( id, EmptyTask, 0 );
   directive_failed( status, "rtems_task_start" );
 
   status = rtems_task_wake_after( 10 );
   directive_failed( status, "rtems_task_wake_after" );
-  
+
   /* we will not run this far */
 }

@@ -1,15 +1,23 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.1.2.2 2008/12/03 21:36:18 joel Exp $
+ *  $Id: init.c,v 1.4 2009/10/26 11:29:24 ralf Exp $
  */
 
 #include <tmacros.h>
+
+rtems_task Init(
+  rtems_task_argument argument
+);
+rtems_timer_service_routine Malloc_From_TSR(
+  rtems_id  ignored_id,
+  void     *ignored_address
+);
 
 rtems_id   Timer_id[ 3 ];    /* array of timer ids */
 rtems_name Timer_name[ 3 ];  /* array of timer names */
@@ -32,7 +40,7 @@ rtems_timer_service_routine Malloc_From_TSR(
   free( (void *) TSR_malloc_ptr );
 
   puts( "TSR: delaying with rtems_task_wake_after" );
-  status = rtems_task_wake_after( TICKS_PER_SECOND / 2 );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() / 2 );
   directive_failed( status, "rtems_task_wake_after" );
 }
 
@@ -61,12 +69,12 @@ rtems_task Init(
   puts( "INIT - rtems_timer_create - creating timer 1" );
   status = rtems_timer_create( Timer_name[ 1 ], &Timer_id[ 1 ] );
   directive_failed( status, "rtems_timer_create" );
-  printf( "INIT - timer 1 has id (0x%x)\n", Timer_id[ 1 ] );
+  printf( "INIT - timer 1 has id (0x%" PRIxrtems_id ")\n", Timer_id[ 1 ] );
 
   puts( "INIT - rtems_timer_create - creating timer 2" );
   status = rtems_timer_create( Timer_name[ 2 ], &Timer_id[ 2 ] );
   directive_failed( status, "rtems_timer_create" );
-  printf( "INIT - timer 2 has id (0x%x)\n", Timer_id[ 2 ] );
+  printf( "INIT - timer 2 has id (0x%" PRIxrtems_id ")\n", Timer_id[ 2 ] );
 
   /*
    *  Schedule malloc TSR for 1 second from now
@@ -77,14 +85,14 @@ rtems_task Init(
   puts( "TA1 - rtems_timer_server_fire_after - timer 1 in 1 seconds" );
   status = rtems_timer_server_fire_after(
     Timer_id[ 1 ],
-    1 * TICKS_PER_SECOND,
+    1 * rtems_clock_get_ticks_per_second(),
     Malloc_From_TSR,
     NULL
   );
   directive_failed( status, "rtems_timer_server_fire_after" );
 
   puts( "TA1 - rtems_task_wake_after - 2 second" );
-  status = rtems_task_wake_after( 2 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( 2 * rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   if ( TSR_fired == 2 &&

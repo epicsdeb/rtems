@@ -18,7 +18,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: m340uart.c,v 1.8 2008/05/23 15:48:06 joel Exp $
+ *  $Id: m340uart.c,v 1.10 2010/04/28 19:33:25 joel Exp $
  */
 
 #include <termios.h>
@@ -199,6 +199,7 @@ Find_Right_m340_UART_Config(float ChannelA_ReceiverBaudRate, float ChannelA_Tran
  t_baud_speed_table return_value, tmp;
  int i,j;
 
+ memset( &return_value, '\0', sizeof(return_value) );
  return_value.nb=0;
 
  if (enableA && enableB) {
@@ -266,15 +267,16 @@ int dbugRead (int minor)
   Output parameters: always successfull
   Description: polled write
  *****************************************************/
-int dbugWrite (int minor, const char *buf, int len)
+ssize_t dbugWrite (int minor, const char *buf, size_t len)
 {
 	static char txBuf;
+	size_t retval = len;
 
 	while (len--) {
  		txBuf = *buf++;
         	dbug_out_char( minor, (int)txBuf );
 	}
-	return 0;
+	return retval;
 }
 
 static void fmt_num( int minor, unsigned long, unsigned );

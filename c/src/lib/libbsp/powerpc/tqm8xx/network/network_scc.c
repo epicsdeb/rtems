@@ -44,7 +44,7 @@
  *  and Charles-Antoine Gauthier <charles.gauthier@iit.nrc.ca>
  *  Copyright (c) 1999, National Research Council of Canada
  *
- *  $Id: network_scc.c,v 1.2.2.1 2008/10/02 12:43:10 thomas Exp $
+ *  $Id: network_scc.c,v 1.2 2008/09/08 15:44:26 thomas Exp $
  */
 #include <bsp.h>
 #include <stdio.h>
@@ -230,14 +230,13 @@ m8xx_enet_initialize (struct m8xx_enet_struct *sc)
   m8xx.pcso  |=  0x30;
 
   /*
-   * FIXME: which pins?
-   * Connect CLK1 and CLK3 to SCC1 in the SICR.
-   * CLK1 is RxClk, CLK3 is TxClk. No grant mechanism, SCC1 is directly
+   * Connect CLK1 and CLK2 to SCC1 in the SICR.
+   * CLK1 is TxClk, CLK2 is RxClk. No grant mechanism, SCC1 is directly
    * connected to the NMSI pins.
-   * R1CS = 0b100 (CLK1)
-   * T1CS = 0b110 (CLK3)
+   * R1CS = 0b101 (CLK2)
+   * T1CS = 0b100 (CLK1)
    */
-  m8xx.sicr = (m8xx.sicr & ~0xffffff00) | 0x26;
+  m8xx.sicr |= 0x2C;
 
   /*
    * Initialize SDMA configuration register
@@ -991,20 +990,12 @@ rtems_scc1_driver_attach (struct rtems_bsdnet_ifconfig *config)
   /*
    * MAC address: try to fetch it from config, else from TQMMon, else panic
    */
-  if ((config->hardware_address) &&
-      (0 != memcmp(maczero,config->hardware_address,ETHER_ADDR_LEN))) {
+  if (config->hardware_address) {
     memcpy (sc->arpcom.ac_enaddr, config->hardware_address, ETHER_ADDR_LEN);
   }
 #ifdef BSP_HAS_TQMMON
   else if(0 != memcmp(maczero,TQM_BD_INFO.eth_addr,ETHER_ADDR_LEN)) {
     memcpy (sc->arpcom.ac_enaddr, TQM_BD_INFO.eth_addr, ETHER_ADDR_LEN);
-  }
-#endif
-#ifdef BSP_HAS_UBOOT
-  else if(0 != memcmp(maczero,mpc8xx_uboot_board_info.bi_enetaddr,
-		      ETHER_ADDR_LEN)) {
-    memcpy (sc->arpcom.ac_enaddr, 
-	    mpc8xx_uboot_board_info.bi_enetaddr, ETHER_ADDR_LEN);
   }
 #endif
   else {

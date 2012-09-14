@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: msgmp.h,v 1.21 2008/08/08 14:23:52 joel Exp $
+ *  $Id: msgmp.h,v 1.22 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_MSGMP_H
@@ -30,7 +30,9 @@ extern "C" {
 #include <rtems/score/watchdog.h>
 
 /**
- *  @defgroup ClassicMsgMP Classic API Message Queue MP Support
+ *  @defgroup ClassicMsgMP Message Queue MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */

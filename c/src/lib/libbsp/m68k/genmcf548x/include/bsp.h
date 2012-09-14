@@ -77,31 +77,9 @@ extern int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config, int at
 
 #define RAM_END 0x4000000 /* 64 MB */
 
-/* externals */
-
-/* constants */
-
-/* miscellaneous stuff assumed to exist */
-
-extern rtems_configuration_table BSP_Configuration;
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-
 /* functions */
 
 uint32_t get_CPU_clock_speed(void);
-void bsp_cleanup(void);
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,
@@ -113,10 +91,6 @@ m68k_isr_entry set_vector(
  * Interrupt assignments
  *  Highest-priority listed first
  */
-#define FEC_IRQ_LEVEL       4
-#define FEC_IRQ_RX_PRIORITY 7
-#define FEC_IRQ_TX_PRIORITY 6
-
 #define SLT0_IRQ_LEVEL      4
 #define SLT0_IRQ_PRIORITY   0
 
@@ -129,6 +103,34 @@ m68k_isr_entry set_vector(
 #define PSC3_IRQ_LEVEL      3
 #define PSC3_IRQ_PRIORITY   4
 
+#define FEC_IRQ_LEVEL       2
+#define FEC_IRQ_PRIORITY    3
+
+/*
+ * Network driver configuration
+ */
+struct rtems_bsdnet_ifconfig;
+extern int rtems_mcf548x_fec_driver_attach_detach(struct rtems_bsdnet_ifconfig *config,int attaching);
+#define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_mcf548x_fec_driver_attach_detach
+
+#define RTEMS_BSP_NETWORK_DRIVER_NAME	"fec1"
+#define RTEMS_BSP_NETWORK_DRIVER_NAME2	"fec2"
+
+#ifdef HAS_DBUG
+  typedef struct {
+    uint32_t console_baudrate;
+    uint8_t  server_ip [4];
+    uint8_t  client_ip [4];
+    uint8_t  gateway_ip[4];
+    uint8_t  netmask   [4];
+    uint8_t  spare[4];
+    uint8_t  macaddr   [6];
+    uint32_t ethport;   /* default fec port: 1 = fec1, 2 = fec2 */
+    uint32_t uartport;  /* default fec port: 1 = psc0, 2 = psc1... */    
+  } dbug_settings_t;
+  
+#define DBUG_SETTINGS (*(const dbug_settings_t *)0xFC020000)
+#endif /* HAS_DBUG */
 #ifdef __cplusplus
 }
 #endif

@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.35 2008/09/08 15:19:14 joel Exp $
+ *  $Id: cpu.h,v 1.42 2010/04/08 16:37:34 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_CPU_H
@@ -25,7 +25,11 @@ extern "C" {
 
 #include <rtems/score/m68k.h>              /* pick up machine definitions */
 #ifndef ASM
-#include <rtems/score/types.h>
+  #include <rtems/score/types.h>
+#else
+  /* FIXME */
+  #define TRUE 1
+  #define FALSE 0
 #endif
 
 /* conditional compilation parameters */
@@ -62,7 +66,7 @@ extern "C" {
 
 /*
  *  Does the RTEMS invoke the user's ISR with the vector number and
- *  a pointer to the saved interrupt frame (1) or just the vector 
+ *  a pointer to the saved interrupt frame (1) or just the vector
  *  number (0)?
  */
 
@@ -77,16 +81,16 @@ extern "C" {
  *         must be contexted switched on a per task basis.
  */
 
-#if ( M68K_HAS_FPU == 1 )
-#define CPU_HARDWARE_FP     TRUE
-#define CPU_SOFTWARE_FP     FALSE
+#if ( M68K_HAS_FPU == 1 ) || ( M68K_HAS_EMAC == 1 )
+  #define CPU_HARDWARE_FP TRUE
+  #define CPU_SOFTWARE_FP FALSE
 #else
-#define CPU_HARDWARE_FP     FALSE
-#if defined(__GNUC__)
-#define CPU_SOFTWARE_FP     TRUE
-#else
-#define CPU_SOFTWARE_FP     FALSE
-#endif
+  #define CPU_HARDWARE_FP FALSE
+  #if defined( __GNUC__ )
+    #define CPU_SOFTWARE_FP TRUE
+  #else
+    #define CPU_SOFTWARE_FP FALSE
+  #endif
 #endif
 
 /*
@@ -102,7 +106,7 @@ extern "C" {
 
 #define CPU_PROVIDES_IDLE_THREAD_BODY    TRUE
 #define CPU_STACK_GROWS_UP               FALSE
-#define CPU_STRUCTURE_ALIGNMENT
+#define CPU_STRUCTURE_ALIGNMENT          __attribute__ ((aligned (4)))
 
 /*
  *  Define what is required to specify how the network to host conversion
@@ -112,7 +116,16 @@ extern "C" {
 #define CPU_BIG_ENDIAN                           TRUE
 #define CPU_LITTLE_ENDIAN                        FALSE
 
+#if ( CPU_HARDWARE_FP == TRUE ) && !defined( __mcoldfire__ )
+  #if defined( __mc68060__ )
+    #define M68K_FP_STATE_SIZE 16
+  #else
+    #define M68K_FP_STATE_SIZE 216
+  #endif
+#endif
+
 #ifndef ASM
+
 /* structures */
 
 /*
@@ -133,83 +146,145 @@ typedef struct {
   void       *a5;                /* (a5) address register 5 */
   void       *a6;                /* (a6) address register 6 */
   void       *a7_msp;            /* (a7) master stack pointer */
-
-#if (defined(__mcoldfire__))
-#if ( M68K_HAS_FPU == 1 )
-  uint8_t   fpu_dis;
-#endif
-#endif
-
-}   Context_Control;
+  #if defined( __mcoldfire__ ) && ( M68K_HAS_FPU == 1 )
+    uint8_t   fpu_dis;
+  #endif
+} Context_Control;
 
 #define _CPU_Context_Get_SP( _context ) \
   (_context)->a7_msp
 
 /*
- *  Floating point context ares
+ *  Floating point context areas and support routines
  */
 
-#if (CPU_SOFTWARE_FP == TRUE)
+#if ( CPU_SOFTWARE_FP == TRUE )
+  /*
+   *  This is the same as gcc's view of the software FP condition code
+   *  register _fpCCR.  The implementation of the emulation code is
+   *  in the gcc-VERSION/config/m68k directory.  This structure is
+   *  correct as of gcc 2.7.2.2.
+   */
+  typedef struct {
+    uint16_t _exception_bits;
+    uint16_t _trap_enable_bits;
+    uint16_t _sticky_bits;
+    uint16_t _rounding_mode;
+    uint16_t _format;
+    uint16_t _last_operation;
+    union {
+      float sf;
+      double df;
+    } _operand1;
+    union {
+      float sf;
+      double df;
+    } _operand2;
+  } Context_Control_fp;
 
-/*
- *  This is the same as gcc's view of the software FP condition code
- *  register _fpCCR.  The implementation of the emulation code is
- *  in the gcc-VERSION/config/m68k directory.  This structure is
- *  correct as of gcc 2.7.2.2.
- */
+  /*
+   *  This software FP implementation is only for GCC.
+   */
+  #define _CPU_Context_Fp_start( _base, _offset ) \
+     ((void *) _Addresses_Add_offset( (_base), (_offset) ) )
 
-typedef struct {
-  uint16_t     _exception_bits;
-  uint16_t     _trap_enable_bits;
-  uint16_t     _sticky_bits;
-  uint16_t     _rounding_mode;
-  uint16_t     _format;
-  uint16_t     _last_operation;
-  union {
-    float sf;
-    double df;
-  } _operand1;
-  union {
-    float sf;
-    double df;
-  } _operand2;
-} Context_Control_fp;
-
-#elif (defined(__mcoldfire__))
-
-/*
- *  FP context save area for the ColdFire core numeric coprocessors
- */
-typedef struct {
-  uint8_t     fp_save_area[84];     /*    16 bytes for FSAVE/FRESTORE    */
-                                    /*    64 bytes for FMOVEM FP0-7      */
-                                    /*     4 bytes for non-null flag     */
-
-#if (M68K_HAS_EMAC == 1)
-
-/*
- *  EMAC context save area for the ColdFire core
- */
-  uint8_t     emac_save_area[32];   /*  32 bytes for EMAC registers      */
-
+  #define _CPU_Context_Initialize_fp( _fp_area ) \
+     { \
+       Context_Control_fp *_fp; \
+       _fp = *(Context_Control_fp **)_fp_area; \
+       _fp->_exception_bits = 0; \
+       _fp->_trap_enable_bits = 0; \
+       _fp->_sticky_bits = 0; \
+       _fp->_rounding_mode = 0;  /* ROUND_TO_NEAREST */ \
+       _fp->_format = 0;         /* NIL */ \
+       _fp->_last_operation = 0; /* NOOP */ \
+       _fp->_operand1.df = 0; \
+       _fp->_operand2.df = 0; \
+     }
 #endif
 
-} Context_Control_fp;
+#if ( CPU_HARDWARE_FP == TRUE )
+  #if defined( __mcoldfire__ )
+    /* We need memset() to initialize the FP context */
+    #include <string.h>
 
-#if ( M68K_HAS_FPU == 1 )
-extern uint32_t _CPU_cacr_shadow;
-#endif
+    #if ( M68K_HAS_FPU == 1 )
+      /*
+       * The Cache Control Register (CACR) has write-only access.  It is also
+       * used to enable and disable the FPU.  We need to maintain a copy of
+       * this register to allow per thread values.
+       */
+      extern uint32_t _CPU_cacr_shadow;
+    #endif
 
-#else
-/*
- *  FP context save area for the M68881/M68882 numeric coprocessors.
- */
-typedef struct {
-  uint8_t     fp_save_area[332];    /*   216 bytes for FSAVE/FRESTORE    */
-                                    /*    96 bytes for FMOVEM FP0-7      */
-                                    /*    12 bytes for FMOVEM CREGS      */
-                                    /*     4 bytes for non-null flag     */
-} Context_Control_fp;
+    /* We assume that each ColdFire core with a FPU has also an EMAC unit */
+    typedef struct {
+      uint32_t emac_macsr;
+      uint32_t emac_acc0;
+      uint32_t emac_acc1;
+      uint32_t emac_acc2;
+      uint32_t emac_acc3;
+      uint32_t emac_accext01;
+      uint32_t emac_accext23;
+      uint32_t emac_mask;
+      #if ( M68K_HAS_FPU == 1 )
+        uint16_t fp_state_format;
+        uint16_t fp_state_fpcr;
+        double fp_state_op;
+        uint32_t fp_state_fpsr;
+
+        /*
+         * We need to save the FP Instruction Address Register (FPIAR), because
+         * a context switch can occur within a FP exception before the handler
+         * was able to save this register.
+         */
+        uint32_t fp_fpiar;
+
+        double fp_data [8];
+      #endif
+    } Context_Control_fp;
+
+    #define _CPU_Context_Fp_start( _base, _offset ) \
+      ((void *) _Addresses_Add_offset( (_base), (_offset) ))
+
+    /*
+     * The reset value for all context relevant registers except the FP data
+     * registers is zero.  The reset value of the FP data register is NAN.  The
+     * restore of the reset FP state will reset the FP data registers, so the
+     * initial value of them can be arbitrary here.
+     */
+    #define _CPU_Context_Initialize_fp( _fp_area ) \
+      memset( *(_fp_area), 0, sizeof( Context_Control_fp ) )
+  #else
+    /*
+     *  FP context save area for the M68881/M68882 and 68060 numeric coprocessors.
+     */
+
+    typedef struct {
+      /*
+       * M68K_FP_STATE_SIZE bytes for FSAVE/FRESTORE
+       * 96 bytes for FMOVEM FP0-7
+       * 12 bytes for FMOVEM CREGS
+       * 4 bytes for non-null flag
+       */
+      uint8_t fp_save_area [M68K_FP_STATE_SIZE + 112];
+    } Context_Control_fp;
+
+    #define _CPU_Context_Fp_start( _base, _offset ) \
+       ( \
+         (void *) _Addresses_Add_offset( \
+            (_base), \
+            (_offset) + CPU_CONTEXT_FP_SIZE - 4 \
+         ) \
+       )
+
+    #define _CPU_Context_Initialize_fp( _fp_area ) \
+       { \
+         uint32_t   *_fp_context = (uint32_t *)*(_fp_area); \
+         *(--(_fp_context)) = 0; \
+         *(_fp_area) = (void *)(_fp_context); \
+       }
+  #endif
 #endif
 
 /*
@@ -236,7 +311,7 @@ typedef struct {
 SCORE_EXTERN void               *_CPU_Interrupt_stack_low;
 SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
 
-extern void*                     _VBR; 
+extern void*                     _VBR;
 
 #if ( M68K_HAS_VBR == 0 )
 
@@ -261,9 +336,10 @@ typedef struct {
 #define M68K_JMP     0x4EF9
 
       /* points to jsr-exception-table in targets wo/ VBR register */
-SCORE_EXTERN _CPU_ISR_handler_entry _CPU_ISR_jump_table[256]; 
+SCORE_EXTERN _CPU_ISR_handler_entry _CPU_ISR_jump_table[256];
 
 #endif /* M68K_HAS_VBR */
+
 #endif /* ASM */
 
 /* constants */
@@ -396,68 +472,6 @@ uint32_t   _CPU_ISR_Get_level( void );
    } while ( 0 )
 #endif
 
-#define _CPU_Context_Restart_self( _the_context ) \
-  { asm volatile( "movew %0,%%sr ; " \
-                  "moval %1,%%a7 ; " \
-                  "rts"  \
-        : "=d" ((_the_context)->sr), "=d" ((_the_context)->a7_msp) \
-        : "0" ((_the_context)->sr), "1" ((_the_context)->a7_msp) ); \
-  }
-
-/*
- *  Floating Point Context Area Support routines
- */
-
-#if (CPU_SOFTWARE_FP == TRUE)
-
-/*
- *  This software FP implementation is only for GCC.
- */
-
-#define _CPU_Context_Fp_start( _base, _offset ) \
-   ((void *) _Addresses_Add_offset( (_base), (_offset) ) )
-
-
-#define _CPU_Context_Initialize_fp( _fp_area ) \
-   { \
-   Context_Control_fp *_fp; \
-   _fp = *(Context_Control_fp **)_fp_area; \
-   _fp->_exception_bits = 0; \
-   _fp->_trap_enable_bits = 0; \
-   _fp->_sticky_bits = 0; \
-   _fp->_rounding_mode = 0;  /* ROUND_TO_NEAREST */ \
-   _fp->_format = 0;         /* NIL */ \
-   _fp->_last_operation = 0;  /* NOOP */ \
-   _fp->_operand1.df = 0; \
-   _fp->_operand2.df = 0; \
-   }
-#else
-#define _CPU_Context_Fp_start( _base, _offset ) \
-   ((void *) \
-     _Addresses_Add_offset( \
-        (_base), \
-        (_offset) + CPU_CONTEXT_FP_SIZE - 4 \
-     ) \
-   )
-
-#if (defined(__mcoldfire__) && ( M68K_HAS_FPU == 1 ))
-#define _CPU_Context_Initialize_fp( _fp_area ) \
-   { uint32_t   *_fp_context = (uint32_t *)*(_fp_area); \
-     \
-     *(--(_fp_context)) = 0; \
-     *(_fp_area) = (void *)(_fp_context); \
-     asm volatile("movl %0,%%macsr": : "d" (0) ); \
-   }
-#else
-#define _CPU_Context_Initialize_fp( _fp_area ) \
-   { uint32_t   *_fp_context = (uint32_t *)*(_fp_area); \
-     \
-     *(--(_fp_context)) = 0; \
-     *(_fp_area) = (void *)(_fp_context); \
-   }
-#endif
-#endif
-
 /* end of Context handler macros */
 
 /*
@@ -469,7 +483,7 @@ uint32_t   _CPU_ISR_Get_level( void );
  *         is TRUE.
  */
 
-void *_CPU_Thread_Idle_body( uint32_t );
+void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 /*
  *  Fatal Error manager macros
@@ -632,17 +646,15 @@ extern const unsigned char _CPU_m68k_BFFFO_table[256];
  *  This routine performs CPU dependent initialization.
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)
-);
+void _CPU_Initialize(void);
 
 /*
  *  _CPU_ISR_install_raw_handler
  *
- *  This routine installs a "raw" interrupt handler directly into the 
+ *  This routine installs a "raw" interrupt handler directly into the
  *  processor's vector table.
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -680,6 +692,10 @@ void _CPU_Context_switch(
   Context_Control  *heir
 );
 
+void _CPU_Context_Restart_self(
+  Context_Control  *the_context
+);
+
 /*
  *  _CPU_Context_save_fp
  *
@@ -704,7 +720,7 @@ void _CPU_Context_restore_fp(
 /*
  *  Hooks for the Floating Point Support Package (FPSP) provided by Motorola
  *
- *  NOTES:  
+ *  NOTES:
  *
  *  Motorola 68k family CPU's before the 68040 used a coprocessor
  *  (68881 or 68882) to handle floating point.  The 68040 has internal

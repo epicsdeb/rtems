@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.38 2006/01/12 09:57:43 ralf Exp $
+## $Id: Makefile.am,v 1.39 2008/09/25 19:32:41 joel Exp $
 ##
 
 include $(top_srcdir)/automake/compile.am
@@ -12,7 +12,7 @@ include_rtems_score_HEADERS = rtems/score/cpu.h rtems/score/types.h \
     rtems/score/sh.h rtems/score/sh_io.h
 
 noinst_LIBRARIES = libscorecpu.a
-libscorecpu_a_SOURCES = cpu.c
+libscorecpu_a_SOURCES = cpu.c context.c
 libscorecpu_a_CPPFLAGS = $(AM_CPPFLAGS)
 
 include $(srcdir)/preinstall.am

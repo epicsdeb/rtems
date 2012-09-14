@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.21 2008/01/29 21:53:16 joel Exp $
+ *  $Id: system.h,v 1.23 2009/08/12 20:50:38 joel Exp $
  */
 
 #include <rtems.h>
@@ -87,17 +87,6 @@ extern rtems_name Task_name[ 4 ];       /* array of task names */
     if ( (_crlf) ) \
       putchar( '\n' ); \
   } while (0)
-
-/*
- *  static inline routine to make obtaining ticks per second easier.
- */
-
-static inline uint32_t   get_ticks_per_second( void )
-{
-  rtems_interval ticks_per_second;
-  (void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_second );  return ticks_per_second;
-}
-
 
 /*
  *  This allows us to view the "Test_task" instantiations as a set

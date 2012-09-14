@@ -9,12 +9,16 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: clockdrv.c,v 1.7 2007/12/11 15:50:20 joel Exp $
+ *  $Id: clockdrv.c,v 1.13 2010/04/30 14:48:52 sh Exp $
 */
 #include <rtems.h>
 #include <ep7312.h>
 #include <bsp.h>
-#include <irq.h>
+#include <bsp/irq.h>
+
+#if ON_SKYEYE==1
+  #define CLOCK_DRIVER_USE_FAST_IDLE
+#endif
 
 rtems_isr Clock_isr(rtems_vector_number vector);
 static void clock_isr_on(const rtems_irq_connect_data *unused);
@@ -23,11 +27,10 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq);
 
 rtems_irq_connect_data clock_isr_data = {BSP_TC1OI,
                                          (rtems_irq_hdl)Clock_isr,
+					 NULL,
                                          clock_isr_on,
                                          clock_isr_off,
-                                         clock_isr_is_on,
-                                         3,
-                                         0 };
+                                         clock_isr_is_on};
 
 #define CLOCK_VECTOR 0
 
@@ -44,18 +47,37 @@ rtems_irq_connect_data clock_isr_data = {BSP_TC1OI,
 
 /*
  * Set up the clock hardware
-*/
-#define Clock_driver_support_initialize_hardware()                            \
-  do {                                                                        \
-    *EP7312_SYSCON1 |= EP7312_SYSCON1_TC1_PRESCALE;                         \
-    *EP7312_TC1D =(rtems_configuration_get_microseconds_per_tick() * 2000)/1000000; \
-    *EP7312_TC1EOI = 0xFFFFFFFF;                                            \
+ */
+#if ON_SKYEYE
+  #define TCD_VALUE \
+    (rtems_configuration_get_microseconds_per_tick() * 2000)/25000
+#else
+  #define TCD_VALUE \
+    (rtems_configuration_get_microseconds_per_tick() * 2000)/1000000
+#endif
+
+#define Clock_driver_support_initialize_hardware()  \
+  do {                                              \
+    *EP7312_SYSCON1 |= EP7312_SYSCON1_TC1_PRESCALE; \
+    *EP7312_TC1D = TCD_VALUE;                       \
+    *EP7312_TC1EOI = 0xFFFFFFFF;                    \
   } while (0)
 
 #define Clock_driver_support_shutdown_hardware()                        \
   do {                                                                  \
     BSP_remove_rtems_irq_handler(&clock_isr_data);                  \
   } while (0)
+
+/**
+ *  Return the nanoseconds since last tick
+ */
+uint32_t clock_driver_get_nanoseconds_since_last_tick(void)
+{
+  return 0;
+}
+
+#define Clock_driver_nanoseconds_since_last_tick \
+  clock_driver_get_nanoseconds_since_last_tick
 
 static void clock_isr_on(const rtems_irq_connect_data *unused)
 {
@@ -72,4 +94,4 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq)
     return 1;
 }
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

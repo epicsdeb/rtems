@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockgetsecondssinceepoch.c,v 1.1 2008/03/11 20:07:49 joel Exp $
+ *  $Id: clockgetsecondssinceepoch.c,v 1.2 2008/12/08 19:41:30 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -33,6 +33,6 @@ rtems_status_code rtems_clock_get_seconds_since_epoch(
   if ( !_TOD_Is_set )
     return RTEMS_NOT_DEFINED;
 
-  *the_interval = _TOD_Seconds_since_epoch;
+  *the_interval = _TOD_Seconds_since_epoch();
   return RTEMS_SUCCESSFUL;
 }

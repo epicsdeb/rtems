@@ -8,13 +8,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: sleep.c,v 1.4 2007/12/14 17:37:12 joel Exp $
+ *  $Id: sleep.c,v 1.5 2008/12/05 06:44:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#ifndef HAVE_SLEEP
 #include <time.h>
 #include <unistd.h>
 
@@ -35,3 +36,5 @@ unsigned int sleep(
 
   return tm.tv_sec;       /* seconds remaining */
 }
+
+#endif

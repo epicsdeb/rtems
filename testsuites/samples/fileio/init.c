@@ -10,14 +10,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  init.c,v 1.11 2000/06/12 15:00:12 joel Exp
+ *  $Id: init.c,v 1.30.2.1 2011/05/26 23:37:16 ccj Exp $
  */
 
 #define CONFIGURE_INIT
@@ -29,12 +29,137 @@
 #include <errno.h>
 #include <rtems.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <rtems/error.h>
 #include <rtems/dosfs.h>
 #include <ctype.h>
-#include <rtems/ide_part_table.h>
+#include <rtems/bdpart.h>
 #include <rtems/libcsupport.h>
 #include <rtems/fsmount.h>
+#include <rtems/ramdisk.h>
+#include <rtems/nvdisk.h>
+#include <rtems/nvdisk-sram.h>
+
+#if FILEIO_BUILD
+
+/**
+ * Let the IO system allocation the next available major number.
+ */
+#define RTEMS_DRIVER_AUTO_MAJOR (0)
+
+/*
+ * RAM disk driver so you can create a RAM disk from the shell prompt.
+ */
+/**
+ * The RAM Disk configuration.
+ */
+rtems_ramdisk_config rtems_ramdisk_configuration[] =
+{
+  {
+    block_size: 512,
+    block_num:  1024,
+    location:   NULL
+  }
+};
+
+/**
+ * The number of RAM Disk configurations.
+ */
+size_t rtems_ramdisk_configuration_size = 1;
+
+/**
+ * Create the RAM Disk Driver entry.
+ */
+rtems_driver_address_table rtems_ramdisk_io_ops = {
+  initialization_entry: ramdisk_initialize,
+  open_entry:           rtems_blkdev_generic_open,
+  close_entry:          rtems_blkdev_generic_close,
+  read_entry:           rtems_blkdev_generic_read,
+  write_entry:          rtems_blkdev_generic_write,
+  control_entry:        rtems_blkdev_generic_ioctl
+};
+
+/**
+ * The NV Device descriptor. For this test it is just DRAM.
+ */
+rtems_nvdisk_device_desc rtems_nv_heap_device_descriptor[] =
+{
+  {
+    flags:  0,
+    base:   0,
+    size:   1 * 1024 * 1024,
+    nv_ops: &rtems_nvdisk_sram_handlers
+  }
+};
+
+/**
+ * The NV Disk configuration.
+ */
+const rtems_nvdisk_config rtems_nvdisk_configuration[] =
+{
+  {
+    block_size:         512,
+    device_count:       1,
+    devices:            &rtems_nv_heap_device_descriptor[0],
+    flags:              0,
+    info_level:         0
+  }
+};
+
+/**
+ * The number of NV Disk configurations.
+ */
+uint32_t rtems_nvdisk_configuration_size = 1;
+
+/**
+ * Create the NV Disk Driver entry.
+ */
+rtems_driver_address_table rtems_nvdisk_io_ops = {
+  initialization_entry: rtems_nvdisk_initialize,
+  open_entry:           rtems_blkdev_generic_open,
+  close_entry:          rtems_blkdev_generic_close,
+  read_entry:           rtems_blkdev_generic_read,
+  write_entry:          rtems_blkdev_generic_write,
+  control_entry:        rtems_blkdev_generic_ioctl
+};
+
+int
+setup_nvdisk (const char* mntpath)
+{
+  rtems_device_major_number major;
+  rtems_status_code         sc;
+
+  /*
+   * For our test we do not have any static RAM or EEPROM devices so
+   * we allocate the memory from the heap.
+   */
+  rtems_nv_heap_device_descriptor[0].base =
+    malloc (rtems_nv_heap_device_descriptor[0].size);
+
+  if (!rtems_nv_heap_device_descriptor[0].base)
+  {
+    printf ("error: no memory for NV disk\n");
+    return 1;
+  }
+  
+  /*
+   * Register the NV Disk driver.
+   */
+  printf ("Register NV Disk Driver: ");
+  sc = rtems_io_register_driver (RTEMS_DRIVER_AUTO_MAJOR,
+                                 &rtems_nvdisk_io_ops,
+                                 &major);
+  if (sc != RTEMS_SUCCESSFUL)
+  {
+    printf ("error: nvdisk driver not initialised: %s\n",
+            rtems_status_text (sc));
+    return 1;
+  }
+  
+  printf ("successful\n");
+
+  return 0;
+}
 
 /*
  * Table of FAT file systems that will be mounted
@@ -43,50 +168,50 @@
  */
 fstab_t fs_table[] = {
   {
-    "/dev/hda1","/mnt/hda1",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hda1","/mnt/hda1", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hda2","/mnt/hda2",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hda2","/mnt/hda2", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hda3","/mnt/hda3",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hda3","/mnt/hda3", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hda4","/mnt/hda4",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hda4","/mnt/hda4", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hdc1","/mnt/hdc1",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hdc1","/mnt/hdc1", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hdc2","/mnt/hdc2",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hdc2","/mnt/hdc2", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hdc3","/mnt/hdc3",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hdc3","/mnt/hdc3", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   },
   {
-    "/dev/hdc4","/mnt/hdc4",
-    &msdos_ops, RTEMS_FILESYSTEM_READ_WRITE,
+    "/dev/hdc4","/mnt/hdc4", "dosfs",
+    RTEMS_FILESYSTEM_READ_WRITE,
     FSMOUNT_MNT_OK | FSMOUNT_MNTPNT_CRTERR | FSMOUNT_MNT_FAILED,
     0
   }
@@ -99,34 +224,445 @@ fstab_t fs_table[] = {
 #ifdef USE_SHELL
 #include <rtems/shell.h>
 
-void writeScript(
+int
+shell_nvdisk_trace (int argc, char* argv[])
+{
+  const char* driver;
+  int         level;
+
+  if (argc != 3)
+  {
+    printf ("error: invalid number of options\n");
+    return 1;
+  }
+
+  driver = argv[1];
+  level  = strtoul (argv[2], 0, 0);
+  
+  int fd = open (driver, O_WRONLY, 0);
+  if (fd < 0)
+  {
+    printf ("error: driver open failed: %s\n", strerror (errno));
+    return 1;
+  }
+  
+  if (ioctl (fd, RTEMS_NVDISK_IOCTL_INFO_LEVEL, level) < 0)
+  {
+    printf ("error: driver set level failed: %s\n", strerror (errno));
+    return 1;
+  }
+  
+  close (fd);
+  
+  return 0;
+}
+
+int
+shell_nvdisk_erase (int argc, char* argv[])
+{
+  const char* driver = NULL;
+  int         arg;
+  int         fd;
+  
+  for (arg = 1; arg < argc; arg++)
+  {
+    if (argv[arg][0] == '-')
+    {
+      printf ("error: invalid option: %s\n", argv[arg]);
+      return 1;
+    }
+    else
+    {
+      if (!driver)
+        driver = argv[arg];
+      else
+      {
+        printf ("error: only one driver name allowed: %s\n", argv[arg]);
+        return 1;
+      }
+    }
+  }
+  
+  printf ("erase nv disk: %s\n", driver);
+  
+  fd = open (driver, O_WRONLY, 0);
+  if (fd < 0)
+  {
+    printf ("error: nvdisk driver open failed: %s\n", strerror (errno));
+    return 1;
+  }
+  
+  if (ioctl (fd, RTEMS_NVDISK_IOCTL_ERASE_DISK) < 0)
+  {
+    printf ("error: nvdisk driver erase failed: %s\n", strerror (errno));
+    return 1;
+  }
+  
+  close (fd);
+  
+  printf ("nvdisk erased successful\n");
+
+  return 0;
+}
+
+int
+shell_bdbuf_trace (int argc, char* argv[])
+{
+#if RTEMS_BDBUF_TRACE
+  extern bool rtems_bdbuf_tracer;
+  rtems_bdbuf_tracer = !rtems_bdbuf_tracer;
+  printf ("bdbuf trace: %d\n", rtems_bdbuf_tracer);
+#else
+  printf ("bdbuf trace disabled. Rebuild with enabled.\n");
+#endif
+  return 0;
+}
+
+int
+disk_test_set_block_size (dev_t dev, size_t size)
+{
+  rtems_disk_device* dd;
+  int                rc;
+  
+  dd = rtems_disk_obtain (dev);
+  if (!dd)
+  {
+    printf ("error: cannot obtain disk\n");
+    return 1;
+  }
+  
+  rc = dd->ioctl (dd, RTEMS_BLKIO_SETBLKSIZE, &size);
+
+  rtems_disk_release (dd);
+
+  return rc;
+}
+
+int
+disk_test_write_blocks (dev_t dev, int start, int count, size_t size)
+{
+  int                 block;
+  uint32_t*           ip;
+  uint32_t            value = 0;
+  int                 i;
+  rtems_bdbuf_buffer* bd;
+  rtems_status_code   sc;
+  
+  if (disk_test_set_block_size (dev, size) < 0)
+  {
+    printf ("error: set block size failed: %s\n", strerror (errno));
+    return 1;
+  }
+
+  for (block = start; block < (start + count); block++)
+  {
+    sc = rtems_bdbuf_read (dev, block, &bd);
+    if (sc != RTEMS_SUCCESSFUL)
+    {
+      printf ("error: get block %d bd failed: %s\n",
+              block, rtems_status_text (sc));
+      return 1;
+    }
+
+    ip = (uint32_t*) bd->buffer;
+    for (i = 0; i < (size / sizeof (uint32_t)); i++, ip++, value++)
+      *ip = (size << 16) | value;
+
+    sc = rtems_bdbuf_release_modified (bd);
+    if (sc != RTEMS_SUCCESSFUL)
+    {
+      printf ("error: release block %d bd failed: %s\n",
+              block, rtems_status_text (sc));
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int
+disk_test_block_sizes (int argc, char *argv[])
+{
+  struct stat st;
+  char*       name;
+  int         start;
+  int         count;
+  int         size;
+  
+  if (argc != (4 + 1))
+  {
+    printf ("error: need to supply a device path, start, block and size\n");
+    return 1;
+  }
+
+  name = argv[1];
+  
+  if (stat (name, &st) < 0)
+  {
+    printf ("error: stat '%s' failed: %s\n", name, strerror (errno));
+    return 1;
+  }
+
+  start = strtoul (argv[2], 0, 0);
+  count = strtoul (argv[3], 0, 0);
+  size  = strtoul (argv[4], 0, 0);
+  
+  return disk_test_write_blocks (st.st_rdev, start, count, size);
+}
+
+size_t
+parse_size_arg (const char* arg)
+{
+  size_t size;
+  size_t scalar = 1;
+  
+  size = strtoul (arg, 0, 0);
+  switch (arg[strlen (arg) - 1])
+  {
+    case 'M':
+      scalar = 1000 * 1024;
+      break;
+    case 'm':
+      scalar = 1000000;
+      break;
+    case 'K':
+      scalar = 1024;
+      break;
+    case 'k':
+      scalar = 1000;
+      break;
+    default:
+      printf ("error: invalid scalar (M/m/K/k): %c\n", arg[strlen (arg) - 1]);
+      return 0;
+  }
+  return size * scalar;
+ }
+
+int
+create_ramdisk (int argc, char *argv[])
+{
+  rtems_device_major_number major;
+  rtems_status_code         sc;
+  int                       arg;
+  size_t                    size = 0;
+  size_t                    block_size = 0;
+
+  for (arg = 0; arg < argc; ++arg)
+  {
+    if (argv[arg][0] == '-')
+    {
+      switch (argv[arg][0])
+      {
+        case 's':
+          ++arg;
+          if (arg == argc)
+          {
+            printf ("error: -s needs a size\n");
+            return 1;
+          }
+          size = parse_size_arg (argv[arg]);
+          if (size == 0)
+            return 1;
+          break;
+        case 'b':
+          ++arg;
+          if (arg == argc)
+          {
+            printf ("error: -b needs a size\n");
+            return 1;
+          }
+          block_size = parse_size_arg (argv[arg]);
+          if (size == 0)
+            return 1;
+          break;
+        default:
+          printf ("error: invalid option: %s\n", argv[arg]);
+          return 1;
+      }
+    }
+  }
+
+  if (block_size)
+    rtems_ramdisk_configuration[0].block_size = block_size;
+  if (size)
+    rtems_ramdisk_configuration[0].block_num =
+      size / rtems_ramdisk_configuration[0].block_size;
+    
+  /*
+   * Register the RAM Disk driver.
+   */
+  printf ("Register RAM Disk Driver [blocks=%" PRIu32 \
+          " block-size=%" PRIu32"]:",
+          rtems_ramdisk_configuration[0].block_num,
+          rtems_ramdisk_configuration[0].block_size);
+  
+  sc = rtems_io_register_driver (RTEMS_DRIVER_AUTO_MAJOR,
+                                 &rtems_ramdisk_io_ops,
+                                 &major);
+  if (sc != RTEMS_SUCCESSFUL)
+  {
+    printf ("error: ramdisk driver not initialised: %s\n",
+            rtems_status_text (sc));
+    return 1;
+  }
+  
+  printf ("successful\n");
+
+  return 0;
+}
+
+int
+create_nvdisk (int argc, char *argv[])
+{
+  rtems_device_major_number major;
+  rtems_status_code         sc;
+  int                       arg;
+  size_t                    size = 0;
+#if ADD_WHEN_NVDISK_HAS_CHANGED
+  size_t                    block_size = 0;
+#endif
+  
+  for (arg = 0; arg < argc; ++arg)
+  {
+    if (argv[arg][0] == '-')
+    {
+      switch (argv[arg][0])
+      {
+        case 's':
+          ++arg;
+          if (arg == argc)
+          {
+            printf ("error: -s needs a size\n");
+            return 1;
+          }
+          size = parse_size_arg (argv[arg]);
+          if (size == 0)
+            return 1;
+          break;
+#if ADD_WHEN_NVDISK_HAS_CHANGED
+        case 'b':
+          ++arg;
+          if (arg == argc)
+          {
+            printf ("error: -b needs a size\n");
+            return 1;
+          }
+          block_size = parse_size_arg (argv[arg]);
+          if (size == 0)
+            return 1;
+          break;
+#endif
+        default:
+          printf ("error: invalid option: %s\n", argv[arg]);
+          return 1;
+      }
+    }
+  }
+
+#if ADD_WHEN_NVDISK_HAS_CHANGED
+  if (block_size)
+    rtems_nvdisk_configuration[0].block_size = block_size;
+#endif
+  if (size)
+    rtems_nv_heap_device_descriptor[0].size = size;
+    
+  /*
+   * For our test we do not have any static RAM or EEPROM devices so
+   * we allocate the memory from the heap.
+   */
+  rtems_nv_heap_device_descriptor[0].base =
+    malloc (rtems_nv_heap_device_descriptor[0].size);
+
+  if (!rtems_nv_heap_device_descriptor[0].base)
+  {
+    printf ("error: no memory for NV disk\n");
+    return 1;
+  }
+  
+  /*
+   * Register the RAM Disk driver.
+   */
+  printf ("Register NV Disk Driver [size=%" PRIu32 \
+          " block-size=%" PRIu32"]:",
+          rtems_nv_heap_device_descriptor[0].size,
+          rtems_nvdisk_configuration[0].block_size);
+  
+  sc = rtems_io_register_driver (RTEMS_DRIVER_AUTO_MAJOR,
+                                 &rtems_nvdisk_io_ops,
+                                 &major);
+  if (sc != RTEMS_SUCCESSFUL)
+  {
+    printf ("error: nvdisk driver not initialised: %s\n",
+            rtems_status_text (sc));
+    return 1;
+  }
+  
+  printf ("successful\n");
+
+  return 0;
+}
+
+static void writeFile(
   const char *name,
+  mode_t      mode,
   const char *contents
 )
 {
   int sc;
   sc = setuid(0);
   if ( sc ) {
-    printf( "setuid failed: %s:\n", name, strerror(errno) );
+    printf( "setuid failed: %s: %s\n", name, strerror(errno) );
   }
 
   rtems_shell_write_file( name, contents );
-  sc = chmod ( name, 0777 );
+
+  sc = chmod ( name, mode );
   if ( sc ) {
-    printf( "chmod %s: %s:\n", name, strerror(errno) );
+    printf( "chmod %s: %s\n", name, strerror(errno) );
   }
 }
 
-void fileio_start_shell(void)
+#define writeScript( _name, _contents ) \
+        writeFile( _name, 0777, _contents )
+
+static void fileio_start_shell(void)
 {
   int sc;
+
   sc = mkdir("/scripts", 0777);
   if ( sc ) {
     printf( "mkdir /scripts: %s:\n", strerror(errno) );
   }
 
+  sc = mkdir("/etc", 0777);
+  if ( sc ) {
+    printf( "mkdir /etc: %s:\n", strerror(errno) );
+  }
+
+  printf(
+    "Creating /etc/passwd and group with three useable accounts\n"
+    "root/pwd , test/pwd, rtems/NO PASSWORD"
+  );
+
+  writeFile(
+    "/etc/passwd",
+    0644,
+    "root:7QR4o148UPtb.:0:0:root::/:/bin/sh\n"
+    "rtems:*:1:1:RTEMS Application::/:/bin/sh\n"
+    "test:8Yy.AaxynxbLI:2:2:test account::/:/bin/sh\n"
+    "tty:!:3:3:tty owner::/:/bin/false\n"
+  );
+  writeFile(
+    "/etc/group",
+    0644,
+    "root:x:0:root\n"
+    "rtems:x:1:rtems\n"
+    "test:x:2:test\n"
+    "tty:x:3:tty\n"
+  );
+
   writeScript(
-    "/scripts/js", 
+    "/scripts/js",
     "#! joel\n"
     "\n"
     "date\n"
@@ -136,19 +672,42 @@ void fileio_start_shell(void)
   );
 
   writeScript(
-    "/scripts/j1", 
+    "/scripts/j1",
     "#! joel -s 20480 -t JESS\n"
     "stackuse\n"
   );
 
   rtems_shell_write_file(
-    "/scripts/j2", 
+    "/scripts/j2",
     "echo j2 TEST FILE\n"
     "echo j2   SHOULD BE non-executable AND\n"
     "echo j2   DOES NOT have the magic first line\n"
   );
 
-  printf(" =========================\n");
+  rtems_shell_add_cmd ("mkrd", "files",
+                       "Create a RAM disk driver", create_ramdisk);
+  rtems_shell_add_cmd ("mknvd", "files",
+                       "Create a NV disk driver", create_nvdisk);
+  rtems_shell_add_cmd ("nverase", "misc",
+                       "nverase driver", shell_nvdisk_erase);
+  rtems_shell_add_cmd ("nvtrace", "misc",
+                       "nvtrace driver level", shell_nvdisk_trace);
+  rtems_shell_add_cmd ("bdbuftrace", "files",
+                       "bdbuf trace toggle", shell_bdbuf_trace);
+  rtems_shell_add_cmd ("td", "files",
+                       "Test disk", disk_test_block_sizes);
+#if RTEMS_RFS_TRACE
+  rtems_shell_add_cmd ("rfs", "files",
+                       "RFS trace",
+                       rtems_rfs_trace_shell_command);
+#endif
+#if RTEMS_RFS_RTEMS_TRACE
+  rtems_shell_add_cmd ("rrfs", "files",
+                       "RTEMS RFS trace",
+                       rtems_rfs_rtems_trace_shell_command);
+#endif
+
+  printf("\n =========================\n");
   printf(" starting shell\n");
   printf(" =========================\n");
   rtems_shell_init(
@@ -156,21 +715,21 @@ void fileio_start_shell(void)
     RTEMS_MINIMUM_STACK_SIZE * 4,    /* task_stacksize */
     100,                             /* task_priority */
     "/dev/console",                  /* devname */
-    0,                               /* forever */
-    1                                /* wait */
+    false,                           /* forever */
+    true,                            /* wait */
+    NULL                             /* login */
   );
 }
-
 #endif /* USE_SHELL */
 
-void fileio_print_free_heap(void)
+static void fileio_print_free_heap(void)
 {
   printf("--- unused dynamic memory: %lu bytes ---\n",
 	 (unsigned long) malloc_free_space());
 }
 
 
-void fileio_part_table_initialize(void)
+static void fileio_part_table_initialize(void)
 {
   char devname[64];
   rtems_status_code rc;
@@ -188,12 +747,12 @@ void fileio_part_table_initialize(void)
   /*
    * call function
    */
-  rc = rtems_ide_part_table_initialize(devname);
+  rc = rtems_bdpart_register_from_disk(devname);
   printf("result = %d\n",rc);
   fileio_print_free_heap();
 }
 
-void fileio_fsmount(void)
+static void fileio_fsmount(void)
 {
   rtems_status_code rc;
 
@@ -211,7 +770,7 @@ void fileio_fsmount(void)
   fileio_print_free_heap();
 }
 
-void fileio_list_file(void)
+static void fileio_list_file(void)
 {
   char fname[1024];
   char *buf_ptr = NULL;
@@ -252,17 +811,17 @@ void fileio_list_file(void)
     do {
       n = read(fd,buf_ptr,buf_size);
       if (n > 0) {
-	write(1,buf_ptr,n);
+	write(1,buf_ptr,(size_t) n);
 	flen += n;
       }
     } while (n > 0);
 
     rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &curr_tick);
 
-    printf("\n ******** End of file reached, flen = %d\n",flen);
+    printf("\n ******** End of file reached, flen = %zd\n",flen);
     close(fd);
 
-    rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_sec);
+    ticks_per_sec = rtems_clock_get_ticks_per_second();
     printf("time elapsed for read:  %g seconds\n",
 	   ((double)curr_tick-start_tick)/ticks_per_sec);
   }
@@ -278,22 +837,22 @@ void fileio_list_file(void)
 /*
  * convert a size string (like 34K or 12M) to actual byte count
  */
-bool fileio_str2size(const char *str,uint32_t   *res_ptr)
+static bool fileio_str2size(const char *str,uint32_t   *res_ptr)
 {
   bool failed = false;
   unsigned long size;
-  char suffix = ' ';
+  unsigned char suffix = ' ';
 
   if (1 > sscanf(str,"%lu%c",&size,&suffix)) {
     failed = true;
   }
-  else if (toupper(suffix) == 'K') {
+  else if (toupper((int)suffix) == 'K') {
     size *= 1024;
   }
-  else if (toupper(suffix) == 'M') {
+  else if (toupper((int)suffix) == 'M') {
     size *= 1024UL*1024UL;
   }
-  else if (isalpha(suffix)) {
+  else if (isalpha((int)suffix)) {
     failed = true;
   }
 
@@ -303,7 +862,7 @@ bool fileio_str2size(const char *str,uint32_t   *res_ptr)
   return failed;
 }
 
-void fileio_write_file(void)
+static void fileio_write_file(void)
 {
   char fname[1024];
   char tmp_str[32];
@@ -327,7 +886,7 @@ void fileio_write_file(void)
   /*
    * get number of ticks per second
    */
-  rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_sec);
+  ticks_per_sec = rtems_clock_get_ticks_per_second();
 
   /*
    * get path to file to write
@@ -433,8 +992,8 @@ void fileio_write_file(void)
 	  bufptr + (buf_size-bytes_to_copy),
 		  MIN(bytes_to_copy,file_size-curr_pos));
 	if (n > 0) {
-	  bytes_to_copy -= n;
-	  curr_pos      += n;
+	  bytes_to_copy -= (size_t) n;
+	  curr_pos      += (size_t) n;
 	}
       } while ((bytes_to_copy > 0)  && (n > 0));
     } while ((file_size > curr_pos) && (n > 0));
@@ -467,7 +1026,7 @@ void fileio_write_file(void)
   fileio_print_free_heap();
 }
 
-void fileio_read_file(void)
+static void fileio_read_file(void)
 {
   char fname[1024];
   char tmp_str[32];
@@ -486,7 +1045,7 @@ void fileio_read_file(void)
   /*
    * get number of ticks per second
    */
-  rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_sec);
+  ticks_per_sec = rtems_clock_get_ticks_per_second();
 
   /*
    * get path to file to read
@@ -552,7 +1111,7 @@ void fileio_read_file(void)
 	       bufptr,
 	       buf_size);
       if (n > 0) {
-	curr_pos      += n;
+	curr_pos      += (size_t) n;
       }
     } while (n > 0);
     rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &curr_tick);
@@ -587,7 +1146,7 @@ void fileio_read_file(void)
 
 }
 
-void fileio_menu (void)
+static void fileio_menu (void)
 {
   char inbuf[10];
 
@@ -641,7 +1200,14 @@ void fileio_menu (void)
   exit (0);
 }
 
-int menu_tid;
+/*
+ * RTEMS File Menu Task
+ */
+static rtems_task
+fileio_task (rtems_task_argument ignored)
+{
+  fileio_menu();
+}
 
 /*
  * RTEMS Startup Task
@@ -649,16 +1215,31 @@ int menu_tid;
 rtems_task
 Init (rtems_task_argument ignored)
 {
+  rtems_name Task_name;
+  rtems_id   Task_id;
+  rtems_status_code status;
+
   puts( "\n\n*** FILE I/O SAMPLE AND TEST ***" );
 
-  fileio_menu();
+  Task_name = rtems_build_name('F','M','N','U');
+
+  status = rtems_task_create(
+    Task_name, 1, RTEMS_MINIMUM_STACK_SIZE * 2,
+    RTEMS_DEFAULT_MODES ,
+    RTEMS_FLOATING_POINT | RTEMS_DEFAULT_ATTRIBUTES, &Task_id
+  );
+
+  status = rtems_task_start( Task_id, fileio_task, 1 );
+
+  status = rtems_task_delete( RTEMS_SELF );
 }
 
+#if defined(USE_SHELL)
 /*
  *  RTEMS Shell Configuration -- Add a command and an alias for it
  */
 
-int main_usercmd(int argc, char **argv)
+static int main_usercmd(int argc, char **argv)
 {
   int i;
   printf( "UserCommand: argc=%d\n", argc );
@@ -667,7 +1248,7 @@ int main_usercmd(int argc, char **argv)
   return 0;
 }
 
-rtems_shell_cmd_t Shell_USERCMD_Command = {
+static rtems_shell_cmd_t Shell_USERCMD_Command = {
   "usercmd",                                       /* name */
   "usercmd n1 [n2 [n3...]]     # echo arguments",  /* usage */
   "user",                                          /* topic */
@@ -676,17 +1257,31 @@ rtems_shell_cmd_t Shell_USERCMD_Command = {
   NULL                                             /* next */
 };
 
-rtems_shell_alias_t Shell_USERECHO_Alias = {
+static rtems_shell_alias_t Shell_USERECHO_Alias = {
   "usercmd",                 /* command */
   "userecho"                 /* alias */
 };
-  
+
 
 #define CONFIGURE_SHELL_USER_COMMANDS &Shell_USERCMD_Command
 #define CONFIGURE_SHELL_USER_ALIASES &Shell_USERECHO_Alias
 #define CONFIGURE_SHELL_COMMANDS_INIT
 #define CONFIGURE_SHELL_COMMANDS_ALL
 #define CONFIGURE_SHELL_MOUNT_MSDOS
+#define CONFIGURE_SHELL_MOUNT_RFS
+#define CONFIGURE_SHELL_DEBUGRFS
 
 #include <rtems/shellconfig.h>
+#endif
 
+#else
+/*
+ * RTEMS Startup Task
+ */
+rtems_task
+Init (rtems_task_argument ignored)
+{
+  puts( "\n\n*** FILE I/O SAMPLE AND TEST ***" );
+  puts( "\n\n*** NOT ENOUGH MEMORY TO BUILD AND RUN ***" );
+}
+#endif

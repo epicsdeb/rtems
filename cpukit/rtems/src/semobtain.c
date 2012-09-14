@@ -22,7 +22,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semobtain.c,v 1.15 2008/08/05 13:32:38 joel Exp $
+ *  $Id: semobtain.c,v 1.16 2009/01/06 05:00:45 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -83,7 +83,7 @@ rtems_status_code rtems_semaphore_obtain(
         _CORE_mutex_Seize(
           &the_semaphore->Core_control.mutex,
           id,
-          ((_Options_Is_no_wait( option_set )) ? FALSE : TRUE),
+          ((_Options_Is_no_wait( option_set )) ? false : true),
           timeout,
           level
         );
@@ -95,7 +95,7 @@ rtems_status_code rtems_semaphore_obtain(
       _CORE_semaphore_Seize_isr_disable(
         &the_semaphore->Core_control.semaphore,
         id,
-        ((_Options_Is_no_wait( option_set )) ? FALSE : TRUE),
+        ((_Options_Is_no_wait( option_set )) ? false : true),
         timeout,
         &level
       );

@@ -1,7 +1,7 @@
 #
-#  $Id: sp02.doc,v 1.8 2003/09/04 18:53:47 joel Exp $
+#  $Id: sp02.doc,v 1.10 2009/06/12 14:01:50 joel Exp $
 #
-#  COPYRIGHT (c) 1989-1999.
+#  COPYRIGHT (c) 1989-2009.
 #  On-Line Applications Research Corporation (OAR).
 #
 #  The license and distribution terms for this file may be
@@ -34,3 +34,6 @@ concepts:
   f.  Verifies the break statement in the _Block_activate routine.
 
   g.  Verifies the while loop in the _Prev_tcb routine.
+
+  h.  Verify behavior when the IDLE task's stack is configured for
+      less than the minimum stack size.

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskmp.c,v 1.17 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: taskmp.c,v 1.18 2009/01/06 04:58:46 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -202,7 +202,7 @@ void _RTEMS_tasks_MP_Process_packet (
                   &_RTEMS_tasks_Information,
                   the_packet->name,
                   the_packet->Prefix.id,
-                  TRUE
+                  true
                 );
 
       _MPCI_Return_packet( the_packet_prefix );

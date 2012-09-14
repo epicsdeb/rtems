@@ -1,19 +1,18 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.16 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.18 2009/10/26 07:40:22 ralf Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
 
-rtems_id         Task_id[OPERATION_COUNT+1];
+rtems_id   Task_id[OPERATION_COUNT+1];
 uint32_t   Task_index;
 
 rtems_task High_task(
@@ -28,7 +27,9 @@ rtems_task Low_task(
   rtems_task_argument argument
 );
 
-void test_init();
+extern void test_init(void);
+
+int operation_count = OPERATION_COUNT;
 
 rtems_task Init(
   rtems_task_argument argument
@@ -46,16 +47,19 @@ rtems_task Init(
   directive_failed( status, "rtems_task_delete of RTEMS_SELF" );
 }
 
-void test_init()
+void test_init(void)
 {
   rtems_status_code   status;
   rtems_task_entry    task_entry;
   rtems_task_priority priority;
   uint32_t      index;
 
-  priority = 250;
+  priority = RTEMS_MAXIMUM_PRIORITY - 1;
 
-  for( index = 0; index <= OPERATION_COUNT ; index++ ) {
+  if ( OPERATION_COUNT > RTEMS_MAXIMUM_PRIORITY - 2 )
+    operation_count =  RTEMS_MAXIMUM_PRIORITY - 2;
+
+  for( index = 0; index <= operation_count ; index++ ) {
 
     status = rtems_task_create(
       rtems_build_name( 'T', 'I', 'M', 'E' ),
@@ -70,7 +74,7 @@ void test_init()
     priority--;
 
     if ( index==0 )                    task_entry = Low_task;
-    else if ( index==OPERATION_COUNT ) task_entry = High_task;
+    else if ( index==operation_count ) task_entry = High_task;
     else                               task_entry = Middle_tasks;
 
     status = rtems_task_start( Task_id[ index ], task_entry, 0 );
@@ -91,7 +95,7 @@ rtems_task High_task(
   put_time(
     "rtems_task_resume: task readied -- preempts caller",
     end_time,
-    OPERATION_COUNT,
+    operation_count,
     0,
     CALLING_OVERHEAD_TASK_RESUME
   );
@@ -120,7 +124,7 @@ rtems_task Low_task(
   put_time(
     "rtems_task_suspend: calling task",
     end_time,
-    OPERATION_COUNT,
+    operation_count,
     0,
     CALLING_OVERHEAD_TASK_SUSPEND
   );

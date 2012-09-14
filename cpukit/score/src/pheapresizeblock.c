@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup ScoreProtHeap
+ *
+ * @brief Protected Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapresizeblock.c,v 1.2 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: pheapresizeblock.c,v 1.5 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -19,15 +27,15 @@
 bool _Protected_heap_Resize_block(
   Heap_Control *the_heap,
   void         *starting_address,
-  size_t        size
+  uintptr_t     size
 )
 {
   Heap_Resize_status status;
-  uint32_t           old_mem_size;
-  uint32_t           avail_mem_size;
+  uintptr_t          old_mem_size;
+  uintptr_t          avail_mem_size;
 
   _RTEMS_Lock_allocator();
-    status = _Heap_Resize_block( 
+    status = _Heap_Resize_block(
       the_heap, starting_address, size, &old_mem_size, &avail_mem_size );
   _RTEMS_Unlock_allocator();
   return (status == HEAP_RESIZE_SUCCESSFUL);

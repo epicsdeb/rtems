@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/threadq.h
  *
  *  This include file contains all the constants and structures associated
@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadq.h,v 1.26 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: threadq.h,v 1.28.2.1 2010/06/14 06:09:11 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_THREADQ_H
@@ -27,15 +27,15 @@
  */
 /**@{*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <rtems/score/tqdata.h>
 
 #include <rtems/score/object.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/watchdog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  *  Constant for indefinite wait.
@@ -81,7 +81,7 @@ Thread_Control *_Thread_queue_Dequeue(
     _the_thread_queue, \
     _timeout, \
     _Thread_queue_Timeout )
-  
+
 
 /** @brief  Thread queue Enqueue
  *
@@ -192,7 +192,7 @@ Thread_blocking_operation_States _Thread_queue_Enqueue_priority (
 void _Thread_queue_Extract_priority_helper(
   Thread_queue_Control *the_thread_queue,
   Thread_Control       *the_thread,
-  bool                  requeuing 
+  bool                  requeuing
 );
 
 /**
@@ -202,7 +202,7 @@ void _Thread_queue_Extract_priority_helper(
  */
 
 #define _Thread_queue_Extract_priority( _the_thread_queue, _the_thread ) \
-  _Thread_queue_Extract_priority_helper( _the_thread_queue, _the_thread, FALSE )
+  _Thread_queue_Extract_priority_helper( _the_thread_queue, _the_thread, false )
 
 
 /** @brief  Thread queue First priority
@@ -273,7 +273,7 @@ void _Thread_queue_Timeout (
 /**
  * @brief Process Thread Queue Timeout
  *
- * This is a shared helper routine which makes it easier to have multiple 
+ * This is a shared helper routine which makes it easier to have multiple
  * object class specific timeout routines.
  *
  * @param[in] the_thread is the thread to extract

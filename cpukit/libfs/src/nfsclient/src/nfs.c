@@ -1,22 +1,24 @@
-/* $Id: nfs.c,v 1.7.2.1 2009/03/09 14:12:58 joel Exp $ */
+/* $Id: nfs.c,v 1.21.2.3 2011/07/15 21:22:23 strauman Exp $ */
 
 /* NFS client implementation for RTEMS; hooks into the RTEMS filesystem */
 
 /* Author: Till Straumann <strauman@slac.stanford.edu> 2002 */
 
-/* 
+/* Hacked on by others. */
+
+/*
  * Authorship
  * ----------
  * This software (NFS-2 client implementation for RTEMS) was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2002-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The NFS-2 client implementation for RTEMS was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -25,18 +27,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -45,9 +47,9 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
 
 #ifdef	HAVE_CONFIG_H
 #include <config.h>
@@ -105,7 +107,7 @@
  * variable 'nfsStBlksize'.
  * Thanks to Steven Johnson <sjohnson@sakuraindustries.com> for helping
  * working on this issue.
- */   
+ */
 #define DEFAULT_NFS_ST_BLKSIZE			NFS_MAXDATA
 
 /* dont change this without changing the maximal write size */
@@ -139,7 +141,7 @@ static struct timeval _nfscalltimeout = { 10, 0 };	/* {secs, us } */
  * This has an impact on performance, as e.g. getcwd() stats() all
  * directory entries when it believes it has crossed a mount point
  * (a.st_dev != b.st_dev).
- * 
+ *
  * OTOH, it also might cause node comparison failure! E.g. 'getcwd()'
  * assumes that two nodes residing in the same directory must be located
  * on the same device and hence compares 'st_ino' only.
@@ -157,14 +159,14 @@ static struct timeval _nfscalltimeout = { 10, 0 };	/* {secs, us } */
 
 #define	NFS_MAKE_DEV_T_INO_HACK(node) \
 		rtems_filesystem_make_dev_t( NFS_MAJOR, \
-			(((node)->nfs->id)<<16) | (SERP_ATTR((node)).fileid >> 16) )
+			(((rtems_device_minor_number)((node)->nfs->id))<<16) | (((rtems_device_minor_number)SERP_ATTR((node)).fileid) >> 16) )
 
 /* use our 'nfs id' and the server's fsid for the minor device number
  * this should be fairly unique
  */
 #define	NFS_MAKE_DEV_T(node) \
 		rtems_filesystem_make_dev_t( NFS_MAJOR, \
-			(((node)->nfs->id)<<16) | (SERP_ATTR((node)).fsid & ((1<<16)-1)) )
+			(((rtems_device_minor_number)((node)->nfs->id))<<16) | (SERP_ATTR((node)).fsid & (((rtems_device_minor_number)1<<16)-1)) )
 
 #define  DIRENT_HEADER_SIZE ( sizeof(struct dirent) - \
 			sizeof( ((struct dirent *)0)->d_name ) )
@@ -194,7 +196,7 @@ static struct timeval _nfscalltimeout = { 10, 0 };	/* {secs, us } */
 						rtems_semaphore_obtain((s),    \
 									RTEMS_WAIT,        \
 									RTEMS_NO_TIMEOUT); \
-					} while (0) 
+					} while (0)
 
 #define UNLOCK(s)	do { rtems_semaphore_release((s)); \
 					} while (0)
@@ -219,7 +221,7 @@ xdr_strbuf(XDR *xdrs, strbuf *obj)
 }
 
 /* Read 'readlink' results into a 'strbuf'.
- * This is convenient as it avoids  
+ * This is convenient as it avoids
  * one extra step of copying / lenght
  * checking.
  */
@@ -384,16 +386,16 @@ typedef struct serporidok {
 			sattr		attributes;
 		}					sattrarg;
 		struct {
-			u_int 		offset;
-			u_int		count;
-			u_int		totalcount;
+			uint32_t	offset;
+			uint32_t	count;
+			uint32_t	totalcount;
 		}					readarg;
 		struct {
-			u_int		beginoffset;
-			u_int		offset;
-			u_int		totalcount;
+			uint32_t	beginoffset;
+			uint32_t	offset;
+			uint32_t	totalcount;
 			struct {
-				u_int data_len;
+				uint32_t data_len;
 				char* data_val;
 			}			data;
 		}					writearg;
@@ -415,7 +417,7 @@ typedef struct serporidok {
 		}					symlinkarg;
 		struct {
 			nfscookie	cookie;
-			u_int		count;
+			uint32_t	count;
 		}					readdirarg;
 	}							arg_u;
 } serporidok;
@@ -427,7 +429,7 @@ typedef struct serporid {
 	}				serporid_u;
 } serporid;
 
-/* an XDR routine to encode/decode the inverted diropres 
+/* an XDR routine to encode/decode the inverted diropres
  * into an nfsnodestat;
  *
  * NOTE: this routine only acts on
@@ -435,7 +437,7 @@ typedef struct serporid {
  *   - 'serporid.file'
  *   - 'serporid.attributes'
  * and leaves the 'arg_u' alone.
- * 
+ *
  * The idea is that a 'diropres' is read into 'serporid'
  * which can then be used as an argument to subsequent
  * NFS-RPCs (after filling in the node's arg_u).
@@ -448,7 +450,7 @@ xdr_serporidok(XDR *xdrs, serporidok *objp)
      if (!xdr_fattr (xdrs, &objp->attributes))
          return FALSE;
     return TRUE;
-}   
+}
 
 static bool_t
 xdr_serporid(XDR *xdrs, serporid *objp)
@@ -480,19 +482,9 @@ typedef uint32_t	TimeStamp;
 static inline TimeStamp
 nowSeconds(void)
 {
-register uint32_t	rval;
-#ifndef READ_LONG_IS_ATOMIC
-rtems_interrupt_level		l;
-
-	rtems_interrupt_disable(level);
-#endif
-
-	rval = _TOD_Seconds_since_epoch;
-
-#ifndef READ_LONG_IS_ATOMIC
-	rtems_interrupt_enable(level);
-#endif
-	return rval;
+  rtems_interval rval;
+  rtems_clock_get_seconds_since_epoch( &rval );
+  return rval;
 }
 
 
@@ -521,10 +513,10 @@ typedef struct NfsRec_ {
 		 */
 	u_short								 id;
 		/* Our RTEMS filesystem mt_entry
-		 */ 
+		 */
 	rtems_filesystem_mount_table_entry_t *mt_entry;
 		/* Next NfsRec on a linked list who
-		 * is anchored at nfsGlob 
+		 * is anchored at nfsGlob
 		 */
 	struct NfsRec_						 *next;
 		/* Who we pretend we are
@@ -570,7 +562,7 @@ typedef struct NfsNodeRec_ {
  *****************************************/
 
 static int nfs_readlink(
-	rtems_filesystem_location_info_t  *loc,     	/* IN  */       
+	rtems_filesystem_location_info_t  *loc,     	/* IN  */
 	char							  *buf,			/* OUT */
 	size_t							  len
 );
@@ -618,7 +610,7 @@ rtems_filesystem_resolve_location(char *buf, int len, rtems_filesystem_location_
 
 
 /* * * * * * * * * * * * * * * * * *
-	Trivial Operations on a NfsNode 
+	Trivial Operations on a NfsNode
  * * * * * * * * * * * * * * * * * */
 
 /* determine if a location 'l' is an NFS root node */
@@ -727,13 +719,13 @@ static struct nfsstats {
 		 * during the system lifetime
 		 */
 	u_short						fs_ids;
-} nfsGlob = {0/* IMPORTANT */};
+} nfsGlob = {0, 0,  0, 0, 0, 0};
 
 /*
  * Global variable to tune the 'st_blksize' (stat(2)) value this nfs
  * client should report.
  * size on the server.
- */                   
+ */
 #ifndef DEFAULT_NFS_ST_BLKSIZE
 #define DEFAULT_NFS_ST_BLKSIZE	NFS_MAXDATA
 #endif
@@ -1167,7 +1159,7 @@ int				rval = -1;
 /* Check the 'age' of a node's stats
  * and read the attributes from the server
  * if necessary.
- * 
+ *
  * ARGS:	node	node to update
  * 			force	enforce updating ignoring
  * 					the timestamp/age
@@ -1198,13 +1190,12 @@ updateAttr(NfsNode node, int force)
 
 		node->age = nowSeconds();
 	}
-	
+
 	return 0;
 }
 
 /*
- * IP address helper. Note that we avoid
- * gethostbyname() since it's not reentrant.
+ * IP address helper.
  *
  * initialize a sockaddr_in from a
  * [<uid>'.'<gid>'@']<host>':'<path>" string and let
@@ -1221,7 +1212,8 @@ buildIpAddr(u_long *puid, u_long *pgid,
 			char **pHost, struct sockaddr_in *psa,
 			char **pPath)
 {
-char	host[30];
+struct hostent *h;
+char	host[64];
 char	*chpt = *pPath;
 char	*path;
 int		len;
@@ -1248,7 +1240,7 @@ int		len;
 
 	/* split the device name which is in the form
 	 *
-	 * <host_ip> ':' <path>
+	 * <host> ':' <path>
 	 *
 	 * into its components using a local buffer
 	 */
@@ -1264,10 +1256,18 @@ int		len;
 	strncpy(host, chpt, len);
 	host[len]=0;
 
-	if ( ! inet_pton(AF_INET, host, &psa->sin_addr) ) {
-		errno = ENXIO;
+  /* BEGIN OF NON-THREAD SAFE REGION */
+
+	h = gethostbyname(host);
+
+	if ( !h ) {
+		errno = EINVAL;
 		return -1;
 	}
+
+	memcpy(&psa->sin_addr, h->h_addr, sizeof (struct in_addr));
+  
+  /* END OF NON-THREAD SAFE REGION */
 
 	psa->sin_family = AF_INET;
 	psa->sin_port   = 0;
@@ -1362,10 +1362,16 @@ struct rtems_filesystem_location_info_tt
  * before passing control to the new FS' evalpath_h()
  *
  */
-	
+
+union nfs_evalpath_arg {
+    int i;
+    const char **c;
+  };
+
 STATIC int nfs_do_evalpath(
 	const char                        *pathname,      /* IN     */
-	void                              *arg,
+	int                                pathnamelen,   /* IN     */
+	union nfs_evalpath_arg		  *arg,
 	rtems_filesystem_location_info_t  *pathloc,       /* IN/OUT */
 	int								  forMake
 )
@@ -1385,7 +1391,8 @@ unsigned long	niu,siu;
 		e = ENOMEM;
 		goto cleanup;
 	}
-	strcpy(p, pathname);
+	memset(p, 0, MAXPATHLEN+1);
+	memcpy(p, pathname, pathnamelen);
 
 	LOCK(nfsGlob.lock);
 	node = nfsNodeClone(node);
@@ -1394,7 +1401,7 @@ unsigned long	niu,siu;
 	/* from here on, the NFS is protected from being unmounted
 	 * since the node refcount is > 1
 	 */
-	
+
 	/* clone the node */
 	if ( !node ) {
 		/* nodeClone sets errno */
@@ -1518,9 +1525,9 @@ unsigned long	niu,siu;
 #endif
 
 			if (forMake)
-				rval = pathloc->ops->evalformake_h(part, pathloc, (const char**)arg);
+				rval = pathloc->ops->evalformake_h(part, pathloc, arg->c);
 			else
-				rval = pathloc->ops->evalpath_h(part, (int)arg, pathloc);
+				rval = pathloc->ops->evalpath_h(part, strlen(part), arg->i, pathloc);
 
 			free(p);
 			return rval;
@@ -1567,7 +1574,7 @@ unsigned long	niu,siu;
 		 */
 		assert( node->args.name );
 
-		*(const char**)arg = pathname + (node->args.name - p);
+		*(arg->c) = pathname + (node->args.name - p);
 
 #if 0
 		/* restore the directory node */
@@ -1677,16 +1684,22 @@ static int nfs_evalformake(
 	const char                      **pname       /* OUT    */
 )
 {
-	return nfs_do_evalpath(path, (void*)pname, pathloc, 1 /*forMake*/);
+	union nfs_evalpath_arg args;
+	args.c = pname;
+	                
+	return nfs_do_evalpath(path, strlen(path), &args, pathloc, 1 /*forMake*/);
 }
 
 static int nfs_evalpath(
 	const char						 *path,		  /* IN */
-	int								 flags,		  /* IN */
+	size_t							 pathlen,		  /* IN */
+	int							 flags,		  /* IN */
 	rtems_filesystem_location_info_t *pathloc    /* IN/OUT */
 )
 {
-	return nfs_do_evalpath(path, (void*)flags, pathloc, 0 /*not forMake*/);
+	union nfs_evalpath_arg args;
+	args.i = flags;
+	return nfs_do_evalpath(path, pathlen, &args, pathloc, 0 /*not forMake*/);
 }
 
 
@@ -1739,7 +1752,8 @@ NfsNode tNode = to_loc->node_access;
 }
 
 static int nfs_do_unlink(
-	rtems_filesystem_location_info_t  *loc,       /* IN */
+	rtems_filesystem_location_info_t  *parent_loc,/* IN */
+  rtems_filesystem_location_info_t  *loc,       /* IN */
 	int								  proc
 )
 {
@@ -1778,10 +1792,11 @@ char			*name = NFSPROC_REMOVE == proc ?
 }
 
 static int nfs_unlink(
-	rtems_filesystem_location_info_t  *loc       /* IN */
+ rtems_filesystem_location_info_t  *parent_loc, /* IN */
+ rtems_filesystem_location_info_t  *loc         /* IN */
 )
 {
-	return nfs_do_unlink(loc, NFSPROC_REMOVE);
+	return nfs_do_unlink(parent_loc, loc, NFSPROC_REMOVE);
 }
 
 static int nfs_chown(
@@ -1796,7 +1811,7 @@ sattr	arg;
 	arg.gid = group;
 
 	return nfs_sattr(pathloc->node_access, &arg, SATTR_UID | SATTR_GID);
-	
+
 }
 
 /* Cleanup the FS private info attached to pathloc->node_access */
@@ -1807,7 +1822,7 @@ static int nfs_freenode(
 Nfs	nfs    = ((NfsNode)pathloc->node_access)->nfs;
 
 #if DEBUG & DEBUG_COUNT_NODES
-	/* print counts at entry where they are > 0 so 'nfs' is safe from being destroyed 
+	/* print counts at entry where they are > 0 so 'nfs' is safe from being destroyed
 	 * and there's no race condition
 	 */
 	fprintf(stderr,
@@ -1893,9 +1908,9 @@ struct rtems_filesystem_mount_table_entry_tt {
 #endif
 
 
-/* This op is called as the last step of mounting this FS */
-STATIC int nfs_fsmount_me(
-	rtems_filesystem_mount_table_entry_t *mt_entry
+int rtems_nfs_initialize(
+  rtems_filesystem_mount_table_entry_t *mt_entry,
+  const void                           *data
 )
 {
 char				*host;
@@ -1912,10 +1927,19 @@ RpcUdpServer		nfsServer = 0;
 int					e         = -1;
 char				*path     = mt_entry->dev;
 
+  if (rpcUdpInit () < 0) {
+    fprintf (stderr, "error: initialising RPC\n");
+    return -1;
+  }
+  
+	nfsInit(0, 0);
 
+#if 0
+	printf("Trying to mount %s on %s\n",path,mntpoint);
+#endif
+  
 	if ( buildIpAddr(&uid, &gid, &host, &saddr, &path) )
 		return -1;
-
 
 #ifdef NFS_V2_PORT
 	/* if the portmapper fails, retry a fixed port */
@@ -2063,7 +2087,7 @@ LOCK(nfsGlob.llock);
 
 	status = buildIpAddr(&uid, &gid, 0, &saddr, &path);
 	assert( !status );
-	
+
 	stat = mntcall( &saddr,
 					MOUNTPROC_UMNT,
 					(xdrproc_t)xdr_dirpath, &path,
@@ -2081,7 +2105,7 @@ LOCK(nfsGlob.llock);
 
 	nfsNodeDestroy(mt_entry->mt_fs_root.node_access);
 	mt_entry->mt_fs_root.node_access = 0;
-	
+
 	nfsDestroy(mt_entry->fs_info);
 	mt_entry->fs_info = 0;
 
@@ -2133,7 +2157,8 @@ static int nfs_mknod(
 	rtems_filesystem_location_info_t  *pathloc     /* IN/OUT */
 )
 {
-rtems_clock_time_value	now;
+
+struct timeval				now;
 diropres				res;
 NfsNode					node = pathloc->node_access;
 mode_t					type = S_IFMT & mode;
@@ -2145,7 +2170,7 @@ mode_t					type = S_IFMT & mode;
 	fprintf(stderr,"nfs_mknod: creating %s\n", path);
 #endif
 
-	rtems_clock_get(RTEMS_CLOCK_GET_TIME_VALUE, &now);
+        rtems_clock_get_tod_timeval(&now);
 
 	SERP_ARGS(node).createarg.name       		= (filename)path;
 	SERP_ARGS(node).createarg.attributes.mode	= mode;
@@ -2153,10 +2178,10 @@ mode_t					type = S_IFMT & mode;
 	SERP_ARGS(node).createarg.attributes.uid	= 0;
 	SERP_ARGS(node).createarg.attributes.gid	= 0;
 	SERP_ARGS(node).createarg.attributes.size	= 0;
-	SERP_ARGS(node).createarg.attributes.atime.seconds	= now.seconds;
-	SERP_ARGS(node).createarg.attributes.atime.useconds	= now.microseconds;
-	SERP_ARGS(node).createarg.attributes.mtime.seconds	= now.seconds;
-	SERP_ARGS(node).createarg.attributes.mtime.useconds	= now.microseconds;
+	SERP_ARGS(node).createarg.attributes.atime.seconds	= now.tv_sec;
+	SERP_ARGS(node).createarg.attributes.atime.useconds	= now.tv_usec;
+	SERP_ARGS(node).createarg.attributes.mtime.seconds	= now.tv_sec;
+	SERP_ARGS(node).createarg.attributes.mtime.useconds	= now.tv_usec;
 
 	if ( nfscall( node->nfs->server,
 						NFSPROC_CREATE,
@@ -2195,7 +2220,7 @@ static int nfs_symlink(
 	const char                        *node_name
 )
 {
-rtems_clock_time_value	now;
+struct timeval				now;
 nfsstat					status;
 NfsNode					node = loc->node_access;
 
@@ -2204,7 +2229,7 @@ NfsNode					node = loc->node_access;
 	fprintf(stderr,"nfs_symlink: creating %s -> %s\n", link_name, node_name);
 #endif
 
-	rtems_clock_get(RTEMS_CLOCK_GET_TIME_VALUE, &now);
+	rtems_clock_get_tod_timeval(&now);
 
 	SERP_ARGS(node).symlinkarg.name       		= (filename)link_name;
 	SERP_ARGS(node).symlinkarg.to				= (nfspath) node_name;
@@ -2214,10 +2239,10 @@ NfsNode					node = loc->node_access;
 	SERP_ARGS(node).symlinkarg.attributes.uid	= 0;
 	SERP_ARGS(node).symlinkarg.attributes.gid	= 0;
 	SERP_ARGS(node).symlinkarg.attributes.size	= 0;
-	SERP_ARGS(node).symlinkarg.attributes.atime.seconds	 = now.seconds;
-	SERP_ARGS(node).symlinkarg.attributes.atime.useconds = now.microseconds;
-	SERP_ARGS(node).symlinkarg.attributes.mtime.seconds	 = now.seconds;
-	SERP_ARGS(node).symlinkarg.attributes.mtime.useconds = now.microseconds;
+	SERP_ARGS(node).symlinkarg.attributes.atime.seconds  = now.tv_sec;
+	SERP_ARGS(node).symlinkarg.attributes.atime.useconds = now.tv_usec;
+	SERP_ARGS(node).symlinkarg.attributes.mtime.seconds  = now.tv_sec;
+	SERP_ARGS(node).symlinkarg.attributes.mtime.useconds = now.tv_usec;
 
 	if ( nfscall( node->nfs->server,
 						NFSPROC_SYMLINK,
@@ -2234,7 +2259,7 @@ NfsNode					node = loc->node_access;
 }
 
 static int nfs_do_readlink(
-	rtems_filesystem_location_info_t  *loc,     	/* IN  */       
+	rtems_filesystem_location_info_t  *loc,     	/* IN  */
 	strbuf							  *psbuf		/* IN/OUT */
 )
 {
@@ -2269,7 +2294,7 @@ int					rval;
 }
 
 static int nfs_readlink(
-	rtems_filesystem_location_info_t  *loc,     	/* IN  */       
+	rtems_filesystem_location_info_t  *loc,     	/* IN  */
 	char							  *buf,			/* OUT */
 	size_t							  len
 )
@@ -2367,7 +2392,7 @@ int	 							rval = RVAL_ERR_AND_DO_FREENODE;
 
 				pathloc->handlers = &nfs_dir_file_handlers;
 
-				err = nfs_evalpath(buf, flags, pathloc);
+				err = nfs_evalpath(buf, strlen(buf), flags, pathloc);
 
 				/* according to its semantics,
 				 * nfs_evalpath cloned the node attached
@@ -2402,13 +2427,13 @@ int	 							rval = RVAL_ERR_AND_DO_FREENODE;
 			}
 		} else {
 			/* link points to an absolute path '/xxx' */
-				
+
 			/* release this node; filesystem_evaluate_path() will
 			 * lookup a new one.
 			 */
 			rtems_filesystem_freenode(pathloc);
 
-			if (rtems_filesystem_evaluate_path(buf, flags, pathloc, 1)) {
+			if (rtems_filesystem_evaluate_path(buf, strlen(buf), flags, pathloc, 1)) {
 				/* If evalpath fails then there is no valid node
 				 * attached to pathloc; hence we must not attempt
 				 * to free the node
@@ -2454,13 +2479,14 @@ struct _rtems_filesystem_operations_table nfs_fs_ops = {
 		nfs_chown,			/* OPTIONAL; may be NULL */
 		nfs_freenode,		/* OPTIONAL; may be NULL; (release node_access) */
 		nfs_mount,			/* OPTIONAL; may be NULL */
-		nfs_fsmount_me,		/* OPTIONAL; may be NULL -- but this makes NO SENSE */
+		rtems_nfs_initialize,		/* OPTIONAL; may be NULL -- not used anymore */
 		nfs_unmount,		/* OPTIONAL; may be NULL */
 		nfs_fsunmount_me,	/* OPTIONAL; may be NULL */
 		nfs_utime,			/* OPTIONAL; may be NULL */
 		nfs_eval_link,		/* OPTIONAL; may be NULL */
 		nfs_symlink,		/* OPTIONAL; may be NULL */
 		nfs_readlink,		/* OPTIONAL; may be NULL */
+		NULL				/* OPTIONAL; may be NULL */
 };
 
 /*****************************************
@@ -2592,7 +2618,7 @@ Nfs		nfs  = node->nfs;
 
 	SERP_ARGS(node).readarg.offset		= iop->offset;
 	SERP_ARGS(node).readarg.count	  	= count;
-	SERP_ARGS(node).readarg.totalcount	= 0xdeadbeef;
+	SERP_ARGS(node).readarg.totalcount	= UINT32_C(0xdeadbeef);
 
 	rr.readres_u.reply.data.data_val	= buffer;
 
@@ -2695,7 +2721,7 @@ int			e;
 		count = NFS_MAXDATA;
 
 
-	SERP_ARGS(node).writearg.beginoffset   = 0xdeadbeef;
+	SERP_ARGS(node).writearg.beginoffset   = UINT32_C(0xdeadbeef);
 	if ( LIBIO_FLAGS_APPEND & iop->flags ) {
 		if ( updateAttr(node, 0) ) {
 			return -1;
@@ -2704,7 +2730,7 @@ int			e;
 	} else {
 		SERP_ARGS(node).writearg.offset	  	   = iop->offset;
 	}
-	SERP_ARGS(node).writearg.totalcount	   = 0xdeadbeef;
+	SERP_ARGS(node).writearg.totalcount	   = UINT32_C(0xdeadbeef);
 	SERP_ARGS(node).writearg.data.data_len = count;
 	SERP_ARGS(node).writearg.data.data_val = (void*)buffer;
 
@@ -2747,9 +2773,9 @@ static int nfs_file_ioctl(
 #define nfs_link_ioctl 0
 #endif
 
-static off_t nfs_file_lseek(
+static rtems_off64_t nfs_file_lseek(
 	rtems_libio_t *iop,
-	off_t          length,
+	rtems_off64_t  length,
 	int            whence
 )
 {
@@ -2780,9 +2806,9 @@ static off_t nfs_file_lseek(
 	return iop->offset;
 }
 
-static off_t nfs_dir_lseek(
+static rtems_off64_t nfs_dir_lseek(
 	rtems_libio_t *iop,
-	off_t          length,
+	rtems_off64_t  length,
 	int            whence
 )
 {
@@ -2828,29 +2854,29 @@ struct fattr {
 
 struct  stat
 {
-		dev_t     st_dev;
-		ino_t     st_ino;
-		mode_t    st_mode;
-		nlink_t   st_nlink;
-		uid_t     st_uid;
-		gid_t     st_gid;
-		dev_t     st_rdev;
-		off_t     st_size;
+		dev_t         st_dev;
+		ino_t         st_ino;
+		mode_t        st_mode;
+		nlink_t       st_nlink;
+		uid_t         st_uid;
+		gid_t         st_gid;
+		dev_t         st_rdev;
+		rtems_off64_t st_size;
 		/* SysV/sco doesn't have the rest... But Solaris, eabi does.  */
 #if defined(__svr4__) && !defined(__PPC__) && !defined(__sun__)
-		time_t    st_atime;
-		time_t    st_mtime;
-		time_t    st_ctime;
+		time_t        st_atime;
+		time_t        st_mtime;
+		time_t        st_ctime;
 #else
-		time_t    st_atime;
-		long      st_spare1;
-		time_t    st_mtime;
-		long      st_spare2;
-		time_t    st_ctime;
-		long      st_spare3;
-		long      st_blksize;
-		long      st_blocks;
-		long  st_spare4[2];
+		time_t        st_atime;
+		long          st_spare1;
+		time_t        st_mtime;
+		long          st_spare2;
+		time_t        st_ctime;
+		long          st_spare3;
+		long          st_blksize;
+		long          st_blocks;
+		long      st_spare4[2];
 #endif
 };
 #endif
@@ -2868,7 +2894,7 @@ fattr	*fa  = &SERP_ATTR(node);
 		return -1;
 	}
 
-/* done by caller 
+/* done by caller
 	memset(buf, 0, sizeof(*buf));
  */
 
@@ -2922,7 +2948,7 @@ static int
 nfs_sattr(NfsNode node, sattr *arg, u_long mask)
 {
 
-rtems_clock_time_value	now;
+struct timeval				now;
 nfstime					nfsnow, t;
 int						e;
 u_int					mode;
@@ -2930,11 +2956,11 @@ u_int					mode;
 	if (updateAttr(node, 0 /* only if old */))
 		return -1;
 
-	rtems_clock_get(RTEMS_CLOCK_GET_TIME_VALUE, &now);
+        rtems_clock_get_tod_timeval(&now);
 
 	/* TODO: add rtems EPOCH - UNIX EPOCH seconds */
-	nfsnow.seconds  = now.seconds;
-	nfsnow.useconds = now.microseconds;
+	nfsnow.seconds  = now.tv_sec;
+	nfsnow.useconds = now.tv_usec;
 
 	/* merge permission bits into existing type bits */
 	mode = SERP_ATTR(node).mode;
@@ -3011,7 +3037,7 @@ sattr	arg;
 
 	arg.mode = mode;
 	return nfs_sattr(loc->node_access, &arg, SATTR_MODE);
-	
+
 }
 
 /* just set the size attribute to 'length'
@@ -3019,7 +3045,7 @@ sattr	arg;
  */
 static int nfs_file_ftruncate(
 	rtems_libio_t *iop,
-	off_t          length
+	rtems_off64_t  length
 )
 {
 sattr					arg;
@@ -3089,10 +3115,11 @@ static int nfs_file_fcntl(
  * call, though...
  */
 static int nfs_dir_rmnod(
-	rtems_filesystem_location_info_t      *pathloc       /* IN */
+	rtems_filesystem_location_info_t      *parentpathloc, /* IN */
+	rtems_filesystem_location_info_t      *pathloc        /* IN */
 )
 {
-	return nfs_do_unlink(pathloc, NFSPROC_RMDIR);
+	return nfs_do_unlink(parentpathloc, pathloc, NFSPROC_RMDIR);
 }
 
 /* the file handlers table */
@@ -3172,7 +3199,7 @@ rtems_device_driver nfs_initialize(
      * only reason for using this API was getting
      * a major number, after all).
      *
-	 * Something must be present, however, to 
+	 * Something must be present, however, to
 	 * reserve a slot in the driver table.
 	 */
 	return RTEMS_SUCCESSFUL;
@@ -3201,7 +3228,7 @@ Nfs		nfs;
 		fprintf(stderr,"nfsMountsShow(): no memory\n");
 		return -1;
 	}
-	
+
 	fprintf(f,"Currently Mounted NFS:\n");
 
 	LOCK(nfsGlob.llock);
@@ -3220,6 +3247,8 @@ Nfs		nfs;
 	return 0;
 }
 
+#if 0
+CCJ_REMOVE_MOUNT
 /* convenience wrapper
  *
  * NOTE: this routine calls NON-REENTRANT
@@ -3229,7 +3258,6 @@ Nfs		nfs;
 int
 nfsMount(char *uidhost, char *path, char *mntpoint)
 {
-rtems_filesystem_mount_table_entry_t	*mtab;
 struct stat								st;
 int										devl;
 char									*host;
@@ -3264,7 +3292,7 @@ char									*dev =  0;
 		host++;
 	}
 
-	if (isdigit(*host)) {
+	if (isdigit((unsigned char)*host)) {
 		/* avoid using gethostbyname */
 		sprintf(dev,"%s:%s",uidhost,path);
 	} else {
@@ -3302,11 +3330,11 @@ char									*dev =  0;
 
 	printf("Trying to mount %s on %s\n",dev,mntpoint);
 
-	if (mount(&mtab,
-			  &nfs_fs_ops,
-			  RTEMS_FILESYSTEM_READ_WRITE,
-			  dev,
-			  mntpoint)) {
+	if (mount(dev,
+			  mntpoint,
+			  "nfs",
+ 			  RTEMS_FILESYSTEM_READ_WRITE,
+ 			  NULL)) {
 		perror("nfsMount - mount");
 		goto cleanup;
 	}
@@ -3317,6 +3345,7 @@ cleanup:
 	free(dev);
 	return rval;
 }
+#endif
 
 /* HERE COMES A REALLY UGLY HACK */
 

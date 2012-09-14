@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
 ## 
-## $Id: configure.ac,v 1.13 2006/12/02 06:06:55 ralf Exp $
+## $Id: configure.ac,v 1.13.6.1 2011/02/02 15:18:21 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-tools-cpu-sh],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([shgen.c])
 RTEMS_TOP(../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([foreign 1.10])
+AM_INIT_AUTOMAKE([foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC

@@ -11,14 +11,14 @@
  *         This code ignores the O_RDONLY/O_WRONLY/O_RDWR flag at open
  *         time.
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueueopen.c,v 1.14 2008/01/23 22:57:43 joel Exp $
+ *  $Id: mqueueopen.c,v 1.16 2009/08/06 19:26:56 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -39,11 +39,9 @@
 #include <rtems/posix/mqueue.h>
 #include <rtems/posix/time.h>
 
-/*PAGE
- *
+/*
  *  15.2.2 Open a Message Queue, P1003.1b-1993, p. 272
  */
-
 mqd_t mq_open(
   const char *name,
   int         oflag,
@@ -85,14 +83,11 @@ mqd_t mq_open(
    *  need to check to see if this is a "message queue does not exist"
    *  or some other miscellaneous error on the name.
    */
-
   if ( status ) {
-
     /*
      * Unless provided a valid name that did not already exist
      * and we are willing to create then it is an error.
      */
-
     if ( !( status == ENOENT && (oflag & O_CREAT) ) ) {
       _POSIX_Message_queue_Free_fd( the_mq_fd );
       _Thread_Enable_dispatch();
@@ -100,11 +95,9 @@ mqd_t mq_open(
     }
 
   } else {                /* name -> ID translation succeeded */
-
     /*
      * Check for existence with creation.
      */
-
     if ( (oflag & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL) ) {
       _POSIX_Message_queue_Free_fd( the_mq_fd );
       _Thread_Enable_dispatch();
@@ -115,7 +108,6 @@ mqd_t mq_open(
      * In this case we need to do an ID->pointer conversion to
      * check the mode.
      */
-
     the_mq = _POSIX_Message_queue_Get( the_mq_id, &location );
     the_mq->open_count += 1;
     the_mq_fd->Queue = the_mq;
@@ -134,10 +126,9 @@ mqd_t mq_open(
    *  At this point, the message queue does not exist and everything has been
    *  checked. We should go ahead and create a message queue.
    */
-
   status = _POSIX_Message_queue_Create_support(
     name,
-    TRUE,         /* shared across processes */
+    true,         /* shared across processes */
     attr,
     &the_mq
   );
@@ -145,10 +136,9 @@ mqd_t mq_open(
   /*
    * errno was set by Create_support, so don't set it again.
    */
-
   if ( status == -1 ) {
-    _Thread_Enable_dispatch();
     _POSIX_Message_queue_Free_fd( the_mq_fd );
+    _Thread_Enable_dispatch();
     return (mqd_t) -1;
   }
 

@@ -1,14 +1,14 @@
 /*
  *  Rate Monotonic Manager -- Get Status
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemongetstatus.c,v 1.11 2008/06/06 15:44:11 joel Exp $
+ *  $Id: ratemongetstatus.c,v 1.18 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,8 +23,7 @@
 #include <rtems/rtems/ratemon.h>
 #include <rtems/score/thread.h>
 
-#if defined(RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS) || \
-    defined(RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS)
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
   #include <rtems/score/timespec.h>
 #endif
 
@@ -41,17 +40,20 @@
  *
  *  Output parameters:
  *    RTEMS_SUCCESSFUL - if successful
- *    error code        - if unsuccessful
+ *    error code       - if unsuccessful
  *
  */
 
 rtems_status_code rtems_rate_monotonic_get_status(
-  Objects_Id                           id,
-  rtems_rate_monotonic_period_status  *status
+  rtems_id                            id,
+  rtems_rate_monotonic_period_status *status
 )
 {
+  Thread_CPU_usage_t             executed;
   Objects_Locations              location;
+  Rate_monotonic_Period_time_t   since_last_period;
   Rate_monotonic_Control        *the_period;
+  bool                           valid_status;
 
   if ( !status )
     return RTEMS_INVALID_ADDRESS;
@@ -60,54 +62,45 @@ rtems_status_code rtems_rate_monotonic_get_status(
   switch ( location ) {
 
     case OBJECTS_LOCAL:
-      status->owner = ((the_period->owner) ? the_period->owner->Object.id : 0);
+      status->owner = the_period->owner->Object.id;
       status->state = the_period->state;
 
+      /*
+       *  If the period is inactive, there is no information.
+       */
       if ( status->state == RATE_MONOTONIC_INACTIVE ) {
-        #ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
-          status->since_last_period.tv_sec = 0;
-          status->since_last_period.tv_nsec = 0;
+        #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+          _Timespec_Set_to_zero( &status->since_last_period );
+          _Timespec_Set_to_zero( &status->executed_since_last_period );
         #else
           status->since_last_period = 0;
-        #endif
-        #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-          status->executed_since_last_period.tv_sec = 0;
-          status->executed_since_last_period.tv_nsec = 0;
-        #else
           status->executed_since_last_period = 0;
         #endif
+
       } else {
+
         /*
-         *  Both nanoseconds granularity options have to know the uptime.
-         *  This lets them share one single invocation of _TOD_Get_uptime().
+         *  Grab the current status.
          */
-        #if defined(RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS) || \
-            defined(RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS)
-          struct timespec uptime;
-          _TOD_Get_uptime( &uptime );
-        #endif
+        valid_status =
+          _Rate_monotonic_Get_status(
+            the_period, &since_last_period, &executed
+          );
+        if (!valid_status) {
+          _Thread_Enable_dispatch();
+          return RTEMS_NOT_DEFINED;
+        }
 
-        #ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
-          _Timespec_Subtract(
-            &the_period->time_at_period,
-            &uptime,
-            &status->since_last_period
+        #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+          _Timestamp_To_timespec(
+            &since_last_period, &status->since_last_period
+          );
+          _Timestamp_To_timespec(
+            &executed, &status->executed_since_last_period
           );
         #else
-          status->since_last_period =
-            _Watchdog_Ticks_since_boot - the_period->time_at_period;
-        #endif
-
-        #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-          _Timespec_Subtract(
-            &_Thread_Time_of_last_context_switch,
-            &uptime,
-            &status->executed_since_last_period
-          );
-        #else
-          status->executed_since_last_period =
-            the_period->owner->cpu_time_used -
-            the_period->owner_executed_at_period;
+          status->since_last_period = since_last_period;
+          status->executed_since_last_period = executed;
         #endif
       }
 

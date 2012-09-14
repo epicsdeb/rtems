@@ -1,14 +1,14 @@
 /*
  *  RTEMS Task Manager -- Initialize Manager
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tasks.c,v 1.56.2.1 2009/01/21 20:45:58 joel Exp $
+ *  $Id: tasks.c,v 1.62 2009/09/26 16:17:00 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -68,6 +68,7 @@ bool _RTEMS_tasks_Create_extension(
   created->API_Extensions[ THREAD_API_RTEMS ] = api;
 
   api->pending_events = EVENT_SETS_NONE_PENDING;
+  api->event_condition = 0;
   _ASR_Initialize( &api->Signal );
   created->task_variables = NULL;
 
@@ -87,7 +88,7 @@ bool _RTEMS_tasks_Create_extension(
  *  first time.
  */
 
-User_extensions_routine _RTEMS_tasks_Start_extension(
+void _RTEMS_tasks_Start_extension(
   Thread_Control *executing,
   Thread_Control *started
 )
@@ -106,7 +107,7 @@ User_extensions_routine _RTEMS_tasks_Start_extension(
  *  This extension routine is invoked when a task is deleted.
  */
 
-User_extensions_routine _RTEMS_tasks_Delete_extension(
+void _RTEMS_tasks_Delete_extension(
   Thread_Control *executing,
   Thread_Control *deleted
 )
@@ -214,7 +215,9 @@ void _RTEMS_tasks_Post_switch_extension(
 
 API_extensions_Control _RTEMS_tasks_API_extensions = {
   { NULL, NULL },
-  NULL,                                     /* predriver */
+  #if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+    NULL,                                   /* predriver */
+  #endif
   _RTEMS_tasks_Initialize_user_tasks,       /* postdriver */
   _RTEMS_tasks_Post_switch_extension        /* post switch */
 };
@@ -239,28 +242,25 @@ User_extensions_Control _RTEMS_tasks_User_extensions = {
  *
  *  This routine initializes all Task Manager related data structures.
  *
- *  Input parameters:
- *    maximum_tasks       - number of tasks to initialize
+ *  Input parameters: NONE
  *
  *  Output parameters:  NONE
  */
 
-void _RTEMS_tasks_Manager_initialization(
-  uint32_t                          maximum_tasks
-)
+void _RTEMS_tasks_Manager_initialization(void)
 {
-
   _Objects_Initialize_information(
     &_RTEMS_tasks_Information, /* object information table */
     OBJECTS_CLASSIC_API,       /* object API */
     OBJECTS_RTEMS_TASKS,       /* object class */
-    maximum_tasks,             /* maximum objects of this class */
+    Configuration_RTEMS_API.maximum_tasks,
+                               /* maximum objects of this class */
     sizeof( Thread_Control ),  /* size of this object's control block */
-    FALSE,                     /* TRUE if the name is a string */
+    false,                     /* true if the name is a string */
     RTEMS_MAXIMUM_NAME_LENGTH  /* maximum length of an object name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    TRUE,                      /* TRUE if this is a global object class */
+    true,                      /* true if this is a global object class */
     NULL                       /* Proxy extraction support callout */
 #endif
   );

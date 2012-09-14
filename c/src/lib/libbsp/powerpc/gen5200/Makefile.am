@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.24.2.1 2008/09/24 07:34:15 ralf Exp $
+## $Id: Makefile.am,v 1.41 2010/04/30 12:45:13 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -14,33 +15,34 @@ include_HEADERS = include/bsp.h include/i2cdrv.h include/u-boot.h \
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
-include_bspdir = $(includedir)/bsp
-
-include_HEADERS += include/coverhd.h
+include_HEADERS += ../../shared/include/coverhd.h
 
 nodist_include_HEADERS += ../../shared/tod.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
-EXTRA_DIST += ../../powerpc/shared/start/rtems_crti.S
-rtems_crti.$(OBJEXT): ../../powerpc/shared/start/rtems_crti.S
-	$(CPPASCOMPILE) -o $@ -c $<
+libbspstart_a_SOURCES += ../../powerpc/shared/start/rtems_crti.S
 project_lib_DATA += rtems_crti.$(OBJEXT)
 
-dist_project_lib_DATA += startup/linkcmds \
-	startup/linkcmds.base \
-	startup/linkcmds.brs5l \
-	startup/linkcmds.icecube \
-	startup/linkcmds.pm520
+dist_project_lib_DATA += startup/linkcmds.base
+project_lib_DATA += startup/linkcmds
+EXTRA_DIST = startup/linkcmds.brs5l
+EXTRA_DIST += startup/linkcmds.icecube
+EXTRA_DIST += startup/linkcmds.pm520_cr825
+EXTRA_DIST += startup/linkcmds.pm520_ze30
 
-bestcomm_SOURCES = bestcomm/include/ppctypes.h \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# bestcomm
+libbsp_a_SOURCES += bestcomm/include/ppctypes.h \
     bestcomm/include/mgt5200/mgt5200.h bestcomm/include/mgt5200/sdma.h \
     bestcomm/bestcomm_api.c bestcomm/bestcomm_api.h bestcomm/bestcomm_glue.c \
     bestcomm/bestcomm_glue.h bestcomm/dma_image.c bestcomm/dma_image.capi.h \
@@ -58,15 +60,18 @@ bestcomm_SOURCES = bestcomm/include/ppctypes.h \
     bestcomm/task_api/tasksetup_bdtable.h \
     bestcomm/task_api/tasksetup_general.h
 
-clock_SOURCES = clock/clock.c
-console_SOURCES = console/console.c
-i2c_SOURCES = i2c/i2c.c i2c/i2cdrv.c i2c/mpc5200mbus.c i2c/mpc5200mbus.h
-ide_SOURCES = ide/idecfg.c ide/pcmcia_ide.c ide/pcmcia_ide.h
+# clock
+# clock
+libbsp_a_SOURCES += ../shared/clock/clock.c
+# console
+libbsp_a_SOURCES += console/console.c
+# i2c
+libbsp_a_SOURCES += i2c/i2c.c i2c/i2cdrv.c i2c/mpc5200mbus.c i2c/mpc5200mbus.h
+# ide
+libbsp_a_SOURCES += ide/idecfg.c ide/pcmcia_ide.c ide/pcmcia_ide.h
 
-include_bsp_HEADERS = ../../../libcpu/@RTEMS_CPU@/new-exceptions/bspsupport/vectors.h \
-	../../../libcpu/@RTEMS_CPU@/new-exceptions/bspsupport/ppc_exc_bspsupp.h \
-	../../shared/include/irq-generic.h \
-	include/irq-config.h \
+include_bsp_HEADERS = ../../shared/include/irq-generic.h \
+	../../shared/include/irq-info.h \
 	include/irq.h \
 	include/i2cdrv.h \
 	include/i2c.h \
@@ -75,33 +80,45 @@ include_bsp_HEADERS = ../../../libcpu/@RTEMS_CPU@/new-exceptions/bspsupport/vect
 	include/u-boot.h \
 	mscan/mscan.h
 
-irq_SOURCES = include/irq.h \
-	include/irq-config.h \
+# irq
+libbsp_a_SOURCES += include/irq.h \
 	irq/irq.c \
 	../../shared/src/irq-generic.c \
-	../../shared/src/irq-legacy.c
+	../../shared/src/irq-legacy.c \
+	../../shared/src/irq-info.c \
+	../../shared/src/irq-shell.c \
+	../../shared/src/irq-server.c
 
-mscan_SOURCES = mscan/mscan.c mscan/mscan-base.c mscan/mscan.h mscan/mscan_int.h
+# mscan
+libbsp_a_SOURCES += mscan/mscan.c mscan/mscan-base.c mscan/mscan.h mscan/mscan_int.h
 
 include_bsp_HEADERS += nvram/nvram.h
-nvram_SOURCES = nvram/nvram.c nvram/nvram.h nvram/m93cxx.h
+# nvram
+libbsp_a_SOURCES += nvram/nvram.c nvram/nvram.h nvram/m93cxx.h
 
 include_bsp_HEADERS += slicetimer/slicetimer.h
-slicetimer_SOURCES = slicetimer/slicetimer.c slicetimer/slicetimer.h
+# slicetimer
+libbsp_a_SOURCES += slicetimer/slicetimer.c slicetimer/slicetimer.h
 
-tod_SOURCES = tod/todcfg.c tod/pcf8563.c tod/pcf8563.h \
+# tod
+libbsp_a_SOURCES += tod/todcfg.c tod/pcf8563.c tod/pcf8563.h \
     ../../shared/tod.c
 
-startup_SOURCES = ../../shared/bootcard.c \
+# startup
+libbsp_a_SOURCES += ../../shared/bootcard.c \
 	../../shared/bsplibc.c \
 	../../shared/bsppost.c \
 	../../shared/bsppretaskinghook.c \
+	../../shared/bsppredriverhook.c \
 	../../shared/gnatinstallhandler.c \
 	../../shared/sbrk.c \
 	../shared/showbats.c \
 	../shared/uboot_dump_bdinfo.c \
 	../shared/uboot_getenv.c \
-	startup/bspclean.c \
+	../../shared/bspclean.c \
+	startup/bspreset.c \
+	../../shared/bspgetworkarea.c \
+	../shared/startup/bspidle.c \
 	startup/bspstart.c \
 	startup/cpuinit.c  \
 	startup/uboot_support.c
@@ -115,16 +132,10 @@ network_rel_CPPFLAGS = $(AM_CPPFLAGS) $(network_CPPFLAGS)
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(clock_SOURCES) $(console_SOURCES) $(i2c_SOURCES) \
-    $(ide_SOURCES) $(irq_SOURCES) $(mscan_SOURCES) $(nvram_SOURCES) \
-    $(slicetimer_SOURCES) $(tod_SOURCES) $(startup_SOURCES) $(bestcomm_SOURCES)
-
 libbsp_a_LIBADD =  ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
 	../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
 	../../../libcpu/@RTEMS_CPU@/shared/stack.rel \
 	../../../libcpu/@RTEMS_CPU@/@exceptions@/rtems-cpu.rel \
-	../../../libcpu/@RTEMS_CPU@/@exceptions@/raw_exception.rel \
 	../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel \
 	../../../libcpu/@RTEMS_CPU@/mpc6xx/mmu.rel \
 	../../../libcpu/@RTEMS_CPU@/mpc6xx/timer.rel

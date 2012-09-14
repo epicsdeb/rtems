@@ -12,7 +12,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: malloc.h,v 1.5.2.2 2009/10/15 18:55:51 joel Exp $
+ * $Id: malloc.h,v 1.9.2.1 2010/06/21 21:13:30 joel Exp $
  */
 
 #ifndef _RTEMS_MALLOC_H
@@ -51,7 +51,7 @@ typedef struct {
   void (*at_free)(void *);
 } rtems_malloc_statistics_functions_t;
 
-extern rtems_malloc_statistics_functions_t 
+extern rtems_malloc_statistics_functions_t
   rtems_malloc_statistics_helpers_table;
 extern rtems_malloc_statistics_functions_t *rtems_malloc_statistics_helpers;
 
@@ -87,7 +87,7 @@ typedef void (*rtems_malloc_dirtier_t)(void *, size_t);
 extern rtems_malloc_dirtier_t rtems_malloc_dirty_helper;
 
 /** @brief Dirty memory function
- *  
+ *
  *  This method fills the specified area with a non-zero pattern
  *  to aid in debugging programs which do not initialize their
  *  memory allocated from the heap.
@@ -115,12 +115,12 @@ int malloc_get_statistics(
  */
 void malloc_report_statistics(void);
 
-/** @brief Print Malloc Statistic Usage Report 
+/** @brief Print Malloc Statistic Usage Report
  *
  *  This method prints a malloc statistics report.
  *
- *  @param[in] context is the context to pass to the print handler 
- *  @param[in] print is the print handler 
+ *  @param[in] context is the context to pass to the print handler
+ *  @param[in] print is the print handler
  *
  *  @note It uses the CALLER's routine to print the report.
  */
@@ -147,6 +147,32 @@ int rtems_memalign(
   void   **pointer,
   size_t   alignment,
   size_t   size
+);
+
+/**
+ * @brief Allocates a memory area of size @a size bytes from the heap.
+ *
+ * If the alignment parameter @a alignment is not equal to zero, the allocated
+ * memory area will begin at an address aligned by this value.
+ *
+ * If the boundary parameter @a boundary is not equal to zero, the allocated
+ * memory area will fulfill a boundary constraint.  The boundary value
+ * specifies the set of addresses which are aligned by the boundary value.  The
+ * interior of the allocated memory area will not contain an element of this
+ * set.  The begin or end address of the area may be a member of the set.
+ *
+ * A size value of zero will return a unique address which may be freed with
+ * free().
+ *
+ * The memory allocated by this function can be released with a call to free().
+ *
+ * @return A pointer to the begin of the allocated memory area, or @c NULL if
+ * no memory is available or the parameters are inconsistent.
+ */
+void *rtems_heap_allocate_aligned_with_boundary(
+  size_t size,
+  uintptr_t alignment,
+  uintptr_t boundary
 );
 
 #ifdef __cplusplus

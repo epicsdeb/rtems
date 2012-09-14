@@ -16,7 +16,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: bsp.h,v 1.29 2007/12/11 15:46:15 joel Exp $
+ *  $Id: bsp.h,v 1.32.2.1 2011/04/25 19:39:39 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -36,30 +36,20 @@ extern "C" {
 #include <rtems/console.h>
 
 /*
- *  confdefs.h overrides for this BSP:
- *   - two termios serial ports
- *   - Interrupt stack space is not minimum if defined.
+ *  BSP provides its own Idle thread body
  */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
+void *bsp_idle_thread( uintptr_t ignored );
+#define BSP_IDLE_TASK_BODY bsp_idle_thread
 
 /*
  * Network driver configuration
  */
-
 struct rtems_bsdnet_ifconfig;
-extern int rtems_erc32_sonic_driver_attach (struct rtems_bsdnet_ifconfig *config);
+extern int rtems_erc32_sonic_driver_attach(
+  struct rtems_bsdnet_ifconfig *config
+);
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"sonic1"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_erc32_sonic_driver_attach
-
-/*
- *  Simple spin delay in microsecond units for device drivers.
- *  This is very dependent on the clock speed of the target.
- */
-
-extern void Clock_delay(uint32_t         microseconds);
-
-#define delay( microseconds ) Clock_delay(microseconds)
 
 /* Constants */
 
@@ -79,23 +69,7 @@ extern int   CLOCK_SPEED;
 
 extern int   end;        /* last address in the program */
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
-
-void bsp_cleanup( void );
-
-void bsp_start( void );
+/* functions */
 
 rtems_isr_entry set_vector(                     /* returns old vector */
     rtems_isr_entry     handler,                /* isr routine        */

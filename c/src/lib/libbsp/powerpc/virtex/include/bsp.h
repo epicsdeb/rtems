@@ -36,7 +36,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.6 2008/07/23 06:54:18 strauman Exp $
+ *  $Id: bsp.h,v 1.9 2010/03/27 20:44:18 thomas Exp $
  *
  */
 
@@ -62,14 +62,8 @@ extern "C" {
 #include <bsp/irq.h>
 #include <bsp/vectors.h>
 
-/* Constants */
-
-extern uint32_t _HeapSize;
-extern uint32_t _heap_start;
-extern uint32_t _heap_end;
-extern uint32_t _top_of_ram;
-
 /* miscellaneous stuff assumed to exist */
+extern bool bsp_timer_internal_clock;   /* TRUE, when timer runs with CPU clk */
 
 /* Network Defines */
 #if 1 /* EB/doe changes */
@@ -82,18 +76,6 @@ extern xilTemac_driver_attach(struct rtems_bsdnet_ifconfig*, int );
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH xilTemac_driver_attach
 
 #define BSP_PPC403_CLOCK_HOOK_EXCEPTION ASM_BOOKE_DEC_VECTOR
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
 
 /* functions */
 

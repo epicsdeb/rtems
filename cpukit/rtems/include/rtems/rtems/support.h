@@ -1,8 +1,11 @@
 /**
- * @file rtems/rtems/support.h
+ * @file
  *
- *  This include file contains information about support functions for
- *  the RTEMS API.
+ * @ingroup ClassicRTEMS
+ *
+ * @ingroup ClassicRTEMSWorkspace
+ *
+ * @brief Classic API support.
  */
 
 /*  COPYRIGHT (c) 1989-2008.
@@ -12,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: support.h,v 1.22 2008/09/04 17:41:54 ralf Exp $
+ *  $Id: support.h,v 1.28 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_SUPPORT_H
@@ -25,58 +28,61 @@ extern "C" {
 #include <rtems/rtems/types.h>
 
 /**
- *  @addtogroup ClassicRTEMS
- *  @{
+ * @addtogroup ClassicRTEMS
+ *
+ * @{
  */
 
 /**
- *  @brief milliseconds to microseconds
- *
- *  This is the public milliseconds to microseconds conversion.
+ * @brief Returns the number of micro seconds for the milli seconds value @a _ms.
  */
 #define RTEMS_MILLISECONDS_TO_MICROSECONDS(_ms) \
         TOD_MILLISECONDS_TO_MICROSECONDS(_ms)
 
 /**
- *  @brief milliseconds to ticks
- *
- *  This is the public milliseconds to ticks conversion.
+ * @brief Returns the number of ticks for the milli seconds value @a _ms.
  */
 #define RTEMS_MILLISECONDS_TO_TICKS(_ms) \
-        TOD_MILLISECONDS_TO_TICKS(_ms)
+       (TOD_MILLISECONDS_TO_MICROSECONDS(_ms) / \
+          rtems_configuration_get_microseconds_per_tick())
 
 /**
- *  @brief microseconds to ticks
- *
- *  This is the public microseconds to tick conversion.
+ * @brief Returns the number of ticks for the micro seconds value @a _us.
  */
-#define RTEMS_MICROSECONDS_TO_TICKS(_ms) \
-        TOD_MICROSECONDS_TO_TICKS(_ms)
+#define RTEMS_MICROSECONDS_TO_TICKS(_us) \
+       ((_us) / rtems_configuration_get_microseconds_per_tick())
+
+/** @} */
 
 /**
- *  @brief get workspace information
+ * @defgroup ClassicRTEMSWorkspace Workspace
  *
- *  This returns information about the heap that is used as
- *  the RTEMS Executive Workspace.
+ * @ingroup ClassicRTEMS
  *
- *  @param[in] the_info
+ * Workspace definitions.
  *
- *  @return TRUE if successful
+ * @{
+ */
+
+/**
+ * @brief Gets workspace information.
+ *
+ * Returns information about the heap that is used as the RTEMS Executive
+ * Workspace in @a the_info.
+ *
+ * Returns @c true if successful, and @a false otherwise.
  */
 bool rtems_workspace_get_information(
   Heap_Information_block  *the_info
 );
 
 /**
- *  @brief get workspace information
+ * @brief Allocates memory from the workspace.
  *
- *  This returns information about the heap that is used as
- *  the RTEMS Executive Workspace.
+ * A number of @a bytes bytes will be allocated from the RTEMS Executive
+ * Workspace and returned in @a pointer.
  *
- *  @param[in] bytes is the number of bytes to allocate 
- *  @param[in] pointer is the returned pointer to allocated memory
- *
- *  @return TRUE if successful
+ * Returns @c true if successful, and @a false otherwise.
  */
 bool rtems_workspace_allocate(
   size_t   bytes,
@@ -84,18 +90,18 @@ bool rtems_workspace_allocate(
 );
 
 /**
- * @brief free workspace
+ * @brief Frees memory allocated from the workspace.
  *
- *  This frees the workspace that was allocated from   
- *  the RTEMS Executive Workspace.
+ * This frees the memory indicated by @a pointer that was allocated from the
+ * RTEMS Executive Workspace.
  *
- *  @param[in] pointer is the allocated workspace
- *
- *  @return TRUE if successful
+ * Returns @c true if successful, and @a false otherwise.
  */
 bool rtems_workspace_free(
   void *pointer
 );
+
+/** @} */
 
 #ifndef __RTEMS_APPLICATION__
 #include <rtems/rtems/support.inl>

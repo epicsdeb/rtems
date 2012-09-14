@@ -10,20 +10,19 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: __brk.c,v 1.11 2003/09/04 18:54:13 joel Exp $
+ *  $Id: __brk.c,v 1.13 2009/09/30 04:51:56 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems.h>
-#if !defined(RTEMS_UNIX)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE___BRK)
 
 #include <errno.h>
 
 int __brk(
-  const void *endds
+  const void *endds __attribute__((unused))
 )
 {
   errno = EINVAL;

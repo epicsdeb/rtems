@@ -1,5 +1,5 @@
 ##
-##  $Id: Makefile.am,v 1.68 2008/05/15 15:56:58 joel Exp $
+##  $Id: Makefile.am,v 1.71 2010/01/19 09:10:03 thomas Exp $
 ##
 ##  build and install "glommed" librtemsbsp.a
 ##
@@ -12,14 +12,11 @@ CLEANFILES = o-optimize/librtemsbsp.a
 
 SRCS = ../support/libsupport.a
 
-if HAS_LIBBSP
 SRCS += ../lib/libbsp/@RTEMS_CPU@/@RTEMS_BSP_FAMILY@/libbsp.a
-endif
 
 # FIXME: ATM, there is no libcpu.a, anymore.
 # SRCS += $(wildcard $(PROJECT_LIB)/libcpu.a)
 
-if LIBCHIP
 SRCS += ../libchip/libflash.a
 SRCS += ../libchip/librtcio.a
 SRCS += ../libchip/libserialio.a
@@ -28,7 +25,7 @@ if HAS_NETWORKING
 SRCS += ../libchip/libnetchip.a
 endif
 SRCS += ../libchip/libi2cio.a
-endif
+SRCS += ../libchip/libdisplay.a
 
 if HAS_MP
 SRCS += ../libchip/shmdr.rel

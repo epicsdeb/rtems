@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: region.t,v 1.19.2.2 2009/07/02 16:22:20 joel Exp $
+@c  $Id: region.t,v 1.23 2009/07/02 16:22:12 joel Exp $
 @c
 
 @chapter Region Manager
@@ -247,7 +247,7 @@ and status codes.
 rtems_status_code rtems_region_create(
   rtems_name       name,
   void            *starting_address,
-  uint32_t         length,
+  intptr_t         length,
   uint32_t         page_size,
   rtems_attribute  attribute_set,
   rtems_id        *id
@@ -433,7 +433,7 @@ delete the region.
 rtems_status_code rtems_region_extend(
   rtems_id  id,
   void     *starting_address,
-  uint32_t  length
+  intptr_t  length
 );
 @end example
 @end ifset
@@ -484,7 +484,7 @@ extend the region.
 @example
 rtems_status_code rtems_region_get_segment(
   rtems_id         id,
-  uint32_t         size,
+  intptr_t         size,
   rtems_option     option_set,
   rtems_interval   timeout,
   void           **segment
@@ -639,7 +639,7 @@ is less than or equal to the size of the segment returned.
 rtems_status_code rtems_region_get_segment_size(
   rtems_id  id,
   void     *segment,
-  size_t   *size
+  ssize_t  *size
 );
 @end example
 @end ifset
@@ -689,8 +689,8 @@ a multiple of the region's page size.
 rtems_status_code rtems_region_resize_segment(
   rtems_id     id,
   void        *segment,
-  size_t       size,
-  size_t      *old_size
+  ssize_t      size,
+  ssize_t     *old_size
 );
 @end example
 @end ifset

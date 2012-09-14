@@ -6,10 +6,10 @@
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadreset.c,v 1.8 2008/08/08 13:50:28 joel Exp $
+ *  $Id: threadreset.c,v 1.9.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -47,7 +47,9 @@ void _Thread_Reset(
 )
 {
   the_thread->resource_count   = 0;
-  the_thread->suspend_count    = 0;
+  #if defined(RTEMS_ITRON_API)
+    the_thread->suspend_count  = 0;
+  #endif
   the_thread->is_preemptible   = the_thread->Start.is_preemptible;
   the_thread->budget_algorithm = the_thread->Start.budget_algorithm;
   the_thread->budget_callout   = the_thread->Start.budget_callout;

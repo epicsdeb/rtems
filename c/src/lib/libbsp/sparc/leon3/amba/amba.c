@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: amba.c,v 1.9 2008/08/18 11:27:37 ralf Exp $
+ *  $Id: amba.c,v 1.12 2010/05/24 15:05:19 joel Exp $
  */
 
 #include <bsp.h>
@@ -24,12 +24,12 @@ volatile LEON3_IrqCtrl_Regs_Map *LEON3_IrqCtrl_Regs;
 int LEON3_Cpu_Index = 0;
 
 /*
- *  bsp_predriver_hook
+ *  amba_initialize
  *
- *  BSP predriver hook.  Called just before drivers are initialized.
- *  Used to scan system bus. Probes for AHB masters, AHB slaves and 
+ *  Must be called just before drivers are initialized.
+ *  Used to scan system bus. Probes for AHB masters, AHB slaves and
  *  APB slaves. Addresses to configuration areas of the AHB masters,
- *  AHB slaves, APB slaves and APB master are storeds in 
+ *  AHB slaves, APB slaves and APB master are storeds in
  *  amba_ahb_masters, amba_ahb_slaves and amba.
  */
 
@@ -43,8 +43,9 @@ asm(" .text  \n"
 
 
 extern rtems_configuration_table Configuration;
+extern int scan_uarts(void);
 
-void bsp_predriver_hook(void)
+void amba_initialize(void)
 {
   int i;
   amba_apb_device dev;
@@ -57,18 +58,20 @@ void bsp_predriver_hook(void)
   if ( i > 0 ){
     /* Found APB IRQ_MP Interrupt Controller */
     LEON3_IrqCtrl_Regs = (volatile LEON3_IrqCtrl_Regs_Map *) dev.start;
-    #if defined(RTEMS_MULTIPROCESSING)
+#if defined(RTEMS_MULTIPROCESSING)
       if (rtems_configuration_get_user_multiprocessing_table() != NULL) {
-        tmp = getasr17();
+        unsigned int tmp = getasr17();
         LEON3_Cpu_Index = (tmp >> 28) & 3;
       }
-    #endif
+#endif
   }
-  
+
   /* find GP Timer */
   i = amba_find_apbslv(&amba_conf,VENDOR_GAISLER,GAISLER_GPTIMER,&dev);
   if ( i > 0 ){
     LEON3_Timer_Regs = (volatile LEON3_Timer_Regs_Map *) dev.start;
   }
 
+  /* find UARTS */
+  scan_uarts();
 }

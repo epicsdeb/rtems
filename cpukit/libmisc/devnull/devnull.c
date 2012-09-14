@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: devnull.c,v 1.7 2004/04/16 12:06:28 ralf Exp $
+ *  $Id: devnull.c,v 1.8 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,8 +40,8 @@ static char initialized;
 
 rtems_device_driver null_initialize(
   rtems_device_major_number major,
-  rtems_device_minor_number minor,
-  void *pargp
+  rtems_device_minor_number minor __attribute__((unused)),
+  void *pargp __attribute__((unused))
 )
 {
   rtems_device_driver status;
@@ -78,9 +78,9 @@ rtems_device_driver null_initialize(
  */
 
 rtems_device_driver null_open(
-  rtems_device_major_number major,
-  rtems_device_minor_number minor,
-  void *pargp
+  rtems_device_major_number major __attribute__((unused)),
+  rtems_device_minor_number minor __attribute__((unused)),
+  void *pargp __attribute__((unused))
 )
 {
   return NULL_SUCCESSFUL;
@@ -101,9 +101,9 @@ rtems_device_driver null_open(
  */
 
 rtems_device_driver null_close(
-  rtems_device_major_number major,
-  rtems_device_minor_number minor,
-  void *pargp
+  rtems_device_major_number major __attribute__((unused)),
+  rtems_device_minor_number minor __attribute__((unused)),
+  void *pargp __attribute__((unused))
 )
 {
   return NULL_SUCCESSFUL;
@@ -124,9 +124,9 @@ rtems_device_driver null_close(
  */
 
 rtems_device_driver null_read(
-  rtems_device_major_number major,
-  rtems_device_minor_number minor,
-  void *pargp
+  rtems_device_major_number major __attribute__((unused)),
+  rtems_device_minor_number minor __attribute__((unused)),
+  void *pargp __attribute__((unused))
 )
 {
   return NULL_SUCCESSFUL;
@@ -147,8 +147,8 @@ rtems_device_driver null_read(
  */
 
 rtems_device_driver null_write(
-  rtems_device_major_number major,
-  rtems_device_minor_number minor,
+  rtems_device_major_number major __attribute__((unused)),
+  rtems_device_minor_number minor __attribute__((unused)),
   void *pargp
 )
 {
@@ -175,9 +175,9 @@ rtems_device_driver null_write(
  */
 
 rtems_device_driver null_control(
-  rtems_device_major_number major,
-  rtems_device_minor_number minor,
-  void *pargp
+  rtems_device_major_number major __attribute__((unused)),
+  rtems_device_minor_number minor __attribute__((unused)),
+  void *pargp __attribute__((unused))
 )
 {
   return NULL_SUCCESSFUL;

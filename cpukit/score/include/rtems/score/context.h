@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/context.h
  *
  *  This include file contains all information about each thread's context.
@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: context.h,v 1.19 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: context.h,v 1.21 2009/11/28 05:58:53 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_CONTEXT_H
@@ -43,7 +43,7 @@ extern "C" {
 /**
  *  @brief Is Context Switch Needed?
  *
- *  This variable is set to TRUE when a reschedule operation
+ *  This variable is set to true when a reschedule operation
  *  has determined that the processor should be taken away from the
  *  currently executing thread and given to the heir thread.
  */
@@ -57,12 +57,12 @@ SCORE_EXTERN volatile bool _Context_Switch_necessary;
  *  thread's initial state.
  *
  *  @param[in] _the_context will be initialized
- *  @param[in] _stack is the lowest physical address of the thread's 
+ *  @param[in] _stack is the lowest physical address of the thread's
  *         context
  *  @param[in] _size is the size in octets of the thread's context
  *  @param[in] _isr is the ISR enable level for this thread
  *  @param[in] _entry is this thread's entry point
- *  @param[in] _is_fp is set to TRUE if this thread has floating point
+ *  @param[in] _is_fp is set to true if this thread has floating point
  *         enabled
  */
 #define _Context_Initialize(_the_context, _stack, _size, _isr, _entry, _is_fp) \

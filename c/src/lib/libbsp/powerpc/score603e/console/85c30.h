@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: 85c30.h,v 1.5.6.1 2009/05/05 16:18:05 jennifer Exp $
+ *  $Id: 85c30.h,v 1.8 2009/05/05 16:24:04 jennifer Exp $
  */
 
 #ifndef __85c30_H

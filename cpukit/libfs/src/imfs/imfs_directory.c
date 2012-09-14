@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_directory.c,v 1.21.2.1 2009/03/09 14:12:58 joel Exp $
+ *  $Id: imfs_directory.c,v 1.24 2009/06/12 01:53:33 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -182,9 +182,9 @@ int imfs_dir_close(
  *     SEEK_END - N/A --> This will cause an assert.
  */
 
-off_t imfs_dir_lseek(
+rtems_off64_t imfs_dir_lseek(
   rtems_libio_t  *iop,
-  off_t           offset,
+  rtems_off64_t   offset,
   int             whence
 )
 {
@@ -282,7 +282,8 @@ int imfs_dir_fstat(
  */
 
 int imfs_dir_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+  rtems_filesystem_location_info_t  *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t  *pathloc         /* IN */
 )
 {
   IMFS_jnode_t *the_jnode;

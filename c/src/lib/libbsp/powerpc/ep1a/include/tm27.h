@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tm27.h,v 1.2 2005/05/10 02:40:56 ralf Exp $
+ *  $Id: tm27.h,v 1.3 2008/10/02 17:27:07 joel Exp $
  */
 
 #ifndef _RTEMS_TMTEST27

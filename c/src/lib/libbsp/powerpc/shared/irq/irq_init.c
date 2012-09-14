@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_init.c,v 1.25 2008/08/20 08:51:48 ralf Exp $
+ *  $Id: irq_init.c,v 1.29 2010/04/28 18:51:58 joel Exp $
  */
 
 #include <libcpu/io.h>
@@ -26,7 +26,6 @@
 #include <bsp/irq.h>
 #include <bsp/irq_supp.h>
 #include <bsp.h>
-#include <libcpu/raw_exception.h>
 #include <bsp/motorola.h>
 #include <rtems/bspIo.h>
 
@@ -40,23 +39,34 @@ pci_isa_bridge_device* via_82c586 = 0;
 static pci_isa_bridge_device bridge;
 
 /*
- * default on/off function
+ * default methods
  */
-static void nop_func(void){}
-/*
- * default isOn function
- */
-static int not_connected(void) {return 0;}
-/*
- * default possible isOn function
-static int connected(void) {return 1;}
- */
+static void nop_hdl(rtems_irq_hdl_param ignored)
+{
+}
+
+static void nop_irq_enable(const struct __rtems_irq_connect_data__*ignored)
+{
+}
+
+static int irq_is_connected(const struct __rtems_irq_connect_data__*ignored)
+{
+  return 0;
+}
+
 
 static rtems_irq_connect_data     	rtemsIrq[BSP_IRQ_NUMBER];
 static rtems_irq_global_settings     	initial_config;
 static rtems_irq_connect_data     	defaultIrq = {
-  /* vectorIdex,	 hdl		, handle	, on		, off		, isOn */
-  0, 			 nop_func	, NULL		, nop_func	, nop_func	, not_connected
+  0,                /* vector */
+  nop_hdl,          /* hdl */
+  NULL,             /* handle */
+  nop_irq_enable,   /* on */
+  nop_irq_enable,   /* off */
+  irq_is_connected  /* isOn */
+#ifdef BSP_SHARED_HANDLER_SUPPORT
+  , NULL /* next_handler */
+#endif
 };
 static rtems_irq_prio irqPrioTable[BSP_IRQ_NUMBER]={
   /*
@@ -275,11 +285,11 @@ void BSP_rtems_irq_mng_init(unsigned cpuId)
    */
   openpic_init(1, mvme2100_openpic_initpolarities, mvme2100_openpic_initsenses, 16, 16, BSP_bus_frequency);
 #else
-#ifdef TRACE_IRQ_INIT  
+#ifdef TRACE_IRQ_INIT
   printk("Going to initialize raven interrupt controller (openpic compliant)\n");
 #endif
   openpic_init(1, mcp750_openpic_initpolarities, mcp750_openpic_initsenses, 0, 0, 0);
-#ifdef TRACE_IRQ_INIT  
+#ifdef TRACE_IRQ_INIT
   printk("Going to initialize the PCI/ISA bridge IRQ related setting (VIA 82C586)\n");
 #endif
   if ( currentBoard == MESQUITE ) {
@@ -331,8 +341,8 @@ void BSP_rtems_irq_mng_init(unsigned cpuId)
        */
       BSP_panic("Unable to initialize RTEMS interrupt Management!!! System locked\n");
     }
-  
-#ifdef TRACE_IRQ_INIT  
+
+#ifdef TRACE_IRQ_INIT
     printk("RTEMS IRQ management is now operational\n");
 #endif
 }

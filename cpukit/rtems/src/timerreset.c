@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timerreset.c,v 1.8.2.1 2008/12/03 21:01:08 joel Exp $
+ *  $Id: timerreset.c,v 1.13 2009/12/15 18:26:42 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,37 +40,47 @@
  */
 
 rtems_status_code rtems_timer_reset(
-  Objects_Id id
+  rtems_id id
 )
 {
   Timer_Control     *the_timer;
   Objects_Locations  location;
+  rtems_status_code  status = RTEMS_SUCCESSFUL;
 
   the_timer = _Timer_Get( id, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:
-      switch ( the_timer->the_class ) {
-        case TIMER_INTERVAL:
-          _Watchdog_Remove( &the_timer->Ticker );
-          _Watchdog_Insert( &_Watchdog_Ticks_chain, &the_timer->Ticker );
-          break;
-        case TIMER_INTERVAL_ON_TASK:
-          if ( !_Timer_Server_schedule_operation ) {
+      if ( the_timer->the_class == TIMER_INTERVAL ) {
+        _Watchdog_Remove( &the_timer->Ticker );
+        _Watchdog_Insert( &_Watchdog_Ticks_chain, &the_timer->Ticker );
+      } else if ( the_timer->the_class == TIMER_INTERVAL_ON_TASK ) {
+        Timer_server_Control *timer_server = _Timer_server;
+
+        /*
+         *  There is no way for a timer to have this class unless
+         *  it was scheduled as a server fire.  That requires that
+         *  the Timer Server be initiated.  So this error cannot
+         *  occur unless something is internally wrong.
+         */
+        #if defined(RTEMS_DEBUG)
+          if ( !timer_server ) {
             _Thread_Enable_dispatch();
             return RTEMS_INCORRECT_STATE;
           }
-          _Watchdog_Remove( &the_timer->Ticker );
-          (*_Timer_Server_schedule_operation)( the_timer );
-          break;
-        case TIMER_TIME_OF_DAY:
-        case TIMER_TIME_OF_DAY_ON_TASK:
-        case TIMER_DORMANT:
-          _Thread_Enable_dispatch();
-          return RTEMS_NOT_DEFINED;
+        #endif
+        _Watchdog_Remove( &the_timer->Ticker );
+        (*timer_server->schedule_operation)( timer_server, the_timer );
+      } else {
+        /*
+         *  Must be dormant or time of day timer (e.g. TIMER_DORMANT,
+         *  TIMER_TIME_OF_DAY, or TIMER_TIME_OF_DAY_ON_TASK).  We
+         *  can only reset active interval timers.
+         */
+        status = RTEMS_NOT_DEFINED;
       }
       _Thread_Enable_dispatch();
-      return RTEMS_SUCCESSFUL;
+      return status;
 
 #if defined(RTEMS_MULTIPROCESSING)
     case OBJECTS_REMOTE:            /* should never return this */

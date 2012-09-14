@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadkill.c,v 1.14 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: pthreadkill.c,v 1.15.2.1 2011/03/08 22:14:56 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -40,7 +40,7 @@ int pthread_kill(
   if ( !is_valid_signo(sig) )
     rtems_set_errno_and_return_minus_one( EINVAL );
 
-  the_thread = _POSIX_Threads_Get( thread, &location );
+  the_thread = _Thread_Get( thread, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:
@@ -66,7 +66,7 @@ int pthread_kill(
         the_thread->do_post_task_switch_extension = true;
 
         if ( _ISR_Is_in_progress() && _Thread_Is_executing( the_thread ) )
-          _ISR_Signals_to_thread_executing = TRUE;
+          _ISR_Signals_to_thread_executing = true;
       }
       _Thread_Enable_dispatch();
       return 0;

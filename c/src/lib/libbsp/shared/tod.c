@@ -5,10 +5,13 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tod.c,v 1.12 2008/09/05 08:08:39 ralf Exp $
+ *  $Id: tod.c,v 1.15 2009/05/27 14:21:29 joel Exp $
  */
 
 #include <rtems.h>
+#include <rtems/rtc.h>
+#include <rtems/libio.h>
+
 #include <libchip/rtc.h>
 
 /*
@@ -34,8 +37,8 @@ rtems_device_driver rtc_initialize(
   void                      *arg
 )
 {
-  rtems_device_minor_number  minor;
-  rtems_status_code          status;
+  rtems_device_minor_number minor;
+  rtems_status_code status;
 
   for (minor=0; minor < RTC_Count ; minor++) {
     /*
@@ -65,7 +68,7 @@ rtems_device_driver rtc_initialize(
    *  Register and initialize the primary RTC's
    */
 
-  status = rtems_io_register_name( "/dev/rtc", major, RTC_Minor );
+  status = rtems_io_register_name( RTC_DEVICE_NAME, major, RTC_Minor );
   if (status != RTEMS_SUCCESSFUL) {
     rtems_fatal_error_occurred(status);
   }
@@ -102,6 +105,101 @@ rtems_device_driver rtc_initialize(
 
   setRealTimeToRTEMS();
   return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_read(
+  rtems_device_major_number  major,
+  rtems_device_minor_number  minor,
+  void *arg
+)
+{
+  int rv = 0;
+  rtems_libio_rw_args_t *rw = arg;
+  rtems_time_of_day *tod = (rtems_time_of_day *) rw->buffer;
+
+  rw->offset = 0;
+  rw->bytes_moved = 0;
+
+  if (!RTC_Present) {
+    return RTEMS_NOT_CONFIGURED;
+  }
+
+  if (rw->count != sizeof( rtems_time_of_day)) {
+    return RTEMS_INVALID_SIZE;
+  }
+
+  rv = RTC_Table [RTC_Minor].pDeviceFns->deviceGetTime(
+    RTC_Minor,
+    tod
+  );
+  if (rv != 0) {
+    return RTEMS_IO_ERROR;
+  }
+
+  rw->bytes_moved = rw->count;
+
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_write(
+  rtems_device_major_number  major,
+  rtems_device_minor_number  minor,
+  void *arg
+)
+{
+  int rv = 0;
+  rtems_libio_rw_args_t *rw = arg;
+  const rtems_time_of_day *tod = (const rtems_time_of_day *) rw->buffer;
+
+  rw->offset = 0;
+  rw->bytes_moved = 0;
+
+  if (!RTC_Present) {
+    return RTEMS_NOT_CONFIGURED;
+  }
+
+  if (rw->count != sizeof( rtems_time_of_day)) {
+    return RTEMS_INVALID_SIZE;
+  }
+
+  rv = RTC_Table [RTC_Minor].pDeviceFns->deviceSetTime(
+    RTC_Minor,
+    tod
+  );
+  if (rv != 0) {
+    return RTEMS_IO_ERROR;
+  }
+
+  rw->bytes_moved = rw->count;
+
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_open(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_close(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_SUCCESSFUL;
+}
+
+rtems_device_driver rtc_control(
+  rtems_device_major_number major,
+  rtems_device_minor_number minor,
+  void *arg
+)
+{
+  return RTEMS_NOT_IMPLEMENTED;
 }
 
 /*PAGE
@@ -146,7 +244,7 @@ void setRealTimeFromRTEMS(void)
   if (!RTC_Present)
     return;
 
-  rtems_clock_get( RTEMS_CLOCK_GET_TOD, &rtems_tod );
+  rtems_clock_get_tod( &rtems_tod );
   RTC_Table[RTC_Minor].pDeviceFns->deviceSetTime(RTC_Minor, &rtems_tod);
 }
 
@@ -167,7 +265,6 @@ void getRealTime(
   rtems_time_of_day *tod
 )
 {
-
   if (!RTC_Present)
     return;
 
@@ -186,15 +283,10 @@ void getRealTime(
  *
  *  Return values: NONE
  */
-
-/* XXX this routine should be part of the public RTEMS interface */
-extern bool _TOD_Validate( rtems_time_of_day *tod );
-
 int setRealTime(
-  rtems_time_of_day *tod
+  const rtems_time_of_day *tod
 )
 {
-
   if (!RTC_Present)
     return -1;
 
@@ -219,10 +311,6 @@ int setRealTime(
  *  Return values:
  *    int   The differance between the real time clock and rtems time.
  */
-
-/* XXX this routine should be part of the public RTEMS interface */
-uint32_t   _TOD_To_seconds( rtems_time_of_day *tod );
-
 int checkRealTime(void)
 {
   rtems_time_of_day rtems_tod;
@@ -233,7 +321,7 @@ int checkRealTime(void)
   if (!RTC_Present)
     return -1;
 
-  rtems_clock_get( RTEMS_CLOCK_GET_TOD, &rtems_tod );
+  rtems_clock_get_tod( &rtems_tod );
   RTC_Table[RTC_Minor].pDeviceFns->deviceGetTime(RTC_Minor, &rtc_tod);
 
   rtems_time = _TOD_To_seconds( &rtems_tod );

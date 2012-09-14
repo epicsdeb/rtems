@@ -6,12 +6,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: isatty.c,v 1.5 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: isatty.c,v 1.6 2008/12/05 06:42:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_ISATTY
 
 #include <sys/stat.h>
 
@@ -29,3 +31,5 @@ int isatty(
 
   return 0;
 }
+
+#endif

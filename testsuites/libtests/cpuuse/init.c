@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.12 2008/02/01 00:45:04 joel Exp $
+ *  $Id: init.c,v 1.13 2009/10/12 13:31:01 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -64,7 +64,7 @@ rtems_task Init(
   status = rtems_task_create(
      Task_name[ 1 ],
      1,
-     RTEMS_MINIMUM_STACK_SIZE * 2,
+     RTEMS_MINIMUM_STACK_SIZE,
      RTEMS_TIMESLICE,
      RTEMS_FLOATING_POINT,
      &Task_id[ 1 ]
@@ -74,7 +74,7 @@ rtems_task Init(
   status = rtems_task_create(
      Task_name[ 2 ],
      1,
-     RTEMS_MINIMUM_STACK_SIZE * 2,
+     RTEMS_MINIMUM_STACK_SIZE,
      RTEMS_TIMESLICE,
      RTEMS_FLOATING_POINT,
      &Task_id[ 2 ]
@@ -84,7 +84,7 @@ rtems_task Init(
   status = rtems_task_create(
      Task_name[ 3 ],
      1,
-     RTEMS_MINIMUM_STACK_SIZE * 2,
+     RTEMS_MINIMUM_STACK_SIZE,
      RTEMS_TIMESLICE,
      RTEMS_FLOATING_POINT,
      &Task_id[ 3 ]

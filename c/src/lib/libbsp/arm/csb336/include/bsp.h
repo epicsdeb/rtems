@@ -10,7 +10,7 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: bsp.h,v 1.5 2007/12/11 15:50:17 joel Exp $
+ *  $Id: bsp.h,v 1.8 2010/04/30 14:40:16 sh Exp $
 */
 #ifndef _BSP_H
 #define _BSP_H
@@ -27,12 +27,11 @@ extern "C" {
 #include <rtems/clockdrv.h>
 #include <mc9328mxl.h>
 
+#define BSP_FEATURE_IRQ_EXTENSION
+
 /* What is the input clock freq in hertz? */
 #define BSP_OSC_FREQ  16000000    /* 16 MHz oscillator */
 #define BSP_XTAL_FREQ 32768       /* 32.768 KHz crystal */
-
-/* How many serial ports? */
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
 
 int get_perclk1_freq(void);
 
@@ -42,7 +41,7 @@ int get_perclk1_freq(void);
 extern struct rtems_bsdnet_ifconfig *config;
 
 /* Change these to match your board */
-int rtems_mc9328mxl_enet_attach(struct rtems_bsdnet_ifconfig *config, 
+int rtems_mc9328mxl_enet_attach(struct rtems_bsdnet_ifconfig *config,
                                 void *chip);
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"eth0"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_mc9328mxl_enet_attach

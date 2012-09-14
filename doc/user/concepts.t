@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: concepts.t,v 1.14.2.4 2009/01/29 14:57:28 joel Exp $
+@c  $Id: concepts.t,v 1.19.2.1 2010/11/11 14:01:38 joel Exp $
 @c
 
 @c
@@ -98,7 +98,7 @@ an object name:
 #include <rtems.h>
 #include <rtems/bspIo.h>
 
-void print_name(rtems_id the_object)
+void print_name(rtems_id id)
 @{
   char  buffer[10];   /* name assumed to be 10 characters or less */
   char *result;
@@ -118,10 +118,26 @@ void print_name(rtems_id the_object)
 
 @need 3000
 
-An object ID is a unique unsigned thirty-two bit
-entity composed of four parts: API, object class, node, and index.
-The data type @code{@value{DIRPREFIX}id} is used to store object IDs.
+An object ID is a unique unsigned integer value which uniquely identifies
+an object instance.  Object IDs are passed as arguments to many directives
+in RTEMS and RTEMS translates the ID to an internal object pointer. The
+efficient manipulation of object IDs is critical to the performance
+of RTEMS services.  Because of this, there are two object Id formats
+defined.  Each target architecture specifies which format it will use.
+There is a thirty-two bit format which is used for most of the supported
+architectures and supports multiprocessor configurations.  There is also
+a simpler sixteen bit format which is appropriate for smaller target
+architectures and does not support multiprocessor configurations.
 
+@subsubsection Thirty-Two Object ID Format
+
+The thirty-two bit format for an object ID is composed of four parts: API,
+object class, node, and index.  The data type @code{@value{DIRPREFIX}id}
+is used to store object IDs.
+
+
+@float Figure,fig:Object-Id-32
+@caption{Thirty-Two Bit Object Id}
 
 @ifset use-ascii
 @example
@@ -138,15 +154,16 @@ The data type @code{@value{DIRPREFIX}id} is used to store object IDs.
 
 @ifset use-tex
 @sp1
-@center{@image{ObjectId-32Bits,,2in}}
+@center{@image{ObjectId-32Bits,,2in,Thirty-Two Bit Object Id}}
 @end ifset
 
 @ifset use-html
 @html
 <P ALIGN="center"><IMG SRC="ObjectId-32Bits.png"
-     WIDTH=550 HEIGHT=400 ALT="32 Bit Object Id"></P>
+     WIDTH=550 HEIGHT=400 ALT="Thirty-Two Bit Object Id"></P>
 @end html
 @end ifset
+@end float
 
 The most significant five bits are the object class.  The next
 three bits indicate the API to which the object class belongs.
@@ -157,7 +174,53 @@ identifier within a particular object type.  This identifier,
 called the object index, ranges in value from 1 to the maximum
 number of objects configured for this object type.
 
-The four components of an object ID make it possible
+@subsubsection Sixteen Bit Object ID Format
+
+The sixteen bit format for an object ID is composed of three parts: API,
+object class, and index.  The data type @code{@value{DIRPREFIX}id}
+is used to store object IDs.
+
+@float Figure,fig:Object-Id-16
+@caption{Sixteen Bit Object Id}
+
+
+@ifset use-ascii
+@example
+@group
+     15      11 10    8 7            0
+     +---------+-------+--------------+
+     |         |       |              |
+     |  Class  |  API  |    Index     |
+     |         |       |              |
+     +---------+-------+--------------+
+@end group
+@end example
+@end ifset
+
+@ifset use-tex
+@sp1
+@center{@image{ObjectId-16Bits,,2in,Sixteen Bit Object Id}}
+@end ifset
+
+@ifset use-html
+@html
+<P ALIGN="center"><IMG SRC="ObjectId-16Bits.png"
+     WIDTH=550 HEIGHT=400 ALT="16 Bit Object Id"></P>
+@end html
+@end ifset
+@end float
+
+The sixteen-bit format is designed to be as similar as possible to the
+thrity-two bit format.  The differences are limited to the eliminatation
+of the node field and reduction of the index field from sixteen-bits
+to 8-bits.  Thus the sixteen bit format only supports up to 255 object
+instances per API/Class combination and single processor systems.
+As this format is typically utilized by sixteen-bit processors with
+limited address space, this is more than enough object instances.
+
+@subsection Object ID Description
+
+The components of an object ID make it possible
 to quickly locate any object in even the most complicated
 multiprocessor system.  Object ID's are associated with an
 object by RTEMS when the object is created and the corresponding

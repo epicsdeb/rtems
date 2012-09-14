@@ -1,5 +1,5 @@
 /*
- *  MC68360 support routines
+ *  MC68360 support routines - reduced from gen68360 BSP
  *
  *  W. Eric Norum
  *  Saskatchewan Accelerator Laboratory
@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init68360.c,v 1.3.6.1 2008/10/02 19:46:58 joel Exp $
+ *  $Id: init68360.c,v 1.4 2008/10/02 19:46:12 joel Exp $
  */
 
 #include <rtems.h>
@@ -31,7 +31,7 @@ void M360ExecuteRISC( volatile m360_t *m360, uint16_t command)
 
   rtems_interrupt_disable(sr);
   while (m360->cr & M360_CR_FLG)
-    continue;
+  	continue;
   m360->cr = command | M360_CR_FLG;
   rtems_interrupt_enable(sr);
 }

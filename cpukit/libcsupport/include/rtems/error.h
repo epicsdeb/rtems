@@ -5,29 +5,40 @@
 /*
  *  Defines and externs for rtems error reporting
  *
- *  $Id: error.h,v 1.8 2005/01/28 08:04:27 ralf Exp $
+ *  $Id: error.h,v 1.10 2009/10/22 11:20:44 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_ERROR_H
 #define _RTEMS_RTEMS_ERROR_H
 
+#include <rtems/score/interr.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef Internal_errors_t rtems_error_code_t;
 
 /*
  * rtems_error() and rtems_panic() support
  */
 
-#define RTEMS_ERROR_ERRNO  (1<<((sizeof(int) * 8) - 2)) /* hi bit; use 'errno' */
+#if 0
+/* not 16bit-int host clean */
+#define RTEMS_ERROR_ERRNO  (1<<((sizeof(rtems_error_code_t) * CHAR_BIT) - 2)) /* hi bit; use 'errno' */
 #define RTEMS_ERROR_PANIC  (RTEMS_ERROR_ERRNO / 2)       /* err fatal; no return */
 #define RTEMS_ERROR_ABORT  (RTEMS_ERROR_ERRNO / 4)       /* err is fatal; panic */
+#else
+#define RTEMS_ERROR_ERRNO  (0x40000000) /* hi bit; use 'errno' */
+#define RTEMS_ERROR_PANIC  (0x20000000) /* err fatal; no return */
+#define RTEMS_ERROR_ABORT  (0x10000000) /* err is fatal; panic */
+#endif
 
 #define RTEMS_ERROR_MASK  (RTEMS_ERROR_ERRNO | RTEMS_ERROR_ABORT | \
                              RTEMS_ERROR_PANIC) /* all */
 
 const char *rtems_status_text(rtems_status_code);
-int   rtems_error(int error_code, const char *printf_format, ...);
+int   rtems_error(rtems_error_code_t error_code, const char *printf_format, ...);
 #ifdef __GNUC__
 void  rtems_panic(const char *printf_format, ...);
 /*

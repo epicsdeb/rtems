@@ -1,8 +1,92 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-05-11	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/startup/linkcmds.base: New file.
+
+2010-04-07	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/spw/grspw_rasta.c: Guard prototype of 
+	grspw_rasta_calc_memoffs in #ifdef GRSPW_STATIC_MEM to avoid
+	warning.
+
+2010-04-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/gnatcommon.c: #include <unistd.h>.
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* shared/include/pci.h: Rename pci_config into rtems_pci_config_t.
+
+2009-11-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* shared/bsppretaskinghook.c: New file.  Was really common.  
+	* shared/bspstart.c: Removed.  Was really leon2 specific.
+
+2009-10-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspgetworkarea.c: Add debug prints of memory information.
+
+2009-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/include/pci.h: Add prototypes for BusCountPCI(void),
+	init_pci(void).
+
+2009-09-28	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/include/pci.h: Revert extern inline patch.
+
+2009-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/include/pci.h: Change extern inline to static inline.
+
+2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* shared/start.S: Fix comment.
+
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspgetworkarea.c: Switch from ssize_t to uintptr_t for
+	bsp_get_work_area() since the work area is larger than a single
+	allocatable object.
+
+2009-05-03	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/start.S: Checked and OK.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* shared/start/start.S: Update for boot_card command line change.
+
 2009-02-27	Daniel Hellstrom <daniel@gaisler.com>
 
 	PR 1386/bsps
 	* shared/start.S: Stack space not correctly initialized. Causes
 	failures on unoptimized applications.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspgetworkarea.c: Change size_t to ssize_t on
+	bsp_get_work_area(). On 16-bit architectures, size_t can be 16-bits
+	which would limit the work area to 64K.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspclean.c: Removed.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspstart.c: Remove unnecessary includes of rtems/libcsupport.h
+	and rtems/libio.h.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/bspstart.c: Use shared bsp_get_work_area() in its own file and
+	rely on BSP Framework to perform more initialization.
+	* shared/bspgetworkarea.c: New file.
 
 2008-08-18	Ralf Corsépius <ralf.corsepius@rtems.org>
 

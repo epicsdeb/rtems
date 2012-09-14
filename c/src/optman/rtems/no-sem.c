@@ -2,14 +2,14 @@
  *  Semaphore Manager
  *
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: no-sem.c,v 1.16 2007/05/09 18:44:20 joel Exp $
+ *  $Id: no-sem.c,v 1.19 2008/12/22 04:29:18 ralf Exp $
  */
 
 #include <rtems/system.h>
@@ -24,9 +24,7 @@
 #include <rtems/score/threadq.h>
 #include <rtems/score/interr.h>
 
-void _Semaphore_Manager_initialization(
-  uint32_t   maximum_semaphores
-)
+void _Semaphore_Manager_initialization(void)
 {
 }
 

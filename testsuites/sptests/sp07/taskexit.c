@@ -6,19 +6,19 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskexit.c,v 1.9 2003/09/04 18:53:47 joel Exp $
+ *  $Id: taskexit.c,v 1.10 2009/09/26 15:47:16 joel Exp $
  */
 
 #include "system.h"
 
-rtems_extension Task_exit_extension(
+void Task_exit_extension(
   rtems_tcb *running_task
 )
 {

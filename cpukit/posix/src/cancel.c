@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cancel.c,v 1.16 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: cancel.c,v 1.19.2.1 2011/03/08 22:14:55 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,8 +25,7 @@
 #include <rtems/posix/pthread.h>
 #include <rtems/posix/threadsup.h>
 
-/*PAGE
- *
+/*
  *  18.2.1 Canceling Execution of a Thread, P1003.1c/Draft 10, p. 181
  */
 
@@ -37,7 +36,6 @@ int pthread_cancel(
   Thread_Control     *the_thread;
   POSIX_API_Control  *thread_support;
   Objects_Locations   location;
-  bool                cancel = false;
 
   /*
    *  Don't even think about deleting a resource from an ISR.
@@ -46,7 +44,7 @@ int pthread_cancel(
   if ( _ISR_Is_in_progress() )
     return EPROTO;
 
-  the_thread = _POSIX_Threads_Get( thread, &location );
+  the_thread = _Thread_Get( thread, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:
@@ -54,13 +52,8 @@ int pthread_cancel(
 
       thread_support->cancelation_requested = 1;
 
-      if (thread_support->cancelability_state == PTHREAD_CANCEL_ENABLE &&
-          thread_support->cancelability_type == PTHREAD_CANCEL_ASYNCHRONOUS)
-        cancel = true;
-
-      _Thread_Enable_dispatch();
-      if ( cancel )
-        _POSIX_Thread_Exit( the_thread, PTHREAD_CANCELED );
+      /* This enables dispatch implicitly */
+      _POSIX_Thread_Evaluate_cancellation_and_enable_dispatch( the_thread );
       return 0;
 
 #if defined(RTEMS_MULTIPROCESSING)

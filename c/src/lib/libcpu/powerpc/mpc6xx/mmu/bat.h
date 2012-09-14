@@ -6,9 +6,9 @@
  *	    More detailed information can be found on motorola
  *	    site and more precisely in the following book :
  *
- *		MPC750 
+ *		MPC750
  *		Risc Microporcessor User's Manual
- *		Mtorola REF : MPC750UM/AD 8/97
+ *		Motorola REF : MPC750UM/AD 8/97
  *
  * Copyright (C) 1999  Eric Valette (valette@crf.canon.fr)
  *                     Canon Centre Recherche France.
@@ -17,7 +17,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bat.h,v 1.8 2007/11/30 01:05:08 strauman Exp $
+ * $Id: bat.h,v 1.10 2009/11/30 05:07:54 ralf Exp $
  */
 
 #ifndef _LIBCPU_BAT_H
@@ -57,7 +57,7 @@ extern int setibat(int bat_index, unsigned long virt, unsigned long phys,
 
 /* read DBAT # 'idx' into *pu / *pl. NULL pointers may be passed.
  * If pu and pl are NULL, the bat contents are dumped to the console (printk).
- * 
+ *
  * RETURNS: upper BAT contents or (-1) if index is invalid
  */
 extern int getdbat(int bat_index, unsigned long *pu, unsigned long *pl);

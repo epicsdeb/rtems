@@ -12,7 +12,7 @@
  *  PCI to PCI Bridge Specification
  *  PCI System Design Guide
  *
- * $Id: pci.h,v 1.11 2007/07/26 06:12:29 ralf Exp $
+ * $Id: pci.h,v 1.18 2009/12/11 12:53:48 ralf Exp $
  */
 
 #ifndef _RTEMS_PCI_H
@@ -1127,15 +1127,15 @@ typedef struct  {
 #define PCIB_ERR_DEVNOTFOUND   (-5)  /* Device not found */
 #define PCIB_ERR_BADREG        (-6)  /* Bad register number */
 
-extern int pci_initialize();
+extern int pci_initialize(void);
 
 typedef struct {
   volatile unsigned char*            pci_config_addr;
   volatile unsigned char*            pci_config_data;
   const pci_config_access_functions* pci_functions;
-} pci_config;
+} rtems_pci_config_t;
 
-extern pci_config BSP_pci_configuration;
+extern rtems_pci_config_t BSP_pci_configuration;
 
 static inline int
 pci_read_config_byte(
@@ -1174,10 +1174,10 @@ pci_read_config_dword(
 
 static inline int
 pci_write_config_byte(
-  unsigned char bus, 
-  unsigned char slot, 
+  unsigned char bus,
+  unsigned char slot,
   unsigned char function,
-  unsigned char where, 
+  unsigned char where,
   uint8_t       val)
 {
   return BSP_pci_configuration.pci_functions->write_config_byte(
@@ -1227,7 +1227,7 @@ pci_find_device(
 /*
  * Return the number of PCI busses in the system
  */
-extern unsigned char pci_bus_count();
+extern unsigned char pci_bus_count(void);
 
 #ifdef __cplusplus
 }

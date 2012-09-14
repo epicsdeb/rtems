@@ -1,24 +1,12 @@
-/*  Init
- *
- *  This routine is the initialization task for this test program.
- *  It is a user initialization task and has the responsibility for creating
- *  and starting the tasks that make up the test.  If the time of day
- *  clock is required for the test, it should also be set to a known
- *  value by this function.
- *
- *  Input parameters:
- *    argument - task argument
- *
- *  Output parameters:  NONE
- *
- *  COPYRIGHT (c) 1989-2007.
+/*
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.16 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.19 2009/10/04 22:02:18 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -132,9 +120,10 @@ rtems_task Init(
   );
   directive_failed( status, "rtems_task_create of TA2" );
 
+#define TA3_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 4u)
   status = rtems_task_create(
     Task_name[ 3 ],
-    250,
+    TA3_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE * 2,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -142,9 +131,10 @@ rtems_task Init(
   );
   directive_failed( status, "rtems_task_create of TA3" );
 
+#define TA4_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 1u)
   status = rtems_task_create(
     Task_name[ 4 ],
-    254,
+    TA4_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE * 2,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -169,9 +159,14 @@ rtems_task Init(
 
   buffered_io_flush();
 
+  status = rtems_task_set_note( rtems_task_self(), RTEMS_NOTEPAD_4, 32 );
+  directive_failed( status, "task_set_node of Self id" );
+  printf( "INIT - rtems_task_set_note - set my (id) RTEMS_NOTEPAD_4 " );
+  puts  ( "to TA1's priority: 04" );
+
   status = rtems_task_set_note( RTEMS_SELF, RTEMS_NOTEPAD_4, 32 );
-  directive_failed( status, "task_set_node of Self" );
-  printf( "INIT - rtems_task_set_note - set my RTEMS_NOTEPAD_4 " );
+  directive_failed( status, "task_set_node of Self 0" );
+  printf( "INIT - rtems_task_set_note - set my (SELF) RTEMS_NOTEPAD_4 " );
   puts  ( "to TA1's priority: 04" );
 
   status = rtems_task_set_note( Task_id[ 1 ], RTEMS_NOTEPAD_8, 4 );

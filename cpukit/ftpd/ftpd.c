@@ -15,6 +15,10 @@
  *
  *  Changes:
  *
+ *    2010-12-02        Sebastien Bourdeauducq <sebastien@milkymist.org>
+ *
+ *      * Support spaces in filenames
+ * 
  *    2001-01-31        Sergei Organov <osv@javad.ru>
  *
  *      * Hacks with current dir and root dir removed in favor of new libio
@@ -86,7 +90,7 @@
  *        AF_INET, use snprintf() instead of sprintf() everywhere for safety,
  *        etc.
  *
- *  $Id: ftpd.c,v 1.18.2.1 2009/02/05 05:22:38 ralf Exp $
+ *  $Id: ftpd.c,v 1.23.2.1 2011/04/04 17:08:47 joel Exp $
  */
 
 /*************************************************************************
@@ -795,6 +799,7 @@ command_retrieve(FTPD_SessionInfo_t  *info, char const *filename)
   int                 s = -1;
   int                 fd = -1;
   char                buf[FTPD_DATASIZE];
+  struct stat         stat_buf;
   int                 res = 0;
 
   if(!can_read())
@@ -806,6 +811,14 @@ command_retrieve(FTPD_SessionInfo_t  *info, char const *filename)
   if (0 > (fd = open(filename, O_RDONLY)))
   {
     send_reply(info, 550, "Error opening file.");
+    return;
+  }
+
+  if (fstat(fd, &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode))
+  {
+    if (-1 != fd)
+      close(fd);
+    send_reply(info, 550, "Is a directory.");
     return;
   }
 
@@ -1568,18 +1581,18 @@ skip_options(char **p)
   char* buf = *p;
   char* last = NULL;
   while(1) {
-    while(isspace(*buf))
+    while(isspace((unsigned char)*buf))
       ++buf;
     if(*buf == '-') {
       if(*++buf == '-') { /* `--' should terminate options */
-        if(isspace(*++buf)) {
+        if(isspace((unsigned char)*++buf)) {
           last = buf;
           do ++buf;
-          while(isspace(*buf));
+          while(isspace((unsigned char)*buf));
           break;
         }
       }
-      while(*buf && !isspace(*buf))
+      while(*buf && !isspace((unsigned char)*buf))
         ++buf;
       last = buf;
     }
@@ -1612,18 +1625,18 @@ split_command(char *buf, char **cmd, char **opts, char **args)
 {
   char* eoc;
   char* p = buf;
-  while(isspace(*p))
+  while(isspace((unsigned char)*p))
     ++p;
   *cmd = p;
-  while(*p && !isspace(*p))
+  while(*p && !isspace((unsigned char)*p))
   {
-    *p = toupper(*p);
+    *p = toupper((unsigned char)*p);
     ++p;
   }
   eoc = p;
   if(*p)
     *p++ = '\0';
-  while(isspace(*p))
+  while(isspace((unsigned char)*p))
     ++p;
   *opts = p;
   skip_options(&p);
@@ -1671,27 +1684,27 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
   }
   else if (!strcmp("RETR", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_retrieve(info, fname);
   }
   else if (!strcmp("STOR", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_store(info, fname);
   }
   else if (!strcmp("LIST", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_list(info, fname, 1);
   }
   else if (!strcmp("NLST", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_list(info, fname, 0);
   }
   else if (!strcmp("MDTM", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_mdtm(info, fname);
   }
   else if (!strcmp("SYST", cmd))
@@ -1727,7 +1740,7 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
       send_reply(info, 550, "Access denied.");
     }
     else if (
-      1 == sscanf(args, "%254s", fname) &&
+      strncpy(fname, args, 254) &&
       unlink(fname) == 0)
     {
       send_reply(info, 257, "DELE successful.");
@@ -1749,15 +1762,14 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
       {
         send_reply(info, 550, "Access denied.");
       }
-      else if(
-        2 == sscanf(args, "%o %254s", &mask, fname) &&
-        chmod(fname, (mode_t)mask) == 0)
-      {
-        send_reply(info, 257, "CHMOD successful.");
-      }
-      else
-      {
-        send_reply(info, 550, "CHMOD failed.");
+      else {
+        char *c;
+        c = strchr(args, ' ');
+        if((c != NULL) && (sscanf(args, "%o", &mask) == 1) && strncpy(fname, c+1, 254) 
+          && (chmod(fname, (mode_t)mask) == 0))
+          send_reply(info, 257, "CHMOD successful.");
+        else
+          send_reply(info, 550, "CHMOD failed.");
       }
     }
     else
@@ -1770,7 +1782,7 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
       send_reply(info, 550, "Access denied.");
     }
     else if (
-      1 == sscanf(args, "%254s", fname) &&
+      strncpy(fname, args, 254) &&
       rmdir(fname) == 0)
     {
       send_reply(info, 257, "RMD successful.");
@@ -1787,7 +1799,7 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
       send_reply(info, 550, "Access denied.");
     }
     else if (
-      1 == sscanf(args, "%254s", fname) &&
+      strncpy(fname, args, 254) &&
       mkdir(fname, S_IRWXU | S_IRWXG | S_IRWXO) == 0)
     {
       send_reply(info, 257, "MKD successful.");
@@ -1799,7 +1811,7 @@ exec_command(FTPD_SessionInfo_t *info, char* cmd, char* args)
   }
   else if (!strcmp("CWD", cmd))
   {
-    sscanf(args, "%254s", fname);
+    strncpy(fname, args, 254);
     command_cwd(info, fname);
   }
   else if (!strcmp("CDUP", cmd))
@@ -1906,7 +1918,7 @@ session(rtems_task_argument arg)
  *   NONE
  */
 static void
-daemon(rtems_task_argument args)
+daemon(rtems_task_argument args __attribute__((unused)))
 {
   int                 s;
   socklen_t	      addrLen;

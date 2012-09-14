@@ -31,8 +31,12 @@
  */
  
 /*
- *	$Id: in_pcb.c,v 1.7 2008/09/01 06:36:17 ralf Exp $
+ *	$Id: in_pcb.c,v 1.9.2.1 2010/06/14 05:59:45 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
@@ -43,7 +47,7 @@
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/ioctl.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/proc.h>
 #include <sys/kernel.h>
@@ -202,7 +206,7 @@ in_pcbbind(struct inpcb *inp, struct mbuf *nam)
 		inp->inp_laddr = sin->sin_addr;
 	}
 	if (lport == 0) {
-		ushort first, last;
+		unsigned short first, last;
 		int count;
 
 		inp->inp_flags |= INP_ANONPORT;

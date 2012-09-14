@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/objectmp.h
  *
  *  This include file contains all the constants and structures associated
@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectmp.h,v 1.24 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: objectmp.h,v 1.28 2009/11/28 05:58:54 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_OBJECTMP_H
@@ -50,17 +50,15 @@ typedef struct {
  *
  *  This routine intializes the inactive global object chain
  *  based on the maximum number of global objects configured.
- *
- *  @param[in] node is this node's number.
- *  @param[in] maximum_nodes is the maximum number of nodes in the system.
- *  @param[in] maximum_global_objects is the maximum number of concurrently
- *             created global objects.
  */
-void _Objects_MP_Handler_initialization (
-  uint32_t   node,
-  uint32_t   maximum_nodes,
-  uint32_t   maximum_global_objects
-);
+void _Objects_MP_Handler_initialization(void);
+
+/** @brief  Objects MP Handler Early initialization
+ *
+ *  This routine intializes the global object node number
+ *  used in the ID field of all objects.
+ */
+void _Objects_MP_Handler_early_initialization(void);
 
 /** @brief Objects MP Open
  *
@@ -94,7 +92,7 @@ void _Objects_MP_Open (
  *             object class.
  *  @param[in] the_name is the name of the object being opened.
  *  @param[in] the_id is the Id of the object being opened.
- *  @param[in] is_fatal_error is TRUE if not being able to allocate the
+ *  @param[in] is_fatal_error is true if not being able to allocate the
  *             object is considered a fatal error.
  *
  *  @todo This method only works for object types with 4 byte object names.

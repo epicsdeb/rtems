@@ -1,11 +1,11 @@
-/* $Id: if_dc.c,v 1.11 2008/08/19 20:02:37 joel Exp $
+/* $Id: if_dc.c,v 1.19 2010/06/03 21:00:23 joel Exp $
  *
  * Ported from FreeBSD --> RTEMS, december 03.
  * 	Daron Chabot <daron@nucleus.usask.ca>
- * 	-- only tested with i386 bsp. 
+ * 	-- only tested with i386 bsp.
  * 	-- supports *one* card (until the PCI & IRQ APIs get sorted out ;-))
  *
- * 
+ *
  * Copyright (c) 1997, 1998, 1999
  *	Bill Paul <wpaul@ee.columbia.edu>.  All rights reserved.
  *
@@ -108,15 +108,17 @@
   	#define DRIVER_SUPPORTED
 #endif
 
-#if defined(__PPC__) && (defined(mpc604) || defined(mpc750) || defined(mpc603e))
+#if defined(__PPC__)
   	#define DRIVER_SUPPORTED
-	#warning The if_dc driver is untested on the PPC platform !!!
 #endif
-  
+
+#include <bsp.h>
+
+#if !defined(PCI_DRAM_OFFSET)
+  #undef DRIVER_SUPPORTED
+#endif
 
 #if defined(DRIVER_SUPPORTED) /* this covers the file "globally"... */
-#include <bsp.h>
-#include <rtems.h>
 #include <rtems/pci.h>
 
 #include <rtems/error.h>
@@ -135,7 +137,7 @@
 #include <sys/malloc.h>
 #include <sys/systm.h>
 #include <bsp.h>
- 
+
 /* moved to cpukit/include/rtems in CVS current ! */
 /*#include "if_media.h" */
 /*#include "pci.h" */
@@ -149,12 +151,8 @@
 #include <vm/vm.h>              /* for vtophys */
 
 
-#if defined(__i386__)
-#define vtophys(p)  (u_int32_t)(p)
-#else 
-#define vtophys(p)  vtophys(p)
-#endif
- 
+#define vtophys(p)  (uintptr_t)(p)
+
 /*
 #include <net/if_arp.h>
 #include <net/if_vlan_var.h>
@@ -179,17 +177,17 @@
 #include <pci/pcivar.h>
 #endif
 
-/* NOTE: use mem space mapping (for now ...) 
+/* NOTE: use mem space mapping (for now ...)
 #define DC_USEIOSPACE
 */
- 
+
 #ifdef __alpha__
 #define SRM_MEDIA
 #endif
 
 #include <bsp/irq.h>
 
- 
+
 #include "if_dcreg.h"
 
 
@@ -205,15 +203,15 @@ static struct dc_softc dc_softc_devs[NDRIVER];
 #include "miibus_if.h"
 
 
- 
+
 #ifndef lint
 static const char rcsid[] =
   "$FreeBSD: src/sys/pci/if_dc.c,v 1.9.2.41 2003/03/05 18:42:33 njl Exp $";
 #endif
 
 #endif
- 
-  
+
+
 /*
  * Various supported device vendors/types and their names.
  * NOTE:
@@ -417,8 +415,8 @@ DRIVER_MODULE(miibus, dc, miibus_driver, miibus_devclass, 0, 0);
 
 /* XXX Fixme: rtems_bsp_delay( ) for the pc386 BSP (at least)
  * needs work... see pc386/include/bsp.h.
- * I have "a" solution, utilizing the 2nd i8254 timer, 
- * if anyone is interested (first timer is used for clock_tick ISR)... 
+ * I have "a" solution, utilizing the 2nd i8254 timer,
+ * if anyone is interested (first timer is used for clock_tick ISR)...
  */
 #ifdef __i386__
 extern void Wait_X_ms( unsigned int );
@@ -754,7 +752,7 @@ static void dc_mii_send(sc, bits, cnt)
 static int dc_mii_readreg(sc, frame)
 	struct dc_softc		*sc;
 	struct dc_mii_frame	*frame;
-	
+
 {
 	int			i, ack, s;
 
@@ -766,7 +764,7 @@ static int dc_mii_readreg(sc, frame)
 	frame->mii_opcode = DC_MII_READOP;
 	frame->mii_turnaround = 0;
 	frame->mii_data = 0;
-	
+
 	/*
 	 * Sync the PHYs.
 	 */
@@ -824,7 +822,7 @@ fail:
 static int dc_mii_writereg(sc, frame)
 	struct dc_softc		*sc;
 	struct dc_mii_frame	*frame;
-	
+
 {
 	int			s;
 
@@ -838,7 +836,7 @@ static int dc_mii_writereg(sc, frame)
 
 	/*
 	 * Sync the PHYs.
-	 */	
+	 */
 	dc_mii_sync(sc);
 
 	dc_mii_send(sc, frame->mii_stdelim, 2);
@@ -1190,6 +1188,7 @@ void dc_setfilt_21143(sc)
 	/*struct ifmultiaddr	*ifma;*/
 	struct ifnet		*ifp;
 	int			i;
+	u_int16_t               *ac_enaddr;
 
 	ifp = &sc->arpcom.ac_if;
 
@@ -1226,16 +1225,17 @@ void dc_setfilt_21143(sc)
 		sp[h >> 4] |= 1 << (h & 0xF);
 	}
 #endif
-	
+
 	if (ifp->if_flags & IFF_BROADCAST) {
 		h = dc_crc_le(sc, (caddr_t)&etherbroadcastaddr);
 		sp[h >> 4] |= 1 << (h & 0xF);
 	}
 
 	/* Set our MAC address */
-	sp[39] = ((u_int16_t *)sc->arpcom.ac_enaddr)[0];
-	sp[40] = ((u_int16_t *)sc->arpcom.ac_enaddr)[1];
-	sp[41] = ((u_int16_t *)sc->arpcom.ac_enaddr)[2];
+	ac_enaddr = (u_int16_t *)sc->arpcom.ac_enaddr;
+	sp[39] = ac_enaddr[0];
+	sp[40] = ac_enaddr[1];
+	sp[41] = ac_enaddr[2];
 
 	sframe->dc_status = DC_TXSTAT_OWN;
 	CSR_WRITE_4(sc, DC_TXSTART, 0xFFFFFFFF);
@@ -1262,12 +1262,15 @@ void dc_setfilt_admtek(sc)
 	u_int32_t		hashes[2] = { 0, 0 };
 	struct ifmultiaddr	*ifma;
 #endif
+	u_int32_t               *ac_enaddr;
 
 	ifp = &sc->arpcom.ac_if;
 
 	/* Init our MAC address */
-	CSR_WRITE_4(sc, DC_AL_PAR0, *(u_int32_t *)(&sc->arpcom.ac_enaddr[0]));
-	CSR_WRITE_4(sc, DC_AL_PAR1, *(u_int32_t *)(&sc->arpcom.ac_enaddr[4]));
+	ac_enaddr = (u_int32_t *)&sc->arpcom.ac_enaddr[0];
+	CSR_WRITE_4(sc, DC_AL_PAR0, *ac_enaddr);
+	ac_enaddr = (u_int32_t *)&sc->arpcom.ac_enaddr[4];
+	CSR_WRITE_4(sc, DC_AL_PAR1, *ac_enaddr);
 
 	/* If we want promiscuous mode, set the allframes bit. */
 	if (ifp->if_flags & IFF_PROMISC)
@@ -1319,16 +1322,19 @@ void dc_setfilt_asix(sc)
 	u_int32_t		hashes[2] = { 0, 0 };
 	struct ifmultiaddr	*ifma;
 #endif
+	u_int32_t               *ac_enaddr;
 
 	ifp = &sc->arpcom.ac_if;
 
         /* Init our MAC address */
         CSR_WRITE_4(sc, DC_AX_FILTIDX, DC_AX_FILTIDX_PAR0);
-        CSR_WRITE_4(sc, DC_AX_FILTDATA,
-	    *(u_int32_t *)(&sc->arpcom.ac_enaddr[0]));
+	ac_enaddr = (u_int32_t *)&sc->arpcom.ac_enaddr[0];
+        CSR_WRITE_4(sc, DC_AX_FILTDATA, *ac_enaddr);
+
         CSR_WRITE_4(sc, DC_AX_FILTIDX, DC_AX_FILTIDX_PAR1);
-        CSR_WRITE_4(sc, DC_AX_FILTDATA,
-	    *(u_int32_t *)(&sc->arpcom.ac_enaddr[4]));
+
+	ac_enaddr = (u_int32_t *)&sc->arpcom.ac_enaddr[4];
+        CSR_WRITE_4(sc, DC_AX_FILTDATA, *ac_enaddr);
 
 	/* If we want promiscuous mode, set the allframes bit. */
 	if (ifp->if_flags & IFF_PROMISC)
@@ -1538,7 +1544,7 @@ static void dc_setcfg(sc, media)
 			DC_CLRBIT(sc, DC_NETCFG, DC_NETCFG_PORTSEL);
 		}
 	}
-#endif	
+#endif
 
 	if ((media & IFM_GMASK) == IFM_FDX) {
 		DC_SETBIT(sc, DC_NETCFG, DC_NETCFG_FULLDUPLEX);
@@ -1607,7 +1613,7 @@ struct dc_type *dc_devtype( int unitnum )
 	uint32_t		rev;
 	int 			rc;
 
-	
+
 	t = dc_devs;
 
 	while(t->dc_name != NULL) {
@@ -1619,7 +1625,7 @@ struct dc_type *dc_devtype( int unitnum )
 			pci_read_config_dword(t->dc_bus,t->dc_dev,t->dc_fun,\
 									DC_PCI_CFRV, &rev);
 			rev &= 0xFF;
-			
+
 			if (t->dc_did == DC_DEVICEID_98713 &&
 			    rev >= DC_REVISION_98713A)
 				t++;
@@ -1893,7 +1899,7 @@ decISON(const rtems_irq_connect_data* irq)
 {
 	return (BSP_irq_enabled_at_i8259s(irq->name));
 }
-	
+
 
 /*
  * Attach the interface. Allocate softc structures, do ifmedia
@@ -1902,12 +1908,12 @@ decISON(const rtems_irq_connect_data* irq)
 int
 rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 {
-	int				rc;	
+	int				rc;
 	u_char			eaddr[ETHER_ADDR_LEN];
-	
+
 	char		        *unitName;
 	int          		unitNumber;
-	
+
 	uint32_t		command;
 	struct dc_softc		*sc;
 	struct ifnet		*ifp;
@@ -1915,7 +1921,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	uint32_t		revision;
 	int			error = 0, mac_offset;
 	uint32_t		value;
-	
+
 	/*
 	 * Get the instance number for the board we're going to configure
 	 * from the user.
@@ -1939,11 +1945,11 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 		return (0);
 	}
 	memset(sc, 0,  sizeof(struct dc_softc));
-	
+
 	/*unit = device_get_unit(dev);*/
 	sc->dc_unit = unitNumber;
 	sc->dc_name = unitName;
-	
+
 	/*
 	 * Handle power management nonsense.
 	 *
@@ -1957,7 +1963,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	}
 	t = sc->dc_info;
 
-	
+
 	/*
 	 * Map control/status registers.
 	 */
@@ -2006,20 +2012,20 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	pci_read_config_dword(t->dc_bus,t->dc_dev,t->dc_fun,\
 					DC_PCI_CFBMA, &value);
 	sc->membase = value;
-	
+
 	/* Allocate interrupt */
 	memset(&sc->irqInfo, 0, sizeof(rtems_irq_connect_data));
 	/*pcib_conf_read32(sig, DC_PCI_CFIT, &value); */
 	pci_read_config_dword(t->dc_bus,t->dc_dev,t->dc_fun,\
 					DC_PCI_CFIT, &value);
-	
+
 	sc->irqInfo.name = value & 0xFF;
 	sc->irqInfo.hdl = (rtems_irq_hdl)dc_intr;
 	sc->irqInfo.handle = (void *)sc; /* new parameter */
 	sc->irqInfo.on = nop;
 	sc->irqInfo.off = nop;
 	sc->irqInfo.isOn = decISON;
-	
+
 #ifdef BSP_SHARED_HANDLER_SUPPORT
 	rc = BSP_install_rtems_shared_irq_handler( &sc->irqInfo );
 #else
@@ -2028,8 +2034,8 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	if(!rc) {
 		rtems_panic("Can't install dec2114x irq handler.\n");
 	}
-	
-	
+
+
 #if 0
 	rid = 0;
 	sc->dc_irq = bus_alloc_resource(dev, SYS_RES_IRQ, &rid, 0, ~0, 1,
@@ -2053,7 +2059,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	}
 #endif
 
-	
+
 	/* Need this info to decide on a chip type.
 	sc->dc_info = dc_devtype(dev);
 	*/
@@ -2195,8 +2201,8 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 		pci_write_config_dword(t->dc_bus,t->dc_dev,t->dc_fun,\
 						DC_PCI_CFDD, command);
 	}
-	
-	
+
+
 	/*
 	 * Try to learn something about the supported media.
 	 * We know that ASIX and ADMtek and Davicom devices
@@ -2260,7 +2266,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 
 
 	sc->dc_ldata = malloc(sizeof(struct dc_list_data), M_DEVBUF, M_NOWAIT);
-	
+
 	if (sc->dc_ldata == NULL) {
 		printk("dc%d: no memory for list buffers!\n", sc->dc_unit);
 		if (sc->dc_pnic_rx_buf != NULL)
@@ -2275,7 +2281,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 	}
 
 	bzero(sc->dc_ldata, sizeof(struct dc_list_data));
-	
+
 	ifp = &sc->arpcom.ac_if;
 	ifp->if_softc = sc;
 	ifp->if_unit = unitNumber; /*sc->dc_unit;*/
@@ -2339,7 +2345,7 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 		goto fail;
 	}
 #endif
-	
+
 	/*
 	 * Call MI attach routine.
 	 */
@@ -2374,16 +2380,16 @@ rtems_dc_driver_attach(struct rtems_bsdnet_ifconfig *config, int attaching)
 		command = pci_read_config(dev, DC_PCI_CFDD, 4);
 		command &= ~(DC_CFDD_SNOOZE_MODE|DC_CFDD_SLEEP_MODE);
 		switch ((command >> 8) & 0xff) {
-		case 3: 
+		case 3:
 			sc->dc_srm_media = IFM_10_T;
 			break;
-		case 4: 
+		case 4:
 			sc->dc_srm_media = IFM_10_T | IFM_FDX;
 			break;
-		case 5: 
+		case 5:
 			sc->dc_srm_media = IFM_100_TX;
 			break;
-		case 6: 
+		case 6:
 			sc->dc_srm_media = IFM_100_TX | IFM_FDX;
 			break;
 		}
@@ -2655,7 +2661,7 @@ static void dc_pnic_rx_bug_war(sc, idx)
  	 * frame reception.
 	 */
 	dc_newbuf(sc, i, m);
-	bcopy(ptr, mtod(m, char *), total_len);	
+	bcopy(ptr, mtod(m, char *), total_len);
 	cur_rx->dc_status = rxstat | DC_RXSTAT_FIRSTFRAG;
 
 	return;
@@ -2751,7 +2757,7 @@ static void dc_rxeof(sc)
 		 * comes up in the ring.  However, don't report long
 		 * frames as errors since they could be vlans
 		 */
-		if ((rxstat & DC_RXSTAT_RXERR)){ 
+		if ((rxstat & DC_RXSTAT_RXERR)){
 			if (!(rxstat & DC_RXSTAT_GIANT) ||
 			    (rxstat & (DC_RXSTAT_CRCERR | DC_RXSTAT_DRIBBLE |
 				       DC_RXSTAT_MIIERE | DC_RXSTAT_COLLSEEN |
@@ -2770,7 +2776,7 @@ static void dc_rxeof(sc)
 			}
 		}
 
-		/* No errors; receive the packet. */	
+		/* No errors; receive the packet. */
 		total_len -= ETHER_CRC_LEN;
 
 #ifdef __i386__
@@ -3160,10 +3166,10 @@ dc_daemon(void * arg)
 					RTEMS_WAIT | RTEMS_EVENT_ANY, \
 					RTEMS_NO_TIMEOUT,
 					&events);
-					
-		
+
+
 		ifp = &sc->arpcom.ac_if;
-	
+
 		while((status = CSR_READ_4(sc, DC_ISR)) & DC_INTRS) {
 
 			CSR_WRITE_4(sc, DC_ISR, status);
@@ -3325,8 +3331,8 @@ static void dc_start(ifp)
 	struct ifnet		*ifp;
 {
 	struct dc_softc		*sc;
-	struct mbuf			*m_head = NULL;
-	unsigned int		idx;
+	struct mbuf		*m_head = NULL;
+	u_int32_t		idx;
 
 	sc = ifp->if_softc;
 #if 0
@@ -3426,10 +3432,10 @@ static void dc_init(xsc)
 		break;
 	case 16:
 		DC_SETBIT(sc, DC_BUSCTL, DC_CACHEALIGN_16LONG);
-		break; 
+		break;
 	case 8:
 		DC_SETBIT(sc, DC_BUSCTL, DC_CACHEALIGN_8LONG);
-		break;  
+		break;
 	case 0:
 	default:
 		DC_SETBIT(sc, DC_BUSCTL, DC_CACHEALIGN_NONE);
@@ -3515,7 +3521,7 @@ static void dc_init(xsc)
 	 */
 	if (sc->dc_flags & DC_TULIP_LEDS) {
 		CSR_WRITE_4(sc, DC_WATCHDOG,
-		    DC_WDOG_CTLWREN|DC_WDOG_LINK|DC_WDOG_ACTIVITY);   
+		    DC_WDOG_CTLWREN|DC_WDOG_LINK|DC_WDOG_ACTIVITY);
 		CSR_WRITE_4(sc, DC_WATCHDOG, 0);
 	}
 
@@ -3555,7 +3561,7 @@ static void dc_init(xsc)
 		struct ifreq ifr;
 
 		ifr.ifr_media = sc->dc_srm_media;
-		ifmedia_ioctl(ifp, &ifr, &mii->mii_media, SIOCSIFMEDIA);		
+		ifmedia_ioctl(ifp, &ifr, &mii->mii_media, SIOCSIFMEDIA);
 		sc->dc_srm_media = 0;
 	}
 #endif

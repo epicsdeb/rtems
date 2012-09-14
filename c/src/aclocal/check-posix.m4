@@ -1,4 +1,4 @@
-dnl $Id: check-posix.m4,v 1.3 2003/11/26 06:18:03 ralf Exp $
+dnl $Id: check-posix.m4,v 1.4 2009/10/14 12:20:20 ralf Exp $
 dnl
 AC_DEFUN([RTEMS_CHECK_POSIX_API],
 [dnl
@@ -9,9 +9,6 @@ AC_CACHE_CHECK([whether CPU supports libposix],
   rtems_cv_HAS_POSIX_API,
   [dnl
     case "$RTEMS_CPU" in
-    unix*)
-      rtems_cv_HAS_POSIX_API="no"
-      ;;
     *)
       if test "${RTEMS_HAS_POSIX_API}" = "yes"; then
         rtems_cv_HAS_POSIX_API="yes";

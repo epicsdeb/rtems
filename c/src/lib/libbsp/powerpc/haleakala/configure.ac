@@ -1,17 +1,17 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl $Id: configure.ac,v 1.1 2008/07/14 08:45:02 thomas Exp $
+dnl $Id: configure.ac,v 1.7.2.1 2011/02/02 15:16:37 ralf Exp $
 
-AC_PREREQ(2.59)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-haleakala],[_RTEMS_VERSION],[rtems-bugs@rtems.com])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.9])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -31,6 +31,7 @@ RTEMS_BSPOPTS_HELP([PPC_VECTOR_FILE_BASE],
 [This defines the base address of the exception table.
  NOTE: Vectors are actually at 0xFFF00000 but file starts at offset.])
 
+RTEMS_BSP_CLEANUP_OPTIONS(0, 1)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

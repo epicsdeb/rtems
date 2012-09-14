@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task.c,v 1.6 2003/09/04 18:53:38 joel Exp $
+ *  $Id: task.c,v 1.10 2010/04/25 19:40:12 joel Exp $
  */
 
 #include "system.h"
@@ -26,8 +26,46 @@ void *Task_1(
   void *argument
 )
 {
-  puts( "Task_1: exitting" );
+  puts( "Task_1 - exitting" );
   pthread_exit( NULL );
 
   return NULL; /* just so the compiler thinks we returned something */
+}
+
+void *Task_2(
+  void *argument
+)
+{
+  int i = 0;
+  time_t now, start;
+
+  /*
+   * sleep long enough to let the init thread join with us.
+   */
+  usleep(10000);
+
+  /*
+   *  Change our priority so we are running at a logically higher
+   *  priority than our "ss_high_priority".  This should result in
+   *  our replenishment period not touching our priority.
+   */
+
+  /*
+   *  Consume time so the cpu budget callout will run.
+   *
+   *  DO NOT BLOCK!!!
+   */
+  start = time(&start);
+  while( i <= 10 ) {
+    do {
+      now = time(&now);
+    } while (start == now);
+    start = time(&start);
+
+    printf( "Time elapsed Task_2: %2d (seconds)\n", i++ );
+  }
+
+  puts( "Task_2 - exitting" );
+  pthread_exit( NULL );
+  return NULL;
 }

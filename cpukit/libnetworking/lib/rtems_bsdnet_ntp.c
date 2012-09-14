@@ -12,9 +12,14 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@cls.usask.ca
  *
- *  $Id: rtems_bsdnet_ntp.c,v 1.10.6.2 2008/09/26 14:40:17 ericn Exp $
+ *  $Id: rtems_bsdnet_ntp.c,v 1.17 2010/04/04 11:03:43 ralf Exp $
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <unistd.h> /* close */
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -52,7 +57,7 @@ processPacket (struct ntpPacketSmall *p, int state, void *unused)
 	if ( state )
 		return 0;
 
-	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_second);
+	ticks_per_second = rtems_clock_get_ticks_per_second();
 	tbuf = ntohl (p->transmit_timestamp.integer) - UNIX_BASE_TO_NTP_BASE - rtems_bsdnet_timeoffset;
 	lt = gmtime (&tbuf);
 	rt.year = lt->tm_year + 1900;

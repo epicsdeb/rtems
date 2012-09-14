@@ -2,18 +2,17 @@
  *  This test exercises the time of day services via the Classic
  *  and POSIX APIs to make sure they are consistent.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: test.c,v 1.8 2007/12/13 14:46:37 joel Exp $
+ *  $Id: test.c,v 1.15 2009/12/08 17:52:53 joel Exp $
  */
 
 #include <tmacros.h>
-#include <assert.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -22,6 +21,16 @@
 #include <string.h>
 #include <rtems.h>
 #include <rtems/libio.h>
+#include <sys/time.h>
+
+#if !HAVE_DECL_ADJTIME
+extern int adjtime(const struct timeval *delta, struct timeval *olddelta);
+#endif
+
+void test_adjtime(void);
+void check_a_tod(
+  rtems_time_of_day *the_tod
+);
 
 /*
  *  List of dates and times to test.
@@ -57,16 +66,16 @@ void check_a_tod(
 
   print_time( "rtems_clock_set          ", the_tod, "\n" );
   status = rtems_clock_set( the_tod );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   do {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &new_tod );
-    assert( !status );
-    print_time( "rtems_clock_get          ", &new_tod, "\n" );
+    status = rtems_clock_get_tod( &new_tod );
+    rtems_test_assert(  !status );
+    print_time( "rtems_clock_get_tod          ", &new_tod, "\n" );
 
     /* now do the posix time gets */
     result = gettimeofday( &tv, 0 );
-    assert( result == 0 );
+    rtems_test_assert(  result == 0 );
     a_time_t = tv.tv_sec;   /* ctime() takes a time_t */
     printf( "gettimeofday: %s", ctime( &a_time_t) );
 
@@ -79,26 +88,28 @@ void check_a_tod(
     a_tm = gmtime( &a_time_t );
     printf( "gmtime:       %s\n",  asctime( a_tm ) );
 
-    status = rtems_task_wake_after( 5 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 5 * rtems_clock_get_ticks_per_second() );
 
     i++;
 
   } while( i < 6 );
 }
 
-void test_adjtime()
+void test_adjtime(void)
 {
   int                sc;
   rtems_status_code  status;
   struct timeval     delta;
   struct timeval     olddelta;
   rtems_time_of_day *the_tod;
-  
+  rtems_time_of_day  tod;
+  rtems_interval     ticks;
+
   the_tod = &Dates[0];
 
   print_time( "rtems_clock_set          ", the_tod, "\n" );
   status = rtems_clock_set( the_tod );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   delta.tv_sec = 0;
   delta.tv_usec = 0;
@@ -107,37 +118,57 @@ void test_adjtime()
 
   puts( "adjtime - NULL delta - EINVAL" );
   sc = adjtime( NULL, &olddelta );
-  assert( sc == -1 );
-  assert( errno == EINVAL );
+  rtems_test_assert(  sc == -1 );
+  rtems_test_assert(  errno == EINVAL );
 
   puts( "adjtime - delta out of range - EINVAL" );
   delta.tv_usec = 1000000000; /* 100 seconds worth */
   sc = adjtime( &delta, &olddelta );
-  assert( sc == -1 );
-  assert( errno == EINVAL );
+  rtems_test_assert(  sc == -1 );
+  rtems_test_assert(  errno == EINVAL );
 
   puts( "adjtime - delta too small - do nothing" );
   delta.tv_sec = 0;
   delta.tv_usec = 1;
   sc = adjtime( &delta, &olddelta );
-  assert( sc == 0 );
+  rtems_test_assert(  sc == 0 );
 
   puts( "adjtime - delta too small - do nothing, olddelta=NULL" );
   sc = adjtime( &delta, NULL );
-  assert( sc == 0 );
+  rtems_test_assert(  sc == 0 );
 
   puts( "adjtime - delta of one second forward" );
   delta.tv_sec = 1;
   delta.tv_usec = 0;
   sc = adjtime( &delta, &olddelta );
-  assert( sc == 0 );
+  rtems_test_assert(  sc == 0 );
 
   puts( "adjtime - delta of almost two seconds forward" );
   delta.tv_sec = 1;
   delta.tv_usec = 1000000 - 1;
   sc = adjtime( &delta, &olddelta );
-  assert( sc == 0 );
+  rtems_test_assert(  sc == 0 );
 
+  /*
+   * spin until over 1/2 of the way to the
+   */
+  ticks = rtems_clock_get_ticks_per_second();
+  rtems_test_assert(  ticks );
+  ticks /= 2;
+  do {
+    status = rtems_clock_get_tod( &tod );
+    rtems_test_assert(  !status );
+  } while ( tod.ticks <= ticks );
+
+  puts( "adjtime - delta of almost one second forward which bumps second" );
+  delta.tv_sec = 0;
+  delta.tv_usec = 1000000 - 1;
+  sc = adjtime( &delta, &olddelta );
+  rtems_test_assert(  sc == 0 );
+
+  status = rtems_clock_get_tod( &tod );
+  rtems_test_assert(  !status );
+  print_time( "rtems_clock_get_tod          ", &tod, "\n" );
 }
 
 /*
@@ -145,6 +176,8 @@ void test_adjtime()
  */
 
 #if defined(__rtems__)
+int test_main(void);
+
 int test_main(void)
 #else
 int main(

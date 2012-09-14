@@ -7,14 +7,14 @@
  *  This core object provides task synchronization and communication functions
  *  via messages passed to queue objects.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremsg.c,v 1.25 2008/09/05 21:54:20 joel Exp $
+ *  $Id: coremsg.c,v 1.29 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,8 +30,7 @@
 #include <rtems/score/thread.h>
 #include <rtems/score/wkspace.h>
 
-/*PAGE
- *
+/*
  *  _CORE_message_queue_Initialize
  *
  *  This routine initializes a newly created message queue based on the
@@ -45,8 +44,8 @@
  *    maximum_message_size         - maximum size of each message
  *
  *  Output parameters:
- *    TRUE   - if the message queue is initialized
- *    FALSE  - if the message queue is NOT initialized
+ *    true   - if the message queue is initialized
+ *    false  - if the message queue is NOT initialized
  */
 
 bool _CORE_message_queue_Initialize(
@@ -63,40 +62,39 @@ bool _CORE_message_queue_Initialize(
   the_message_queue->number_of_pending_messages = 0;
   the_message_queue->maximum_message_size       = maximum_message_size;
   _CORE_message_queue_Set_notify( the_message_queue, NULL, NULL );
- 
+
   /*
-   *  Round size up to multiple of a pointer for chain init and 
+   *  Round size up to multiple of a pointer for chain init and
    *  check for overflow on adding overhead to each message.
    */
- 
   allocated_message_size = maximum_message_size;
   if (allocated_message_size & (sizeof(uint32_t) - 1)) {
-      allocated_message_size += sizeof(uint32_t);
-      allocated_message_size &= ~(sizeof(uint32_t) - 1);
+    allocated_message_size += sizeof(uint32_t);
+    allocated_message_size &= ~(sizeof(uint32_t) - 1);
   }
-   
+
   if (allocated_message_size < maximum_message_size)
     return false;
 
   /*
    *  Calculate how much total memory is required for message buffering and
-   *  check for overflow on the multiplication. 
+   *  check for overflow on the multiplication.
    */
   message_buffering_required = (size_t) maximum_pending_messages *
        (allocated_message_size + sizeof(CORE_message_queue_Buffer_control));
- 
+
   if (message_buffering_required < allocated_message_size)
     return false;
 
   /*
    *  Attempt to allocate the message memory
    */
-  the_message_queue->message_buffers = (CORE_message_queue_Buffer *) 
+  the_message_queue->message_buffers = (CORE_message_queue_Buffer *)
      _Workspace_Allocate( message_buffering_required );
- 
+
   if (the_message_queue->message_buffers == 0)
     return false;
- 
+
   /*
    *  Initialize the pool of inactive messages, pending messages,
    *  and set of waiting threads.
@@ -107,9 +105,9 @@ bool _CORE_message_queue_Initialize(
     (size_t) maximum_pending_messages,
     allocated_message_size + sizeof( CORE_message_queue_Buffer_control )
   );
- 
+
   _Chain_Initialize_empty( &the_message_queue->Pending_messages );
- 
+
   _Thread_queue_Initialize(
     &the_message_queue->Wait_queue,
     _CORE_message_queue_Is_priority( the_message_queue_attributes ) ?

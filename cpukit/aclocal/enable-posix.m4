@@ -1,4 +1,4 @@
-dnl $Id: enable-posix.m4,v 1.3 2004/01/11 02:30:12 ralf Exp $
+dnl $Id: enable-posix.m4,v 1.5 2009/10/14 12:25:59 ralf Exp $
 
 AC_DEFUN([RTEMS_ENABLE_POSIX],
 [
@@ -13,17 +13,7 @@ AS_HELP_STRING(--enable-posix,enable posix interface),
 esac],[RTEMS_HAS_POSIX_API=yes]) 
 
 case "${host}" in
-  # hpux unix port should go here
-  i[[34567]]86-pc-linux*)         # unix "simulator" port
-	RTEMS_HAS_POSIX_API=no
-	;;
-  i[[34567]]86-*freebsd*) # unix "simulator" port
-	RTEMS_HAS_POSIX_API=no
-	;;
   no_cpu-*rtems*)
-	RTEMS_HAS_POSIX_API=no
-	;;
-  sparc-sun-solaris*)             # unix "simulator" port
 	RTEMS_HAS_POSIX_API=no
 	;;
   *) 

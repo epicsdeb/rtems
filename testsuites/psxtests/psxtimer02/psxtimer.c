@@ -12,11 +12,14 @@
  *
  *  Other POSIX facilities such as timers, condition, .. is also used
  *
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psxtimer.c,v 1.2 2008/01/18 16:33:35 jennifer Exp $
+ *  $Id: psxtimer.c,v 1.6 2009/11/30 03:33:23 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -32,12 +35,13 @@ void *POSIX_Init (
 )
 
 {
+  struct timespec   now;
   struct sigevent   event;
   int               status;
   timer_t           timer;
   timer_t           timer1;
   struct itimerspec itimer;
-  
+
   /*
    *  If these are not filled in correctly, we don't pass its error checking.
    */
@@ -47,7 +51,7 @@ void *POSIX_Init (
   puts( "\n\n*** POSIX Timers Test 02 ***" );
 
   puts( "timer_create - bad clock id - EINVAL" );
-  status = timer_create( -1, &event, &timer );
+  status = timer_create( (timer_t) -1, &event, &timer );
   fatal_posix_service_status_errno( status, EINVAL, "bad clock id" );
 
   puts( "timer_create - bad timer id pointer - EINVAL" );
@@ -92,11 +96,19 @@ void *POSIX_Init (
   status = timer_settime( timer, TIMER_ABSTIME, &itimer, NULL );
   fatal_posix_service_status_errno( status, EINVAL, "bad itimer value #2" );
 
-  itimer.it_value = _TOD_Now;
+  clock_gettime( CLOCK_REALTIME, &now );
+  itimer.it_value = now;
   itimer.it_value.tv_sec = itimer.it_value.tv_sec - 1;
   puts( "timer_settime - bad itimer value - previous time - EINVAL" );
   status = timer_settime( timer, TIMER_ABSTIME, &itimer, NULL );
   fatal_posix_service_status_errno( status, EINVAL, "bad itimer value #3" );
+
+  clock_gettime( CLOCK_REALTIME, &now );
+  itimer.it_value = now;
+  itimer.it_value.tv_sec = itimer.it_value.tv_sec + 1;
+  puts( "timer_settime - bad id - EINVAL" );
+  status = timer_settime( timer1, TIMER_ABSTIME, &itimer, NULL );
+  fatal_posix_service_status_errno( status, EINVAL, "bad id" );
 
   itimer.it_value.tv_nsec = 0;
   puts( "timer_settime - bad clock value - EINVAL" );

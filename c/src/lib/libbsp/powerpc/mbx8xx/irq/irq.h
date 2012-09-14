@@ -15,7 +15,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq.h,v 1.9 2007/12/04 21:03:34 joel Exp $
+ *  $Id: irq.h,v 1.11 2010/04/30 12:34:37 sh Exp $
  */
 
 #ifndef LIBBSP_POWERPC_MBX8XX_IRQ_IRQ_H
@@ -135,6 +135,9 @@ extern volatile unsigned int ppc_cached_irq_mask;
      */
 #define BSP_DECREMENTER			BSP_PROCESSOR_IRQ_LOWEST_OFFSET
 
+#define BSP_INTERRUPT_VECTOR_MIN BSP_LOWEST_OFFSET
+
+#define BSP_INTERRUPT_VECTOR_MAX BSP_MAX_OFFSET
 
 #define CPM_INTERRUPT
 
@@ -171,6 +174,8 @@ int BSP_irq_ack_at_siu              	(const rtems_irq_number irqLine);
 int BSP_irq_enabled_at_siu     	(const rtems_irq_number irqLine);
 
 extern void BSP_rtems_irq_mng_init(unsigned cpuId);
+
+extern int BSP_irq_enabled_at_cpm(const rtems_irq_number irqLine);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/coremsg.h
  *
  *  This include file contains all the constants and structures associated
@@ -6,14 +6,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremsg.h,v 1.28 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: coremsg.h,v 1.32 2009/11/28 05:58:53 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_COREMSG_H
@@ -32,6 +32,18 @@
 #include <rtems/score/threadq.h>
 #include <rtems/score/priority.h>
 #include <rtems/score/watchdog.h>
+
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_COREMSG_ENABLE_MESSAGE_PRIORITY
+#endif
+
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_COREMSG_ENABLE_NOTIFICATION
+#endif
+
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_COREMSG_ENABLE_BLOCKING_SEND
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,8 +85,10 @@ typedef struct {
 typedef struct {
   /** This element allows this structure to be placed on chains. */
   Chain_Node                 Node;
-  /** This field is the priority of this message. */
-  int                        priority;
+  #if defined(RTEMS_SCORE_COREMSG_ENABLE_MESSAGE_PRIORITY)
+    /** This field is the priority of this message. */
+    int                        priority;
+  #endif
   /** This field points to the contents of the message. */
   CORE_message_queue_Buffer  Contents;
 }   CORE_message_queue_Buffer_control;
@@ -86,13 +100,13 @@ typedef struct {
  *  for a message queue.
  */
 typedef enum {
-  /** This value indicates that pending messages are in FIFO order. */
+  /** This value indicates that blocking tasks are in FIFO order. */
   CORE_MESSAGE_QUEUE_DISCIPLINES_FIFO,
-  /** This value indicates that pending messages are in priority order. */
+  /** This value indicates that blocking tasks are in priority order. */
   CORE_MESSAGE_QUEUE_DISCIPLINES_PRIORITY
 }   CORE_message_queue_Disciplines;
 
-/** 
+/**
  *  @brief Message Priority for Appending
  *
  *  This is the priority constant used when appending messages onto
@@ -100,7 +114,7 @@ typedef enum {
  */
 #define  CORE_MESSAGE_QUEUE_SEND_REQUEST   INT_MAX
 
-/** 
+/**
  *  @brief Message Priority for Prepending
  *
  *  This is the priority constant used when prepending messages onto
@@ -167,14 +181,16 @@ typedef struct {
   CORE_message_queue_Disciplines  discipline;
 }   CORE_message_queue_Attributes;
 
-/**
- *  @brief Message Queue Notification Callback Prototype
- *
- *  The following defines the type for a Notification handler.  A notification
- *  handler is invoked when the message queue makes a 0->1 transition on
- *  pending messages.
- */
-typedef void (*CORE_message_queue_Notify_Handler)( void * );
+#if defined(RTEMS_SCORE_COREMSG_ENABLE_NOTIFICATION)
+  /**
+   *  @brief Message Queue Notification Callback Prototype
+   *
+   *  The following defines the type for a Notification handler.  A
+   *  notification handler is invoked when the message queue makes a
+   *  0->1 transition on pending messages.
+   */
+  typedef void (*CORE_message_queue_Notify_Handler)( void * );
+#endif
 
 /**
  *  @brief Core Message Queue Control Structure
@@ -211,12 +227,14 @@ typedef struct {
    *  as part of destroying it.
    */
   CORE_message_queue_Buffer         *message_buffers;
-  /** This is the routine invoked when the message queue transitions 
-   *  from zero (0) messages pending to one (1) message pending.
-   */
-  CORE_message_queue_Notify_Handler  notify_handler;
-  /** This field is the argument passed to the @ref notify_argument. */
-  void                              *notify_argument;
+  #if defined(RTEMS_SCORE_COREMSG_ENABLE_NOTIFICATION)
+    /** This is the routine invoked when the message queue transitions
+     *  from zero (0) messages pending to one (1) message pending.
+     */
+    CORE_message_queue_Notify_Handler  notify_handler;
+    /** This field is the argument passed to the @ref notify_argument. */
+    void                              *notify_argument;
+  #endif
   /** This chain is the set of inactive messages.  A message is inactive
    *  when it does not contain a pending message.
    */
@@ -236,8 +254,8 @@ typedef struct {
  *  @param[in] maximum_message_size is the size of largest message that
  *         may be sent to this message queue instance
  *
- *  @return TRUE if the message queue can be initialized.  In general,
- *         FALSE will only be returned if memory for the pending 
+ *  @return true if the message queue can be initialized.  In general,
+ *         false will only be returned if memory for the pending
  *         messages cannot be allocated.
  */
 bool _CORE_message_queue_Initialize(
@@ -293,18 +311,20 @@ uint32_t   _CORE_message_queue_Flush_support(
   CORE_message_queue_Control *the_message_queue
 );
 
-/**
- *  @brief Flush Waiting Threads.
- *
- *  This function flushes the threads which are blocked on
- *  @a the_message_queue's pending message queue.  They are
- *  unblocked whether blocked sending or receiving.
- *
- *  @param[in] the_message_queue points to the message queue to flush
- */
-void _CORE_message_queue_Flush_waiting_threads(
-  CORE_message_queue_Control *the_message_queue
-);
+#if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+  /**
+   *  @brief Flush Waiting Threads.
+   *
+   *  This function flushes the threads which are blocked on
+   *  @a the_message_queue's pending message queue.  They are
+   *  unblocked whether blocked sending or receiving.
+   *
+   *  @param[in] the_message_queue points to the message queue to flush
+   */
+  void _CORE_message_queue_Flush_waiting_threads(
+    CORE_message_queue_Control *the_message_queue
+  );
+#endif
 
 /**
  *  @brief Broadcast a Message to the Message Queue
@@ -317,7 +337,7 @@ void _CORE_message_queue_Flush_waiting_threads(
  *  @param[in] size is the size of the message being broadcast
  *  @param[in] id is the RTEMS object Id associated with this message queue.
  *         It is used when unblocking a remote thread.
- *  @param[in] api_message_queue_mp_support is the routine to invoke if 
+ *  @param[in] api_message_queue_mp_support is the routine to invoke if
  *         a thread that is unblocked is actually a remote thread.
  *  @param[out] count points to the variable that will contain the
  *         number of tasks that are sent this message
@@ -348,7 +368,7 @@ CORE_message_queue_Status _CORE_message_queue_Broadcast(
  *  @param[in] size is the size of the message being send
  *  @param[in] id is the RTEMS object Id associated with this message queue.
  *         It is used when unblocking a remote thread.
- *  @param[in] api_message_queue_mp_support is the routine to invoke if 
+ *  @param[in] api_message_queue_mp_support is the routine to invoke if
  *         a thread that is unblocked is actually a remote thread.
  *  @param[in] submit_type determines whether the message is prepended,
  *         appended, or enqueued in priority order.
@@ -374,7 +394,7 @@ CORE_message_queue_Status _CORE_message_queue_Submit(
  *
  *  This kernel routine dequeues a message, copies the message buffer to
  *  a given destination buffer, and frees the message buffer to the
- *  inactive message pool.  The thread will be blocked if wait is TRUE,
+ *  inactive message pool.  The thread will be blocked if wait is true,
  *  otherwise an error will be given to the thread if no messages are available.
  *
  *  @param[in] the_message_queue points to the message queue
@@ -388,7 +408,7 @@ CORE_message_queue_Status _CORE_message_queue_Submit(
  *         if the message queue is empty.
  *  @param[in] timeout is the maximum number of clock ticks that the calling
  *         thread is willing to block if the message queue is empty.
- * 
+ *
  *  @return indication of the successful completion or reason for failure
  *  @note Returns message priority via return are in TCB.
  */

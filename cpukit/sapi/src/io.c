@@ -1,14 +1,14 @@
 /*
  *  Input/Output Manager - Initialize Device Driver Subsystem
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: io.c,v 1.29 2007/05/29 19:56:35 joel Exp $
+ *  $Id: io.c,v 1.31 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,6 +16,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/io.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/thread.h>
@@ -32,13 +33,16 @@
  *
  */
 
-void _IO_Manager_initialization(
-  rtems_driver_address_table *driver_table,
-  uint32_t                    drivers_in_table,
-  uint32_t                    number_of_drivers
-)
+void _IO_Manager_initialization(void)
 {
-  uint32_t index;
+  uint32_t                    index;
+  rtems_driver_address_table *driver_table;
+  uint32_t                    drivers_in_table;
+  uint32_t                    number_of_drivers;
+
+  driver_table      = Configuration.Device_driver_table;
+  drivers_in_table  = Configuration.number_of_device_drivers;
+  number_of_drivers = Configuration.maximum_drivers;
 
   /*
    *  If the user claims there are less drivers than are actually in
@@ -63,7 +67,7 @@ void _IO_Manager_initialization(
    *  have to allocate a new driver table and copy theirs to it.
    */
 
-  _IO_Driver_address_table = (rtems_driver_address_table *) 
+  _IO_Driver_address_table = (rtems_driver_address_table *)
       _Workspace_Allocate_or_fatal_error(
         sizeof( rtems_driver_address_table ) * ( number_of_drivers )
       );

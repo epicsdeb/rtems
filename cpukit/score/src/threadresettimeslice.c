@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadresettimeslice.c,v 1.4 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: threadresettimeslice.c,v 1.5 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -69,7 +69,7 @@ void _Thread_Reset_timeslice( void )
     if ( _Thread_Is_heir( executing ) )
       _Thread_Heir = (Thread_Control *) ready->first;
 
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
 
   _ISR_Enable( level );
 }

@@ -31,7 +31,7 @@
 #include <rtems/irq-extension.h>
 
 /*
- * the following definitions specify the indices used 
+ * the following definitions specify the indices used
  * to interface the interrupt handler API
  */
 
@@ -145,6 +145,10 @@ extern "C" {
 #define BSP_CPM_INTERRUPT	BSP_SIU_INT_IRQ_2
 #define BSP_PERIODIC_TIMER	BSP_SIU_INT_IRQ_6
 #define BSP_FAST_ETHERNET_CTRL	BSP_SIU_INT_IRQ_3
+
+#define BSP_INTERRUPT_VECTOR_MIN BSP_LOWEST_OFFSET
+
+#define BSP_INTERRUPT_VECTOR_MAX BSP_MAX_OFFSET
 
 #ifdef __cplusplus
 }

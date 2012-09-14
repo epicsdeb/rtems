@@ -10,10 +10,11 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timesys.h,v 1.17 2004/03/28 07:20:10 ralf Exp $
+ *  $Id: timesys.h,v 1.20 2009/01/05 19:41:11 joel Exp $
  */
 
 #include <tmacros.h>
+#include <inttypes.h>
 
 /*
  *  This constant determines the maximum number of a resource
@@ -36,12 +37,12 @@
 #define put_time( _message, _total_time, \
                   _iterations, _loop_overhead, _overhead ) \
     printf( \
-      "%s %d\n", \
+      "%s %" PRId32 "\n", \
       (_message), \
       (((_total_time) - (_loop_overhead)) / (_iterations)) - (_overhead) \
     )
 
-#if  defined(STACK_CHECKER_ON) || defined(RTEMS_DEBUG)
+#if  defined(CONFIGURE_STACK_CHECKER_ENABLED) || defined(RTEMS_DEBUG)
 #define Print_Warning() \
   do { \
     puts( \
@@ -61,6 +62,6 @@ TEST_EXTERN volatile uint32_t   end_time;   /* ending time variable */
 TEST_EXTERN volatile uint32_t   overhead;   /* loop overhead variable */
 
 TEST_EXTERN rtems_id   Task_id[ OPERATION_COUNT+1 ];   /* array of task ids */
-TEST_EXTERN rtems_id   Task_name[ OPERATION_COUNT+1 ]; /* array of task names */
+TEST_EXTERN rtems_name Task_name[ OPERATION_COUNT+1 ]; /* array of task names */
 
 /* end of include file */

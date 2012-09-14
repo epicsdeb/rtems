@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.14 2007/12/11 15:46:43 joel Exp $
+ *  $Id: bsp.h,v 1.17 2008/09/18 17:40:53 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -72,33 +72,7 @@ extern int rtems_enet_driver_attach (struct rtems_bsdnet_ifconfig *config, int a
 #define NOCACHE_MEM_SIZE 512*1024
 */
 
-/* Constants */
-/*
-#define RAM_START 0
-#define RAM_END   0x1000000
-*/
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/*
- * How many libio files we want
- */
-
-#define BSP_LIBIO_MAX_FDS       20
-
 /* functions */
-
-void bsp_cleanup( void );
 
 #if 0
 void M8260ExecuteRISC( uint32_t         command );

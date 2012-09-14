@@ -12,7 +12,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: openpic.c,v 1.15 2007/12/11 06:37:19 strauman Exp $
+ * $Id: openpic.c,v 1.18 2009/11/30 04:33:10 ralf Exp $
  */
 
 /*
@@ -23,7 +23,7 @@
 #include <bsp.h>
 #include <rtems/bspIo.h>
 #include <bsp/openpic.h>
-#include <bsp/pci.h>
+#include <rtems/pci.h>
 #include <libcpu/io.h>
 #include <libcpu/byteorder.h>
 #include <rtems/bspIo.h>
@@ -122,7 +122,7 @@ static inline unsigned int openpic_readfield(volatile unsigned int *addr, unsign
     return val & mask;
 }
 
-inline void openpic_writefield(volatile unsigned int *addr, unsigned int mask,
+static inline void openpic_writefield(volatile unsigned int *addr, unsigned int mask,
 				      unsigned int field)
 {
     unsigned int val = openpic_read(addr);
@@ -315,7 +315,7 @@ void openpic_init(int main_pic, unsigned char *polarities, unsigned char *senses
 
 			/* round to nearest integer:
 			 *   round(Bus_freq/33000000) = floor( 2*(Bus_freq/33e6) + 1 ) / 2
-			 */ 
+			 */
 			ratio   = epic_freq / 16500000 + 1;
 			ratio >>= 2; /* EICR value is half actual divisor */
 			if ( 0==ratio )

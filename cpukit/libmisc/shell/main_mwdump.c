@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_mwdump.c,v 1.4.2.1 2008/10/01 20:07:09 joel Exp $
+ *  $Id: main_mwdump.c,v 1.9 2009/11/29 12:12:39 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,6 +23,7 @@
 
 #include <rtems.h>
 #include <rtems/shell.h>
+#include <rtems/stringto.h>
 #include "internal.h"
 
 int rtems_shell_main_mwdump(
@@ -30,22 +31,30 @@ int rtems_shell_main_mwdump(
   char *argv[]
 )
 {
-  unsigned char  n, m;
+  unsigned char  n;
+  unsigned char  m;
   int            max;
   int            res;
-  uintptr_t      addr = 0;
+  void          *addr = 0;
   unsigned char *pb;
 
-  if (argc>1)
-    addr = rtems_shell_str2int(argv[1]);
-
-  if (argc>2) {
-    max = rtems_shell_str2int(argv[2]);
-    if (max <= 0) {
-      max = 1;      /* print 1 item if 0 or neg. */ 
-      res = 0;
+  if ( argc > 1 ) {
+    if ( rtems_string_to_pointer(argv[1], &addr, NULL) ) {
+      printf( "Address argument (%s) is not a number\n", argv[1] );
+      return -1;
     }
-    else {
+  }
+
+  if ( argc > 2 ) {
+    if ( rtems_string_to_int(argv[2], &max, NULL, 0) ) {
+      printf( "Address argument (%s) is not a number\n", argv[1] );
+      return -1;
+    }
+
+    if (max <= 0) {
+      max = 1;      /* print 1 item if 0 or neg. */
+      res = 0;
+    } else {
       max--;
       res = max & 0xf;/* num bytes in last row */
       max >>= 4;      /* div by 16 */
@@ -55,15 +64,14 @@ int rtems_shell_main_mwdump(
         res = 0xf;    /* 16 bytes print in last row */
       }
     }
-  }
-  else {
+  } else {
     max = 20;
     res = 0xf;
   }
 
+  pb = addr;
   for (m=0;m<max;m++) {
-    printf("0x%08" PRIXPTR " ",addr);
-    pb = (unsigned char *) addr;
+    printf("%10p ", pb);
     for (n=0;n<=(m==(max-1)?res:0xf);n+=2)
       printf("%04X%c",*((unsigned short*)(pb+n)),n==6?'-':' ');
     for (;n<=0xf;n+=2)
@@ -72,7 +80,7 @@ int rtems_shell_main_mwdump(
       printf("%c", isprint(pb[n]) ? pb[n] : '.');
     }
     printf("\n");
-    addr += 16;
+    pb += 16;
   }
   return 0;
 }

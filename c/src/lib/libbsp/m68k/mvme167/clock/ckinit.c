@@ -23,12 +23,11 @@
  *  Modifications of respective RTEMS files:
  *  Copyright (c) 1998, National Research Council of Canada
  *
- *  $Id: ckinit.c,v 1.10 2008/09/05 22:05:24 joel Exp $
+ *  $Id: ckinit.c,v 1.11 2008/09/16 19:03:42 joel Exp $
  */
 
 #include <stdlib.h>
 #include <bsp.h>
-#include <rtems/libio.h>
 
 #define MS_COUNT          1000              /* T2's countdown constant (1 ms) */
 #define CLOCK_INT_LEVEL   6                 /* T2's interrupt level */

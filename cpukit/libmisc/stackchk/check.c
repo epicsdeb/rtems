@@ -6,14 +6,14 @@
  *         CPU grows up or down and installs the correct
  *         extension routines for that direction.
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: check.c,v 1.54.2.1 2009/02/11 19:34:27 joel Exp $
+ *  $Id: check.c,v 1.66 2010/04/10 07:32:13 ralf Exp $
  *
  */
 
@@ -60,9 +60,9 @@ static inline bool Stack_check_Frame_pointer_in_range(
   Stack_Control *the_stack
 )
 {
-  void *sp = __builtin_frame_address(0);
-
   #if defined(__GNUC__)
+    void *sp = __builtin_frame_address(0);
+
     if ( sp < the_stack->area ) {
       return false;
     }
@@ -91,8 +91,15 @@ static inline bool Stack_check_Frame_pointer_in_range(
     ((_the_stack)->area)
 
 #else
+  /*
+   * We need this magic offset because during a task delete the task stack will
+   * be freed before we enter the task switch extension which checks the stack.
+   * The task stack free operation will write the next and previous pointers
+   * for the free list into this area.
+   */
   #define Stack_check_Get_pattern_area( _the_stack ) \
-    ((Stack_check_Control *) ((char *)(_the_stack)->area + HEAP_OVERHEAD))
+    ((Stack_check_Control *) ((char *)(_the_stack)->area \
+      + sizeof(Heap_Block) - HEAP_BLOCK_HEADER_SIZE))
 
   #define Stack_check_Calculate_used( _low, _size, _high_water) \
       ( ((char *)(_low) + (_size)) - (char *)(_high_water) )
@@ -128,7 +135,12 @@ Stack_Control Stack_check_Interrupt_stack;
  */
 void Stack_check_Initialize( void )
 {
+  int       i;
   uint32_t *p;
+  static    uint32_t pattern[ 4 ] = {
+    0xFEEDF00D, 0x0BAD0D06,  /* FEED FOOD to  BAD DOG */
+    0xDEADF00D, 0x600D0D06   /* DEAD FOOD but GOOD DOG */
+  };
 
   if (Stack_check_Initialized)
     return;
@@ -136,17 +148,11 @@ void Stack_check_Initialize( void )
   /*
    * Dope the pattern and fill areas
    */
-
-  for ( p = Stack_check_Pattern.pattern;
-        p < &Stack_check_Pattern.pattern[PATTERN_SIZE_WORDS];
-        p += 4
-      ) {
-      p[0] = 0xFEEDF00D;          /* FEED FOOD to BAD DOG */
-      p[1] = 0x0BAD0D06;
-      p[2] = 0xDEADF00D;          /* DEAD FOOD GOOD DOG */
-      p[3] = 0x600D0D06;
+  p = Stack_check_Pattern.pattern;
+  for ( i = 0; i < PATTERN_SIZE_WORDS; i++ ) {
+      p[i] = pattern[ i%4 ];
   }
-  
+
   /*
    * If appropriate, setup the interrupt stack for high water testing
    * also.
@@ -167,7 +173,7 @@ void Stack_check_Initialize( void )
  *  rtems_stack_checker_create_extension
  */
 bool rtems_stack_checker_create_extension(
-  Thread_Control *running,
+  Thread_Control *running __attribute__((unused)),
   Thread_Control *the_thread
 )
 {
@@ -205,53 +211,56 @@ void rtems_stack_checker_begin_extension(
  *  NOTE: The system is in a questionable state... we may not get
  *        the following message out.
  */
-void Stack_check_report_blown_task(
-  Thread_Control *running,
-  bool         pattern_ok
-)
+void Stack_check_report_blown_task(Thread_Control *running, bool pattern_ok)
 {
   Stack_Control *stack = &running->Start.Initial_stack;
+  void *pattern_area = Stack_check_Get_pattern_area(stack);
+  char name [32];
 
+  printk("BLOWN STACK!!!\n");
+  printk("task control block: 0x%08" PRIxPTR "\n", running);
+  printk("task ID: 0x%08lx\n", (unsigned long) running->Object.id);
   printk(
-    "BLOWN STACK!!! Offending task(0x%p): "
-        "id=0x%08" PRIx32 "; name=0x%08" PRIx32,
-    running,
-    running->Object.id,
+    "task name: 0x%08" PRIx32 "\n",
     running->Object.name.name_u32
   );
+  printk(
+    "task name string: %s\n",
+    rtems_object_get_name(running->Object.id, sizeof(name), name)
+  );
+  printk(
+    "task stack area (%lu Bytes): 0x%08" PRIxPTR " .. 0x%08" PRIxPTR "\n",
+    (unsigned long) stack->size,
+    stack->area,
+    ((char *) stack->area + stack->size)
+  );
+  if (!pattern_ok) {
+    printk(
+      "damaged pattern area (%lu Bytes): 0x%08" PRIxPTR " .. 0x%08" PRIxPTR "\n",
+      (unsigned long) PATTERN_SIZE_BYTES,
+      pattern_area,
+      (pattern_area + PATTERN_SIZE_BYTES)
+    );
+  }
 
   #if defined(RTEMS_MULTIPROCESSING)
     if (rtems_configuration_get_user_multiprocessing_table()) {
       printk(
-        "; node=%d",
-        rtems_configuration_get_user_multiprocessing_table()->node
+        "node: 0x%08" PRIxPTR "\n",
+          rtems_configuration_get_user_multiprocessing_table()->node
       );
     }
   #endif
 
-  printk(
-    "\n  stack covers range 0x%p - 0x%p (%d bytes)\n",
-    stack->area,
-    stack->area + stack->size - 1,
-    stack->size
-  );
-
-  if ( !pattern_ok ) {
-    printk(
-      "  Damaged pattern begins at 0x%08lx and is %d bytes long\n",
-      (unsigned long) Stack_check_Get_pattern_area(stack),
-      PATTERN_SIZE_BYTES);
-  }
-
-  rtems_fatal_error_occurred( 0x81 );
+  rtems_fatal_error_occurred(0x81);
 }
 
 /*
  *  rtems_stack_checker_switch_extension
  */
 void rtems_stack_checker_switch_extension(
-  Thread_Control *running,
-  Thread_Control *heir
+  Thread_Control *running __attribute__((unused)),
+  Thread_Control *heir __attribute__((unused))
 )
 {
   Stack_Control *the_stack = &running->Start.Initial_stack;
@@ -430,7 +439,7 @@ void Stack_check_Dump_threads_usage(
   } else {
     (*print_handler)( print_context, "%8" PRId32 "\n", used );
   }
-    
+
 
 }
 
@@ -463,7 +472,7 @@ void rtems_stack_checker_report_usage_with_plugin(
   print_handler = print;
 
   (*print)( context, "Stack usage by thread\n");
-  (*print)( context, 
+  (*print)( context,
 "    ID      NAME    LOW          HIGH     CURRENT     AVAILABLE     USED\n"
   );
 

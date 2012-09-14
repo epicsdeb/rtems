@@ -18,7 +18,7 @@ gen_device_tree()
     value=-1               # for now assume we are slave in this mode
   else
     case ${1} in 
-      *mp*)
+      *node*)
         enable_sysv_devices="yes"
         case ${1} in
           *node1*) value=1 ;;
@@ -37,7 +37,14 @@ gen_device_tree()
     fi
   fi
 
-cat <<EOF
+  if [ X${RAM_SIZE} = X ] ; then
+    if [ X${NM} = X ] ; then
+      NM=${rtemsTarget}-nm
+    fi
+    RAM_SIZE=`$NM ${1} | awk '/\<RamSize\>/{print "0x"$1}'`
+  fi
+
+  cat <<EOF
 #
 #  Device Tree for PSIM
 #
@@ -45,7 +52,8 @@ cat <<EOF
 #
 /#address-cells 1
 /openprom/init/register/pvr 0xfffe0000
-/openprom/options/oea-memory-size 8388608
+# This must be >= than linkcmds defined RamSize!
+/openprom/options/oea-memory-size $RAM_SIZE
 ##### EEPROM @ 0x0c000000 for 512K
 /eeprom@0x0c000000/reg 0x0c000000 0x80000
 /eeprom@0x0c000000/nr-sectors 8
@@ -60,7 +68,47 @@ cat <<EOF
 ##### NVRAM/RTC RTC   Portion is 0x0c100000 for 12
 /nvram@0x0c080000/reg 0x0c080000 524300
 /nvram@0x0c080000/timezone -3600
+
+##### OPENPIC @ 0x0c130000 - 0x0c170000 (512K)
+/opic@0x0c130000/reg              0x0c130000 0 0x0c130000 0x40000
+/opic@0x0c130000/interrupt-ranges 0 0 0 16
+/opic@0x0c130000/device_type      open-pic
+# interupt out -> CPU's interrupt pin
+/opic@0x0c130000 > intr0 int /cpus/cpu@0
 EOF
+
+  if [ X${enable_if_sim} = Xyes ] ; then
+    cat <<EOF
+
+#### ETHTAP @ 0x0c100020 for 0x40
+#
+# NOTE 'ethtap' currently (200902) requires psim to
+#      be patched -- also, it is only supported on
+#      a linux host.
+#      the 'ethtap' device transfers data from/to the
+#      simulated network interface to/from a 'ethertap'
+#      interface on the linux host (consult tun/tap
+#      device documentation).
+#      A very useful tool is 'tunctl' which allows for
+#      configuring user-accessible, persistent 'tap'
+#      devices so that psim may be executed w/o special
+#      (root) privileges.
+
+/ethtap@0x0c100020/reg           0x0c100020 0x40
+# route interrupt to open-pic
+/ethtap@0x0c100020               > 0 irq0 /opic@0x0c130000
+# 'tun' device on host
+/ethtap@0x0c100020/tun-device    "/dev/net/tun"
+# name of 'tap' device to use
+/ethtap@0x0c100020/tap-ifname    "tap0"
+# ethernet address of simulated IF
+/ethtap@0x0c100020/hw-address    "00:00:00:22:11:00"
+# generate CRC and append to received packet before
+# handing over to the simulation. This is mostly for
+# debugging the rtems device driver. If unsure, leave 'false'.
+/ethtap@0x0c100020/enable-crc    false
+EOF
+  fi
 
   if [ ${enable_sysv_devices} = yes ] ; then
     echo "##### System V IPC (Semaphore) 0x0c100010 for 12"
@@ -88,15 +136,16 @@ runone()
     #echo run ${testname} forever
     ${RUN} -f ${treefile} ${RUN_DEBUG} ${testname}
   else
+    log=`echo ${testname} | sed -e 's/.exe$/.log/' -e 's/.ralf$/.log/'`
     #echo run ${testname} for maximum ${max_run_time} seconds
-    ${RUN} -f ${treefile} ${RUN_DEBUG} ${testname} &
+    ${RUN} -f ${treefile} ${RUN_DEBUG} ${testname} >${log} 2>&1 &
     pid=$!
 
     # Make sure it won't run forever...
     time_run=0
     while [ $time_run -lt $max_run_time ]
     do
-      # sleep 5s at a time waiting for job to finish or timer to expire
+      # sleep 1s at a time waiting for job to finish or timer to expire
       # if job has exited, then we exit, too.
       sleep 1
       kill -0 $pid 2> /dev/null
@@ -108,11 +157,24 @@ runone()
 	  ran_too_long="yes"
           echo "${testname} killed after running ${max_run_time} seconds"
         fi
+        grep "Suspending faulting task" ${log} >/dev/null 2>&1
+        Fault=$?
+        grep "assertion failed" ${log} >/dev/null 2>&1
+        Assert=$?
+        if [ $Fault -eq 0 -o $Assert -eq 0 ] ; then
+	  kill -9 $pid 2> /dev/null
+          echo "${testname} failed after ${max_run_time} seconds"
+          ran_too_long="no"
+          break
+        fi
       else
         ran_too_long="no"
         break
       fi
     done
+    cat ${log}
+    rm -f ${log}
   fi
+
 }
 

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectallocatebyindex.c,v 1.12 2008/08/04 19:46:13 joel Exp $
+ *  $Id: objectallocatebyindex.c,v 1.13 2009/01/05 20:09:02 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,21 +41,22 @@
 
 Objects_Control *_Objects_Allocate_by_index(
   Objects_Information *information,
-  uint16_t             the_index,
+  int                  the_index,
   uint16_t             sizeof_control
 )
 {
   Objects_Control *the_object;
 
-  if ( the_index && information->maximum >= the_index ) {
+  if ( the_index > 0 && information->maximum >= the_index ) {
     the_object = information->local_table[ the_index ];
     if ( the_object )
       return NULL;
 
     /* XXX
-     *  This whole section of code needs to be addressed.
+     *  This whole section of code needs to be evaluated for unlimited objects.
      *    +  The 0 should be dealt with more properly so we can autoextend.
-     *    +  The pointer arithmetic is probably too expensive.
+     *    +  The pointer arithmetic is probably too expensive but is likely
+     *       necessary especially on targets with 16 bit offset limits.
      *    +  etc.
      */
 

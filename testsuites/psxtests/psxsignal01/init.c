@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.2 2008/02/22 19:34:14 joel Exp $
+ *  $Id: init.c,v 1.8 2009/12/08 17:52:53 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -26,7 +26,7 @@ void Handler_1(
 {
   Signal_count++;
   printf(
-    "Handler_1: Signal: %d caught by 0x%x (%d)\n",
+    "Handler_1: Signal: %d caught by 0x%" PRIxpthread_t " (%d)\n",
     signo,
     pthread_self(),
     Signal_count
@@ -40,7 +40,7 @@ void Signal_handler(
 {
   Signal_count++;
   printf(
-    "Signal: %d caught by 0x%x (%d)\n",
+    "Signal: %d caught by 0x%"PRIxpthread_t " (%d)\n",
     signo,
     pthread_self(),
     Signal_count
@@ -56,7 +56,7 @@ void Signal_info_handler(
 {
   Signal_count++;
   printf(
-    "Signal_info: %d caught by 0x%x (%d) si_signo= %d si_code= %d value= %d\n",
+    "Signal_info: %d caught by 0x%" PRIxpthread_t " (%d) si_signo= %d si_code= %d value= %d\n",
     signo,
     pthread_self(),
     Signal_count,
@@ -72,8 +72,8 @@ rtems_timer_service_routine Signal_duringISR_TSR(
   void     *ignored_address
 )
 {
-  int               status;
-  status = kill( getpid(), SIGUSR1 );
+  int  status;
+  status = pthread_kill( pthread_self(), SIGUSR1 );
 }
 
 
@@ -84,10 +84,6 @@ void *POSIX_Init(
   int               status;
   struct sigaction  act;
   sigset_t          mask;
-  sigset_t          pending_set;
-  sigset_t          oset;
-  struct timespec   timeout;
-  siginfo_t         info;
   sighandler_t      oldHandler;
   sighandler_t      newHandler;
   rtems_interval start, end;
@@ -101,7 +97,7 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   Signal_occurred = 0;
   Signal_count = 0;
@@ -128,23 +124,23 @@ void *POSIX_Init(
 
 /* unblock Signal and see if it happened */
   status = sigemptyset( &mask );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( &mask, SIGUSR1 );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( &mask, SIGFPE );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( &mask, SIGILL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( &mask, SIGSEGV );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: Unblock SIGUSR1 SIGFPE SIGILL SIGSEGV" );
   status = sigprocmask( SIG_UNBLOCK, &mask, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
 /* install a signal handler for SIGUSR1 */
   Signal_occurred = 0;
@@ -190,7 +186,7 @@ void *POSIX_Init(
     Timer_id[ 0 ],
     1,
     Signal_duringISR_TSR,
-    NULL 
+    NULL
   );
   sleep(5);
   /* signal occurs during interruptible sleep */
@@ -198,17 +194,17 @@ void *POSIX_Init(
   /* now schedule another one to fire but do not sleep */
 
   puts( "Init: send SIGUSR1 to process from a TSR (spin)" );
-  rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &start );
+  start = rtems_clock_get_ticks_since_boot();
   Signal_count = 0;
   Signal_occurred = 0;
   status = rtems_timer_fire_after(
     Timer_id[ 0 ],
     10,
     Signal_duringISR_TSR,
-    NULL 
+    NULL
   );
   do {
-    rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &end );
+    end = rtems_clock_get_ticks_since_boot();
   } while ( !Signal_occurred && ((end - start) <= 800));
 
   if ( !Signal_occurred ) {
@@ -219,7 +215,7 @@ void *POSIX_Init(
 /* end of install a signal handler for SIGUSR1 */
 
   Signal_occurred = 0;
-  
+
   puts("*** Validate unexpected program termination ***");
   puts( "*** END OF POSIX TEST SIGNAL ***" );
   _POSIX_signals_Abnormal_termination_handler( SIGUSR1 );

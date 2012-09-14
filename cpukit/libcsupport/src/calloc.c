@@ -8,14 +8,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: calloc.c,v 1.1 2007/12/18 20:36:40 joel Exp $
+ *  $Id: calloc.c,v 1.3 2009/09/30 08:20:24 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifdef RTEMS_NEWLIB
+#if defined(RTEMS_NEWLIB) && !defined(HAVE_CALLOC)
 #include "malloc_p.h"
 #include <stdlib.h>
 
@@ -25,7 +25,7 @@ void *calloc(
 )
 {
   register char *cptr;
-  int            length;
+  size_t length;
 
   MSBUMP(calloc_calls, 1);
 
@@ -34,7 +34,7 @@ void *calloc(
   if ( cptr )
     memset( cptr, '\0', length );
 
-  MSBUMP(malloc_calls, -1);   /* subtract off the malloc */
+  MSBUMP(malloc_calls, (uint32_t) -1);   /* subtract off the malloc */
 
   return cptr;
 }

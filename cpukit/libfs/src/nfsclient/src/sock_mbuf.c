@@ -1,5 +1,5 @@
 /*
- *  $Id: sock_mbuf.c,v 1.1 2008/02/26 19:23:53 joel Exp $
+ *  $Id: sock_mbuf.c,v 1.4 2010/03/27 04:04:39 ccj Exp $
  *
  *  NOTE:
  *    This is derived from libnetworking/rtems/rtems_syscall.c
@@ -75,6 +75,9 @@ SOFTWARE.
 =============================================================================
 */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <string.h>
 #include <stdarg.h>
@@ -84,7 +87,6 @@ SOFTWARE.
 #include <rtems/libio.h>
 #include <rtems/error.h>
 
-#define KERNEL
 #define _KERNEL
 #define __BSD_VISIBLE	1
 #include <rtems/rtems_bsdnet.h>
@@ -147,7 +149,7 @@ dummyproc(caddr_t ext_buf, u_int ext_size)
  * and 'free' procs. (The latter may call the
  * user back once the networking stack has
  * released the buffer).
- * 
+ *
  * The callbacks are provided with the 'closure'
  * pointer and the 'buflen' argument.
  */
@@ -201,7 +203,7 @@ sendto_nocpy (
 		if (/*auio.uio_resid != len &&*/ (error == EINTR || error == EWOULDBLOCK))
 			error = 0;
 	}
-	if (error) 
+	if (error)
 		errno = error;
 	else
 		ret = buflen;
@@ -245,7 +247,7 @@ recv_mbuf_from(int s, struct mbuf **ppm, long len, struct sockaddr *fromaddr, in
 	auio.uio_offset = 0;
 */
 	auio.uio_resid = len;
-	error = soreceive (so, &from, &auio, (struct mbuf **) ppm, 
+	error = soreceive (so, &from, &auio, (struct mbuf **) ppm,
 			(struct mbuf **)NULL,
 			NULL);
 	if (error) {

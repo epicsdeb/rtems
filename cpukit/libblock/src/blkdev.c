@@ -1,16 +1,23 @@
-/*
- * blkdev.h - block device driver generic support
+/**
+ * @file
  *
+ * @ingroup rtems_blkdev
+ *
+ * Block device management.
+ */
+
+/*
  * Copyright (C) 2001 OKTET Ltd., St.-Petersburg, Russia
  * Author: Victor V. Vengerov <vvv@oktet.ru>
  *
- * @(#) $Id: blkdev.c,v 1.11 2008/08/21 16:17:35 joel Exp $
+ * @(#) $Id: blkdev.c,v 1.23 2010/04/09 12:28:24 thomas Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <string.h>
 
 #include <rtems.h>
@@ -26,44 +33,31 @@
  */
 rtems_device_driver
 rtems_blkdev_generic_read(
-    rtems_device_major_number major,
-    rtems_device_minor_number minor,
+    rtems_device_major_number major __attribute__((unused)),
+    rtems_device_minor_number minor __attribute__((unused)),
     void                    * arg)
 {
+    rtems_status_code rc = RTEMS_SUCCESSFUL;
     rtems_libio_rw_args_t *args = arg;
-    int block_size_log2;
-    int block_size;
-    char         *buf;
-    unsigned int count;
-    unsigned int block;
-    unsigned int blkofs;
-    dev_t dev;
-    rtems_disk_device *dd;
+    rtems_libio_t *iop = args->iop;
+    rtems_disk_device *dd = iop->data1;
+    uint32_t block_size = dd->block_size;
+    char *buf = args->buffer;
+    uint32_t count = args->count;
+    rtems_blkdev_bnum block = (rtems_blkdev_bnum) (args->offset / block_size);
+    uint32_t blkofs = (uint32_t) (args->offset % block_size);
+    dev_t dev = dd->dev;
 
-    dev = rtems_filesystem_make_dev_t(major, minor);
-    dd = rtems_disk_obtain(dev);
-    if (dd == NULL)
-        return RTEMS_INVALID_NUMBER;
-
-    block_size_log2 = dd->block_size_log2;
-    block_size = dd->block_size;
-
-    buf = args->buffer;
-    count = args->count;
     args->bytes_moved = 0;
-
-    block = args->offset >> block_size_log2;
-    blkofs = args->offset & (block_size - 1);
 
     while (count > 0)
     {
         rtems_bdbuf_buffer *diskbuf;
         uint32_t            copy;
-        rtems_status_code   rc;
 
         rc = rtems_bdbuf_read(dev, block, &diskbuf);
         if (rc != RTEMS_SUCCESSFUL)
-            return rc;
+            break;
         copy = block_size - blkofs;
         if (copy > count)
             copy = count;
@@ -71,13 +65,14 @@ rtems_blkdev_generic_read(
         rc = rtems_bdbuf_release(diskbuf);
         args->bytes_moved += copy;
         if (rc != RTEMS_SUCCESSFUL)
-            return rc;
+            break;
         count -= copy;
         buf += copy;
         blkofs = 0;
         block++;
     }
-    return RTEMS_SUCCESSFUL;
+
+    return rc;
 }
 
 /* rtems_blkdev_generic_write --
@@ -86,35 +81,22 @@ rtems_blkdev_generic_read(
  */
 rtems_device_driver
 rtems_blkdev_generic_write(
-    rtems_device_major_number major,
-    rtems_device_minor_number minor,
+    rtems_device_major_number major __attribute__((unused)),
+    rtems_device_minor_number minor __attribute__((unused)),
     void                    * arg)
 {
+    rtems_status_code rc = RTEMS_SUCCESSFUL;
     rtems_libio_rw_args_t *args = arg;
-    int           block_size_log2;
-    uint32_t      block_size;
-    char         *buf;
-    uint32_t      count;
-    uint32_t      block;
-    uint32_t      blkofs;
-    dev_t dev;
-    rtems_status_code rc;
-    rtems_disk_device *dd;
+    rtems_libio_t *iop = args->iop;
+    rtems_disk_device *dd = iop->data1;
+    uint32_t block_size = dd->block_size;
+    char *buf = args->buffer;
+    uint32_t count = args->count;
+    rtems_blkdev_bnum block = (rtems_blkdev_bnum) (args->offset / block_size);
+    uint32_t blkofs = (uint32_t) (args->offset % block_size);
+    dev_t dev = dd->dev;
 
-    dev = rtems_filesystem_make_dev_t(major, minor);
-    dd = rtems_disk_obtain(dev);
-    if (dd == NULL)
-        return RTEMS_INVALID_NUMBER;
-
-    block_size_log2 = dd->block_size_log2;
-    block_size = dd->block_size;
-
-    buf = args->buffer;
-    count = args->count;
     args->bytes_moved = 0;
-
-    block = args->offset >> block_size_log2;
-    blkofs = args->offset & (block_size - 1);
 
     while (count > 0)
     {
@@ -126,7 +108,7 @@ rtems_blkdev_generic_write(
         else
             rc = rtems_bdbuf_read(dev, block, &diskbuf);
         if (rc != RTEMS_SUCCESSFUL)
-            return rc;
+            break;
 
         copy = block_size - blkofs;
         if (copy > count)
@@ -136,14 +118,15 @@ rtems_blkdev_generic_write(
 
         rc = rtems_bdbuf_release_modified(diskbuf);
         if (rc != RTEMS_SUCCESSFUL)
-            return rc;
+            break;
 
         count -= copy;
         buf += copy;
         blkofs = 0;
         block++;
     }
-    return RTEMS_SUCCESSFUL;
+
+    return rc;
 }
 
 /* blkdev_generic_open --
@@ -155,19 +138,17 @@ rtems_blkdev_generic_open(
     rtems_device_minor_number minor,
     void                    * arg)
 {
-    dev_t dev;
-    rtems_disk_device *dd;
+  rtems_libio_open_close_args_t *oc = arg;
+  rtems_libio_t *iop = oc->iop;
+  dev_t dev = rtems_filesystem_make_dev_t(major, minor);
+  rtems_disk_device *dd = rtems_disk_obtain(dev);
 
-    dev = rtems_filesystem_make_dev_t(major, minor);
-    dd = rtems_disk_obtain(dev);
-    if (dd == NULL)
-        return RTEMS_INVALID_NUMBER;
+  iop->data1 = dd;
 
-    dd->uses++;
-
-    rtems_disk_release(dd);
-
+  if (dd != NULL)
     return RTEMS_SUCCESSFUL;
+  else
+    return RTEMS_UNSATISFIED;
 }
 
 
@@ -176,23 +157,17 @@ rtems_blkdev_generic_open(
  */
 rtems_device_driver
 rtems_blkdev_generic_close(
-    rtems_device_major_number major,
-    rtems_device_minor_number minor,
+    rtems_device_major_number major __attribute__((unused)),
+    rtems_device_minor_number minor __attribute__((unused)),
     void                    * arg)
 {
-    dev_t dev;
-    rtems_disk_device *dd;
+  rtems_libio_open_close_args_t *oc = arg;
+  rtems_libio_t *iop = oc->iop;
+  rtems_disk_device *dd = iop->data1;
 
-    dev = rtems_filesystem_make_dev_t(major, minor);
-    dd = rtems_disk_obtain(dev);
-    if (dd == NULL)
-        return RTEMS_INVALID_NUMBER;
+  rtems_disk_release(dd);
 
-    dd->uses--;
-
-    rtems_disk_release(dd);
-
-    return RTEMS_SUCCESSFUL;
+  return RTEMS_SUCCESSFUL;
 }
 
 /* blkdev_generic_ioctl --
@@ -200,49 +175,89 @@ rtems_blkdev_generic_close(
  */
 rtems_device_driver
 rtems_blkdev_generic_ioctl(
-    rtems_device_major_number major,
-    rtems_device_minor_number minor,
+    rtems_device_major_number major __attribute__((unused)),
+    rtems_device_minor_number minor __attribute__((unused)),
     void                    * arg)
 {
     rtems_libio_ioctl_args_t *args = arg;
-    dev_t dev;
-    rtems_disk_device *dd;
+    rtems_libio_t *iop = args->iop;
+    rtems_disk_device *dd = iop->data1;
     int rc;
-
-    dev = rtems_filesystem_make_dev_t(major, minor);
-    dd = rtems_disk_obtain(dev);
-    if (dd == NULL)
-        return RTEMS_INVALID_NUMBER;
 
     switch (args->command)
     {
+        case RTEMS_BLKIO_GETMEDIABLKSIZE:
+            *((uint32_t *) args->buffer) = dd->media_block_size;
+            args->ioctl_return = 0;
+            break;
+
         case RTEMS_BLKIO_GETBLKSIZE:
-            args->ioctl_return = dd->block_size;
+            *((uint32_t *) args->buffer) = dd->block_size;
+            args->ioctl_return = 0;
+            break;
+
+        case RTEMS_BLKIO_SETBLKSIZE:
+            dd->block_size = *((uint32_t *) args->buffer);
+            args->ioctl_return = 0;
             break;
 
         case RTEMS_BLKIO_GETSIZE:
-            args->ioctl_return = dd->size;
+            *((rtems_blkdev_bnum *) args->buffer) = dd->size;
+            args->ioctl_return = 0;
             break;
 
         case RTEMS_BLKIO_SYNCDEV:
             rc = rtems_bdbuf_syncdev(dd->dev);
-            args->ioctl_return = (rc == RTEMS_SUCCESSFUL ? 0 : -1);
+            args->ioctl_return = (uint32_t) (rc == RTEMS_SUCCESSFUL ? 0 : -1);
             break;
 
         case RTEMS_BLKIO_REQUEST:
-        {
-            rtems_blkdev_request *req = args->buffer;
-            args->ioctl_return = dd->ioctl(dd->phys_dev->dev, args->command,
-                                           req);
+            /*
+             * It is not allowed to directly access the driver circumventing
+             * the cache.
+             */
+            args->ioctl_return = (uint32_t) -1;
             break;
-        }
 
         default:
-            args->ioctl_return = dd->ioctl(dd->phys_dev->dev, args->command,
-                                           args->buffer);
+            args->ioctl_return = (uint32_t) dd->ioctl(dd->phys_dev,
+                                                      args->command,
+                                                      args->buffer);
             break;
     }
-    rtems_disk_release(dd);
 
     return RTEMS_SUCCESSFUL;
+}
+
+int
+rtems_blkdev_ioctl(rtems_disk_device *dd, uint32_t req, void *argp)
+{
+    size_t            *arg_size = argp;
+    int                rc = 0;
+
+    switch (req)
+    {
+        case RTEMS_BLKIO_GETMEDIABLKSIZE:
+            *arg_size = dd->media_block_size;
+            break;
+
+        case RTEMS_BLKIO_GETBLKSIZE:
+            *arg_size = dd->block_size;
+            break;
+
+        case RTEMS_BLKIO_SETBLKSIZE:
+            dd->block_size = *arg_size;
+            break;
+
+        case RTEMS_BLKIO_GETSIZE:
+            *arg_size = dd->size;
+            break;
+
+        default:
+            errno = EINVAL;
+            rc = -1;
+            break;
+    }
+
+    return rc;
 }

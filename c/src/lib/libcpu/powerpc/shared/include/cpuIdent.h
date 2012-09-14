@@ -10,13 +10,17 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpuIdent.h,v 1.21 2008/07/14 08:45:03 thomas Exp $
+ *  $Id: cpuIdent.h,v 1.26 2010/04/07 14:18:53 thomas Exp $
  */
 
 #ifndef _LIBCPU_CPUIDENT_H
 #define _LIBCPU_CPUIDENT_H
 
 #include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef ASM
 typedef enum
@@ -51,8 +55,11 @@ typedef enum
   PPC_e300c1  = 0x8083, /* e300c1  core, in MPC83xx*/
   PPC_e300c2  = 0x8084, /* e300c2  core */
   PPC_e300c3  = 0x8085, /* e300c3  core */
-  PPC_e200z6 = 0x8115,
-  PPC_PSIM = 0xfffe,  /* GDB PowerPC simulator -- fake version */
+  PPC_e200z0  = 0x8171,
+  PPC_e200z1  = 0x8144,
+  PPC_e200z6  = 0x8112,
+  PPC_e200z6v5= 0x8115,
+  PPC_PSIM    = 0xfffe,  /* GDB PowerPC simulator -- fake version */
   PPC_UNKNOWN = 0xffff
 } ppc_cpu_id_t;
 
@@ -62,7 +69,7 @@ typedef enum
  * below.
  */
 
-typedef struct { 
+typedef struct {
 	unsigned has_altivec		: 1;
 	unsigned has_fpu			: 1;
 	unsigned has_hw_ptbl_lkup	: 1;
@@ -75,7 +82,9 @@ typedef struct {
 	unsigned has_8_bats			: 1;
 	unsigned has_epic           : 1;
 	unsigned has_shadowed_gprs  : 1;
-	unsigned has_ivpr_and_ivor  : 1;
+	unsigned has_ivpr           : 1;
+	unsigned has_ivor           : 1;
+	unsigned has_hwivor         : 1;
 } ppc_feature_t;
 
 extern ppc_feature_t   current_ppc_features;
@@ -104,19 +113,41 @@ _PPC_FEAT_DECL(is_60x)
 _PPC_FEAT_DECL(has_8_bats)
 _PPC_FEAT_DECL(has_epic)
 _PPC_FEAT_DECL(has_shadowed_gprs)
-_PPC_FEAT_DECL(has_ivpr_and_ivor)
+_PPC_FEAT_DECL(has_ivpr)
+_PPC_FEAT_DECL(has_ivor)
+_PPC_FEAT_DECL(has_hwivor)
+
+#undef _PPC_FEAT_DECL
+
+static inline unsigned ppc_cpu_has_ivpr_and_ivor() { \
+  return ppc_cpu_has_ivpr() 
+    && (ppc_cpu_has_ivor() || ppc_cpu_has_hwivor());
+}
+
+static inline ppc_cpu_id_t ppc_cpu_current(void)
+{
+	return current_ppc_cpu;
+}
 
 static inline bool ppc_cpu_is_e300()
 {
-	if (current_ppc_cpu == PPC_UNKNOWN) {
+	if (ppc_cpu_current() == PPC_UNKNOWN) {
 		get_ppc_cpu_type();
 	}
-	return current_ppc_cpu == PPC_e300c1
-		|| current_ppc_cpu == PPC_e300c2
-		|| current_ppc_cpu == PPC_e300c3;
+	return ppc_cpu_current() == PPC_e300c1
+		|| ppc_cpu_current() == PPC_e300c2
+		|| ppc_cpu_current() == PPC_e300c3;
 }
 
-#undef _PPC_FEAT_DECL
+static inline bool ppc_cpu_is(ppc_cpu_id_t cpu)
+{
+	return ppc_cpu_current() == cpu;
+}
+
 #endif /* ASM */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

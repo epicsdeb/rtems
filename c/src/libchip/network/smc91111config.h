@@ -1,5 +1,5 @@
 /*
- *  $Id: smc91111config.h,v 1.3 2006/01/12 06:13:03 ralf Exp $
+ *  $Id: smc91111config.h,v 1.5 2008/12/16 21:58:18 joel Exp $
  */
 
 #ifndef _SMC91111_CONFIG_H_
@@ -40,7 +40,7 @@
 
 /* ----------------- compat layer ----------------- */
 
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 typedef uint32_t  CYG_WORD;
 typedef uint8_t   CYG_BYTE;
@@ -114,7 +114,7 @@ typedef uint32_t  CYG_WORD32;
 
 #define CYG_ASSERT(c,p) do { if (!(c)) { while(1) { printf(p);} }; } while(0)
 
-#define HAL_DELAY_US(p) rtems_task_wake_after (TOD_MICROSECONDS_TO_TICKS (p))
+#define HAL_DELAY_US(p) rtems_task_wake_after (RTEMS_MICROSECONDS_TO_TICKS (p))
 
 
 #endif  /* _SMC_91111_CONFIG_H_ */

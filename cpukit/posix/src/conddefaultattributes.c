@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: conddefaultattributes.c,v 1.4 2007/12/17 16:19:13 joel Exp $
+ *  $Id: conddefaultattributes.c,v 1.5 2009/02/03 10:10:43 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,6 +30,6 @@
  */
 
 const pthread_condattr_t _POSIX_Condition_variables_Default_attributes = {
-  TRUE,                      /* is_initialized */
+  true,                      /* is_initialized */
   PTHREAD_PROCESS_PRIVATE    /* process_shared */
 };

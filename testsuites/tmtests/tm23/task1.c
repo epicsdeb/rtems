@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -34,6 +33,7 @@ rtems_task High_task(
   rtems_task_argument argument
 );
 
+int operation_count = OPERATION_COUNT;
 
 rtems_task Init(
   rtems_task_argument argument
@@ -41,7 +41,7 @@ rtems_task Init(
 {
 
   rtems_task_priority priority;
-  uint32_t      index;
+  int                 index;
   rtems_id            id;
   rtems_task_entry    task_entry;
   rtems_status_code   status;
@@ -55,9 +55,11 @@ rtems_task Init(
       (void) benchmark_timer_empty_function();
   overhead = benchmark_timer_read();
 
-  priority = 5;
+  priority = 2;
+  if ( OPERATION_COUNT > RTEMS_MAXIMUM_PRIORITY - 2 )
+    operation_count =  RTEMS_MAXIMUM_PRIORITY - 2;
 
-  for( index=1 ; index <= OPERATION_COUNT ; index++ ) {
+  for( index=1 ; index <= operation_count ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'T', 'I', 'M', 'E' ),
       priority,
@@ -69,7 +71,7 @@ rtems_task Init(
     directive_failed( status, "rtems_task_create LOOP" );
 
     if ( index == 1 )                    task_entry = High_task;
-    else if ( index == OPERATION_COUNT ) task_entry = Low_task;
+    else if ( index == operation_count ) task_entry = Low_task;
     else                                 task_entry = Middle_tasks;
 
     status = rtems_task_start( id, task_entry, 0 );
@@ -291,7 +293,7 @@ rtems_task Low_task(
   put_time(
     "rtems_task_wake_when",
     end_time,
-    OPERATION_COUNT,
+    operation_count,
     0,
     CALLING_OVERHEAD_TASK_WAKE_WHEN
   );

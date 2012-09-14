@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_mallocinfo.c,v 1.6 2008/03/05 02:49:35 joel Exp $
+ *  $Id: main_mallocinfo.c,v 1.7 2008/09/19 16:15:21 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,6 +23,7 @@
 #include "internal.h"
 
 extern int malloc_info( region_information_block * );
+extern void rtems_shell_print_unified_work_area_message(void);
 
 int rtems_shell_main_malloc_info(
   int   argc,
@@ -30,6 +31,8 @@ int rtems_shell_main_malloc_info(
 )
 {
   if ( argc == 2 ) {
+    rtems_shell_print_unified_work_area_message();
+
     if ( !strcmp( argv[1], "info" ) ) {
       region_information_block info;
 

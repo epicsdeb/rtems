@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.14 2007/12/11 15:49:57 joel Exp $
+ *  $Id: bsp.h,v 1.17 2008/09/24 21:26:42 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -26,6 +26,10 @@ extern "C" {
 #include <rtems/iosupp.h>
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
+
+/* support for simulated clock tick */
+Thread clock_driver_sim_idle_body(uintptr_t);
+#define BSP_IDLE_TASK_BODY clock_driver_sim_idle_body
 
 /*
  *  Simple spin delay in microsecond units for device drivers.
@@ -43,26 +47,6 @@ extern "C" {
                   : "=d" (_tmp), "=d" (_delay) \
                   : "0"  (_tmp), "1"  (_delay) ); \
   }
-
-/* Constants */
-
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* functions */
-
-void bsp_cleanup( void );
 
 #ifdef __cplusplus
 }

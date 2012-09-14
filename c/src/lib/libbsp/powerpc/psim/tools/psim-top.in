@@ -9,7 +9,7 @@
 #  found in found in the file LICENSE in this distribution or at
 #  http://www.rtems.com/license/LICENSE.
 #
-#  $Id: psim-top.in,v 1.2.2.2 2008/12/04 20:27:35 joel Exp $
+#  $Id: psim-top.in,v 1.5 2009/09/11 22:42:00 strauman Exp $
 #
 
 TREE_FILE=psim_tree.${LOGNAME}
@@ -20,9 +20,12 @@ progname=${0##*/}        # fast basename hack for ksh, bash
 
 USAGE=\
 "usage: $progname [ -opts ] test [ test ... ]
-	-v	   -- verbose
-	-s	   -- force System V IPC support on (default=auto)
-        -l limit   -- specify time limit (default is 'no limit')
+	-v         -- verbose
+	-h         -- this message
+	-s         -- force System V IPC support on (default=auto)
+	-l limit   -- specify time limit (default is 'no limit')
+	-d         -- generate device tree as 'test'.device and exit
+	-n         -- enable NIC support ***REQUIRES PATCHED PSIM***
 "
 
 #   log an error to stderr

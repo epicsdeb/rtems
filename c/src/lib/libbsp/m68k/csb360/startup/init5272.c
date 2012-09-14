@@ -24,13 +24,18 @@
  *  found in the file LICENSE in this distribution or at
  *
  *  http://www.rtems.com/license/LICENSE.
- * 
- *  $Id: init5272.c,v 1.6 2008/08/19 11:17:11 ralf Exp $
+ *
+ *  $Id: init5272.c,v 1.8 2010/04/27 21:54:57 joel Exp $
  */
 
 #include <rtems.h>
 #include <bsp.h>
 #include <mcf5272/mcf5272.h>
+
+/* externs */
+extern void clear_bss(void);
+extern void start_csb360(void);
+extern void INTERRUPT_VECTOR(void);
 
 /* Set the pointers to the modules */
 sim_regs_t *g_sim_regs            = (void *) MCF5272_SIM_BASE(BSP_MBAR);
@@ -46,21 +51,6 @@ timer_regs_t *g_timer_regs        = (void *) MCF5272_TIMER_BASE(BSP_MBAR);
 plic_regs_t *g_plic_regs          = (void *) MCF5272_PLIC_BASE(BSP_MBAR);
 enet_regs_t *g_enet_regs          = (void *) MCF5272_ENET_BASE(BSP_MBAR);
 usb_regs_t *g_usb_regs            = (void *) MCF5272_USB_BASE(BSP_MBAR);
-
-#define m68k_set_cacr( _cacr ) \
-  asm volatile ( "movec %0,%%cacr\n\t" \
-                 "nop\n" \
-                 : : "d" (_cacr) )
-
-#define m68k_set_acr0( _acr0 ) \
-  asm volatile (  "movec %0,%%acr0\n\t" \
-                  "nop\n\t" \
-                  : : "d" (_acr0) )
-
-#define m68k_set_acr1( _acr1 ) \
-  asm volatile (  "movec %0,%%acr1\n\t" \
-                  "nop\n\t" \
-                  : : "d" (_acr1) )
 
 #define m68k_set_srambar( _rambar0 ) \
   asm volatile (  "movec %0,%%rambar0\n\t" \
@@ -96,9 +86,6 @@ usb_regs_t *g_usb_regs            = (void *) MCF5272_USB_BASE(BSP_MBAR);
 void
 init5272(void)
 {
-    extern void clear_bss(void);
-    extern void start_csb360(void);
-
     /* Invalidate the cache - WARNING: It won't complete for 64 clocks */
     m68k_set_cacr(MCF5272_CACR_CINV);
 
@@ -107,12 +94,12 @@ init5272(void)
 
     /* Set RAM Base Address register */
     m68k_set_srambar((BSP_RAMBAR & MCF5272_RAMBAR_BA) | MCF5272_RAMBAR_V);
-    
+
     /* Set System Control Register:
      * Enet has highest priority, 16384 bus cycles before timeout
      */
     g_sim_regs->scr = (MCF5272_SCR_HWR_16384);
-    
+
     /* System Protection Register:
      * Enable Hardware watchdog timer.
      */
@@ -126,7 +113,6 @@ init5272(void)
 
     /* Copy the interrupt vector table to SRAM */
     {
-        extern void INTERRUPT_VECTOR(void);
         uint32_t *inttab = (uint32_t *)&INTERRUPT_VECTOR;
         uint32_t *intvec = (uint32_t *)BSP_RAMBAR;
         register int i;
@@ -136,8 +122,8 @@ init5272(void)
         }
     }
     m68k_set_vbr(BSP_RAMBAR);
-    
-    
+
+
     /*
      * Setup ACRs so that if cache turned on, periphal accesses
      * are not messed up.  (Non-cacheable, serialized)
@@ -158,7 +144,7 @@ init5272(void)
     /* Enable the caches */
     m68k_set_cacr(MCF5272_CACR_CENB |
                   MCF5272_CACR_DCM);       /* Default is not cached */
-  
+
   /*
    * Copy data, clear BSS, switch stacks and call boot_card()
    */

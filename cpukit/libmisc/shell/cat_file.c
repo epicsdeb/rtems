@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cat_file.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: cat_file.c,v 1.5 2008/12/18 15:25:27 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 
-int rtems_shell_cat_file(FILE * out,char * name) {
+int rtems_shell_cat_file(FILE * out,const char * name) {
   FILE * fd;
   int c;
 

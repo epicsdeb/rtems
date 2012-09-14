@@ -31,7 +31,7 @@
  */
  
 /*
- * $Id: in.h,v 1.17 2007/05/09 16:35:02 ralf Exp $
+ * $Id: in.h,v 1.20 2009/01/03 08:05:59 ralf Exp $
  */
 
 #ifndef _NETINET_IN_H_
@@ -39,6 +39,11 @@
 
 #include <rtems/bsdnet/_types.h>
 #include <rtems/endian.h>
+
+#ifndef _IN_ADDR_T_DECLARED
+typedef uint32_t        	in_addr_t;
+#define _IN_ADDR_T_DECLARED
+#endif
 
 /* Protocols common to RFC 1700, POSIX, and X/Open. */
 #define	IPPROTO_IP		0		/* dummy for IP */
@@ -62,7 +67,7 @@ typedef	__sa_family_t		sa_family_t;
 /* Internet address (a structure for historical reasons). */
 #ifndef _STRUCT_IN_ADDR_DECLARED
 struct in_addr {
-	u_long s_addr;
+	in_addr_t s_addr;
 };
 #define _STRUCT_IN_ADDR_DECLARED
 #endif
@@ -216,8 +221,7 @@ struct sockaddr_in {
  *
  * The value IP_PORTRANGE_HIGH changes the range of candidate port numbers
  * into the "high" range.  These are reserved for client outbound connections
- * which do not want to be filtered by any firewalls.  Note that by default
- * this is the same as IP_PORTRANGE_DEFAULT.
+ * which do not want to be filtered by any firewalls.
  *
  * The value IP_PORTRANGE_LOW changes the range to the "low" are
  * that is (by convention) restricted to privileged processes.  This
@@ -300,18 +304,6 @@ struct sockaddr_in {
 #define	INADDR_MAX_LOCAL_GROUP	(u_int32_t)0xe00000ff	/* 224.0.0.255 */
 
 #define	IN_LOOPBACKNET		(u_int32_t)127			/* official! */
-
-/*
- * Structure used to describe IP options.
- * Used to store options internally, to pass them to a process,
- * or to restore options retrieved earlier.
- * The ip_dst is used for the first-hop gateway when using a source route
- * (this gets put into the header proper).
- */
-struct ip_opts {
-	struct	in_addr ip_dst;		/* first hop, 0 w/o src rt */
-	char	ip_opts[40];		/* actually variable in size */
-};
 
 /*
  * Options for use with [gs]etsockopt at the IP level.
@@ -440,6 +432,7 @@ struct ip_mreq {
 
 
 #ifdef _KERNEL
+
 struct ifnet; struct mbuf;	/* forward declarations for Standard C */
 
 int	 in_broadcast(struct in_addr, struct ifnet *);

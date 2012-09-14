@@ -29,7 +29,7 @@
  *      i-cubed limited makes no representations about the suitability
  *      of this software for any purpose.
  *
- *  $Id: dlentry.S,v 1.2 2008/07/22 05:47:31 strauman Exp $
+ *  $Id: dlentry.S,v 1.5 2010/03/27 21:05:15 thomas Exp $
  *
  *  derived from "helas403/dlentry.S":
  *  Id: dlentry.S,v 1.2 2000/08/02 16:30:57 joel Exp
@@ -111,7 +111,7 @@ text_length:
 	lis	r2,__vectors@h          /* set EVPR exc. vector prefix */
 #else
 	lis	r2,0
-#endif		
+#endif
 	mtspr	evpr,r2
 
         /*-------------------------------------------------------------------

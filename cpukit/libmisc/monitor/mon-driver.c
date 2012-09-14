@@ -16,7 +16,7 @@
  *  Drivers are displayed with 'driver' command.
  *  Names are displayed with 'name' command.
  *
- *  $Id: mon-driver.c,v 1.15 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-driver.c,v 1.18 2009/10/02 15:54:47 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -62,12 +62,12 @@ rtems_monitor_driver_canonical(
 
 void *
 rtems_monitor_driver_next(
-    void                  *object_info,
+    void                  *object_info __attribute__((unused)),
     rtems_monitor_driver_t *canonical_driver,
     rtems_id              *next_id
 )
 {
-    rtems_configuration_table *c = _Configuration_Table;
+    rtems_configuration_table *c = &Configuration;
     uint32_t   n = rtems_object_id_get_index(*next_id);
 
     if (n >= c->number_of_device_drivers)
@@ -93,7 +93,7 @@ failed:
 
 void
 rtems_monitor_driver_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\
@@ -111,8 +111,11 @@ rtems_monitor_driver_dump(
 {
     uint32_t            length = 0;
 
+#if defined(RTEMS_USE_16_BIT_OBJECT)
+    length += fprintf(stdout,"  %" PRId16 "", monitor_driver->id);
+#else
     length += fprintf(stdout,"  %" PRId32 "", monitor_driver->id);
-
+#endif
     length += rtems_monitor_pad(13, length);
     length += fprintf(stdout,"init: ");
     length += rtems_monitor_symbol_dump(&monitor_driver->initialization, verbose);

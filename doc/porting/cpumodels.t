@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: cpumodels.t,v 1.10.8.1 2008/09/10 15:58:58 joel Exp $
+@c  $Id: cpumodels.t,v 1.10 2004/09/29 20:22:30 joel Exp $
 @c
 
 @chapter CPU Model Variations
@@ -47,6 +47,8 @@ has been ported to a variety of microprocessor families including:
 @item SPARC
 @item Hitachi H8/300
 @item Hitachi SH
+@item OpenCores OR32
+@item Texas Instruments C3x/C4x
 
 @end itemize
 

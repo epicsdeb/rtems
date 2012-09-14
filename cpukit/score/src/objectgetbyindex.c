@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectgetbyindex.c,v 1.7 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: objectgetbyindex.c,v 1.8 2008/12/21 21:28:05 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -50,11 +50,14 @@
 
 Objects_Control *_Objects_Get_by_index(
   Objects_Information *information,
-  uint32_t             index,
+  Objects_Id           id,
   Objects_Locations   *location
 )
 {
   Objects_Control *the_object;
+  uint16_t         index;
+
+  index = _Objects_Get_index( id );
 
   if ( information->maximum >= index ) {
     _Thread_Disable_dispatch();

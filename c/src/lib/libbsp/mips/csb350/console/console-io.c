@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console-io.c,v 1.3 2007/03/12 11:17:50 joel Exp $
+ *  $Id: console-io.c,v 1.5 2009/11/29 15:27:06 ralf Exp $
  */
 
 #include <bsp.h>
@@ -47,13 +47,13 @@ void console_outbyte_polled(
     while ((uart0->linestat & 0x20) == 0) {
         continue;
     }
-    
+
     uart0->txdata = ch;
     au_sync();
 }
 
 /*
- *  console_inbyte_nonblocking 
+ *  console_inbyte_nonblocking
  *
  *  This routine polls for a character.
  */
@@ -74,14 +74,19 @@ int console_inbyte_nonblocking(
 
 #include <rtems/bspIo.h>
 
-void csb250_output_char(char c) 
-{ 
-    console_outbyte_polled( 0, c ); 
+void csb250_output_char(char c)
+{
+    console_outbyte_polled( 0, c );
     if (c == '\n') {
-        console_outbyte_polled( 0, '\r' ); 
+        console_outbyte_polled( 0, '\r' );
     }
 }
 
+int csb250_get_char(void)
+{
+  return console_inbyte_nonblocking(0);
+}
+
 BSP_output_char_function_type           BSP_output_char = csb250_output_char;
-BSP_polling_getchar_function_type       BSP_poll_char = NULL;
+BSP_polling_getchar_function_type       BSP_poll_char = csb250_get_char;
 

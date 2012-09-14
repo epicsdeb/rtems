@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tcsendbreak.c,v 1.5 2003/09/04 18:54:13 joel Exp $
+ *  $Id: tcsendbreak.c,v 1.6 2009/09/15 09:42:46 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -26,7 +26,9 @@
 
 #include <rtems/libio.h>
 
-int tcsendbreak ( int fd, int duration )
+int tcsendbreak (
+  int fd __attribute__((unused)),
+  int duration __attribute__((unused)) )
 {
   return 0;
 }

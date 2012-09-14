@@ -10,7 +10,7 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@skatter.usask.ca
  *
- *  $Id: bsp.h,v 1.30 2008/07/11 10:00:41 thomas Exp $
+ *  $Id: bsp.h,v 1.34 2009/11/29 14:59:40 ralf Exp $
  */
 
 /*  bsp.h
@@ -61,29 +61,9 @@ extern int rtems_scc1_driver_attach (struct rtems_bsdnet_ifconfig *config, int a
                   : "0"  (_tmp), "1"  (_delay) ); \
   }
 
-/* Constants */
-
-/* Structures */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
-
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 
 /* functions */
-
-void bsp_cleanup( void );
 
 void M360ExecuteRISC( uint16_t         command );
 void *M360AllocateBufferDescriptors( int count );
@@ -99,13 +79,6 @@ m68k_isr_entry set_vector(
 );
 
 /*
- * Values assigned by link editor
- */
-extern char _RamBase[];
-extern char _HeapSize[];
-
-
-/*
  * Definitions for Atlas Computer Equipment Inc. High Speed Bridge (HSB)
  */
 #define ATLASHSB_ESR    0x20010000L
@@ -115,18 +88,18 @@ extern char _HeapSize[];
 #define ATLASHSB_ROM_U6 0xFF080000L	/* U6 flash ROM socket */
 
 
-  /*
-   * definitions for PGH360 board
-   */
+/*
+ * definitions for PGH360 board
+ */
 #if defined(PGH360)
-/* 
+/*
  * logical SPI addresses of SPI slaves available
  */
 #define PGH360_SPI_ADDR_EEPROM     0
 #define PGH360_SPI_ADDR_DISP4_DATA 1
 #define PGH360_SPI_ADDR_DISP4_CTRL 2
 
-/* 
+/*
  * Port B bit locations of SPI slave selects
  */
 #define PGH360_PB_SPI_DISP4_RS_MSK   (1<<15)

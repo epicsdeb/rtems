@@ -11,7 +11,7 @@
  *      Jay Monkman <jmonkman@adventnetworks.com>
  *
  *  This is a simple implement of abort
- *   
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
@@ -56,7 +56,7 @@ char *_print_full_context_mode2txt[0x10]={
 void _print_full_context(uint32_t spsr)
 {
   char *mode;
-  uint32_t prev_sp,prev_lr,cpsr,tmp;
+  uint32_t prev_sp,prev_lr,cpsr,arm_switch_reg;
   int i, j;
 
   printk("active thread thread 0x%08x\n", _Thread_Executing->Object.id);
@@ -64,25 +64,20 @@ void _print_full_context(uint32_t spsr)
   mode=_print_full_context_mode2txt[(spsr&0x1f)-0x10];
   if(!mode) mode="unknown";
 
-#if defined(__thumb__)
-  asm volatile (" .code 16 \n" \
-                "adr %[tmp], arm_code \n" \
-                "bx  %[tmp]           \n" \
-                "nop                  \n" \
-                ".code 32             \n" \
-                "arm_code:            \n" \
-                : [tmp]"=&r" (tmp) );
-#endif
-  asm volatile ("	MRS  %[cpsr], cpsr \n"
-            "	ORR  %[tmp], %[spsr], #0xc0 \n"
-            "	MSR  cpsr_c, %[tmp] \n"
-            "	MOV  %[prev_sp], sp \n"
-            "	MOV  %[prev_lr], lr \n"
-            "	MSR  cpsr_c, %[cpsr] \n"
-            : [prev_sp] "=&r" (prev_sp), [prev_lr] "=&r" (prev_lr),
-              [cpsr] "=&r" (cpsr), [tmp] "=&r" (tmp)
-            : [spsr] "r" (spsr)
-            : "cc");
+  asm volatile (
+    ARM_SWITCH_TO_ARM
+    "mrs %[cpsr], cpsr\n"
+    "orr %[arm_switch_reg], %[spsr], #0xc0\n"
+    "msr cpsr_c, %[arm_switch_reg]\n"
+    "mov %[prev_sp], sp\n"
+    "mov %[prev_lr], lr\n"
+    "msr cpsr_c, %[cpsr]\n"
+    ARM_SWITCH_BACK
+    : [prev_sp] "=&r" (prev_sp), [prev_lr] "=&r" (prev_lr),
+      [cpsr] "=&r" (cpsr), [arm_switch_reg] "=&r" (arm_switch_reg)
+    : [spsr] "r" (spsr)
+    : "cc"
+  );
 
   printk(
     "Previous sp=0x%08x lr=0x%08x and actual cpsr=%08x\n",
@@ -104,7 +99,7 @@ void _print_full_context(uint32_t spsr)
 }
 
 
-/* This function is supposed to figure out what caused the 
+/* This function is supposed to figure out what caused the
  * data abort, do that, then return.
  *
  * All unhandled instructions cause the system to hang.
@@ -112,7 +107,7 @@ void _print_full_context(uint32_t spsr)
 
 void do_data_abort(
   uint32_t         insn,
-  uint32_t         spsr, 
+  uint32_t         spsr,
   Context_Control *ctx
 )
 {
@@ -154,7 +149,7 @@ void do_data_abort(
     printk("\n\nUnrecognized instruction\n");
     break;
   }
-    
+
   printk("data_abort at address 0x%x, instruction: 0x%x,   spsr = 0x%x\n",
          ctx->register_lr - 8, insn, spsr);
 

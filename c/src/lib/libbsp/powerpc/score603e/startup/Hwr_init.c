@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: Hwr_init.c,v 1.8.2.2 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: Hwr_init.c,v 1.11 2009/05/05 16:24:04 jennifer Exp $
  */
 
 #include <bsp.h>
@@ -113,7 +113,7 @@ void init_PCI(void)
       ); \
   } while (0)
 
-void instruction_cache_enable ()
+void instruction_cache_enable (void)
 {
   uint32_t         value;
 
@@ -128,7 +128,7 @@ void instruction_cache_enable ()
   PPC_Set_HID0( value );
 }
 
-void data_cache_enable ()
+void data_cache_enable (void)
 {
   uint32_t         value;
 

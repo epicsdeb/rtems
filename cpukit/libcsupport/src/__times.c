@@ -1,14 +1,14 @@
 /*
  *  times() - POSIX 1003.1b 4.5.2 - Get Process Times
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: __times.c,v 1.17 2008/06/06 15:44:11 joel Exp $
+ *  $Id: __times.c,v 1.24 2009/12/02 18:22:18 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,8 +22,8 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <assert.h>
-#ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-  #include <rtems/score/timespec.h>
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+  #include <rtems/score/timestamp.h>
 #endif
 
 clock_t _times(
@@ -41,7 +41,7 @@ clock_t _times(
    *  This call does not depend on TOD being initialized and can't fail.
    */
 
-  (void) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &ticks );
+  ticks = rtems_clock_get_ticks_since_boot();
 
   /*
    *  RTEMS technically has no notion of system versus user time
@@ -51,18 +51,21 @@ clock_t _times(
    *  this thread.
    */
 
-  #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+  #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
     {
-      struct timespec per_tick;
-      uint32_t ticks;
-      uint32_t fractional_ticks;
-      
-      per_tick.tv_sec =
-        _TOD_Microseconds_per_tick / TOD_MILLISECONDS_PER_SECOND;
-      per_tick.tv_nsec =
-        (_TOD_Microseconds_per_tick % TOD_MILLISECONDS_PER_SECOND) / 1000;
+      Timestamp_Control per_tick;
+      uint32_t          ticks;
+      uint32_t          fractional_ticks;
 
-      _Timespec_Divide(
+      _Timestamp_Set(
+        &per_tick,
+        rtems_configuration_get_microseconds_per_tick() /
+            TOD_MICROSECONDS_PER_SECOND,
+        (rtems_configuration_get_nanoseconds_per_tick() %
+            TOD_NANOSECONDS_PER_SECOND)
+      );
+
+      _Timestamp_Divide(
         &_Thread_Executing->cpu_time_used,
         &per_tick,
         &ticks,
@@ -104,7 +107,7 @@ clock_t times(
 #include <reent.h>
 
 clock_t _times_r(
-   struct _reent *ptr,
+   struct _reent *ptr __attribute__((unused)),
    struct tms  *ptms
 )
 {

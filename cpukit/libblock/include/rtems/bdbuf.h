@@ -1,16 +1,21 @@
 /**
- * @file rtems/bdbuf.h
+ * @file
  *
- * Block Device Buffer Management
+ * @ingroup rtems_bdbuf
+ *
+ * Block device buffer management.
  */
- 
+
 /*
  * Copyright (C) 2001 OKTET Ltd., St.-Petersburg, Russia
  * Author: Victor V. Vengerov <vvv@oktet.ru>
  *
- * Copyright (C) 2008 Chris Johns <chrisj@rtems.org>
+ * Copyright (C) 2008,2009 Chris Johns <chrisj@rtems.org>
  *    Rewritten to remove score mutex access. Fixes many performance
  *    issues.
+ *    Change to support demand driven variable buffer sizes.
+ *
+ * Copyright (c) 2009 embedded brains GmbH.
  *
  * @(#) bdbuf.h,v 1.9 2005/02/02 00:06:18 joel Exp
  */
@@ -29,151 +34,414 @@
 extern "C" {
 #endif
 
+/**
+ * @defgroup rtems_libblock Block Device Library
+ *
+ * Block device modules.
+ */
 
 /**
- * State of a buffer in the cache.
+ * @defgroup rtems_bdbuf Block Device Buffer Management
+ *
+ * @ingroup rtems_libblock
+ *
+ * The Block Device Buffer Management implements a cache between the disk
+ * devices and file systems.  The code provides read ahead and write queuing to
+ * the drivers and fast cache look-up using an AVL tree.
+ *
+ * The block size used by a file system can be set at runtime and must be a
+ * multiple of the disk device block size.  The disk device's physical block
+ * size is called the media block size.  The file system can set the block size
+ * it uses to a larger multiple of the media block size.  The driver must be
+ * able to handle buffers sizes larger than one media block.
+ *
+ * The user configures the amount of memory to be used as buffers in the cache,
+ * and the minimum and maximum buffer size.  The cache will allocate additional
+ * memory for the buffer descriptors and groups.  There are enough buffer
+ * descriptors allocated so all the buffer memory can be used as minimum sized
+ * buffers.
+ *
+ * The cache is a single pool of buffers.  The buffer memory is divided into
+ * groups where the size of buffer memory allocated to a group is the maximum
+ * buffer size.  A group's memory can be divided down into small buffer sizes
+ * that are a multiple of 2 of the minimum buffer size.  A group is the minimum
+ * allocation unit for buffers of a specific size.  If a buffer of maximum size
+ * is request the group will have a single buffer.  If a buffer of minimum size
+ * is requested the group is divided into minimum sized buffers and the
+ * remaining buffers are held ready for use.  A group keeps track of which
+ * buffers are with a file system or driver and groups who have buffer in use
+ * cannot be realloced.  Groups with no buffers in use can be taken and
+ * realloced to a new size.  This is how buffers of different sizes move around
+ * the cache.
+
+ * The buffers are held in various lists in the cache.  All buffers follow this
+ * state machine:
+ *
+ * @dot
+ * digraph state {
+ *   size="16,8";
+ *   f [label="FREE",style="filled",fillcolor="aquamarine"];
+ *   e [label="EMPTY",style="filled",fillcolor="seagreen"];
+ *   c [label="CACHED",style="filled",fillcolor="chartreuse"];
+ *   ac [label="ACCESS CACHED",style="filled",fillcolor="royalblue"];
+ *   am [label="ACCESS MODIFIED",style="filled",fillcolor="royalblue"];
+ *   ae [label="ACCESS EMPTY",style="filled",fillcolor="royalblue"];
+ *   ap [label="ACCESS PURGED",style="filled",fillcolor="royalblue"];
+ *   t [label="TRANSFER",style="filled",fillcolor="red"];
+ *   tp [label="TRANSFER PURGED",style="filled",fillcolor="red"];
+ *   s [label="SYNC",style="filled",fillcolor="red"];
+ *   m [label="MODIFIED",style="filled",fillcolor="gold"];
+ *   i [label="INITIAL"];
+ *
+ *   legend_transfer [label="Transfer Wake-Up",fontcolor="red",shape="none"];
+ *   legend_access [label="Access Wake-Up",fontcolor="royalblue",shape="none"];
+ *
+ *   i -> f [label="Init"];
+ *   f -> e [label="Buffer Recycle"];
+ *   e -> ae [label="Get"];
+ *   e -> t [label="Read"];
+ *   e -> f [label="Nobody Waits"];
+ *   c -> ac [label="Get\nRead"];
+ *   c -> e [label="Buffer Recycle\nPurge"];
+ *   c -> f [label="Reallocate\nBlock Size Changed"];
+ *   t -> c [label="Transfer Done",color="red",fontcolor="red"];
+ *   t -> e [label="Transfer Error",color="red",fontcolor="red"];
+ *   t -> tp [label="Purge"];
+ *   tp -> e [label="Transfer Done\nTransfer Error",color="red",fontcolor="red"];
+ *   m -> t [label="Swapout"];
+ *   m -> s [label="Block Size Changed"];
+ *   m -> am [label="Get\nRead"];
+ *   m -> e [label="Purge"];
+ *   ac -> m [label="Release Modified",color="royalblue",fontcolor="royalblue"];
+ *   ac -> s [label="Sync",color="royalblue",fontcolor="royalblue"];
+ *   ac -> c [label="Release",color="royalblue",fontcolor="royalblue"];
+ *   ac -> ap [label="Purge"];
+ *   am -> m [label="Release\nRelease Modified",color="royalblue",fontcolor="royalblue"];
+ *   am -> s [label="Sync",color="royalblue",fontcolor="royalblue"];
+ *   am -> ap [label="Purge"];
+ *   ae -> m [label="Release Modified",color="royalblue",fontcolor="royalblue"];
+ *   ae -> s [label="Sync",color="royalblue",fontcolor="royalblue"];
+ *   ae -> e [label="Release",color="royalblue",fontcolor="royalblue"];
+ *   ae -> ap [label="Purge"];
+ *   ap -> e [label="Release\nRelease Modified\nSync",color="royalblue",fontcolor="royalblue"];
+ *   s -> t [label="Swapout"];
+ *   s -> e [label="Purge",color="red",fontcolor="red"];
+ * }
+ * @enddot
+ *
+ * Empty or cached buffers are added to the LRU list and removed from this
+ * queue when a caller requests a buffer.  This is referred to as getting a
+ * buffer in the code and the event get in the state diagram.  The buffer is
+ * assigned to a block and inserted to the AVL based on the block/device key.
+ * If the block is to be read by the user and not in the cache it is transfered
+ * from the disk into memory.  If no buffers are on the LRU list the modified
+ * list is checked.  If buffers are on the modified the swap out task will be
+ * woken.  The request blocks until a buffer is available for recycle.
+ *
+ * A block being accessed is given to the file system layer and not accessible
+ * to another requester until released back to the cache.  The same goes to a
+ * buffer in the transfer state.  The transfer state means being read or
+ * written.  If the file system has modifed the block and releases it as
+ * modified it placed on the cache's modified list and a hold timer
+ * initialised.  The buffer is held for the hold time before being written to
+ * disk.  Buffers are held for a configurable period of time on the modified
+ * list as a write sets the state to transfer and this locks the buffer out
+ * from the file system until the write completes.  Buffers are often accessed
+ * and modified in a series of small updates so if sent to the disk when
+ * released as modified the user would have to block waiting until it had been
+ * written.  This would be a performance problem.
+ *
+ * The code performs multiple block reads and writes.  Multiple block reads or
+ * read ahead increases performance with hardware that supports it.  It also
+ * helps with a large cache as the disk head movement is reduced.  It however
+ * is a speculative operation so excessive use can remove valuable and needed
+ * blocks from the cache.
+ *
+ * The cache has the following lists of buffers:
+ *  - LRU: Accessed or transfered buffers released in least recently used
+ *  order.  Empty buffers will be placed to the front.
+ *  - Modified: Buffers waiting to be written to disk.
+ *  - Sync: Buffers to be synchronized with the disk.
+ *
+ * A cache look-up will be performed to find a suitable buffer.  A suitable
+ * buffer is one that matches the same allocation size as the device the buffer
+ * is for.  The a buffer's group has no buffers in use with the file system or
+ * driver the group is reallocated.  This means the buffers in the group are
+ * invalidated, resized and placed on the LRU queue.  There is a performance
+ * issue with this design.  The reallocation of a group may forced recently
+ * accessed buffers out of the cache when they should not.  The design should be
+ * change to have groups on a LRU list if they have no buffers in use.
+ *
+ * @{
+ */
+
+/**
+ * @brief State of a buffer of the cache.
+ *
+ * The state has several implications.  Depending on the state a buffer can be
+ * in the AVL tree, in a list, in use by an entity and a group user or not.
+ *
+ * <table>
+ *   <tr>
+ *     <th>State</th><th>Valid Data</th><th>AVL Tree</th>
+ *     <th>LRU List</th><th>Modified List</th><th>Synchronization List</th>
+ *     <th>Group User</th><th>External User</th>
+ *   </tr>
+ *   <tr>
+ *     <td>FREE</td><td></td><td></td>
+ *     <td>X</td><td></td><td></td><td></td><td></td>
+ *   </tr>
+ *   <tr>
+ *     <td>EMPTY</td><td></td><td>X</td>
+ *     <td></td><td></td><td></td><td></td><td></td>
+ *   </tr>
+ *   <tr>
+ *     <td>CACHED</td><td>X</td><td>X</td>
+ *     <td>X</td><td></td><td></td><td></td><td></td>
+ *   </tr>
+ *   <tr>
+ *     <td>ACCESS CACHED</td><td>X</td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ *   <tr>
+ *     <td>ACCESS MODIFIED</td><td>X</td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ *   <tr>
+ *     <td>ACCESS EMPTY</td><td></td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ *   <tr>
+ *     <td>ACCESS PURGED</td><td></td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ *   <tr>
+ *     <td>MODIFIED</td><td>X</td><td>X</td>
+ *     <td></td><td>X</td><td></td><td>X</td><td></td>
+ *   </tr>
+ *   <tr>
+ *     <td>SYNC</td><td>X</td><td>X</td>
+ *     <td></td><td></td><td>X</td><td>X</td><td></td>
+ *   </tr>
+ *   <tr>
+ *     <td>TRANSFER</td><td>X</td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ *   <tr>
+ *     <td>TRANSFER PURGED</td><td></td><td>X</td>
+ *     <td></td><td></td><td></td><td>X</td><td>X</td>
+ *   </tr>
+ * </table>
  */
 typedef enum
 {
-  RTEMS_BDBUF_STATE_EMPTY = 0,            /*< Not in use. */
-  RTEMS_BDBUF_STATE_READ_AHEAD = 1,       /*< Holds read ahead data only */
-  RTEMS_BDBUF_STATE_CACHED = 2,           /*< In the cache and available */
-  RTEMS_BDBUF_STATE_ACCESS = 3,           /*< The user has the buffer */
-  RTEMS_BDBUF_STATE_MODIFIED = 4,         /*< In the cache but modified */
-  RTEMS_BDBUF_STATE_ACCESS_MODIFIED = 5,  /*< With the user but modified */
-  RTEMS_BDBUF_STATE_SYNC = 6,             /*< Requested to be sync'ed */
-  RTEMS_BDBUF_STATE_TRANSFER = 7          /*< Being transferred to or from disk */
+  /**
+   * @brief Free.
+   */
+  RTEMS_BDBUF_STATE_FREE = 0,
+
+  /**
+   * @brief Empty.
+   */
+  RTEMS_BDBUF_STATE_EMPTY,
+
+  /**
+   * @brief Cached.
+   */
+  RTEMS_BDBUF_STATE_CACHED,
+
+  /**
+   * @brief Accessed by upper layer with cached data.
+   */
+  RTEMS_BDBUF_STATE_ACCESS_CACHED,
+
+  /**
+   * @brief Accessed by upper layer with modified data.
+   */
+  RTEMS_BDBUF_STATE_ACCESS_MODIFIED,
+
+  /**
+   * @brief Accessed by upper layer with invalid data.
+   */
+  RTEMS_BDBUF_STATE_ACCESS_EMPTY,
+
+  /**
+   * @brief Accessed by upper layer with purged data.
+   */
+  RTEMS_BDBUF_STATE_ACCESS_PURGED,
+
+  /**
+   * @brief Modified by upper layer.
+   */
+  RTEMS_BDBUF_STATE_MODIFIED,
+
+  /**
+   * @brief Scheduled for synchronization.
+   */
+  RTEMS_BDBUF_STATE_SYNC,
+
+  /**
+   * @brief In transfer by block device driver.
+   */
+  RTEMS_BDBUF_STATE_TRANSFER,
+
+  /**
+   * @brief In transfer by block device driver and purged.
+   */
+  RTEMS_BDBUF_STATE_TRANSFER_PURGED
 } rtems_bdbuf_buf_state;
+
+/**
+ * Forward reference to the block.
+ */
+struct rtems_bdbuf_group;
+typedef struct rtems_bdbuf_group rtems_bdbuf_group;
 
 /**
  * To manage buffers we using buffer descriptors (BD). A BD holds a buffer plus
  * a range of other information related to managing the buffer in the cache. To
- * speed-up buffer lookup descriptors are organized in AVL-Tree.  The fields
+ * speed-up buffer lookup descriptors are organized in AVL-Tree. The fields
  * 'dev' and 'block' are search keys.
  */
 typedef struct rtems_bdbuf_buffer
 {
-  rtems_chain_node link;       /* Link in the BD onto a number of lists. */
+  rtems_chain_node link;       /**< Link the BD onto a number of lists. */
 
   struct rtems_bdbuf_avl_node
   {
-    signed char                cache;  /*< Cache */
-    struct rtems_bdbuf_buffer* left;   /*< Left Child */
-    struct rtems_bdbuf_buffer* right;  /*< Right Child */
-    signed char                bal;    /*< The balance of the sub-tree */
+    struct rtems_bdbuf_buffer* left;   /**< Left Child */
+    struct rtems_bdbuf_buffer* right;  /**< Right Child */
+    signed char                cache;  /**< Cache */
+    signed char                bal;    /**< The balance of the sub-tree */
   } avl;
 
-  dev_t             dev;        /*< device number */
-  rtems_blkdev_bnum block;      /*< block number on the device */
+  dev_t             dev;        /**< device number */
 
-  unsigned char*    buffer;     /*< Pointer to the buffer memory area */
-  int               error;      /*< If not 0 indicate an error value (errno)
-                                 * which can be used by user later */
+  rtems_blkdev_bnum block;      /**< block number on the device */
 
-  volatile rtems_bdbuf_buf_state state;  /*< State of the buffer. */
+  unsigned char*    buffer;     /**< Pointer to the buffer memory area */
 
-  volatile uint32_t waiters;    /*< The number of threads waiting on this
-                                 * buffer. */
-  rtems_bdpool_id pool;         /*< Identifier of buffer pool to which this buffer
-                                    belongs */
+  volatile rtems_bdbuf_buf_state state;  /**< State of the buffer. */
 
-  volatile uint32_t hold_timer; /*< Timer to indicate how long a buffer
-                                 * has been held in the cache modified. */
+  volatile uint32_t  waiters;    /**< The number of threads waiting on this
+                                  * buffer. */
+  rtems_bdbuf_group* group;      /**< Pointer to the group of BDs this BD is
+                                  * part of. */
+  volatile uint32_t  hold_timer; /**< Timer to indicate how long a buffer
+                                  * has been held in the cache modified. */
+
+  int   references;              /**< Allow reference counting by owner. */
+  void* user;                    /**< User data. */
 } rtems_bdbuf_buffer;
 
 /**
- * The groups of the blocks with the same size are collected in a pool. Note
- * that a several of the buffer's groups with the same size can exists.
+ * A group is a continuous block of buffer descriptors. A group covers the
+ * maximum configured buffer size and is the allocation size for the buffers to
+ * a specific buffer size. If you allocate a buffer to be a specific size, all
+ * buffers in the group, if there are more than 1 will also be that size. The
+ * number of buffers in a group is a multiple of 2, ie 1, 2, 4, 8, etc.
  */
-typedef struct rtems_bdbuf_pool
+struct rtems_bdbuf_group
 {
-  uint32_t            blksize;           /*< The size of the blocks (in bytes) */
-  uint32_t            nblks;             /*< Number of blocks in this pool */
-
-  uint32_t            flags;             /*< Configuration flags */
-
-  rtems_id            lock;              /*< The pool lock. Lock this data and
-                                          * all BDs. */
-  rtems_id            sync_lock;         /*< Sync calls lock writes. */
-  bool                sync_active;       /*< True if a sync is active. */
-  rtems_id            sync_requester;    /*< The sync requester. */
-  dev_t               sync_device;       /*< The device to sync */
-
-  rtems_bdbuf_buffer* tree;             /*< Buffer descriptor lookup AVL tree
-                                         * root */
-  rtems_chain_control ready;            /*< Free buffers list (or read-ahead) */
-  rtems_chain_control lru;              /*< Last recently used list */
-  rtems_chain_control modified;         /*< Modified buffers list */
-  rtems_chain_control sync;             /*< Buffers to sync list */
-
-  rtems_id            access;           /*< Obtain if waiting for a buffer in the
-                                         * ACCESS state. */
-  volatile uint32_t   access_waiters;   /*< Count of access blockers. */
-  rtems_id            transfer;         /*< Obtain if waiting for a buffer in the
-                                         * TRANSFER state. */
-  volatile uint32_t   transfer_waiters; /*< Count of transfer blockers. */
-  rtems_id            waiting;          /*< Obtain if waiting for a buffer and the
-                                         * none are available. */
-  volatile uint32_t   wait_waiters;     /*< Count of waiting blockers. */
-
-  rtems_bdbuf_buffer* bds;              /*< Pointer to table of buffer descriptors
-                                         * allocated for this buffer pool. */
-  void*               buffers;          /*< The buffer's memory. */
-} rtems_bdbuf_pool;
-
-/**
- * Configuration structure describes block configuration (size, amount, memory
- * location) for buffering layer pool.
- */
-typedef struct rtems_bdbuf_pool_config {
-  int            size;      /*< Size of block */
-  int            num;       /*< Number of blocks of appropriate size */
-  unsigned char* mem_area;  /*< Pointer to the blocks location or NULL, in this
-                             * case memory for blocks will be allocated by
-                             * Buffering Layer with the help of RTEMS partition
-                             * manager */
-} rtems_bdbuf_pool_config;
-
-/**
- * External references provided by the user for each pool in the system.
- */
-extern rtems_bdbuf_pool_config rtems_bdbuf_pool_configuration[];
-extern int                     rtems_bdbuf_pool_configuration_size;
+  rtems_chain_node    link;          /**< Link the groups on a LRU list if they
+                                      * have no buffers in use. */
+  size_t              bds_per_group; /**< The number of BD allocated to this
+                                      * group. This value must be a multiple of
+                                      * 2. */
+  uint32_t            users;         /**< How many users the block has. */
+  rtems_bdbuf_buffer* bdbuf;         /**< First BD this block covers. */
+};
 
 /**
  * Buffering configuration definition. See confdefs.h for support on using this
  * structure.
  */
 typedef struct rtems_bdbuf_config {
-  uint32_t            max_read_ahead_blocks; /*< Number of blocks to read ahead. */
-  uint32_t            max_write_blocks;      /*< Number of blocks to write at once. */
-  rtems_task_priority swapout_priority;      /*< Priority of the swap out task. */
-  uint32_t            swapout_period;        /*< Period swapout checks buf timers. */
-  uint32_t            swap_block_hold;       /*< Period a buffer is held. */
+  uint32_t            max_read_ahead_blocks;   /**< Number of blocks to read
+                                                * ahead. */
+  uint32_t            max_write_blocks;        /**< Number of blocks to write
+                                                * at once. */
+  rtems_task_priority swapout_priority;        /**< Priority of the swap out
+                                                * task. */
+  uint32_t            swapout_period;          /**< Period swapout checks buf
+                                                * timers. */
+  uint32_t            swap_block_hold;         /**< Period a buffer is held. */
+  size_t              swapout_workers;         /**< The number of worker
+                                                * threads for the swapout
+                                                * task. */
+  rtems_task_priority swapout_worker_priority; /**< Priority of the swap out
+                                                * task. */
+  size_t              size;                    /**< Size of memory in the
+                                                * cache */
+  uint32_t            buffer_min;              /**< Minimum buffer size. */
+  uint32_t            buffer_max;              /**< Maximum buffer size
+                                                * supported. It is also the
+                                                * allocation size. */
 } rtems_bdbuf_config;
 
 /**
- * External referernce to the configuration. The configuration is provided by
- * the user.
+ * External reference to the configuration.
+ *
+ * The configuration is provided by the application.
  */
-extern rtems_bdbuf_config rtems_bdbuf_configuration;
+extern const rtems_bdbuf_config rtems_bdbuf_configuration;
 
 /**
  * The max_read_ahead_blocks value is altered if there are fewer buffers
  * than this defined max. This stops thrashing in the cache.
  */
-#define RTEMS_BDBUF_MAX_READ_AHEAD_BLOCKS_DEFAULT    32
+#define RTEMS_BDBUF_MAX_READ_AHEAD_BLOCKS_DEFAULT    0
+
+/**
+ * Default maximum number of blocks to write at once.
+ */
 #define RTEMS_BDBUF_MAX_WRITE_BLOCKS_DEFAULT         16
+
+/**
+ * Default swap-out task priority.
+ */
 #define RTEMS_BDBUF_SWAPOUT_TASK_PRIORITY_DEFAULT    15
-#define RTEMS_BDBUF_SWAPOUT_TASK_SWAP_PERIOD_DEFAULT 250  /* milli-seconds */
-#define RTEMS_BDBUF_SWAPOUT_TASK_BLOCK_HOLD_DEFAULT  1000 /* milli-seconds */
+
+/**
+ * Default swap-out task swap period in milli seconds.
+ */
+#define RTEMS_BDBUF_SWAPOUT_TASK_SWAP_PERIOD_DEFAULT 250
+
+/**
+ * Default swap-out task block hold time in milli seconds.
+ */
+#define RTEMS_BDBUF_SWAPOUT_TASK_BLOCK_HOLD_DEFAULT  1000
+
+/**
+ * Default swap-out worker tasks. Currently disabled.
+ */
+#define RTEMS_BDBUF_SWAPOUT_WORKER_TASKS_DEFAULT     0
+
+/**
+ * Default swap-out worker task priority. The same as the swapout task.
+ */
+#define RTEMS_BDBUF_SWAPOUT_WORKER_TASK_PRIORITY_DEFAULT \
+                             RTEMS_BDBUF_SWAPOUT_TASK_PRIORITY_DEFAULT
+
+/**
+ * Default size of memory allocated to the cache.
+ */
+#define RTEMS_BDBUF_CACHE_MEMORY_SIZE_DEFAULT (64 * 512)
+
+/**
+ * Default minimum size of buffers.
+ */
+#define RTEMS_BDBUF_BUFFER_MIN_SIZE_DEFAULT (512)
+
+/**
+ * Default maximum size of buffers.
+ */
+#define RTEMS_BDBUF_BUFFER_MAX_SIZE_DEFAULT (4096)
 
 /**
  * Prepare buffering layer to work - initialize buffer descritors and (if it is
- * neccessary) buffers. Buffers will be allocated accoriding to the
- * configuration table, each entry describes the size of block and the size of
- * the pool. After initialization all blocks is placed into the ready state.
- * lists.
+ * neccessary) buffers. After initialization all blocks is placed into the
+ * ready state.
  *
  * @return RTEMS status code (RTEMS_SUCCESSFUL if operation completed
  *         successfully or error code if error is occured)
@@ -221,7 +489,7 @@ rtems_bdbuf_get (dev_t device, rtems_blkdev_bnum block, rtems_bdbuf_buffer** bd)
  * and will not be returned to another user until released. If the buffer is
  * already with a user when this call is made the call is blocked until the
  * buffer is returned. The highest priority waiter will obtain the buffer
- * first. 
+ * first.
  *
  * @param device Device number (constructed of major and minor device number)
  * @param block  Linear media block number
@@ -251,7 +519,7 @@ rtems_bdbuf_release (rtems_bdbuf_buffer* bd);
 
 /**
  * Release the buffer allocated with a get or read call placing it on the
- * modidied list.  If the buffer was not released modified before the hold
+ * modified list.  If the buffer was not released modified before the hold
  * timer is set to the configuration value. If the buffer had been released
  * modified before but not written to disk the hold timer is not updated. The
  * buffer will be written to disk when the hold timer has expired, there are
@@ -286,13 +554,12 @@ rtems_bdbuf_sync (rtems_bdbuf_buffer* bd);
 
 /**
  * Synchronize all modified buffers for this device with the disk and wait
- * until the transfers have completed. The sync mutex for the pool is locked
+ * until the transfers have completed. The sync mutex for the cache is locked
  * stopping the addition of any further modifed buffers. It is only the
  * currently modified buffers that are written.
  *
- * @note Nesting calls to sync multiple devices attached to a single pool will
- * be handled sequentially. A nested call will be blocked until the first sync
- * request has complete. This is only true for device using the same pool.
+ * @note Nesting calls to sync multiple devices will be handled sequentially. A
+ * nested call will be blocked until the first sync request has complete.
  *
  * @param dev Block device number
  *
@@ -303,40 +570,22 @@ rtems_status_code
 rtems_bdbuf_syncdev (dev_t dev);
 
 /**
- * Find first appropriate buffer pool. This primitive returns the index of
- * first buffer pool which block size is greater than or equal to specified
- * size.
+ * @brief Purges all buffers that matches the device identifier @a dev.
  *
- * @param block_size Requested block size
- * @param pool The pool to use for the requested pool size.
- *
- * @return RTEMS status code (RTEMS_SUCCESSFUL if operation completed
- *         successfully or error code if error is occured)
- * @retval RTEMS_INVALID_SIZE The specified block size is invalid (not a power
- *         of 2)
- * @retval RTEMS_NOT_DEFINED The buffer pool for this or greater block size
- *         is not configured.
+ * This may result in loss of data.
  */
-rtems_status_code
-rtems_bdbuf_find_pool (uint32_t block_size, rtems_bdpool_id *pool);
+void
+rtems_bdbuf_purge_dev (dev_t dev);
 
 /**
- * Obtain characteristics of buffer pool with specified number.
+ * @brief Purges all buffers that matches the device major number @a major.
  *
- * @param pool Buffer pool number
- * @param block_size Block size for which buffer pool is configured returned
- *                   there
- * @param blocks Number of buffers in buffer pool.
- *
- * RETURNS:
- * @return RTEMS status code (RTEMS_SUCCESSFUL if operation completed
- *         successfully or error code if error is occured)
- * @retval RTEMS_INVALID_SIZE The appropriate buffer pool is not configured.
- *
- * @note Buffer pools enumerated continuously starting from 0.
+ * This may result in loss of data.
  */
-rtems_status_code
-rtems_bdbuf_get_pool_info (rtems_bdpool_id pool, int *block_size, int *blocks);
+void
+rtems_bdbuf_purge_major (rtems_device_major_number major);
+
+/** @} */
 
 #ifdef __cplusplus
 }

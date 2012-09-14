@@ -1,3 +1,7 @@
+/*
+ * $Id: rasta.h,v 1.3 2009/11/29 15:33:26 ralf Exp $
+ */
+
 #ifndef __RASTA_H__
 #define __RASTA_H__
 
@@ -40,8 +44,8 @@ extern int rasta_register(void);
  *  The following defines the bits in the UART Control Registers.
  *
  */
-#define LEON_REG_UART_CONTROL_RTD  0x000000FF /* RX/TX data */ 
- 
+#define LEON_REG_UART_CONTROL_RTD  0x000000FF /* RX/TX data */
+
 /*
  *  The following defines the bits in the LEON UART Status Registers.
  */
@@ -54,7 +58,7 @@ extern int rasta_register(void);
 #define LEON_REG_UART_STATUS_FE   0x00000040 /* RX Framing Error */
 #define LEON_REG_UART_STATUS_ERR  0x00000078 /* Error Mask */
 
- 
+
 /*
  *  The following defines the bits in the LEON UART Status Registers.
  */

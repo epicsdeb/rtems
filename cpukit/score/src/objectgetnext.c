@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectgetnext.c,v 1.5 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: objectgetnext.c,v 1.6 2009/05/08 02:13:24 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -64,6 +64,15 @@ _Objects_Get_next(
 {
     Objects_Control *object;
     Objects_Id       next_id;
+
+    if ( !information )
+      return NULL;
+
+    if ( !location_p )
+      return NULL;
+
+    if ( !next_id_p )
+      return NULL;
 
     if (_Objects_Get_index(id) == OBJECTS_ID_INITIAL_INDEX)
         next_id = information->minimum_id;

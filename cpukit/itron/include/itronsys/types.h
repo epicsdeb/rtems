@@ -10,11 +10,13 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: types.h,v 1.11 2008/09/07 07:04:38 ralf Exp $
+ *  $Id: types.h,v 1.13 2009/01/05 19:57:14 joel Exp $
  */
 
 #ifndef _ITRONSYS_TYPES_H
 #define _ITRONSYS_TYPES_H
+
+#include <rtems/score/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,26 +59,26 @@ typedef void (*FP)(void);     /* program start address */
  *  and/or have special meanings.
  */
 
-typedef int32_t     INT;    /* Signed integer (bit width of processor) */
+typedef int32_t     INT;   /* Signed integer (bit width of processor) */
 typedef uint32_t   UINT;   /* Unsigned integer (bit width of processor) */
-typedef bool       BOOL;  /* Boolean value.  TRUE (1) or FALSE (0). */
-typedef int16_t     FN;     /* Function code. Signed integer. Maximum 2 bytes. */
-typedef int        ID;     /* Object ID number (???id) */
+typedef bool       BOOL;   /* Boolean value.  TRUE (1) or FALSE (0). */
+typedef int16_t     FN;    /* Function code. Signed integer. Maximum 2 bytes. */
+typedef int         ID;    /* Object ID number (???id) */
                            /*   Value range depends on the system.  Usually */
                            /*   a signed integer.  Certain ID values may */
                            /*   represent objects on other nodes when the */
                            /*   connection function is supported. */
 
-typedef uint32_t   BOOL_ID;/* Boolean value or ID number */
+typedef int       BOOL_ID;/* Boolean value or ID number */
 
-typedef int32_t   HNO;      /* Handler number */
-typedef int32_t   RNO;      /* Rendezvous number */
-typedef int32_t   NODE;     /* Node Number.  Usually a signed integer. */
-typedef int32_t   ATR;      /* Object or handler attribute. */
+typedef int       HNO;     /* Handler number */
+typedef int       RNO;     /* Rendezvous number */
+typedef int       NODE;    /* Node Number.  Usually a signed integer. */
+typedef int       ATR;     /* Object or handler attribute. */
                            /*   An unsigned integer. */
-typedef int32_t   ER;       /* Error code.  A signed integer. */
-typedef uint32_t   PRI;    /* Task priority.  A signed integer. */
-typedef int32_t   TMO;      /* Timeout value.  A signed integer. */
+typedef int           ER;  /* Error code.  A signed integer. */
+typedef unsigned int  PRI; /* Task priority.  A signed integer. */
+typedef int32_t       TMO; /* Timeout value.  A signed integer. */
                            /*   TMO_POL = 0 indicates polling, */
                            /*   while TMO_FEVR = -1 indicates wait forever. */
 

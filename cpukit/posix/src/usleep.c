@@ -8,12 +8,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: usleep.c,v 1.3 2007/12/14 17:37:12 joel Exp $
+ *  $Id: usleep.c,v 1.4 2008/12/05 06:44:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_USLEEP
 
 #include <time.h>
 #include <unistd.h>
@@ -39,3 +41,5 @@ int usleep(
   remaining += tm.tv_nsec / 1000;
   return remaining;       /* seconds remaining */
 }
+
+#endif

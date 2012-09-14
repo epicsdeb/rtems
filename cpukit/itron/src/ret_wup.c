@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ret_wup.c,v 1.1 2007/04/17 20:32:13 joel Exp $
+ *  $Id: ret_wup.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,7 +22,7 @@
  */
 
 void ret_wup(
-  ID tskid
+  ID tskid __attribute__((unused))
 )
 {
 }

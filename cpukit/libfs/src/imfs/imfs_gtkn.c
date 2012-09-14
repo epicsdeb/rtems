@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_gtkn.c,v 1.10 2004/04/17 08:34:41 ralf Exp $
+ *  $Id: imfs_gtkn.c,v 1.11 2009/06/12 01:53:33 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -26,6 +26,7 @@
 
 IMFS_token_types IMFS_get_token(
   const char       *path,
+  int               pathlen,
   char             *token,
   int              *token_len
 )
@@ -38,7 +39,7 @@ IMFS_token_types IMFS_get_token(
    *  Copy a name into token.  (Remember NULL is a token.)
    */
   c = path[i];
-  while ( (!IMFS_is_separator(c)) && (i <= IMFS_NAME_MAX) ) {
+  while ( (!IMFS_is_separator(c)) && (i < pathlen) && (i <= IMFS_NAME_MAX) ) {
 
      token[i] = c;
 
@@ -58,7 +59,7 @@ IMFS_token_types IMFS_get_token(
   if ( i == 0 ) {
     token[i] = c;
 
-    if ( token[i] != '\0' ) {
+    if ( (token[i] != '\0') && pathlen ) {
       i++;
       type = IMFS_CURRENT_DIR;
     } else {

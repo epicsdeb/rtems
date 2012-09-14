@@ -9,14 +9,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fptask.c,v 1.9 2004/03/30 11:15:16 ralf Exp $
+ *  $Id: fptask.c,v 1.13 2009/10/26 14:58:36 ralf Exp $
  */
 
 #include "system.h"
@@ -44,7 +44,7 @@ rtems_task FP_task(
   FP_LOAD( FP_factors[ task_index ] );
 
   put_name( Task_name[ task_index ], FALSE );
-  printf( " - integer base = (0x%x)\n", INTEGER_factors[ task_index ] );
+  printf( " - integer base = (0x%" PRIx32 ")\n", INTEGER_factors[ task_index ] );
   put_name( Task_name[ task_index ], FALSE );
 #if ( RTEMS_HAS_HARDWARE_FP == 1 )
   printf( " - float base = (%g)\n", FP_factors[ task_index ] );
@@ -52,12 +52,12 @@ rtems_task FP_task(
   printf( " - float base = (NA)\n" );
 #endif
 
-  previous_seconds = -1;
+  previous_seconds = (uint32_t)-1;
 
   while( FOREVER ) {
 
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     if ( time.second >= 16 ) {
 
@@ -77,7 +77,7 @@ rtems_task FP_task(
     if (previous_seconds != time.second)
     {
       put_name( Task_name[ task_index ], FALSE );
-      print_time( " - rtems_clock_get - ", &time, "\n" );
+      print_time( " - rtems_clock_get_tod - ", &time, "\n" );
       previous_seconds = time.second;
     }
 
@@ -90,7 +90,7 @@ rtems_task FP_task(
      */
     if (time.second >= 4)
     {
-      status = rtems_task_wake_after( TICKS_PER_SECOND );
+      status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
       directive_failed( status, "rtems_task_wake_after" );
     }
   }

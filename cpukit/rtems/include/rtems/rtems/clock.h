@@ -21,7 +21,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clock.h,v 1.19.2.1 2008/12/08 11:19:59 ralf Exp $
+ *  $Id: clock.h,v 1.25 2009/12/17 20:27:28 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_CLOCK_H
@@ -35,7 +35,9 @@
 #include <sys/time.h> /* struct timeval */
 
 /**
- *  @defgroup ClassicClock Classic API Clock
+ *  @defgroup ClassicClock Clocks
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */
@@ -62,23 +64,13 @@ typedef enum {
 } rtems_clock_get_options;
 
 /**
- *  Standard flavor style to return TOD in for a rtems_clock_get option.
- */
-typedef struct {
-  /** This is the seconds portion of a time of day. */
-  uint32_t    seconds;
-  /** This is the microseconds portion of a time of day. */
-  uint32_t    microseconds;
-} rtems_clock_time_value;
-
-/**
  *  Type for the nanoseconds since last tick BSP extension.
  */
 typedef Watchdog_Nanoseconds_since_last_tick_routine
   rtems_nanoseconds_extension_routine;
 
 /**
- *  @brief Obtain Current Time of Day 
+ *  @brief Obtain Current Time of Day
  *
  *  This routine implements the rtems_clock_get directive.  It returns
  *  one of the following:
@@ -226,11 +218,11 @@ rtems_status_code rtems_clock_set_nanoseconds_extension(
  *
  *  This directive returns the system uptime.
  *
- *  @param[in] uptime is a pointer to the time structure 
+ *  @param[in] uptime is a pointer to the time structure
  *
  *  @return This method returns RTEMS_SUCCESSFUL if there was not an
  *          error.  Otherwise, a status code is returned indicating the
- *          source of the error.  If successful, the uptime will be 
+ *          source of the error.  If successful, the uptime will be
  *          filled in.
  */
 rtems_status_code rtems_clock_get_uptime(
@@ -240,15 +232,15 @@ rtems_status_code rtems_clock_get_uptime(
 /**
  *  @brief _TOD_Validate
  *
- *  This support function returns TRUE if @a the_tod contains
- *  a valid time of day, and FALSE otherwise.
+ *  This support function returns true if @a the_tod contains
+ *  a valid time of day, and false otherwise.
  *
  *  @param[in] the_tod is the TOD structure to validate
  *
- *  @return This method returns TRUE if the TOD is valid and FALSE otherwise.
+ *  @return This method returns true if the TOD is valid and false otherwise.
  */
 bool _TOD_Validate(
-  rtems_time_of_day *the_tod
+  const rtems_time_of_day *the_tod
 );
 
 /**
@@ -262,7 +254,7 @@ bool _TOD_Validate(
  *          by @a the_tod
  */
 Watchdog_Interval _TOD_To_seconds(
-  rtems_time_of_day *the_tod
+  const rtems_time_of_day *the_tod
 );
 
 #ifdef __cplusplus

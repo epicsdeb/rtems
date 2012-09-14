@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.1 2007/12/20 18:19:15 jennifer Exp $
+ *  $Id: init.c,v 1.4 2009/12/08 17:52:53 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -27,7 +27,7 @@ void Signal_handler(
 {
   Signal_count++;
   printf(
-    "Signal: %d caught by 0x%x (%d)\n",
+    "Signal: %d caught by 0x%" PRIxpthread_t " (%d)\n",
     signo,
     pthread_self(),
     Signal_count
@@ -53,13 +53,6 @@ void *POSIX_Init(
   useconds_t        result;
   struct sigaction  act;
   sigset_t          mask;
-  sigset_t          pending_set;
-  sigset_t          oset;
-  struct timespec   timeout;
-  siginfo_t         info;
-  sighandler_t      oldHandler;
-  sighandler_t      newHandler;
-  rtems_interval start, end;
 
   puts( "\n\n*** POSIX TEST UALARM ***" );
 
@@ -70,7 +63,7 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   Signal_occurred = 0;
   Signal_count = 0;
@@ -86,12 +79,12 @@ void *POSIX_Init(
 
   /* unblock Signal and see if it happened */
   status = sigemptyset( &mask );
-  assert( !status );
+  rtems_test_assert(  !status );
   status = sigaddset( &mask, SIGALRM );
-  assert( !status );
+  rtems_test_assert(  !status );
   puts( "Init: Unblock SIGALRM" );
   status = sigprocmask( SIG_UNBLOCK, &mask, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   status = sleep(10);
 
   /* stop ularm */

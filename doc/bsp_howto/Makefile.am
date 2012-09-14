@@ -3,11 +3,10 @@
 #  On-Line Applications Research Corporation (OAR).
 #  All rights reserved.
 #
-#  $Id: Makefile.am,v 1.16.2.1 2008/12/11 15:50:02 joel Exp $
+#  $Id: Makefile.am,v 1.18.2.1 2010/06/11 07:39:50 ralf Exp $
 #
 
 PROJECT = bsp_howto
-EDITION = 1
 
 include $(top_srcdir)/project.am
 include $(top_srcdir)/main.am
@@ -15,7 +14,7 @@ include $(top_srcdir)/main.am
 GENERATED_FILES = intro.texi target.texi makefiles.texi linkcmds.texi \
     support.texi adaintr.texi init.texi console.texi clock.texi timer.texi \
     rtc.texi ata.texi ide-ctrl.texi nvmem.texi network.texi shmsupp.texi \
-    analog.texi discrete.texi
+    framebuffer.texi analog.texi discrete.texi
 
 COMMON_FILES += $(top_srcdir)/common/cpright.texi
 
@@ -113,6 +112,11 @@ network.texi: ../networking/driver.t
 	    -n "" < $< > $@
 
 shmsupp.texi: shmsupp.t
+	$(BMENU2) -p "" \
+	    -u "Top" \
+	    -n "" < $< > $@
+
+framebuffer.texi: framebuffer.t
 	$(BMENU2) -p "" \
 	    -u "Top" \
 	    -n "" < $< > $@

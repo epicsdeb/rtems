@@ -10,14 +10,14 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: clockdrv.c,v 1.2 2008/05/06 22:23:47 joel Exp $
+ *  $Id: clockdrv.c,v 1.6 2010/04/30 13:15:49 sh Exp $
 */
 #include <rtems.h>
-#include <irq.h>
+#include <bsp/irq.h>
 #include <bsp.h>
 #include <s3c24xx.h>
 
-/* this is defined in ../../../shared/clockdrv_shell.c */
+/* this is defined in ../../../shared/clockdrv_shell.h */
 rtems_isr Clock_isr(rtems_vector_number vector);
 static void clock_isr_on(const rtems_irq_connect_data *unused);
 static void clock_isr_off(const rtems_irq_connect_data *unused);
@@ -26,17 +26,27 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq);
 /* Replace the first value with the clock's interrupt name. */
 rtems_irq_connect_data clock_isr_data = {BSP_INT_TIMER4,
                                          (rtems_irq_hdl)Clock_isr,
+					 NULL,
                                          clock_isr_on,
                                          clock_isr_off,
-                                         clock_isr_is_on,
-                                         3,     /* unused for ARM cpus */
-                                         0 };   /* unused for ARM cpus */
+                                         clock_isr_is_on
+};
 
 /* If you follow the code, this is never used, so any value
  * should work
  */
 #define CLOCK_VECTOR 0
 
+/**
+ *  Return the nanoseconds since last tick
+ */
+uint32_t clock_driver_get_nanoseconds_since_last_tick(void)
+{
+  return 0;
+}
+
+#define Clock_driver_nanoseconds_since_last_tick \
+  clock_driver_get_nanoseconds_since_last_tick
 
 /**
  * When we get the clock interrupt
@@ -73,7 +83,7 @@ rtems_irq_connect_data clock_isr_data = {BSP_INT_TIMER4,
 #define Clock_driver_support_initialize_hardware() \
   do { \
         uint32_t cr; \
-        uint32_t freq,m,p,s; \
+        uint32_t freq; \
         /* set MUX for Timer4 to 1/16 */ \
         cr=rTCFG1 & 0xFFF0FFFF; \
         rTCFG1=(cr | (3<<16)); \
@@ -134,4 +144,4 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq)
 
 
 /* Make sure to include this, and only at the end of the file */
-#include "../../../../libbsp/shared/clockdrv_shell.c"
+#include "../../../../libbsp/shared/clockdrv_shell.h"

@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: chg_pri.c,v 1.10 2007/10/26 20:19:00 joel Exp $
+ *  $Id: chg_pri.c,v 1.12 2009/11/03 05:23:05 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -48,7 +48,7 @@ ER chg_pri(
       if (_States_Is_dormant( the_thread->current_state ))
         _ITRON_return_errorno( E_OBJ );
 
-      if (( tskpri <= 0 ) || ( tskpri >= 256 ))
+      if (( tskpri <= 0 ) || ( tskpri >= PRIORITY_MAXIMUM-1 ))
         _ITRON_return_errorno( E_PAR );
 
       new_priority = _ITRON_Task_Priority_to_Core( tskpri );
@@ -61,7 +61,7 @@ ER chg_pri(
 
       if ( the_thread->resource_count == 0 ||
            the_thread->current_priority > new_priority )
-        _Thread_Change_priority( the_thread, new_priority, FALSE );
+        _Thread_Change_priority( the_thread, new_priority, false );
 
       break;
   }

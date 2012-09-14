@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.11 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.12 2009/05/10 14:39:46 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -39,7 +39,7 @@ rtems_task Init(
 
   status = rtems_task_create(
     Task_name[ 1 ],
-    4,
+    4u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,

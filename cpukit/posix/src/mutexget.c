@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mutexget.c,v 1.1 2008/01/09 22:08:31 joel Exp $
+ *  $Id: mutexget.c,v 1.4 2009/11/30 15:44:21 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -34,20 +34,23 @@
  *        PTHREAD_MUTEX_INITIALIZER without adding overhead.
  */
 
-#define ___POSIX_Mutex_Get_support( _id, _location ) \
+#define ___POSIX_Mutex_Get_support_error_check( _id, _location ) \
   do { \
-    int _status; \
-    \
     if ( !_id ) { \
       *_location = OBJECTS_ERROR; \
       return (POSIX_Mutex_Control *) 0; \
     }  \
+  } while (0)
+
+#define ___POSIX_Mutex_Get_support_auto_initialization( _id, _location ) \
+  do { \
+    int _status; \
     \
     if ( *_id == PTHREAD_MUTEX_INITIALIZER ) { \
       /* \
        *  Do an "auto-create" here. \
        */ \
-    \
+      \
       _status = pthread_mutex_init( (pthread_mutex_t *)_id, 0 ); \
       if ( _status ) { \
         *_location = OBJECTS_ERROR;  \
@@ -55,18 +58,18 @@
       } \
     } \
   } while (0)
- 
+
 POSIX_Mutex_Control *_POSIX_Mutex_Get (
   pthread_mutex_t   *mutex,
   Objects_Locations *location
 )
 {
-  Objects_Id *id = (Objects_Id *)mutex;
+  ___POSIX_Mutex_Get_support_error_check( mutex, location );
 
-  ___POSIX_Mutex_Get_support( id, location );
+  ___POSIX_Mutex_Get_support_auto_initialization( mutex, location );
 
   return (POSIX_Mutex_Control *)
-    _Objects_Get( &_POSIX_Mutex_Information, *id, location );
+    _Objects_Get( &_POSIX_Mutex_Information, (Objects_Id) *mutex, location );
 }
 
 POSIX_Mutex_Control *_POSIX_Mutex_Get_interrupt_disable (
@@ -75,10 +78,14 @@ POSIX_Mutex_Control *_POSIX_Mutex_Get_interrupt_disable (
   ISR_Level         *level
 )
 {
-  Objects_Id *id = (Objects_Id *)mutex;
+  ___POSIX_Mutex_Get_support_error_check( mutex, location );
 
-  ___POSIX_Mutex_Get_support( id, location );
+  ___POSIX_Mutex_Get_support_auto_initialization( mutex, location );
 
-  return (POSIX_Mutex_Control *)
-    _Objects_Get_isr_disable( &_POSIX_Mutex_Information, *id, location, level );
+  return (POSIX_Mutex_Control *) _Objects_Get_isr_disable(
+    &_POSIX_Mutex_Information,
+    (Objects_Id) *mutex,
+    location,
+    level
+  );
 }

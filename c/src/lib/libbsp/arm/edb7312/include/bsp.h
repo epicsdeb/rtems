@@ -9,7 +9,7 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: bsp.h,v 1.11 2007/12/11 15:50:21 joel Exp $
+ *  $Id: bsp.h,v 1.13 2010/04/30 14:48:52 sh Exp $
 */
 #ifndef _BSP_H
 #define _BSP_H
@@ -25,6 +25,8 @@ extern "C" {
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
 
+#define BSP_FEATURE_IRQ_EXTENSION
+
 /*
  *  Define the interrupt mechanism for Time Test 27
  *
@@ -34,8 +36,6 @@ extern "C" {
 struct rtems_bsdnet_ifconfig;
 int cs8900_driver_attach (struct rtems_bsdnet_ifconfig *config,
                           int                          attaching);
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
 
 /*
  * Network driver configuration

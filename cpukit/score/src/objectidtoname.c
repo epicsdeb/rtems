@@ -6,10 +6,10 @@
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectidtoname.c,v 1.13 2008/06/04 23:05:37 joel Exp $
+ *  $Id: objectidtoname.c,v 1.15.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -20,8 +20,7 @@
 #include <rtems/score/object.h>
 #include <rtems/score/thread.h>
 
-/*PAGE
- *
+/*
  *  _Objects_Id_to_name
  *
  *  DESCRIPTION:
@@ -34,8 +33,6 @@
  *  name - pointer to location in which to store name
  *
  */
-
-
 Objects_Name_or_id_lookup_errors _Objects_Id_to_name (
   Objects_Id      id,
   Objects_Name   *name
@@ -48,8 +45,9 @@ Objects_Name_or_id_lookup_errors _Objects_Id_to_name (
   Objects_Control     *the_object = (Objects_Control *) 0;
   Objects_Locations    ignored_location;
 
-  if ( !name )
-    return OBJECTS_INVALID_NAME;
+  /*
+   *  Caller is trusted for name != NULL.
+   */
 
   tmpId = (id == OBJECTS_ID_OF_SELF) ? _Thread_Executing->Object.id : id;
 
@@ -66,8 +64,10 @@ Objects_Name_or_id_lookup_errors _Objects_Id_to_name (
   if ( !information )
     return OBJECTS_INVALID_ID;
 
-  if ( information->is_string )
-    return OBJECTS_INVALID_ID;
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    if ( information->is_string )
+      return OBJECTS_INVALID_ID;
+  #endif
 
   the_object = _Objects_Get( information, tmpId, &ignored_location );
   if ( !the_object )

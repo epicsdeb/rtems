@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.16 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.18 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -29,8 +28,9 @@ rtems_task Low_task(
   rtems_task_argument argument
 );
 
+int operation_count = OPERATION_COUNT;
 
-void test_init();
+void test_init(void);
 
 rtems_task Init(
   rtems_task_argument argument
@@ -48,13 +48,13 @@ rtems_task Init(
   directive_failed( status, "rtems_task_delete" );
 }
 
-void test_init()
+void test_init(void)
 {
   rtems_status_code   status;
-  uint32_t      index;
+  int                 index;
   rtems_task_priority priority;
 
-  priority = 5;
+  priority = 2;
 
   status = rtems_task_create(
     rtems_build_name( 'H', 'I', 'G', 'H' ),
@@ -71,7 +71,9 @@ void test_init()
   status = rtems_task_start( High_id, High_task, 0 );
   directive_failed( status, "rtems_task_start of high task" );
 
-  for ( index=2 ; index <= OPERATION_COUNT ; index++ ) {
+  if ( OPERATION_COUNT > RTEMS_MAXIMUM_PRIORITY - 2u )
+    operation_count = (int) (RTEMS_MAXIMUM_PRIORITY - 2u);
+  for ( index=2 ; index < operation_count ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'M', 'I', 'D', ' ' ),
       priority,
@@ -147,7 +149,7 @@ rtems_task Low_task(
   put_time(
     "rtems_semaphore_obtain: not available -- caller blocks",
     end_time,
-    OPERATION_COUNT,
+    operation_count - 1,
     0,
     CALLING_OVERHEAD_SEMAPHORE_OBTAIN
   );

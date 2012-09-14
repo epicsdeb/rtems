@@ -19,14 +19,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: event.h,v 1.23 2008/04/18 20:08:07 joel Exp $
+ *  $Id: event.h,v 1.26 2009/12/15 18:26:40 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_EVENT_H
 #define _RTEMS_RTEMS_EVENT_H
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -49,7 +49,9 @@ extern "C" {
 #include <rtems/rtems/eventset.h>
 
 /**
- *  @defgroup ClassicEvent Classic API Event
+ *  @defgroup ClassicEvent Events
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */
@@ -77,7 +79,7 @@ void _Event_Manager_initialization( void );
  *  the task's event condition, then it is unblocked.
  */
 rtems_status_code rtems_event_send (
-  Objects_Id         id,
+  rtems_id        id,
   rtems_event_set event_in
 );
 

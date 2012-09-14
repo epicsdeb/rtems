@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockgettod.c,v 1.1 2008/03/11 20:07:49 joel Exp $
+ *  $Id: clockgettod.c,v 1.3 2009/11/30 15:59:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,6 +16,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/clock.h>
 #include <rtems/score/isr.h>
@@ -50,7 +51,8 @@ rtems_status_code rtems_clock_get_tod(
   tmbuf->hour   = time.tm_hour;
   tmbuf->minute = time.tm_min;
   tmbuf->second = time.tm_sec;
-  tmbuf->ticks  = now.tv_usec / _TOD_Microseconds_per_tick;
- 
+  tmbuf->ticks  = now.tv_usec /
+    rtems_configuration_get_microseconds_per_tick();
+
   return RTEMS_SUCCESSFUL;
 }

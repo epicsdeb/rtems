@@ -27,18 +27,23 @@
  *
  *  This file includes definitions for the MBX860 and MBX821.
  *
- *  COPYRIGHT (c) 1989-1998.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.1.2.2 2009/03/09 17:00:40 joel Exp $
+ *  $Id: bsp.h,v 1.8 2010/01/19 09:11:34 thomas Exp $
  */
 
 #ifndef _BSP_H
 #define _BSP_H
+
+/*
+ * indicate, that BSP is booted via TQMMon
+ */
+#define BSP_HAS_TQMMON
 
 #include <libcpu/powerpc-utility.h>
 
@@ -70,24 +75,12 @@ LINKER_SYMBOL( bsp_interrupt_stack_size);
 
 LINKER_SYMBOL( bsp_work_area_start);
 
-/*
- * NOTE: start.S also needs to know, whether we use U-Boot
- */
-#include <bspopts.h>
-/*
- * indicate, that BSP is booted via TQMMon
- * (unless we use U-Boot)
- */
-#if !defined(BSP_HAS_UBOOT)
-#define BSP_HAS_TQMMON
-
-#include <bsp/tqm.h>
-#endif
-
 #ifndef ASM
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <bspopts.h>
 
 #include <rtems.h>
 #include <rtems/console.h>
@@ -97,18 +90,8 @@ extern "C" {
 #include <mpc8xx/mmu.h>
 #include <mpc8xx/console.h>
 #include <bsp/vectors.h>
-#include <libcpu/powerpc-utility.h> 
-
-
-#ifdef BSP_HAS_TQMMON
-#endif
-
-#ifdef BSP_HAS_UBOOT
-#define CONFIG_8xx  /* select the proper U-Boot configuration */
-#include <bsp/u-boot.h>
-extern bd_t mpc8xx_uboot_board_info;
-extern const size_t mpc8xx_uboot_board_info_size;
-#endif /* BSP_HAS_UBOOT */
+#include <bsp/tqm.h>
+#include <libcpu/powerpc-utility.h>
 
 /*
  * Network driver configuration
@@ -116,25 +99,25 @@ extern const size_t mpc8xx_uboot_board_info_size;
 struct rtems_bsdnet_ifconfig;
 
 #if BSP_USE_NETWORK_FEC
-extern int rtems_fec_enet_driver_attach (struct rtems_bsdnet_ifconfig *config, 
+extern int rtems_fec_enet_driver_attach (struct rtems_bsdnet_ifconfig *config,
 					 int attaching);
 #define RTEMS_BSP_FEC_NETWORK_DRIVER_NAME	"fec1"
 #define RTEMS_BSP_FEC_NETWORK_DRIVER_ATTACH	rtems_fec_enet_driver_attach
 #endif
 
 #if BSP_USE_NETWORK_SCC
-extern int rtems_scc_enet_driver_attach (struct rtems_bsdnet_ifconfig *config, 
+extern int rtems_scc_enet_driver_attach (struct rtems_bsdnet_ifconfig *config,
 					 int attaching);
 #define RTEMS_BSP_SCC_NETWORK_DRIVER_NAME	"scc1"
 #define RTEMS_BSP_SCC_NETWORK_DRIVER_ATTACH	rtems_scc_enet_driver_attach
 #endif
 
 #if BSP_USE_NETWORK_FEC
-#define RTEMS_BSP_NETWORK_DRIVER_NAME	RTEMS_BSP_FEC_NETWORK_DRIVER_NAME	
-#define RTEMS_BSP_NETWORK_DRIVER_ATTACH	RTEMS_BSP_FEC_NETWORK_DRIVER_ATTACH	
+#define RTEMS_BSP_NETWORK_DRIVER_NAME	RTEMS_BSP_FEC_NETWORK_DRIVER_NAME
+#define RTEMS_BSP_NETWORK_DRIVER_ATTACH	RTEMS_BSP_FEC_NETWORK_DRIVER_ATTACH
 #elif BSP_USE_NETWORK_SCC
-#define RTEMS_BSP_NETWORK_DRIVER_NAME	RTEMS_BSP_SCC_NETWORK_DRIVER_NAME	
-#define RTEMS_BSP_NETWORK_DRIVER_ATTACH	RTEMS_BSP_SCC_NETWORK_DRIVER_ATTACH	
+#define RTEMS_BSP_NETWORK_DRIVER_NAME	RTEMS_BSP_SCC_NETWORK_DRIVER_NAME
+#define RTEMS_BSP_NETWORK_DRIVER_ATTACH	RTEMS_BSP_SCC_NETWORK_DRIVER_ATTACH
 #endif
 /*
  * We need to decide how much memory will be non-cacheable. This
@@ -143,46 +126,30 @@ extern int rtems_scc_enet_driver_attach (struct rtems_bsdnet_ifconfig *config,
  */
 #define NOCACHE_MEM_SIZE 512*1024
 
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /*
  * indicate, that BSP has IDE driver
  */
 #undef RTEMS_BSP_HAS_IDE_DRIVER
 
 /*
- * How many libio files we want
+ * SPI driver configuration
  */
 
-#define BSP_LIBIO_MAX_FDS       20
+  /* select values for SPI addressing */
+#define PGHPLUS_SPI_ADDR_EEPROM 0
+#define PGHPLUS_SPI_ADDR_DISP4  1
+  /* NOTE: DISP4 occupies two consecutive addresses for data and control port */
+#define PGHPLUS_SPI_ADDR_DISP4_DATA  (PGHPLUS_SPI_ADDR_DISP4)
+#define PGHPLUS_SPI_ADDR_DISP4_CTRL  (PGHPLUS_SPI_ADDR_DISP4_DATA+1)
 
+  /* bit masks for Port B lines */
+#define PGHPLUS_PB_SPI_EEP_CE_MSK     (1<< 0)
+#define PGHPLUS_PB_SPI_DISP4_RS_MSK   (1<<15)
+#define PGHPLUS_PB_SPI_DISP4_CE_MSK   (1<<14)
 /*
- * our bus frequency
+ * our (internal) bus frequency
  */
-extern unsigned int BSP_bus_frequency;
-
-/* functions */
-
-void bsp_cleanup( void );
-
-rtems_isr_entry set_vector(                    /* returns old vector */
-  rtems_isr_entry     handler,                  /* isr routine        */
-  rtems_vector_number vector,                   /* vector number      */
-  int                 type                      /* RTEMS or RAW intr  */
-);
-
+extern uint32_t BSP_bus_frequency;
 
 #ifdef __cplusplus
 }

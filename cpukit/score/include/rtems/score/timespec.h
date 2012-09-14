@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/timespec.h
  *
  *  This include file contains helpers for manipulating timespecs.
@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespec.h,v 1.5 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: timespec.h,v 1.9 2009/11/28 05:58:54 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_TIMESPEC_H
@@ -26,21 +26,70 @@
  */
 /**@{*/
 
+#include <stdint.h> /* uint32_t */
+#include <time.h> /* struct timespec */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <sys/types.h>
-#include <rtems/score/tod.h>
-#include <rtems/score/watchdog.h>
+/** @brief Set Timespec to Seconds Nanosecond
+ *
+ *  This method sets the timespec to the specified seconds and nanoseconds
+ *  value.
+ *
+ *  @param[in] _time points to the timespec instance to validate.
+ *  @param[in] _seconds is the seconds portion of the timespec
+ *  @param[in] _nanoseconds is the nanoseconds portion of the timespec
+ */
+#define _Timespec_Set( _time, _seconds, _nanoseconds ) \
+	do { \
+	   (_time)->tv_sec = (_seconds); \
+	   (_time)->tv_nsec = (_nanoseconds); \
+	} while (0)
+
+/** @brief Zero Timespec
+ *
+ *  This method sets the timespec to zero.
+ *  value.
+ *
+ *  @param[in] _time points to the timespec instance to zero.
+ */
+#define _Timespec_Set_to_zero( _time ) \
+	do { \
+	   (_time)->tv_sec = 0; \
+	   (_time)->tv_nsec = 0; \
+	} while (0)
+
+/** @brief Get Seconds Portion of Timespec
+ *
+ *  This method returns the seconds portion of the specified timespec
+ *
+ *  @param[in] _time points to the timespec
+ *
+ *  @return The seconds portion of @a _time.
+ */
+#define _Timespec_Get_seconds( _time ) \
+	((_time)->tv_sec)
+
+/** @brief Get Nanoseconds Portion of Timespec
+ *
+ *  This method returns the nanoseconds portion of the specified timespec
+ *
+ *  @param[in] _time points to the timespec
+ *
+ *  @return The nanoseconds portion of @a _time.
+ */
+#define _Timespec_Get_nanoseconds( _time ) \
+	((_time)->tv_nsec)
 
 /** @brief Is Timespec Valid
  *
- *  This method determines the validatity of a timespec.
+ *  This method determines the validity of a timespec.
  *
  *  @param[in] time is the timespec instance to validate.
  *
- *  @return This method returns true if @a time is valid and 
+ *  @return This method returns true if @a time is valid and
  *          false otherwise.
  */
 bool _Timespec_Is_valid(
@@ -52,9 +101,9 @@ bool _Timespec_Is_valid(
  *  This method is the less than operator for timespecs.
  *
  *  @param[in] lhs is the left hand side timespec
- *  @param[in] rhs is the left hand side timespec
+ *  @param[in] rhs is the right hand side timespec
  *
- *  @return This method returns true if @a lhs is less than the @a rhs and 
+ *  @return This method returns true if @a lhs is less than the @a rhs and
  *          false otherwise.
  */
 bool _Timespec_Less_than(
@@ -67,9 +116,9 @@ bool _Timespec_Less_than(
  *  This method is the greater than operator for timespecs.
  *
  *  @param[in] lhs is the left hand side timespec
- *  @param[in] rhs is the left hand side timespec
+ *  @param[in] rhs is the right hand side timespec
  *
- *  @return This method returns true if @a lhs is greater than the @a rhs and 
+ *  @return This method returns true if @a lhs is greater than the @a rhs and
  *          false otherwise.
  */
 bool _Timespec_Greater_than(
@@ -82,9 +131,9 @@ bool _Timespec_Greater_than(
  *  This method is the is equal to than operator for timespecs.
  *
  *  @param[in] lhs is the left hand side timespec
- *  @param[in] rhs is the left hand side timespec
+ *  @param[in] rhs is the right hand side timespec
  *
- *  @return This method returns true if @a lhs is equal to  @a rhs and 
+ *  @return This method returns true if @a lhs is equal to  @a rhs and
  *          false otherwise.
  */
 #define _Timespec_Equal_to( lhs, rhs ) \
@@ -98,7 +147,7 @@ bool _Timespec_Greater_than(
  *  to the first.
  *
  *  @param[in] time is the base time to be added to
- *  @param[in] add is the timespec to add to the first argument 
+ *  @param[in] add is the timespec to add to the first argument
  *
  *  @return This method returns the number of seconds @a time increased by.
  */
@@ -150,10 +199,10 @@ void _Timespec_Subtract(
   struct timespec       *result
 );
 
-/** @brief Divide Timespec By Integet
+/** @brief Divide Timespec By Integer
  *
  *  This routine divides a timespec by an integer value.  The expected
- *  use is to assist in benchmark calculations where you typically 
+ *  use is to assist in benchmark calculations where you typically
  *  divide a duration by a number of iterations.
  *
  *  @param[in] time is the total
@@ -170,11 +219,11 @@ void _Timespec_Divide_by_integer(
 
 /** @brief Divide Timespec
  *
- *  This routine divides a timespec by another timespec.  The 
+ *  This routine divides a timespec by another timespec.  The
  *  intended use is for calculating percentages to three decimal points.
  *
  *  @param[in] lhs is the left hand number
- *  @param[in] rhs is the righ hand number
+ *  @param[in] rhs is the right hand number
  *  @param[in] ival_percentage is the integer portion of the average
  *  @param[in] fval_percentage is the thousandths of percentage
  *

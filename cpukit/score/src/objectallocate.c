@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectallocate.c,v 1.8 2007/05/11 20:10:37 joel Exp $
+ *  $Id: objectallocate.c,v 1.9 2009/10/08 07:07:36 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -73,7 +73,7 @@ Objects_Control *_Objects_Allocate(
     if ( the_object ) {
       uint32_t   block;
 
-      block = _Objects_Get_index( the_object->id ) -
+      block = (uint32_t) _Objects_Get_index( the_object->id ) -
               _Objects_Get_index( information->minimum_id );
       block /= information->allocation_size;
 

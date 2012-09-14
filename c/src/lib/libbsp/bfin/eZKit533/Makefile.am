@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.6 2008/08/18 21:51:35 joel Exp $
+## $Id: Makefile.am,v 1.12 2008/09/29 13:54:21 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -14,24 +15,28 @@ include_HEADERS += include/tm27.h
 include_HEADERS += include/cplb.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
 include_HEADERS += ../../shared/include/coverhd.h
 
-EXTRA_DIST = ../shared/start/start.S
-start.$(OBJEXT): ../shared/start/start.S
-	$(CPPASCOMPILE) -DASM -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = ../shared/start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
+
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
 noinst_PROGRAMS += startup.rel
 startup_rel_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
 	../../shared/bsppredriverhook.c startup/bspstart.c \
 	../../shared/bspclean.c ../../shared/sbrk.c ../../shared/setvec.c \
-	../../shared/bootcard.c ../../shared/gnatinstallhandler.c
+	../../shared/bootcard.c ../../shared/gnatinstallhandler.c \
+	../../shared/bspgetworkarea.c
 startup_rel_CPPFLAGS = $(AM_CPPFLAGS)
 startup_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
@@ -40,8 +45,6 @@ console_rel_SOURCES = console/console-io.c
 console_rel_CPPFLAGS = $(AM_CPPFLAGS)
 console_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES =
 libbsp_a_LIBADD = startup.rel console.rel
 libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/mmu.rel
 libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/interrupt.rel
@@ -51,7 +54,7 @@ libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/clock.rel
 libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/rtc.rel
 libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/timer.rel
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

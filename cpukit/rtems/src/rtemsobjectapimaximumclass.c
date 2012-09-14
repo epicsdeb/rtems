@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtemsobjectapimaximumclass.c,v 1.1 2008/01/29 21:52:20 joel Exp $
+ *  $Id: rtemsobjectapimaximumclass.c,v 1.3 2009/11/23 14:53:04 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -20,7 +20,7 @@
 #include <rtems/rtems/types.h>
 
 int rtems_object_api_maximum_class(
-  uint32_t api
+  int api
 )
 {
   return _Objects_API_maximum_class(api);

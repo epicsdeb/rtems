@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  @(#) $Id: fat.h,v 1.14.2.1 2009/01/29 16:13:17 joel Exp $
+ *  @(#) $Id: fat.h,v 1.18 2009/11/29 13:18:56 ralf Exp $
  */
 
 #ifndef __DOSFS_FAT_H__
@@ -50,7 +50,7 @@ extern "C" {
 #    define CF_LE_L(v) CPU_swap_u32((uint32_t)(v))
 #    define CT_LE_W(v) CPU_swap_u16((uint16_t)(v))
 #    define CT_LE_L(v) CPU_swap_u32((uint32_t)(v))
-#else  
+#else
 #    define CF_LE_W(v) (v)
 #    define CF_LE_L(v) (v)
 #    define CT_LE_W(v) (v)
@@ -103,7 +103,7 @@ extern "C" {
 
 #define FAT_GET_ADDR(x, ofs)       ((uint8_t *)(x) + (ofs))
 
-#define FAT_GET_VAL8(x, ofs)       (uint8_t)(*((uint8_t *)(x) + (ofs))) 
+#define FAT_GET_VAL8(x, ofs)       (uint8_t)(*((uint8_t *)(x) + (ofs)))
 
 #define FAT_GET_VAL16(x, ofs)                               \
     (uint16_t)( (*((uint8_t *)(x) + (ofs))) |           \
@@ -114,10 +114,10 @@ extern "C" {
                   ((uint32_t)(*((uint8_t *)(x) + (ofs) + 1)) << 8)  | \
                   ((uint32_t)(*((uint8_t *)(x) + (ofs) + 2)) << 16) | \
                   ((uint32_t)(*((uint8_t *)(x) + (ofs) + 3)) << 24) )
-                    
+
 #define FAT_SET_VAL8(x, ofs,val)                    \
                  (*((uint8_t *)(x)+(ofs))=(uint8_t)(val))
- 
+
 #define FAT_SET_VAL16(x, ofs,val) do {              \
                  FAT_SET_VAL8((x),(ofs),(val));     \
                  FAT_SET_VAL8((x),(ofs)+1,(val)>>8);\
@@ -139,8 +139,8 @@ extern "C" {
 #define FAT_GET_BR_BYTES_PER_SECTOR(x)       FAT_GET_VAL16(x, 11)
 #define FAT_SET_BR_BYTES_PER_SECTOR(x,val)   FAT_SET_VAL16(x, 11,val)
 
-#define FAT_GET_BR_SECTORS_PER_CLUSTER(x)    FAT_GET_VAL8( x, 13) 
-#define FAT_SET_BR_SECTORS_PER_CLUSTER(x,val)FAT_SET_VAL8( x, 13,val) 
+#define FAT_GET_BR_SECTORS_PER_CLUSTER(x)    FAT_GET_VAL8( x, 13)
+#define FAT_SET_BR_SECTORS_PER_CLUSTER(x,val)FAT_SET_VAL8( x, 13,val)
 
 #define FAT_GET_BR_RESERVED_SECTORS_NUM(x)   FAT_GET_VAL16(x, 14)
 #define FAT_SET_BR_RESERVED_SECTORS_NUM(x,val) FAT_SET_VAL16(x, 14,val)
@@ -154,8 +154,8 @@ extern "C" {
 #define FAT_GET_BR_TOTAL_SECTORS_NUM16(x)    FAT_GET_VAL16(x, 19)
 #define FAT_SET_BR_TOTAL_SECTORS_NUM16(x,val)FAT_SET_VAL16(x, 19,val)
 
-#define FAT_GET_BR_MEDIA(x)                  FAT_GET_VAL8( x, 21) 
-#define FAT_SET_BR_MEDIA(x,val)              FAT_SET_VAL8( x, 21,val) 
+#define FAT_GET_BR_MEDIA(x)                  FAT_GET_VAL8( x, 21)
+#define FAT_SET_BR_MEDIA(x,val)              FAT_SET_VAL8( x, 21,val)
 
 #define FAT_GET_BR_SECTORS_PER_FAT(x)        FAT_GET_VAL16(x, 22)
 #define FAT_SET_BR_SECTORS_PER_FAT(x,val)    FAT_SET_VAL16(x, 22,val)
@@ -250,9 +250,9 @@ extern "C" {
 
 #define FAT_GET_FSINFO_TRAIL_SIGNATURE(x)     FAT_GET_VAL32(x,508)
 #define FAT_SET_FSINFO_TRAIL_SIGNATURE(x,val) FAT_SET_VAL32(x,508,val)
-#define FAT_FSINFO_TRAIL_SIGNATURE_VALUE  (0x000055AA)
-/* 
- * I read FSInfo sector from offset 484 to access the information, so offsets 
+#define FAT_FSINFO_TRAIL_SIGNATURE_VALUE  (0xAA550000)
+/*
+ * I read FSInfo sector from offset 484 to access the information, so offsets
  * of these fields a relative
  */
 #define FAT_GET_FSINFO_FREE_CLUSTER_COUNT(x)      FAT_GET_VAL32(x, 4)
@@ -351,15 +351,31 @@ typedef struct fat_fs_info_s
 } fat_fs_info_t;
 
 /*
- * if the name we looking for is file we store not only first data cluster
- * number, but and cluster number and offset for directory entry for this
- * name
+ * FAT position is a the cluster and the offset into the
+ * cluster.
  */
-typedef struct fat_auxiliary_s
+typedef struct fat_pos_s
 {
     uint32_t   cln;
     uint32_t   ofs;
-} fat_auxiliary_t;
+} fat_pos_t;
+
+/*
+ * If the name we looking for is file we store not only first data cluster
+ * number, but and cluster number and offset for directory entry for this
+ * name. We also add the LFN start offset so we can delete it the whole
+ * file name. We can then use this to delete the file.
+ */
+typedef struct fat_dir_pos_s
+{
+    fat_pos_t  sname;
+    fat_pos_t  lname;
+} fat_dir_pos_t;
+
+/*
+ * Set the long name entries to this value for a short file name.
+ */
+#define FAT_FILE_SHORT_NAME (0xffffffff)
 
 #define FAT_FAT_OFFSET(fat_type, cln)                  \
     ((fat_type) & FAT_FAT12 ? ((cln) + ((cln) >> 1)) : \
@@ -379,6 +395,17 @@ typedef struct fat_auxiliary_s
 
 #define FAT_OP_TYPE_READ  0x1
 #define FAT_OP_TYPE_GET   0x2
+
+static inline void
+fat_dir_pos_init(
+    fat_dir_pos_t *dir_pos
+    )
+{
+  dir_pos->sname.cln = 0;
+  dir_pos->sname.ofs = 0;
+  dir_pos->lname.cln = FAT_FILE_SHORT_NAME;
+  dir_pos->lname.ofs = FAT_FILE_SHORT_NAME;
+}
 
 static inline uint32_t
 fat_cluster_num_to_sector_num(
@@ -436,6 +463,9 @@ _fat_block_write(rtems_filesystem_mount_table_entry_t *mt_entry,
                  uint32_t                              offset,
                  uint32_t                              count,
                  const void                           *buff);
+
+int
+_fat_block_release(rtems_filesystem_mount_table_entry_t *mt_entry);
 
 ssize_t
 fat_cluster_read(rtems_filesystem_mount_table_entry_t *mt_entry,

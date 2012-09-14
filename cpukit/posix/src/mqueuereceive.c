@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueuereceive.c,v 1.7 2008/07/18 18:45:55 joel Exp $
+ *  $Id: mqueuereceive.c,v 1.8 2009/02/03 10:10:47 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -58,7 +58,7 @@ ssize_t mq_receive(
     msg_ptr,
     msg_len,
     msg_prio,
-    TRUE,
+    true,
     THREAD_QUEUE_WAIT_FOREVER
   );
 }

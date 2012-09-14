@@ -1,7 +1,11 @@
 /*
  *  Test for rtems_semaphore_flush
  *
- *  $Id: init.c,v 1.10 2008/01/24 15:12:30 joel Exp $
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: init.c,v 1.16 2009/10/27 12:12:48 ralf Exp $
  */
 
 #include <bsp.h>
@@ -25,7 +29,11 @@ rtems_task Init (rtems_task_argument argument);
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "tmacros.h"
+
 rtems_interval ticksPerSecond;
+rtems_task subtask(rtems_task_argument arg);
+void startTask(rtems_id arg);
 
 rtems_task
 subtask (rtems_task_argument arg)
@@ -49,7 +57,7 @@ startTask (rtems_id arg)
 	rtems_status_code sc;
 
 	sc = rtems_task_create (rtems_build_name ('S', 'R', 'V', 'A'),
-		100,
+		RTEMS_MAXIMUM_PRIORITY - 1u,
 		RTEMS_MINIMUM_STACK_SIZE * 2,
 		RTEMS_PREEMPT|RTEMS_NO_TIMESLICE|RTEMS_NO_ASR|RTEMS_INTERRUPT_LEVEL(0),
 		RTEMS_NO_FLOATING_POINT|RTEMS_LOCAL,
@@ -75,9 +83,9 @@ rtems_task Init (rtems_task_argument ignored)
 	puts( "*** SP29 - SIMPLE SEMAPHORE TEST ***" );
 	puts( "This test only prints on errors." );
 
-	sc = rtems_clock_get (RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticksPerSecond);
-	if (sc != RTEMS_SUCCESSFUL) {
-		printf ("Can't get ticks per second: %s\n", rtems_status_text (sc));
+        ticksPerSecond = rtems_clock_get_ticks_per_second();
+	if (ticksPerSecond <= 0) {
+		printf ("Invalid ticks per second: %" PRIdrtems_interval "\n", ticksPerSecond);
 		exit (1);
 	}
 	sc = rtems_semaphore_create (rtems_build_name ('S', 'M', 'r', 'c'),
@@ -91,7 +99,7 @@ rtems_task Init (rtems_task_argument ignored)
 	}
 	sc = rtems_semaphore_create (rtems_build_name ('S', 'M', 'n', 'c'),
 		1,
-		RTEMS_PRIORITY|RTEMS_SIMPLE_BINARY_SEMAPHORE|RTEMS_INHERIT_PRIORITY |RTEMS_NO_PRIORITY_CEILING|RTEMS_LOCAL,
+		RTEMS_PRIORITY|RTEMS_SIMPLE_BINARY_SEMAPHORE|RTEMS_NO_INHERIT_PRIORITY |RTEMS_NO_PRIORITY_CEILING|RTEMS_LOCAL,
 		0,
 		&semnorec);
 	if (sc != RTEMS_SUCCESSFUL) {
@@ -168,16 +176,16 @@ rtems_task Init (rtems_task_argument ignored)
 	startTask (semnorec);
 	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &then);
 	for (i = 0 ; i < 5 ; i++) {
-		int diff;
+		rtems_interval diff;
 
 		sc = rtems_semaphore_obtain (semnorec, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 		rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
-		diff = now - then;
+		diff = (now - then);
 		then = now;
 		if (sc != RTEMS_SUCCESSFUL)
 			printf ("%d: Failed to obtain non-recursive-lock semaphore: %s\n", __LINE__, rtems_status_text (sc));
-		else if (diff < (2 * ticksPerSecond))
-			printf ("%d: Obtained obtain non-recursive-lock semaphore too quickly -- %d ticks not %d ticks\n", __LINE__, diff, (2 * ticksPerSecond) );
+		else if (diff < (int) (2 * ticksPerSecond))
+			printf ("%d: Obtained obtain non-recursive-lock semaphore too quickly -- %" PRIdrtems_interval " ticks not %" PRIdrtems_interval " ticks\n", __LINE__, diff, (2 * ticksPerSecond) );
 	}
 
 	puts( "*** END OF TEST 29 ***" );

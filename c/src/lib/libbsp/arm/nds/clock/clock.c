@@ -8,18 +8,18 @@
  *
  * http://www.rtems.com/license/LICENSE
  *
- * $Id: clock.c,v 1.1 2008/04/16 18:37:31 joel Exp $
+ * $Id: clock.c,v 1.3 2010/04/09 20:24:57 thomas Exp $
  */
 
 #include <rtems.h>
 #include <bsp.h>
-#include "../irq/irq.h"
+#include <rtems/irq.h>
 #include <nds.h>
 
 #define CLOCK_VECTOR  IRQ_TIMER0
 
 /*
- * forward declaration for clock isr in clockdrv_shell.c
+ * forward declaration for clock isr in clockdrv_shell.h
  */
 
 rtems_isr Clock_isr (rtems_vector_number vector);
@@ -34,8 +34,7 @@ static rtems_irq_connect_data clock_isr_data = {
   NULL,
   NULL,
   NULL,
-  0,
-  0
+  NULL
 };
 
 void update_touchscreen (void);
@@ -52,12 +51,11 @@ void update_touchscreen (void);
  * install isr for clock driver.
  */
 
-void
-Clock_driver_support_install_isr (rtems_isr_entry new, rtems_isr_entry old)
-{
-  BSP_install_rtems_irq_handler (&clock_isr_data);
-}
-
+#define Clock_driver_support_install_isr( _new, _old ) \
+  do {						       \
+    _old = NULL;				       \
+    BSP_install_rtems_irq_handler(&clock_isr_data);    \
+  } while (0)
 /*
  * disable clock.
  */
@@ -85,4 +83,4 @@ Clock_driver_support_initialize_hardware (void)
   TIMER_DATA (0) = TIMER_FREQ_64 ((uint16_t) freq);
 }
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

@@ -17,11 +17,11 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.15 2008/01/11 22:50:10 joel Exp $
+ *  $Id: init.c,v 1.17 2009/10/02 11:50:39 joel Exp $
  */
 
-#define CONFIGURE_INIT
-#include "system.h"
+#include <bsp.h> /* for device driver prototypes */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -34,3 +34,16 @@ rtems_task Init(
   printf( "*** END OF HELLO WORLD TEST ***\n" );
   exit( 0 );
 }
+
+
+/* NOTICE: the clock driver is explicitly disabled */
+#define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+
+#define CONFIGURE_MAXIMUM_TASKS            1
+#define CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM
+
+#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+#define CONFIGURE_INIT
+#include <rtems/confdefs.h>

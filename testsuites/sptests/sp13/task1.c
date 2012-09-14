@@ -7,39 +7,46 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.22 2007/10/18 19:49:46 humph Exp $
+ *  $Id: task1.c,v 1.27 2009/10/26 16:53:35 ralf Exp $
  */
 
 #include "system.h"
 #include <string.h>             /* for memcmp */
+
+void dope_buffer(
+  unsigned char *buff,
+  int            buff_size,
+  unsigned char  v
+);
 
 unsigned char big_send_buffer[2048];
 unsigned char big_receive_buffer[2048];
 
 long buffer[ MESSAGE_SIZE / sizeof(long) ];
 
-void dope_buffer(unsigned char *buff,
-                 int   buff_size,
-                 uint32_t   v)
+void dope_buffer(
+  unsigned char *buff,
+  int            buff_size,
+  unsigned char  v
+)
 {
-    int i;
-    unsigned char ch;
+  int           i;
+  unsigned char ch;
 
-    ch = (' ' + (v % (0x7f - ' ')));
+  ch = (' ' + (v % (0x7f - ' ')));
 
-    for (i=0; i<buff_size; i++)
-    {
-        *buff++ = ch++;
-        if (ch >= 0x7f)
-            ch = ' ';
-    }
+  for (i=0; i<buff_size; i++) {
+      *buff++ = ch++;
+      if (ch >= 0x7f)
+          ch = ' ';
+  }
 }
 
 rtems_task Task_1(
@@ -59,7 +66,7 @@ rtems_task Task_1(
     RTEMS_SEARCH_ALL_NODES,
     &qid
   );
-  printf( "TA1 - rtems_message_queue_ident - qid => %08x\n", qid );
+  printf( "TA1 - rtems_message_queue_ident - qid => %08" PRIxrtems_id "\n", qid );
   directive_failed( status, "rtems_message_queue_ident" );
 
   Fill_buffer( "BUFFER 1 TO Q 1", buffer );
@@ -73,7 +80,7 @@ rtems_task Task_1(
   directive_failed( status, "rtems_message_queue_send" );
 
   puts( "TA1 - rtems_task_wake_after - sleep 5 seconds" );
-  status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   Fill_buffer( "BUFFER 3 TO Q 1", buffer );
@@ -82,7 +89,7 @@ rtems_task Task_1(
   directive_failed( status, "rtems_message_queue_send" );
 
   puts( "TA1 - rtems_task_wake_after - sleep 5 seconds" );
-  status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
 rtems_test_pause();
@@ -99,7 +106,7 @@ rtems_test_pause();
     buffer,
     &size,
     RTEMS_DEFAULT_OPTIONS,
-    10 * TICKS_PER_SECOND
+    10 * rtems_clock_get_ticks_per_second()
   );
   directive_failed( status, "rtems_message_queue_receive" );
   puts_nocr( "TA1 - buffer received: " );
@@ -116,7 +123,7 @@ rtems_test_pause();
   directive_failed( status, "rtems_message_queue_send" );
 
   puts( "TA1 - rtems_task_wake_after - sleep 5 seconds" );
-  status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
 rtems_test_pause();
@@ -198,12 +205,12 @@ rtems_test_pause();
   puts( "TA1 - rtems_message_queue_get_number_pending - check Q 3" );
   status = rtems_message_queue_get_number_pending( Queue_id[ 3 ], &count );
   directive_failed( status, "rtems_message_queue_get_number_pending" );
-  printf( "TA1 - %d messages are pending on Q 3\n", count );
+  printf( "TA1 - %" PRIu32 " messages are pending on Q 3\n", count );
 
   puts( "TA1 - rtems_message_queue_flush - empty Q 3" );
   status = rtems_message_queue_flush( Queue_id[ 3 ], &count );
   directive_failed( status, "rtems_message_queue_flush" );
-  printf( "TA1 - %d messages were flushed from Q 3\n", count );
+  printf( "TA1 - %" PRIu32 " messages were flushed from Q 3\n", count );
 
   Fill_buffer( "BUFFER 1 TO Q 3", buffer );
   puts( "TA1 - rtems_message_queue_send - BUFFER 1 TO Q 3" );
@@ -224,12 +231,12 @@ rtems_test_pause();
     16,
     &count
   );
-  printf( "TA1 - number of tasks awakened = %d\n", count );
+  printf( "TA1 - number of tasks awakened = %" PRIu32 "\n", count );
 
   puts( "TA1 - rtems_message_queue_get_number_pending - check Q 3" );
   status = rtems_message_queue_get_number_pending( Queue_id[ 3 ], &count );
   directive_failed( status, "rtems_message_queue_get_number_pending" );
-  printf( "TA1 - %d messages are pending on Q 3\n", count );
+  printf( "TA1 - %" PRIu32 " messages are pending on Q 3\n", count );
 
   Fill_buffer( "BUFFER 3 TO Q 3", buffer );
   puts( "TA1 - rtems_message_queue_send - BUFFER 3 TO Q 3" );
@@ -238,7 +245,7 @@ rtems_test_pause();
 
   puts( "TA1 - rtems_message_queue_flush - Q 3" );
   status = rtems_message_queue_flush( Queue_id[ 3 ], &count );
-  printf( "TA1 - %d messages were flushed from Q 3\n", count );
+  printf( "TA1 - %" PRIu32 " messages were flushed from Q 3\n", count );
 
   puts( "TA1 - rtems_message_queue_send until all message buffers consumed" );
   while ( FOREVER ) {
@@ -250,7 +257,7 @@ rtems_test_pause();
   puts( "TA1 - all message buffers consumed" );
   puts( "TA1 - rtems_message_queue_flush - Q 3" );
   status = rtems_message_queue_flush( Queue_id[ 3 ], &count );
-  printf( "TA1 - %d messages were flushed from Q 3\n", count );
+  printf( "TA1 - %" PRIu32 " messages were flushed from Q 3\n", count );
 
 rtems_test_pause();
 
@@ -284,7 +291,7 @@ rtems_test_pause();
           );
       if (status != RTEMS_SUCCESSFUL)
       {
-          printf("TA1 - msq que size: %d\n", queue_size);
+          printf("TA1 - msq que size: %zu\n", queue_size);
           directive_failed( status, "rtems_message_queue_create of Q1" );
       }
 
@@ -330,7 +337,7 @@ rtems_test_pause();
                                            big_receive_buffer,
                                            &size,
                                            RTEMS_DEFAULT_OPTIONS,
-                                           1 * TICKS_PER_SECOND);
+                                           1 * rtems_clock_get_ticks_per_second());
       directive_failed(status, "rtems_message_queue_receive exact size");
       if (size != queue_size)
       {

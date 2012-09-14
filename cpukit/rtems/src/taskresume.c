@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskresume.c,v 1.8 2007/11/30 21:49:41 joel Exp $
+ *  $Id: taskresume.c,v 1.10 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -48,7 +48,7 @@
  */
 
 rtems_status_code rtems_task_resume(
-  Objects_Id id
+  rtems_id id
 )
 {
   register Thread_Control *the_thread;
@@ -59,7 +59,7 @@ rtems_status_code rtems_task_resume(
 
     case OBJECTS_LOCAL:
       if ( _States_Is_suspended( the_thread->current_state ) ) {
-        _Thread_Resume( the_thread, TRUE );
+        _Thread_Resume( the_thread, true );
         _Thread_Enable_dispatch();
         return RTEMS_SUCCESSFUL;
       }

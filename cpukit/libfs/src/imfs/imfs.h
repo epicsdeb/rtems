@@ -1,22 +1,18 @@
 /*
  *  Header file for the In-Memory File System
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs.h,v 1.31.2.1 2009/03/09 14:12:58 joel Exp $
+ *  $Id: imfs.h,v 1.41 2010/05/31 13:56:36 ccj Exp $
  */
 
 #ifndef _RTEMS_IMFS_H
 #define _RTEMS_IMFS_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <rtems.h>
 #include <rtems/chain.h>
@@ -24,6 +20,12 @@ extern "C" {
 #include <sys/types.h>
 #include <limits.h>
 #include <rtems/libio.h>
+
+#include <rtems/pipe.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  *  File name macros
@@ -59,6 +61,10 @@ typedef struct {
   char *name;
 } IMFS_sym_link_t;
 
+typedef struct {
+  pipe_control_t  *pipe;
+} IMFS_fifo_t;
+
 /*
  *  IMFS "memfile" information
  *
@@ -84,7 +90,7 @@ typedef struct {
   extern int imfs_rq_memfile_bytes_per_block;
   extern int imfs_memfile_bytes_per_block;
 
-#define IMFS_MEMFILE_BYTES_PER_BLOCK imfs_memfile_bytes_per_block  
+#define IMFS_MEMFILE_BYTES_PER_BLOCK imfs_memfile_bytes_per_block
 #define IMFS_MEMFILE_BLOCK_SLOTS \
   (IMFS_MEMFILE_BYTES_PER_BLOCK / sizeof(void *))
 
@@ -92,15 +98,15 @@ typedef uint8_t *block_p;
 typedef block_p *block_ptr;
 
 typedef struct {
-  off_t      size;             /* size of file in bytes */
-  block_ptr  indirect;         /* array of 128 data blocks pointers */
-  block_ptr  doubly_indirect;  /* 128 indirect blocks */
-  block_ptr  triply_indirect;  /* 128 doubly indirect blocks */
+  rtems_off64_t size;             /* size of file in bytes */
+  block_ptr     indirect;         /* array of 128 data blocks pointers */
+  block_ptr     doubly_indirect;  /* 128 indirect blocks */
+  block_ptr     triply_indirect;  /* 128 doubly indirect blocks */
 } IMFS_memfile_t;
 
 typedef struct {
-  off_t      size;             /* size of file in bytes */
-  block_p    direct;           /* pointer to file image */
+  rtems_off64_t size;             /* size of file in bytes */
+  block_p       direct;           /* pointer to file image */
 } IMFS_linearfile_t;
 
 /*
@@ -135,8 +141,9 @@ typedef struct {
 #define IMFS_SYM_LINK      RTEMS_FILESYSTEM_SYM_LINK
 #define IMFS_MEMORY_FILE   RTEMS_FILESYSTEM_MEMORY_FILE
 #define IMFS_LINEAR_FILE   (IMFS_MEMORY_FILE + 1)
+#define IMFS_FIFO          (IMFS_LINEAR_FILE + 1)
 
-#define IMFS_NUMBER_OF_TYPES  (IMFS_LINEAR_FILE + 1)
+#define IMFS_NUMBER_OF_TYPES  (IMFS_FIFO + 1)
 
 typedef union {
   IMFS_directory_t   directory;
@@ -145,7 +152,14 @@ typedef union {
   IMFS_sym_link_t    sym_link;
   IMFS_memfile_t     file;
   IMFS_linearfile_t  linearfile;
+  IMFS_fifo_t        fifo;
 } IMFS_types_union;
+
+/*
+ * Major device number for the IMFS. This is not a real device number because
+ * the IMFS is just a file system and does not have a driver.
+ */
+#define IMFS_DEVICE_MAJOR_NUMBER (0xfffe)
 
 /*
  *  Maximum length of a "basename" of an IMFS file/node.
@@ -196,15 +210,16 @@ struct IMFS_jnode_tt {
     _jnode->stat_ctime  = (time_t) tv.tv_sec; \
   } while (0)
 
-#define IMFS_atime_mtime_update( _jnode )   \
+#define IMFS_mtime_ctime_update( _jnode )   \
   do {                                      \
     struct timeval tv;                      \
     gettimeofday( &tv, 0 );                 \
     _jnode->stat_mtime  = (time_t) tv.tv_sec; \
-    _jnode->stat_atime  = (time_t) tv.tv_sec; \
+    _jnode->stat_ctime  = (time_t) tv.tv_sec; \
   } while (0)
 
 typedef struct {
+  int                                     instance;
   ino_t                                   ino_count;
   const rtems_filesystem_file_handlers_r *memfile_handlers;
   const rtems_filesystem_file_handlers_r *directory_handlers;
@@ -230,6 +245,7 @@ extern const rtems_filesystem_file_handlers_r       IMFS_directory_handlers;
 extern const rtems_filesystem_file_handlers_r       IMFS_device_handlers;
 extern const rtems_filesystem_file_handlers_r       IMFS_link_handlers;
 extern const rtems_filesystem_file_handlers_r       IMFS_memfile_handlers;
+extern const rtems_filesystem_file_handlers_r       IMFS_fifo_handlers;
 extern const rtems_filesystem_operations_table      IMFS_ops;
 extern const rtems_filesystem_operations_table      miniIMFS_ops;
 extern const rtems_filesystem_limits_and_options_t  IMFS_LIMITS_AND_OPTIONS;
@@ -238,26 +254,28 @@ extern const rtems_filesystem_limits_and_options_t  IMFS_LIMITS_AND_OPTIONS;
  *  Routines
  */
 
-int IMFS_initialize(
-   rtems_filesystem_mount_table_entry_t *mt_entry
+extern int IMFS_initialize(
+   rtems_filesystem_mount_table_entry_t *mt_entry,
+   const void                           *data
 );
 
-int miniIMFS_initialize(
-   rtems_filesystem_mount_table_entry_t *mt_entry
+extern int miniIMFS_initialize(
+   rtems_filesystem_mount_table_entry_t *mt_entry,
+   const void                           *data
 );
 
-int IMFS_initialize_support(
+extern int IMFS_initialize_support(
    rtems_filesystem_mount_table_entry_t       *mt_entry,
    const rtems_filesystem_operations_table    *op_table,
    const rtems_filesystem_file_handlers_r     *memfile_handlers,
    const rtems_filesystem_file_handlers_r     *directory_handlers
 );
 
-int IMFS_fsunmount(
+extern int IMFS_fsunmount(
    rtems_filesystem_mount_table_entry_t *mt_entry
 );
 
-int rtems_tarfs_load(
+extern int rtems_tarfs_load(
    char         *mountpoint,
    uint8_t      *tar_image,
    size_t        tar_size
@@ -266,15 +284,16 @@ int rtems_tarfs_load(
 /*
  * Returns the number of characters copied from path to token.
  */
-IMFS_token_types IMFS_get_token(
+extern IMFS_token_types IMFS_get_token(
   const char       *path,
+  int               pathlen,
   char             *token,
   int              *token_len
 );
 
-void IMFS_dump( void );
+extern void IMFS_dump( void );
 
-void IMFS_initialize_jnode(
+extern void IMFS_initialize_jnode(
   IMFS_jnode_t        *the_jnode,
   IMFS_jnode_types_t   type,
   IMFS_jnode_t        *the_parent,
@@ -282,64 +301,73 @@ void IMFS_initialize_jnode(
   mode_t               mode
 );
 
-IMFS_jnode_t *IMFS_find_match_in_dir(
+extern IMFS_jnode_t *IMFS_find_match_in_dir(
   IMFS_jnode_t *directory,                         /* IN */
   char         *name                               /* IN */
 );
 
-rtems_filesystem_node_types_t IMFS_node_type(
+extern rtems_filesystem_node_types_t IMFS_node_type(
   rtems_filesystem_location_info_t    *pathloc     /* IN */
 );
 
-int IMFS_stat(
+extern int IMFS_stat(
   rtems_filesystem_location_info_t *loc,           /* IN  */
   struct stat                      *buf            /* OUT */
 );
 
-int IMFS_Set_handlers(
+extern int IMFS_Set_handlers(
   rtems_filesystem_location_info_t   *loc
 );
 
-int IMFS_evaluate_link(
+extern int IMFS_evaluate_link(
   rtems_filesystem_location_info_t *node,        /* IN/OUT */
   int                               flags        /* IN     */
 );
 
-int IMFS_eval_path(
+extern int IMFS_eval_path(
   const char                        *pathname,     /* IN     */
+  size_t                            pathnamelen,   /* IN     */
   int                               flags,         /* IN     */
   rtems_filesystem_location_info_t  *pathloc       /* IN/OUT */
 );
 
-
-int IMFS_link(
+extern int IMFS_link(
   rtems_filesystem_location_info_t  *to_loc,      /* IN */
   rtems_filesystem_location_info_t  *parent_loc,  /* IN */
   const char                        *token        /* IN */
 );
 
-int IMFS_unlink(
-  rtems_filesystem_location_info_t  *pathloc       /* IN */
+extern int IMFS_unlink(
+  rtems_filesystem_location_info_t  *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t  *pathloc         /* IN */
 );
 
-int IMFS_chown(
+extern int IMFS_chown(
   rtems_filesystem_location_info_t  *pathloc,      /* IN */
   uid_t                              owner,        /* IN */
   gid_t                              group         /* IN */
 );
 
-int IMFS_freenodinfo(
+extern int IMFS_freenodinfo(
   rtems_filesystem_location_info_t  *pathloc       /* IN */
 );
 
-int IMFS_mknod(
+extern int IMFS_mknod(
   const char                        *path,         /* IN */
   mode_t                             mode,         /* IN */
   dev_t                              dev,          /* IN */
   rtems_filesystem_location_info_t  *pathloc       /* IN/OUT */
 );
 
-IMFS_jnode_t *IMFS_create_node(
+extern IMFS_jnode_t *IMFS_allocate_node(
+  IMFS_jnode_types_t                type,         /* IN  */
+  const char                       *name,         /* IN  */
+  mode_t                            mode          /* IN  */
+);
+
+extern IMFS_jnode_t *IMFS_create_root_node(void);
+
+extern IMFS_jnode_t *IMFS_create_node(
   rtems_filesystem_location_info_t *parent_loc,   /* IN  */
   IMFS_jnode_types_t                type,         /* IN  */
   const char                       *name,         /* IN  */
@@ -347,178 +375,188 @@ IMFS_jnode_t *IMFS_create_node(
   const IMFS_types_union           *info          /* IN  */
 );
 
-int IMFS_evaluate_for_make(
-  const char                         *path,        /* IN     */
-  rtems_filesystem_location_info_t   *pathloc,     /* IN/OUT */
-  const char                        **name         /* OUT    */
+extern int IMFS_evaluate_for_make(
+  const char                         *path,       /* IN     */
+  rtems_filesystem_location_info_t   *pathloc,    /* IN/OUT */
+  const char                        **name        /* OUT    */
 );
 
-int IMFS_mount(
+extern int IMFS_mount(
   rtems_filesystem_mount_table_entry_t *mt_entry  /* IN */
 );
 
-int IMFS_unmount(
+extern int IMFS_unmount(
   rtems_filesystem_mount_table_entry_t *mt_entry  /* IN */
 );
 
-int IMFS_freenod(
+extern int IMFS_freenod(
   rtems_filesystem_location_info_t  *node         /* IN/OUT */
 );
 
-int IMFS_memfile_remove(
+extern int IMFS_memfile_remove(
  IMFS_jnode_t  *the_jnode         /* IN/OUT */
 );
 
-int memfile_ftruncate(
+extern int memfile_ftruncate(
   rtems_libio_t *iop,               /* IN  */
-  off_t          length             /* IN  */
+  rtems_off64_t  length             /* IN  */
 );
 
-int imfs_dir_open(
+extern int imfs_dir_open(
   rtems_libio_t *iop,             /* IN  */
   const char    *pathname,        /* IN  */
   uint32_t       flag,            /* IN  */
   uint32_t       mode             /* IN  */
 );
 
-int imfs_dir_close(
+extern int imfs_dir_close(
   rtems_libio_t *iop             /* IN  */
 );
 
-ssize_t imfs_dir_read(
+extern ssize_t imfs_dir_read(
   rtems_libio_t *iop,              /* IN  */
   void          *buffer,           /* IN  */
   size_t         count             /* IN  */
 );
 
-off_t imfs_dir_lseek(
+extern rtems_off64_t imfs_dir_lseek(
   rtems_libio_t        *iop,              /* IN  */
-  off_t                 offset,           /* IN  */
+  rtems_off64_t         offset,           /* IN  */
   int                   whence            /* IN  */
 );
 
-int imfs_dir_fstat(
+extern int imfs_dir_fstat(
   rtems_filesystem_location_info_t *loc,         /* IN  */
   struct stat                      *buf          /* OUT */
 );
 
-int imfs_dir_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+extern int imfs_dir_rmnod(
+  rtems_filesystem_location_info_t *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t *pathloc         /* IN */
 );
 
-int memfile_open(
+extern int memfile_open(
   rtems_libio_t *iop,             /* IN  */
   const char    *pathname,        /* IN  */
   uint32_t       flag,            /* IN  */
   uint32_t       mode             /* IN  */
 );
 
-int memfile_close(
+extern int memfile_close(
   rtems_libio_t *iop             /* IN  */
 );
 
-ssize_t memfile_read(
+extern ssize_t memfile_read(
   rtems_libio_t *iop,             /* IN  */
   void          *buffer,          /* IN  */
   size_t         count            /* IN  */
 );
 
-ssize_t memfile_write(
+extern ssize_t memfile_write(
   rtems_libio_t *iop,             /* IN  */
   const void    *buffer,          /* IN  */
   size_t         count            /* IN  */
 );
 
-int memfile_ioctl(
+extern int memfile_ioctl(
   rtems_libio_t *iop,             /* IN  */
   uint32_t       command,         /* IN  */
   void          *buffer           /* IN  */
 );
 
-off_t memfile_lseek(
+extern rtems_off64_t memfile_lseek(
   rtems_libio_t        *iop,        /* IN  */
-  off_t                 offset,     /* IN  */
+  rtems_off64_t         offset,     /* IN  */
   int                   whence      /* IN  */
 );
 
-int memfile_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+extern int memfile_rmnod(
+  rtems_filesystem_location_info_t  *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t  *pathloc         /* IN */
 );
 
-int device_open(
+extern int device_open(
   rtems_libio_t *iop,            /* IN  */
   const char    *pathname,       /* IN  */
   uint32_t       flag,           /* IN  */
   uint32_t       mode            /* IN  */
 );
 
-int device_close(
+extern int device_close(
   rtems_libio_t *iop             /* IN  */
 );
 
-ssize_t device_read(
+extern ssize_t device_read(
   rtems_libio_t *iop,            /* IN  */
   void          *buffer,         /* IN  */
   size_t         count           /* IN  */
 );
 
-ssize_t device_write(
+extern ssize_t device_write(
   rtems_libio_t *iop,               /* IN  */
   const void    *buffer,            /* IN  */
   size_t         count              /* IN  */
 );
 
-int device_ioctl(
+extern int device_ioctl(
   rtems_libio_t *iop,               /* IN  */
   uint32_t       command,           /* IN  */
   void          *buffer             /* IN  */
 );
 
-off_t device_lseek(
+extern rtems_off64_t device_lseek(
   rtems_libio_t *iop,               /* IN  */
-  off_t          offset,            /* IN  */
+  rtems_off64_t  offset,            /* IN  */
   int            whence             /* IN  */
 );
 
-int device_ftruncate(
+extern int device_ftruncate(
   rtems_libio_t *iop,               /* IN  */
-  off_t          length             /* IN  */
+  rtems_off64_t  length             /* IN  */
 );
 
-int IMFS_utime(
+extern int IMFS_utime(
   rtems_filesystem_location_info_t  *pathloc,       /* IN */
   time_t                             actime,        /* IN */
   time_t                             modtime        /* IN */
 );
 
-int IMFS_fchmod(
+extern int IMFS_fchmod(
   rtems_filesystem_location_info_t *loc,
   mode_t                            mode
 );
 
-int IMFS_symlink(
+extern int IMFS_symlink(
   rtems_filesystem_location_info_t  *parent_loc,  /* IN */
   const char                        *link_name,
   const char                        *node_name
 );
 
-int IMFS_readlink(
+extern int IMFS_readlink(
  rtems_filesystem_location_info_t   *loc,         /* IN */
  char                               *buf,         /* OUT */
  size_t                             bufsize
 );
 
-int IMFS_fdatasync(
+extern int IMFS_rename(
+  rtems_filesystem_location_info_t  *old_loc,         /* IN */
+  rtems_filesystem_location_info_t  *old_parent_loc,  /* IN */
+  rtems_filesystem_location_info_t  *new_parent_loc,  /* IN */
+  const char                        *new_name         /* IN */
+);
+
+extern int IMFS_fdatasync(
   rtems_libio_t *iop
 );
 
-int IMFS_fcntl(
+extern int IMFS_fcntl(
   int            cmd,
   rtems_libio_t *iop
 );
 
-int IMFS_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+extern int IMFS_rmnod(
+  rtems_filesystem_location_info_t  *parent_pathloc, /* IN */
+  rtems_filesystem_location_info_t  *pathloc         /* IN */
 );
 
 #ifdef __cplusplus

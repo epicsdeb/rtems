@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: eventmp.h,v 1.16 2008/04/18 20:08:07 joel Exp $
+ *  $Id: eventmp.h,v 1.17 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_EVENTMP_H
@@ -29,7 +29,9 @@ extern "C" {
 #include <rtems/score/watchdog.h>
 
 /**
- *  @defgroup ClassicEventMP Classic API Event MP Support
+ *  @defgroup ClassicEventMP Event MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */

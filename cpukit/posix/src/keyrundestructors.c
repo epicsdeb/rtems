@@ -1,4 +1,6 @@
 /*
+ *  Copyright (c) 2010 embedded brains GmbH.
+ *
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,21 +8,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: keyrundestructors.c,v 1.7 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: keyrundestructors.c,v 1.9.2.1 2010/08/09 08:13:47 sh Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <errno.h>
-#include <limits.h>
-#include <pthread.h>
-#include <string.h>
-
 #include <rtems/system.h>
+#include <rtems/score/object.h>
 #include <rtems/score/thread.h>
-#include <rtems/score/wkspace.h>
 #include <rtems/posix/key.h>
 
 /*PAGE
@@ -37,51 +34,36 @@ void _POSIX_Keys_Run_destructors(
   Thread_Control *thread
 )
 {
-  uint32_t             index;
-  uint32_t             thread_index;
-  uint32_t             thread_api;
-  uint32_t             iterations;
-  bool                 are_all_null;
-  POSIX_Keys_Control  *the_key;
-  void                *value;
+  Objects_Maximum thread_index = _Objects_Get_index( thread->Object.id );
+  Objects_APIs thread_api = _Objects_Get_API( thread->Object.id );
+  bool done = false;
 
-  thread_index = _Objects_Get_index( thread->Object.id );
-  thread_api   = _Objects_Get_API( thread->Object.id );
+  /*
+   *  The standard allows one to avoid a potential infinite loop and limit the
+   *  number of iterations.  An infinite loop may happen if destructors set
+   *  thread specific data.  This can be considered dubious.
+   *
+   *  Reference: 17.1.1.2 P1003.1c/Draft 10, p. 163, line 99.
+   */
+  while ( !done ) {
+    Objects_Maximum index = 0;
+    Objects_Maximum max = _POSIX_Keys_Information.maximum;
 
-  iterations = 0;
+    done = true;
 
-  for ( ; ; ) {
+    for ( index = 1 ; index <= max ; ++index ) {
+      POSIX_Keys_Control *key = (POSIX_Keys_Control *)
+        _POSIX_Keys_Information.local_table [ index ];
 
-    are_all_null = TRUE;
+      if ( key != NULL && key->destructor != NULL ) {
+        void *value = key->Values [ thread_api ][ thread_index ];
 
-    for ( index=1 ; index <= _POSIX_Keys_Information.maximum ; index++ ) {
-
-      the_key = (POSIX_Keys_Control *)
-        _POSIX_Keys_Information.local_table[ index ];
-
-      if ( the_key && the_key->is_active && the_key->destructor ) {
-        value = the_key->Values[ thread_api ][ thread_index ];
-        if ( value ) {
-          (*the_key->destructor)( value );
-          if ( the_key->Values[ thread_api ][ thread_index ] )
-            are_all_null = FALSE;
+        if ( value != NULL ) {
+          key->Values [ thread_api ][ thread_index ] = NULL;
+          (*key->destructor)( value );
+          done = false;
         }
       }
     }
-
-    if ( are_all_null == TRUE )
-      return;
-
-    iterations++;
-
-    /*
-     *  The standard allows one to not do this and thus go into an infinite
-     *  loop.  It seems rude to unnecessarily lock up a system.
-     *
-     *  Reference: 17.1.1.2 P1003.1c/Draft 10, p. 163, line 99.
-     */
-
-    if ( iterations >= PTHREAD_DESTRUCTOR_ITERATIONS )
-      return;
   }
 }

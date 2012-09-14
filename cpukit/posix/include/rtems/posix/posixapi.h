@@ -3,18 +3,14 @@
  */
 
 /*
- *  POSIX API Support
- *
- *  NOTE:
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: posixapi.h,v 1.9 2005/02/21 07:20:13 ralf Exp $
+ *  $Id: posixapi.h,v 1.10 2008/12/15 19:21:01 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_POSIXAPI_H
@@ -22,16 +18,13 @@
 
 #include <rtems/config.h>
 
-/*PAGE
+/**
+ *  @brief Initialize POSIX API
  *
- *  _POSIX_API_Initialize
- *
- *  XXX
+ *  This method is responsible for initializing each of the POSIX
+ *  API managers.
  */
-
-void _POSIX_API_Initialize(
-  rtems_configuration_table *configuration_table
-);
+void _POSIX_API_Initialize(void);
 
 #endif
 /* end of include file */

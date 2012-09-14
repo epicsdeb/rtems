@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadblockingoperationcancel.c,v 1.4 2008/09/05 21:54:20 joel Exp $
+ *  $Id: threadblockingoperationcancel.c,v 1.6 2008/12/31 03:33:08 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -18,9 +18,16 @@
 
 #include <rtems/system.h>
 #include <rtems/score/thread.h>
+#if defined(RTEMS_DEBUG)
+#include <rtems/score/interr.h>
+#endif
 
 void _Thread_blocking_operation_Cancel(
+#if defined(RTEMS_DEBUG)
   Thread_blocking_operation_States  sync_state,
+#else
+  Thread_blocking_operation_States  sync_state __attribute__((unused)),
+#endif
   Thread_Control                   *the_thread,
   ISR_Level                         level
 )
@@ -40,12 +47,11 @@ void _Thread_blocking_operation_Cancel(
    */
 
   #if defined(RTEMS_DEBUG)
-  #include <rtems/score/interr.h>
     if ( (sync_state == THREAD_BLOCKING_OPERATION_SYNCHRONIZED) ||
          (sync_state == THREAD_BLOCKING_OPERATION_NOTHING_HAPPENED) ) {
       _Internal_error_Occurred(
         INTERNAL_ERROR_CORE,
-        TRUE,
+        true,
         INTERNAL_ERROR_IMPLEMENTATION_BLOCKING_OPERATION_CANCEL
       );
     }

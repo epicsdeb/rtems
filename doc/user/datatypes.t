@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: datatypes.t,v 1.8.2.1 2008/12/01 16:06:43 joel Exp $
+@c  $Id: datatypes.t,v 1.9.2.1 2010/11/01 15:58:22 joel Exp $
 @c
 
 @chapter RTEMS Data Types
@@ -226,7 +226,11 @@ on the target hardware.
 This type is deprecated. Use "float" instead.
 
 @findex rtems_status_codes
-@item @code{@value{DIRPREFIX}status_codes} is the 
+@item @code{@value{DIRPREFIX}status_codes} is the return type for most
+RTEMS services.  This is an enumerated type of approximately twenty-five
+values.  In general, when a service returns a particular status code, it
+indicates that a very specific error condition has occurred.
+
 @findex rtems_task
 @item @code{@value{DIRPREFIX}task} is the return type for an
 RTEMS Task.

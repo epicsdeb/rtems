@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: acp_por.c,v 1.1 2007/04/17 20:32:12 joel Exp $
+ *  $Id: acp_por.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,11 +22,11 @@
  */
 
 ER acp_por(
-  RNO  *p_rdvno,
-  VP    msg,
-  INT  *p_cmsgsz,
-  ID    porid,
-  UINT  acpptn
+  RNO  *p_rdvno __attribute__((unused)),
+  VP    msg __attribute__((unused)),
+  INT  *p_cmsgsz __attribute__((unused)),
+  ID    porid __attribute__((unused)),
+  UINT  acpptn __attribute__((unused))
 )
 {
   return E_OK;

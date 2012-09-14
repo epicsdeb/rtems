@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -46,13 +45,13 @@ rtems_task Init(
 void test_init( void )
 {
   rtems_status_code status;
-  rtems_id id;
+  rtems_id          id;
 
   Task_restarted = OPERATION_COUNT;
 
   status = rtems_task_create(
     rtems_build_name( 'T', 'I', 'M', 'E' ),
-    128,
+    (RTEMS_MAXIMUM_PRIORITY / 2u) + 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -97,7 +96,7 @@ rtems_task Task_1(
   for ( index=1 ; index <= OPERATION_COUNT ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'T', 'I', 'M', 'E' ),
-      254,
+      RTEMS_MAXIMUM_PRIORITY - 1u,
       RTEMS_MINIMUM_STACK_SIZE,
       RTEMS_DEFAULT_MODES,
       RTEMS_DEFAULT_ATTRIBUTES,

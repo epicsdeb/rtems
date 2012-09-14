@@ -1,4 +1,4 @@
-/* $Id: xdr_mbuf.c,v 1.3 2008/09/04 08:15:10 ralf Exp $ */
+/* $Id: xdr_mbuf.c,v 1.9 2010/06/01 10:41:40 ralf Exp $ */
 
 /* xdr_mbuf is derived from xdr_mem */
 
@@ -41,7 +41,7 @@ static char *rcsid = "$FreeBSD: src/lib/libc/xdr/xdr_mem.c,v 1.8 1999/08/28 00:0
 
 /*
  * xdr_mbuf,  XDR implementation using mbuf buffers
- * 
+ *
  * derived from:
  *
  * xdr_mem.h, XDR implementation using memory buffers.
@@ -49,8 +49,12 @@ static char *rcsid = "$FreeBSD: src/lib/libc/xdr/xdr_mem.c,v 1.8 1999/08/28 00:0
  * Copyright (C) 1984, Sun Microsystems, Inc.
  *
  * The MBUF stream is useful for BSDNET kernel (or RTEMS for that matter)
- * use. 
+ * use.
  */
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <string.h>
 #include <rpc/types.h>
@@ -81,7 +85,7 @@ my_free(void *p)
 
 #define DEBUG			DEBUG_ASSERT
 
-#define KERNEL
+#define _KERNEL
 #include <sys/mbuf.h>
 
 #include <assert.h>
@@ -143,7 +147,7 @@ MBPrivate	mbp = (MBPrivate)xdrs->x_base;
 		mbp->mcurrent    = m;
 		xdrs->x_private  = mtod(m,caddr_t);
 		xdrs->x_handy    = m->m_len;
-		xdrs->x_ops      = ((size_t)xdrs->x_private & (sizeof(int32_t) - 1))
+		xdrs->x_ops      = ((uintptr_t)xdrs->x_private & (sizeof(int32_t) - 1))
 								? &xdrmbuf_ops_unaligned : &xdrmbuf_ops_aligned;
 }
 
@@ -168,7 +172,7 @@ MBPrivate		mbp = (MBPrivate)xdrs->x_base;
 		fprintf(stderr,"xdrmbuf: end of chain\n");
 	}
 #endif
-	
+
 	return rval;
 }
 
@@ -182,7 +186,8 @@ xdrmbuf_create(XDR *xdrs, struct mbuf *mbuf, enum xdr_op op)
 MBPrivate mbp;
 
 	xdrs->x_op = op;
-	assert( mbp = (MBPrivate)my_malloc(sizeof(*mbp)) );
+	mbp = (MBPrivate)my_malloc(sizeof(*mbp));
+	assert( mbp );
 	xdrs->x_base  = (caddr_t) mbp;
 
 	mbp->mchain   = mbuf;
@@ -451,7 +456,7 @@ struct mbuf *m   = mbp->mcurrent;
 u_int       rval = mbp->pos;
 
 	if (m) {
-		rval += (u_long)xdrs->x_private - mtod(m, u_long);
+		rval += xdrs->x_private - mtod(m, void*);
 	}
 #else
 struct mbuf *m;

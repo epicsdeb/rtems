@@ -1,22 +1,20 @@
-dnl $Id: check-custom-bsp.m4,v 1.4 2004/10/22 14:47:07 ralf Exp $
+dnl $Id: check-custom-bsp.m4,v 1.7 2009/10/17 15:15:54 ralf Exp $
 
 AC_DEFUN([_RTEMS_CHECK_CUSTOM_BSP],[
-  for i in "${srcdir}/${RTEMS_TOPdir}/bspkit/${RTEMS_CPU}"/*/cfg/$1 \
-    ${srcdir}/${RTEMS_TOPdir}/make/custom/$1;
+AC_REQUIRE([RTEMS_CANONICAL_TARGET_CPU])dnl sets RTEMS_CPU, target
+AC_REQUIRE([RTEMS_TOP])dnl sets RTEMS_TOPdir
+  $2=
+  for i in \
+    `ls "${srcdir}/${RTEMS_TOPdir}/c/src/lib/libbsp/${RTEMS_CPU}"/*/make/custom/$1 2>/dev/null`;
   do
-    AC_MSG_CHECKING([for $i])
     AS_IF([test -r $i],[
       $2="$i"
-      AC_MSG_RESULT([yes])
-      break;
-    ],[
-      AC_MSG_RESULT([no])
+      break
     ])
   done
 ])
 
 AC_DEFUN([RTEMS_CHECK_CUSTOM_BSP],[
-  AC_REQUIRE([RTEMS_TOP])
   _RTEMS_CHECK_CUSTOM_BSP([[$]$1.cfg],[BSP_FOUND])
   AS_IF([test -z "$BSP_FOUND"],[
     AC_MSG_ERROR([missing [$]$1.cfg])

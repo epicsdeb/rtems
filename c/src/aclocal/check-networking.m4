@@ -1,4 +1,4 @@
-dnl $Id: check-networking.m4,v 1.2 2003/10/21 11:28:41 ralf Exp $
+dnl $Id: check-networking.m4,v 1.4 2009/10/14 12:20:20 ralf Exp $
 dnl
 AC_DEFUN([RTEMS_CHECK_NETWORKING],
 [dnl
@@ -9,7 +9,7 @@ AC_CACHE_CHECK([whether BSP supports networking],
   rtems_cv_HAS_NETWORKING,
   [dnl
     case "$RTEMS_CPU" in
-    unix*)
+    avr*|m32c*)       # do not have address space to hold BSD TCP/IP stack
       rtems_cv_HAS_NETWORKING="no"
       ;;
     *)

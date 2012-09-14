@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: lseek.c,v 1.14 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: lseek.c,v 1.16 2009/09/30 08:20:29 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -85,12 +85,12 @@ off_t lseek(
  *  This is the Newlib dependent reentrant version of lseek().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__LSEEK_R)
 
 #include <reent.h>
 
 off_t _lseek_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   int            fd,
   off_t          offset,
   int            whence

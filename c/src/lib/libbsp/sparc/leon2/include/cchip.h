@@ -1,3 +1,6 @@
+/*
+ * $Id: cchip.h,v 1.2 2009/07/20 16:02:01 joel Exp $
+ */
 
 #ifndef __CCHIP_H__
 #define __CCHIP_H__

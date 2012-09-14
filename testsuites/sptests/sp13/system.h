@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-20007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.20 2007/11/06 20:22:49 joel Exp $
+ *  $Id: system.h,v 1.21 2009/05/10 14:39:46 joel Exp $
  */
 
 #include <tmacros.h>
@@ -27,7 +27,7 @@ void Fill_buffer(
 );
 
 void Put_buffer(
-  long *buffer
+  void *buffer
 );
 
 rtems_task Task_1(

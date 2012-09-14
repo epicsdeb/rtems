@@ -27,13 +27,13 @@
  */
 
 /*
- * $Id: _types.h,v 1.1 2005/05/09 13:06:26 ralf Exp $
+ * $Id: _types.h,v 1.3 2009/11/30 15:57:51 ralf Exp $
  */
- 
+
 #ifndef _RTEMS_BSDNET__TYPES_H_
 #define _RTEMS_BSDNET__TYPES_H_
 
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 /*
  * Standard type definitions.

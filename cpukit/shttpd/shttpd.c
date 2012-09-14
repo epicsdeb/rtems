@@ -10,10 +10,15 @@
 
 /*
  * Small and portable HTTP server, http://shttpd.sourceforge.net
- * $Id: shttpd.c,v 1.1.1.1 2007/06/11 13:24:28 ralf Exp $
+ * $Id: shttpd.c,v 1.4 2010/04/03 05:52:56 ralf Exp $
  */
 
 #include "defs.h"
+
+#include <unistd.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 time_t		current_time;	/* Current UTC time		*/
 int		tz_offset;	/* Time zone offset from UTC	*/
@@ -135,7 +140,7 @@ stop_stream(struct stream *stream)
 	stream->flags &= ~(FLAG_R | FLAG_W | FLAG_ALWAYS_READY);
 
 	DBG(("%d %s stopped. %lu of content data, %d now in a buffer",
-	    stream->conn->rem.chan.sock, 
+	    stream->conn->rem.chan.sock,
 	    stream->io_class ? stream->io_class->name : "(null)",
 	    (unsigned long) stream->io.total, io_data_len(&stream->io)));
 }
@@ -1030,7 +1035,7 @@ shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 		/* Read from the local end if it is ready */
 		if (io_space_len(&c->loc.io) &&
 		    ((c->loc.flags & FLAG_ALWAYS_READY)
-		    
+		
 #if !defined(NO_CGI)
 		    ||(c->loc.io_class == &io_cgi &&
 		     FD_ISSET(c->loc.chan.fd, &read_set))
@@ -1043,7 +1048,7 @@ shttpd_poll(struct shttpd_ctx *ctx, int milliseconds)
 			write_stream(&c->rem, &c->loc);
 
 		if (io_data_len(&c->loc.io) > 0 && c->rem.io_class != NULL)
-			write_stream(&c->loc, &c->rem); 
+			write_stream(&c->loc, &c->rem);
 
 		if (c->rem.nread_last > 0)
 			c->ctx->in += c->rem.nread_last;

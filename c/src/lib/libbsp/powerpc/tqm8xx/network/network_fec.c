@@ -47,7 +47,7 @@
  *  and Charles-Antoine Gauthier <charles.gauthier@iit.nrc.ca>
  *  Copyright (c) 1999, National Research Council of Canada
  *
- *  $Id: network_fec.c,v 1.3.2.1 2008/10/02 12:43:10 thomas Exp $
+ *  $Id: network_fec.c,v 1.4 2009/11/30 04:30:48 ralf Exp $
  */
 #include <bsp.h>
 #include <stdio.h>
@@ -161,7 +161,7 @@ struct m8xx_fec_enet_struct {
 static struct m8xx_fec_enet_struct enet_driver[NIFACES];
 
 /* declare ioctl function for internal use */
-static int fec_ioctl (struct ifnet *ifp, 
+static int fec_ioctl (struct ifnet *ifp,
 		      ioctl_command_t command, caddr_t data);
 /***************************************************************************\
 |  MII Management access functions                                          |
@@ -221,7 +221,7 @@ int fec_mdio_read
    */
   if (phy == -1) {
     /*
-     * set default phy number: 0 
+     * set default phy number: 0
      */
     phy = sc->phy_default;
   }
@@ -288,7 +288,7 @@ int fec_mdio_write
    */
   if (phy == -1) {
     /*
-     * set default phy number: 0 
+     * set default phy number: 0
      */
     phy = sc->phy_default;
   }
@@ -978,7 +978,7 @@ static void fec_enet_stats (struct m8xx_fec_enet_struct *sc)
   printf (" Raw output wait:%-8lu\n", sc->txRawWait);
 }
 
-static int fec_ioctl (struct ifnet *ifp, 
+static int fec_ioctl (struct ifnet *ifp,
 		      ioctl_command_t command, caddr_t data)
 {
   struct m8xx_fec_enet_struct *sc = ifp->if_softc;
@@ -1107,7 +1107,7 @@ int fec_mode_adapt
   }
   else {
     m8xx.fec.x_cntrl |=  M8xx_FEC_X_CNTRL_FDEN;
-  }    
+  }
   /*
    * store current media state for future compares
    */
@@ -1136,7 +1136,7 @@ static void fec_watchdog
 \*=========================================================================*/
 {
   fec_mode_adapt(ifp);
-  ifp->if_timer    = FEC_WATCHDOG_TIMEOUT; 
+  ifp->if_timer    = FEC_WATCHDOG_TIMEOUT;
 }
 
 int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config)
@@ -1171,20 +1171,12 @@ int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config)
   /*
    * Process options
    */
-  if ((config->hardware_address) &&
-      (0 != memcmp(maczero,config->hardware_address,ETHER_ADDR_LEN))) {
+  if (config->hardware_address) {
     memcpy (sc->arpcom.ac_enaddr, config->hardware_address, ETHER_ADDR_LEN);
   }
 #ifdef BSP_HAS_TQMMON
   else if(0 != memcmp(maczero,TQM_BD_INFO.eth_addr,ETHER_ADDR_LEN)) {
     memcpy (sc->arpcom.ac_enaddr, TQM_BD_INFO.eth_addr, ETHER_ADDR_LEN);
-  }
-#endif
-#ifdef BSP_HAS_UBOOT
-  else if(0 != memcmp(maczero,mpc8xx_uboot_board_info.bi_enetaddr,
-		      ETHER_ADDR_LEN)) {
-    memcpy (sc->arpcom.ac_enaddr, 
-	    mpc8xx_uboot_board_info.bi_enetaddr, ETHER_ADDR_LEN);
   }
 #endif
   else {
@@ -1213,7 +1205,7 @@ int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config)
   /*
    * assume: IF 1 -> PHY 0
    */
-  sc->phy_default = unitNumber-1; 
+  sc->phy_default = unitNumber-1;
 
   /*
    * Set up network interface values
@@ -1239,7 +1231,7 @@ int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config)
   return 1;
 };
 
-int rtems_fec_enet_driver_attach(struct rtems_bsdnet_ifconfig *config, 
+int rtems_fec_enet_driver_attach(struct rtems_bsdnet_ifconfig *config,
 				 int attaching)
 {
   /*

@@ -33,12 +33,14 @@
  *  Copied from newlib 1.8.1.  RTEMS can not build all of the contents
  *  of the UNIX directory but we need this routine.
  *
- *  $Id: getcwd.c,v 1.5 2008/08/25 11:19:32 ralf Exp $
+ *  $Id: getcwd.c,v 1.6 2008/12/05 06:42:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_GETCWD
 
 /*
  *  Added these when moved to RTEMS
@@ -285,3 +287,5 @@ err:
 }
 
 #endif /* _REENT_ONLY */
+
+#endif

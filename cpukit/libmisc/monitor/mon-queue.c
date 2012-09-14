@@ -1,5 +1,5 @@
 /*
- *  $Id: mon-queue.c,v 1.10 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-queue.c,v 1.11 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -27,7 +27,7 @@ rtems_monitor_queue_canonical(
 
 void
 rtems_monitor_queue_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\
@@ -47,7 +47,7 @@ rtems_monitor_queue_dump_header(
 void
 rtems_monitor_queue_dump(
     rtems_monitor_queue_t *monitor_queue,
-    bool  verbose
+    bool  verbose __attribute__((unused))
 )
 {
     uint32_t              length = 0;

@@ -1,3 +1,112 @@
+2011-04-25	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	PR 1783/bsps
+	* include/bsp.h: Remove dead prototypes of Clock_delay() and delay().
+	Neither had bodies.
+
+2011-03-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1748/bsps
+	* clock/ckinit.c, include/leon.h: When the clock tick generates an
+	interrupt WHILE we have interrupts disabled doing a get TOD or
+	uptime, the get nanoseconds handler was returning a bogusly large
+	number.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-05-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, amba/amba.c, console/console.c, console/debugputs.c,
+	startup/bspstart.c: Rework initialization order so AMBA bus is
+	scanned earlier. This lets us look for UARTs earlier and support
+	printk as early as bsp_start() returning.
+
+2010-05-11	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* startup/linkcmds: Include basic linker command file and define only
+	board specific values.  Define RAM and PROM limits only if not defined
+	by command line arguments.
+	* Makefile.am, preinstall.am: Reflect changes above.
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* pci/pci.c: Rename pci_config into rtems_pci_config_t.
+
+2009-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c:
+	Reflect changes to rtems_termios_callbacks->write.
+
+2009-11-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, startup/bspstart.c:
+	Use ../../sparc/shared/bsppretaskinghook.c.
+	* console/console.c: Remove sis comment.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* amba/amba.c: Re-add tmp.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/leon3.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/leon3.cfg: New (relocated from /make/custom).
+
+2009-10-01	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1445/BSPs
+	* pci/pci.c: Rename pci_[read|write]_config* functions into
+	BSP_pci_[read|write]_config* and make them static.
+
+2009-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* pci/pci.c: Add prototypes for BusCountPCI(void), init_pci(void).
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* configure.ac: Fix typo.
+
+2009-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* console/console.c: Fix warning.
+
+2009-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/ithread.S: Removed. Now bspidle.S.
+
+2009-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, console/console.c, console/debugputs.c, include/bsp.h,
+	startup/setvec.c: Split idle method into its own file. Properly note
+	to confdefs.h that this BSP has its own idle thread. Also address use
+	of maximum termios constant in debug IO.
+	* startup/bspidle.S: New file.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-03-25	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/linkcmds: Start of RTEMS Work Area must be on 16 byte
+	boundary on the SPARC.
+
 2009-03-09	Antoine Lacroix <antoine.lacroix at sodern.fr>
 
 	PR 1391/bsps
@@ -9,9 +118,60 @@
 	* startup/linkcmds: Fix sections so C++ global constructors and
 	destructors work with late model (>= 4.3) gcc versions.
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2008-12-04	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* bsp_specs: Remove -e start from %link.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, preinstall.am:
+	* include/coverhd.h: Removed.
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/ckinit.c: include "../../../shared/clockdrv_shell.h".
+	* Makefile.am: Reflect changes above.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am: bsp_cleanup() had the same code which was executed when
+	you returned from boot_card() to start.S. So just use the stub
+	bsp_cleanup() implementation and remove a file.
+
+2008-09-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/bspstart.c: Use shared bsp_get_work_area() into
+	its own file and use BSP Framework to perform more initialization.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Review of all bsp_cleanup() implementations. In this
+	phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
 

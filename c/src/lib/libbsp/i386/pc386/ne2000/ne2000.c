@@ -6,7 +6,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ne2000.c,v 1.21 2008/09/02 13:49:37 ralf Exp $
+ *  $Id: ne2000.c,v 1.23.2.2 2011/07/14 14:45:05 joel Exp $
  *
  *  Both the ne2000 and the wd80x3 are based on the National Semiconductor
  *  8390 chip, so there is a fair amount of overlap between the two
@@ -33,6 +33,7 @@
 #include <wd80x3.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
 
@@ -204,7 +205,8 @@ struct ne_ring
 {
 	unsigned char rsr;    /* receiver status */
 	unsigned char next;   /* pointer to next packet	*/
-	unsigned short count; /* bytes in packet (length + 4)	*/
+	unsigned char cnt_lo; /* bytes in packet (length + 4)	*/
+	unsigned char cnt_hi; /* 16-bit, little-endian value    */
 };
 
 /* Forward declarations to avoid warnings */
@@ -501,8 +503,8 @@ ne_init_hardware (struct ne_softc *sc)
   /* Set page 0 registers */
   outport_byte (port + CMDR, MSK_PG0 | MSK_RD2 | MSK_STP);
 
-  /* accept broadcast */
-  outport_byte (port + RCR, (sc->accept_broadcasts ? MSK_AB : 0));
+  /* accept broadcast + multicast */
+  outport_byte (port + RCR, (sc->accept_broadcasts ? MSK_AB : 0) | MSK_AM);
 
   /* Start interface */
   outport_byte (port + CMDR, MSK_PG0 | MSK_RD2 | MSK_STA);
@@ -601,7 +603,7 @@ ne_rx_daemon (void *arg)
         next = NE_FIRST_RX_PAGE;
 
       /* check packet length */
-      len = hdr.count;
+      len = ( hdr.cnt_hi << 8 ) | hdr.cnt_lo;
       if (currpage < startpage)
         cnt1 = currpage + (NE_STOP_PAGE - NE_FIRST_RX_PAGE) - startpage;
       else
@@ -680,7 +682,7 @@ ne_rx_daemon (void *arg)
       m->m_data += sizeof (struct ether_header);
 
 #ifdef DEBUG_NE
-  /* printk("[r%d]", hdr.count - sizeof(hdr)); */
+  /* printk("[r%d]", ((hdr.cnt_hi<<8) + hdr.cnt_lo - sizeof(hdr))); */
   printk("<");
 #endif
       ether_input (ifp, eh, m);
@@ -1072,6 +1074,28 @@ ne_stats (struct ne_softc *sc)
   printf ("          Interrupts: %-8lu\n", sc->stats.interrupts);
 }
 
+static int ne_set_multicast_filter(struct ne_softc* sc)
+{
+  int i=0;
+  unsigned int port = sc->port;
+  unsigned char cmd = 0;
+  	
+  /* Save CMDR settings */
+  inport_byte(port + CMDR, cmd);
+  /* Change to page 1 */
+  outport_byte(port + CMDR, cmd | MSK_PG1);
+
+  /* Set MAR to accept _all_ multicast packets */
+  for (i = 0; i < MARsize; ++i) {
+    outport_byte (port + MAR + i, 0xFF);
+  }
+
+  /* Revert to original CMDR settings */
+  outport_byte(port + CMDR, cmd); 
+
+  return 0;
+}
+
 /* NE2000 driver ioctl handler.  */
 
 static int
@@ -1105,12 +1129,24 @@ ne_ioctl (struct ifnet *ifp, ioctl_command_t command, caddr_t data)
       break;
     }
     break;
+  
+  case SIOCADDMULTI:
+  case SIOCDELMULTI:
+  {
+    struct ifreq* ifr = (struct ifreq*) data;
+    error = (command == SIOCADDMULTI ? 
+      ether_addmulti(ifr, &(sc->arpcom)) :
+      ether_delmulti(ifr, &(sc->arpcom)) );
+    /* ENETRESET indicates that driver should update its multicast filters */
+    if(error == ENETRESET) {
+      error = ne_set_multicast_filter(sc);
+    }
+    break;
+  }
 
   case SIO_RTEMS_SHOW_STATS:
     ne_stats (sc);
     break;
-
-    /* FIXME: Multicast commands must be added here.  */
 
   default:
     error = EINVAL;
@@ -1189,15 +1225,31 @@ rtems_ne_driver_attach (struct rtems_bsdnet_ifconfig *config, int attach)
   if (config->irno != 0)
     sc->irno = config->irno;
   else {
-    /* We use 5 as the default IRQ.  */
-    sc->irno = 5;
+    const char* opt;
+    opt = bsp_cmdline_arg ("--ne2k-irq=");
+    if (opt) {
+      opt += sizeof ("--ne2k-irq=") - 1;
+      sc->irno = strtoul (opt, 0, 0);
+    }
+    if (sc->irno == 0) {
+      /* We use 5 as the default IRQ.  */
+      sc->irno = 5;
+    }
   }
 
   if (config->port != 0)
     sc->port = config->port;
   else {
-    /* We use 0x300 as the default IO port number.  */
-    sc->port = 0x300;
+    const char* opt;
+    opt = bsp_cmdline_arg ("--ne2k-port=");
+    if (opt) {
+      opt += sizeof ("--ne2k-port=") - 1;
+      sc->port = strtoul (opt, 0, 0);
+    }
+    if (config->port == 0) {
+      /* We use 0x300 as the default IO port number.  */
+      sc->port = 0x300;
+    }
   }
 
   sc->accept_broadcasts = ! config->ignore_broadcast;
@@ -1247,7 +1299,7 @@ rtems_ne_driver_attach (struct rtems_bsdnet_ifconfig *config, int attach)
   ifp->if_watchdog = ne_watchdog;
   ifp->if_start = ne_start;
   ifp->if_output = ether_output;
-  ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX;
+  ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
   if (ifp->if_snd.ifq_maxlen == 0)
     ifp->if_snd.ifq_maxlen = ifqmaxlen;
 

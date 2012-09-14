@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: malloc_p.h,v 1.6 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: malloc_p.h,v 1.9 2009/09/30 04:39:46 ralf Exp $
  */
 
 #define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
@@ -22,22 +22,12 @@
 #endif
 
 #include <stdint.h>
-#include <inttypes.h>
 #include <rtems/chain.h>
-
-#ifndef HAVE_UINTMAX_T
-  /* Fall back to unsigned long if uintmax_t is not available */
-  #define unsigned long uintmax_t
-
-  #ifndef PRIuMAX
-    #define PRIuMAX		"lu"
-  #endif
-#endif
 
 /*
  * Basic management data
  */
-extern Heap_Control  RTEMS_Malloc_Heap;
+extern Heap_Control  *RTEMS_Malloc_Heap;
 
 /*
  *  Malloc Statistics Structure

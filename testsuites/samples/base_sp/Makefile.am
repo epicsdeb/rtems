@@ -1,11 +1,11 @@
 ##
-##  $Id: Makefile.am,v 1.23 2007/05/11 19:45:50 joel Exp $
+##  $Id: Makefile.am,v 1.25 2009/10/26 11:32:35 ralf Exp $
 ##
 
 MANAGERS = io semaphore
 
-rtems_tests_PROGRAMS = base_sp.exe
-base_sp_exe_SOURCES = init.c apptask.c system.h
+rtems_tests_PROGRAMS = base_sp
+base_sp_SOURCES = init.c apptask.c system.h
 
 dist_rtems_tests_DATA = base_sp.scn
 dist_rtems_tests_DATA += base_sp.doc
@@ -14,13 +14,15 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-base_sp_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(base_sp_exe_OBJECTS) $(base_sp_exe_LDADD)
-LINK_LIBS = $(base_sp_exe_LDLIBS)
+base_sp_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
-base_sp.exe$(EXEEXT): $(base_sp_exe_OBJECTS) $(base_sp_exe_DEPENDENCIES)
-	@rm -f base_sp.exe$(EXEEXT)
+LINK_OBJS = $(base_sp_OBJECTS) $(base_sp_LDADD)
+LINK_LIBS = $(base_sp_LDLIBS)
+
+base_sp$(EXEEXT): $(base_sp_OBJECTS) $(base_sp_DEPENDENCIES)
+	@rm -f base_sp$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

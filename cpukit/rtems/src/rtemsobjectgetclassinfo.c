@@ -8,15 +8,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtemsobjectgetclassinfo.c,v 1.2 2008/01/31 14:14:27 joel Exp $
+ *  $Id: rtemsobjectgetclassinfo.c,v 1.4 2009/11/23 14:53:04 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-#include <stdio.h>
-#include <string.h>
 
 #include <rtems/system.h>
 #include <rtems/rtems/status.h>
@@ -24,14 +21,14 @@
 #include <rtems/rtems/object.h>
 
 rtems_status_code rtems_object_get_class_information(
-  uint32_t                            the_api,
-  uint32_t                            the_class,
+  int                                 the_api,
+  int                                 the_class,
   rtems_object_api_class_information *info
 )
 {
   Objects_Information *obj_info;
-  uint32_t             unallocated;
-  uint32_t             i;
+  int                  unallocated;
+  int                  i;
 
   /*
    * Validate parameters and look up information structure.

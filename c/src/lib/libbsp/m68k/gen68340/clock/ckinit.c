@@ -12,7 +12,7 @@
  *
  * e-mail: g_montel@yahoo.com
  *
- *  $Id: ckinit.c,v 1.8 2008/09/05 22:05:12 joel Exp $
+ *  $Id: ckinit.c,v 1.9 2008/09/16 19:03:15 joel Exp $
  */
 
 /*
@@ -30,7 +30,6 @@
 
 #include <stdlib.h>			/* for atexit() */
 #include <bsp.h>
-#include <rtems/libio.h>
 #include <m68340.h>
 
 #define CLOCK_VECTOR	120		/* clock isr routine vector in the vbr */

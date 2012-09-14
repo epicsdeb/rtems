@@ -1,7 +1,7 @@
 /*
  *  Instantiate the clock driver shell.
  *
- *  $Id: clockdrv.c,v 1.7 2008/08/19 09:03:53 ralf Exp $
+ *  $Id: clockdrv.c,v 1.8 2008/09/30 05:10:07 ralf Exp $
  */
 
 #include <bsp.h>
@@ -50,4 +50,4 @@ void Clock_driver_support_shutdown_hardware(void)
   t->cr  = 0xA0;  /* initialize with timer disabled */
 }
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

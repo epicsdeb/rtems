@@ -1,26 +1,26 @@
-/* $Id: rtems_mii_ioctl_kern.c,v 1.5 2007/01/17 06:15:19 strauman Exp $ */
+/* $Id: rtems_mii_ioctl_kern.c,v 1.10 2010/05/27 16:38:51 ralf Exp $ */
 
 /* Simple (default) implementation for SIOCGIFMEDIA/SIOCSIFMEDIA
  * to be used by ethernet drivers [from their ioctl].
  *
  * KERNEL PART (support for drivers)
  *
- * NOTE: This much simpler than the BSD ifmedia API 
+ * NOTE: This much simpler than the BSD ifmedia API
  */
 
-/* 
+/*
  * Authorship
  * ----------
  * This software was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2005,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * This software was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -29,18 +29,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -49,9 +49,9 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
 
 /* include first to avoid 'malloc' clash with rtems_bsdnet_malloc() hack */
 
@@ -69,7 +69,7 @@
 
 #include <rtems/rtems_mii_ioctl.h>
 
-#include <sys/errno.h>
+#include <errno.h>
 
 
 #define DEBUG
@@ -84,12 +84,12 @@
 #endif
 
 int
-rtems_mii_ioctl (struct rtems_mdio_info *info, void *uarg, int cmd,
+rtems_mii_ioctl (struct rtems_mdio_info *info, void *uarg, uint32_t cmd,
                  int *media)
 {
   uint32_t bmcr, bmsr, aner, bmcr2 = 0, bmsr2 = 0, anar, lpar;
   int phy = IFM_INST (*media);
-  unsigned tmp;
+  uint32_t tmp;
   int subtype = 0, options = 0;
 
   switch (cmd) {
@@ -101,6 +101,9 @@ rtems_mii_ioctl (struct rtems_mdio_info *info, void *uarg, int cmd,
 #endif
   case SIOCGIFMEDIA:
     if (info->mdio_r (phy, uarg, MII_BMCR, &bmcr))
+      return EINVAL;
+	/* read BMSR twice to clear latched link status low */
+    if (info->mdio_r (phy, uarg, MII_BMSR, &bmsr))
       return EINVAL;
     if (info->mdio_r (phy, uarg, MII_BMSR, &bmsr))
       return EINVAL;
@@ -115,7 +118,7 @@ rtems_mii_ioctl (struct rtems_mdio_info *info, void *uarg, int cmd,
 
     /* link status */
     if (BMSR_LINK & bmsr)
-      options |= IFM_LINK_OK;
+      options |= IFM_LINK_OK | IFM_ACTIVE | IFM_AVALID;
 
     /* do we have autonegotiation disabled ? */
     if (!(BMCR_AUTOEN & bmcr)) {
@@ -216,6 +219,15 @@ rtems_mii_ioctl (struct rtems_mdio_info *info, void *uarg, int cmd,
 
       if (!(bmsr2 & (tmp ? EXTSR_1000TFDX : EXTSR_1000THDX)))
         return EOPNOTSUPP;
+
+	  /* NOTE: gige standard demands auto-negotiation for gige links.
+	   *       Disabling autoneg did NOT work on the PHYs I tried
+	   *       (BCM5421S, intel 82540).
+	   *       I've seen drivers that simply change what they advertise
+	   *       to the desired gig mode and re-negotiate.
+	   *       We could do that here, too, but we don't see the point -
+	   *       If autoneg works fine then we can as well use it.
+	   */
       bmcr = BMCR_S1000;
       break;
 

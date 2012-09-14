@@ -1,33 +1,202 @@
+2011-04-10      Kate Feng <feng@bnl.gov>
+
+	PR 1786/bsps
+	* Makefile.am: Add support for Altivec.
+	* startup/bspstart.c, Makefile.am: Use shared/startup/zerobss.c instead.
+	* make/custom/mvme5500.cfg: Change CPU_CFLAGS to
+	"-mcpu=7450 -mtune=7450 -Dmpc7455"
+	* irq/BSP_irq.c, pci/detect_host_bridge.c, pci.c, pcifinddevice.c:
+	Remove warnings.
+	* vme/VMEConfig.h, include/bsp.h: use VME shared IRQ handlers.
+	* network/if_100MHz/GT64260eth.c: Recycle the Rx mbuf if there
+	is any Rx error.
+
+2011-05-17	Till Straumann <strauman@slac.stanford.edu>
+
+	PR1797/bsps
+	* configure.ac, include/bsp.h: Made
+	CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK a bspopts.h setting.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-03-27	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* startup/bspstart.c: correct prototype
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* pci/pci.c: Rename pci_config into rtems_pci_config_t.
+
+2009-10-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for exception support changes.
+	* irq/BSP_irq.c, irq/irq_init.c, vectors/exceptionhandler.c: Changed
+	exception header file includes.
+	* startup/bspstart.c: Update for ppc_exc_initialize() changes.
+
+2009-10-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* irq/BSP_irq.c, network/if_100MHz/GT64260eth.c,
+	network/if_1GHz/if_wm.c, network/if_1GHz/pci_map.c,
+	startup/bspstart.c: Add missing prototypes.
+	Adjust bogus types. Remove unused vars.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mvme5500.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Till Straumann <strauman@slac.stanford.edu>
+
+	* start/start.S, startup/bspstart.c:
+	let 'save_boot_params()' return a pointer to the commandline
+	saved by the BSP and pass this pointer on to 'boot_card()'.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Remove nested externs.
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Remove __RTEMS_APPLICATION__
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mvme5500.cfg: New (relocated from /make/custom).
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* network/if_100MHz/GT64260eth.c, network/if_1GHz/if_wm.c: Do not
+	include <sys/queue.h>. It conflicts with one from network stack.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-08-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Eliminate BSPs defining NUMBER_OF_TERMIOS_PORTS.
+	Should be automatically handled by confdefs.h or the application.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* irq/BSP_irq.c: New file.
+
 2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* irq/irq.c, network/if_1GHz/POSSIBLEBUG: Removed.
 
-2009-05-08	Kate Feng <feng1@bnl.gov>
+2009-05-08 	Kate Feng <feng1@bnl.gov>
 
-	PR1395/bsps
-	* Updated the changes from RTEMS-4.8.0, which were made since Oct. 2007.
-	* network/if_1GHz/if_wm.c: fixed some bugs in the 1GHz driver.
-	* pci/pci_interface.c:
-	  + Enabled PCI "Read", "Read Line", and "Read Multiple"
-	  +  Agressive Prefetch to improve the performance of the PCI based
-	     applications (e.g. 1GHz NIC).
-	* irq/BSP_irq.c : Replaced the irq/irq.c, and used GT_GPP_Value
-	register to monitor the cause of the level sensitive interrupts.
-	This unique solution solves various bugs in the 1GHz network drivers
-	Fixed bugs in compute_pic_masks_from_prio()
-	* pci/pci.c : Updated it to be consistent with the original pci.c
-	* written by Eric Valette.  There is no change in its function.
-	* irq/irq_init.c : set defaultIrq->next_handler to be 0 
-	* for BSP_SHARED_HANDLER_SUPPORT.
+	* include/bsp.h, start/start.S, startup/bspstart.c: 
+	added CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK in bsp.h.
+	removed BSP_INIT_STACK_SIZE in bsp.h -- it uses __stack defined
+	by the linker script (shared/startup/linkcmds) for the initial
+	stack.
+	replaced __rtems_end+4096 with __stack in start.S
+	Removed legacy code in bspstart.c (inherited from old mvme2307 BSP
+	but not relevant to this one) that tested trapping
+	into PPCBug.
+	Changed ConfVPD_buff[] to be static and added ReadConfVPD_buf() in 
+	bspstart.c
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2009-04-28	Chris Johns <chrisj@rtems.org>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* start/start.S: Update for boot_card command line change.
+
+2009-02-06	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Add network_CPPFLAGS += -D__BSD_VISIBLE.
+
+2009-02-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* GT64260/GT64260TWSI.h: Add missing prototypes.
+
+2008-12-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* GT64260/MVME5500I2C.c: Include <stdint.h> instead of
+	<rtems/stdint.h>.
+
+2008-12-07	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove -Qy from *link.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-11-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* README: Fix typo.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
 
 2008-08-24	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	PR 1323/bsps
 	* Makefile.am: Remove AM_CFLAGS += -msoft-float.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, README.booting, include/bsp.h, startup/bspclean.c,
+	vectors/exceptionhandler.c: Use standardized bsp_cleanup() which can
+	optionally print a message, poll for user to press key, and call
+	bsp_reset(). Using this eliminates the various bsp_cleanup()
+	implementations which had their own implementation and variety of
+	string constants.
+	* startup/bspreset.c: New file.
+	* startup/reboot.c: Removed.
+
+2008-09-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Remove define of BSP_ZERO_WORKSPACE_AUTOMATICALLY.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, include/bsp.h, startup/bspstart.c: Use
+	PowerPC level shared bsp_get_work_area() implementation.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Add use of bsp_get_work_area() in its own file
+	and rely on BSP Framework to perform more initialization.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Review of all bsp_cleanup() implementations. In
+	this phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-08-20	Ralf Corsépius <ralf.corsepius@rtems.org>
 
@@ -140,7 +309,8 @@
 
 2007-09-14	Joel Sherrill <joel.sherrill@OARcorp.com>
 
-	* network/GT64260eth.c, network/GT64260eth.h, network/GT64260ethreg.h: Removed.
+	* network/GT64260eth.c, network/GT64260eth.h,
+	network/GT64260ethreg.h: Removed.
 
 2007-09-14	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -327,25 +497,26 @@
 
 2005-05-17      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        * irq/GT64260Int.c, irq/irq.c, irq/irq.h: Modified to use rtems/irq.h.
+	* irq/GT64260Int.c, irq/irq.c, irq/irq.h: Modified to use rtems/irq.h.
 
 2005-05-12      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        * README.VME, include/bsp.h, irq/irq.h, network/GT64260eth.c,
-        pci/detect_host_bridge.c, pci/gtpcireg.h, pci/pci.c, pci/pci.h,
-        pci/pci_interface.c, pci/pcifinddevice.c: 
-        Submitted by Kate Feng <feng1@bnl.gov> as RTEMS-MVME5500 BSP v1.1 release.
-        Modifications made to merge this release with the current tree.
+	* README.VME, include/bsp.h, irq/irq.h, network/GT64260eth.c,
+	pci/detect_host_bridge.c, pci/gtpcireg.h, pci/pci.c, pci/pci.h,
+	pci/pci_interface.c, pci/pcifinddevice.c: 
+	Submitted by Kate Feng <feng1@bnl.gov> as RTEMS-MVME5500 BSP v1.1
+	release.  Modifications made to merge this release with the
+	current tree.
 
 2005-05-10      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        * network/GT64260eth.c: Fixed warning. 
-        *  pci/pci.c, pci/pci.h: Modified to depend upon rtems/pci.h
+	* network/GT64260eth.c: Fixed warning. 
+	*  pci/pci.c, pci/pci.h: Modified to depend upon rtems/pci.h
 
 2005-05-04      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        * pci/pci.c, pci/pci.h, startup/bspstart.c: Name change to support
-        common PCI interface
+	* pci/pci.c, pci/pci.h, startup/bspstart.c: Name change to support
+	common PCI interface
 
 2005-04-15	Joel Sherrill <joel@OARcorp.com>
 
@@ -355,13 +526,13 @@
 
 2005-04-15      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        PR 779/bsp
-        * irq/irq.c, irq/irq.h, irq/irq_init.c, network/GT64260eth.c: add
-        parameter to new exception interrupt handlers in powerpc bsps
+	PR 779/bsp
+	* irq/irq.c, irq/irq.h, irq/irq_init.c, network/GT64260eth.c: add
+	parameter to new exception interrupt handlers in powerpc bsps
 
 2005-04-15      Jennifer Averett <jennifer.averett@oarcorp.com>
 
-        * startup/linkcmds: add missing section to link cmds
+	* startup/linkcmds: add missing section to link cmds
 
 2005-03-14	Joel Sherrill <joel@OARcorp.com>
 

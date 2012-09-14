@@ -31,8 +31,12 @@
  */
 
 /*
- * $Id: if_loop.c,v 1.9 2008/09/01 04:56:32 ralf Exp $
+ * $Id: if_loop.c,v 1.12 2010/03/28 05:50:28 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 /*
  * Loopback interface driver for protocol testing and timing.
@@ -50,7 +54,7 @@
 #include <sys/kernel.h>
 #include <sys/mbuf.h>
 #include <sys/socket.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
@@ -88,8 +92,7 @@
 static int loioctl(struct ifnet *, ioctl_command_t, caddr_t);
 static void lortrequest(int, struct rtentry *, struct sockaddr *);
 
-       void rtems_bsdnet_loopattach(void *);
-PSEUDO_SET(loopattach, if_loop);
+void rtems_bsdnet_loopattach(void *);
 
 #ifdef TINY_LOMTU
 #define	LOMTU	(1024+512)

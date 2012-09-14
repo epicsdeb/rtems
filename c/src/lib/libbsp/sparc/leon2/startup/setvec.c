@@ -21,13 +21,13 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *  Ported to LEON implementation of the SPARC by On-Line Applications
- *  Research Corporation (OAR) under contract to the European Space 
+ *  Research Corporation (OAR) under contract to the European Space
  *  Agency (ESA).
  *
- *  LEON modifications of respective RTEMS file: COPYRIGHT (c) 1995. 
+ *  LEON modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: setvec.c,v 1.2 2006/01/09 10:36:06 ralf Exp $
+ *  $Id: setvec.c,v 1.4 2009/11/29 15:33:26 ralf Exp $
  */
 
 #include <bsp.h>
@@ -44,13 +44,13 @@ rtems_isr_entry set_vector(                   /* returns old vector */
 
   if ( type )
     rtems_interrupt_catch( handler, vector, &previous_isr );
-  else 
+  else
     _CPU_ISR_install_raw_handler( vector, handler, (void *)&previous_isr );
 
   real_trap = SPARC_REAL_TRAP_NUMBER( vector );
 
   if ( LEON_INT_TRAP( real_trap ) ) {
-    
+
     source = LEON_TRAP_SOURCE( real_trap );
 
     LEON_Clear_interrupt( source );
@@ -59,13 +59,3 @@ rtems_isr_entry set_vector(                   /* returns old vector */
 
   return previous_isr;
 }
-
-/* LEON specific power-down function */
-
-void _CPU_Thread_Idle_body( void )
-{
-  while (1) {
-    LEON_REG.Power_Down = LEON_REG.Power_Down;   /* make sure on load follows store to power-down reg */
-  }
-}
-

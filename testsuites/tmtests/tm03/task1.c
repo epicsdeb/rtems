@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.16 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.18 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -26,6 +25,7 @@ rtems_task High_task(
   rtems_task_argument argument
 );
 
+int operation_count = OPERATION_COUNT;
 
 rtems_task Init(
   rtems_task_argument argument
@@ -39,7 +39,7 @@ rtems_task Init(
   puts( "\n\n*** TIME TEST 3 ***" );
   status = rtems_task_create(
     rtems_build_name( 'T', 'A', '1', ' ' ),
-    252,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -59,11 +59,11 @@ rtems_task test_init(
 )
 {
   rtems_status_code   status;
-  uint32_t      index;
+  int                 index;
   rtems_id            task_id;
   rtems_task_priority priority;
 
-  priority = 250;
+  priority = RTEMS_MAXIMUM_PRIORITY - 2u;
 
   status = rtems_semaphore_create(
     rtems_build_name( 'S', 'M', '1', '\0'),
@@ -74,7 +74,9 @@ rtems_task test_init(
   );
   directive_failed( status, "rtems_semaphore_create of SM1" );
 
-  for ( index = 2 ; index <= OPERATION_COUNT ; index ++ ) {
+  if ( OPERATION_COUNT > RTEMS_MAXIMUM_PRIORITY - 2u )
+    operation_count =  (int) (RTEMS_MAXIMUM_PRIORITY - 2u);
+  for ( index = 2 ; index < operation_count ; index ++ ) {
     rtems_task_create(
       rtems_build_name( 'M', 'I', 'D', ' ' ),
       priority,
@@ -140,7 +142,7 @@ rtems_task High_task(
   put_time(
     "rtems_semaphore_release: task readied -- preempts caller",
     end_time,
-    OPERATION_COUNT,
+    operation_count - 1,
     0,
     CALLING_OVERHEAD_SEMAPHORE_RELEASE
   );

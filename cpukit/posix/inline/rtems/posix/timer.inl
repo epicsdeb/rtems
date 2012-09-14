@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.inl,v 1.7 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: timer.inl,v 1.8 2009/01/05 20:26:01 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_TIMER_H
@@ -70,12 +70,12 @@ RTEMS_INLINE_ROUTINE void _POSIX_Timer_Free (
  */
 
 RTEMS_INLINE_ROUTINE POSIX_Timer_Control *_POSIX_Timer_Get (
-  Objects_Id         id,
+  timer_t            id,
   Objects_Locations *location
 )
 {
   return (POSIX_Timer_Control *)
-    _Objects_Get( &_POSIX_Timer_Information, id, location );
+    _Objects_Get( &_POSIX_Timer_Information, (Objects_Id) id, location );
 }
 
 /*PAGE

@@ -1,6 +1,12 @@
-/*
- *  Extension Manager -- rtems_extension_ident
+/**
+ * @file
  *
+ * @ingroup ClassicUserExtensions
+ *
+ * @brief User Extensions Implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -8,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: extensionident.c,v 1.7 2008/01/23 22:57:43 joel Exp $
+ *  $Id: extensionident.c,v 1.9 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -21,26 +27,9 @@
 #include <rtems/score/thread.h>
 #include <rtems/extension.h>
 
-/*PAGE
- *
- *  rtems_extension_ident
- *
- *  This directive returns the system ID associated with
- *  the extension name.
- *
- *  Input parameters:
- *    name - user defined message queue name
- *    id   - pointer to extension id
- *
- *  Output parameters:
- *    *id               - message queue id
- *    RTEMS_SUCCESSFUL - if successful
- *    error code        - if unsuccessful
- */
-
 rtems_status_code rtems_extension_ident(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 )
 {
   Objects_Name_or_id_lookup_errors  status;

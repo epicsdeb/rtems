@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task2.c,v 1.14 2007/02/06 19:14:35 joel Exp $
+ *  $Id: task2.c,v 1.15 2009/08/12 20:50:43 joel Exp $
  */
 
 #include "system.h"
@@ -110,7 +110,7 @@ rtems_task Task_2(
     buffer,
     &size,
     RTEMS_DEFAULT_OPTIONS,
-    10 * TICKS_PER_SECOND
+    10 * rtems_clock_get_ticks_per_second()
   );
   directive_failed( status, "rtems_message_queue_receive" );
   puts_nocr( "TA2 - buffer received: " );

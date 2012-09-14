@@ -96,10 +96,10 @@ static int isr_is_on(const rtems_irq_connect_data *irq)
 }
 
 static rtems_irq_connect_data ps2_isr_data = { AUX_IRQ,
-                                               ps2_mouse_interrupt, 
+                                               ps2_mouse_interrupt,
                                                0,
-                                               isr_on,  
-                                               isr_off, 
+                                               isr_on,
+                                               isr_off,
                                                isr_is_on };
 
 /*
@@ -438,26 +438,24 @@ static int release_aux(void)
 
 static int open_aux(void)
 {
-  rtems_status_code status;
+  int status;
 
-	if (aux_count++) {
-		return 0;
-	}
-	queue->head = queue->tail = 0;		/* Flush input queue */
+  if (aux_count++) {
+    return 0;
+  }
+  queue->head = queue->tail = 0;		/* Flush input queue */
 
-   status = BSP_install_rtems_irq_handler( &ps2_isr_data );
-   if( !status )
-	{
-	  printk("Error installing ps2-mouse interrupt handler!\n" );
-	  rtems_fatal_error_occurred( status );
-	}
+  status = BSP_install_rtems_irq_handler( &ps2_isr_data );
+  if( !status ) {
+    printk("Error installing ps2-mouse interrupt handler!\n" );
+    rtems_fatal_error_occurred( status );
+  }
 
-	kbd_write_command_w(KBD_CCMD_MOUSE_ENABLE);	/* Enable the
-							   auxiliary port on
-							   controller. */
-	aux_write_ack(AUX_ENABLE_DEV); /* Enable aux device */
-	kbd_write_cmd(AUX_INTS_ON); /* Enable controller ints */
-	return 0;
+  kbd_write_command_w(KBD_CCMD_MOUSE_ENABLE); /* Enable the auxiliary port on
+                                                 controller. */
+  aux_write_ack(AUX_ENABLE_DEV); /* Enable aux device */
+  kbd_write_cmd(AUX_INTS_ON); /* Enable controller ints */
+  return 0;
 }
 
 /*
@@ -590,7 +588,7 @@ static int paux_last_close(int major, int minor, void *arg)
  * termios framework whenever the "ECHO" feature is on.
  * It does nothing write now.
  */
-static int write_aux_echo( int minor, const char * buffer, int count )
+static ssize_t write_aux_echo( int minor, const char * buffer, size_t count )
 {
    return 0;
 }

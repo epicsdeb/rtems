@@ -22,12 +22,10 @@
 #include <rtems.h>
 
 #include <libcpu/powerpc-utility.h>
-#include <libcpu/raw_exception.h>
+#include <bsp/vectors.h>
 
 #include <bsp.h>
 #include <bsp/irq.h>
-#include <bsp/vectors.h>
-#include <bsp/ppc_exc_bspsupp.h>
 #include <bsp/irq-generic.h>
 
 #define MPC83XX_IPIC_VECTOR_NUMBER 92
@@ -293,7 +291,7 @@ static const uint8_t mpc83xx_ipic_mask_position_table [MPC83XX_IPIC_VECTOR_NUMBE
 };
 
 /*
- * this array will be filled with mask values needed 
+ * this array will be filled with mask values needed
  * to temporarily disable all IRQ soures with lower or same
  * priority of the current source (whose vector is the array index)
  */
@@ -408,7 +406,7 @@ static int BSP_irq_handle_at_ipic( unsigned excNum)
 	int32_t vecnum;
 	mpc83xx_ipic_mask_t mask_save;
 	const mpc83xx_ipic_mask_t *mask_ptr;
-	uint32_t msr;
+	uint32_t msr = 0;
 	rtems_interrupt_level level;
 
 	/* Get vector number */
@@ -495,8 +493,8 @@ rtems_status_code mpc83xx_ipic_calc_prio2mask( void)
  */
 rtems_status_code mpc83xx_ipic_initialize( void)
 {
-	/* 
-	 * mask off all interrupts 
+	/*
+	 * mask off all interrupts
 	 */
 	mpc83xx.ipic.simsr [0] = 0;
 	mpc83xx.ipic.simsr [1] = 0;

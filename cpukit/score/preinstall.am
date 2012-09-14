@@ -75,17 +75,9 @@ $(PROJECT_INCLUDE)/rtems/score/coremutex.h: include/rtems/score/coremutex.h $(PR
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/coremutex.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/coremutex.h
 
-$(PROJECT_INCLUDE)/rtems/score/corerwlock.h: include/rtems/score/corerwlock.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corerwlock.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corerwlock.h
-
 $(PROJECT_INCLUDE)/rtems/score/coresem.h: include/rtems/score/coresem.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/coresem.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/coresem.h
-
-$(PROJECT_INCLUDE)/rtems/score/corespinlock.h: include/rtems/score/corespinlock.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corespinlock.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corespinlock.h
 
 $(PROJECT_INCLUDE)/rtems/score/heap.h: include/rtems/score/heap.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/heap.h
@@ -139,6 +131,14 @@ $(PROJECT_INCLUDE)/rtems/score/timespec.h: include/rtems/score/timespec.h $(PROJ
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/timespec.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/timespec.h
 
+$(PROJECT_INCLUDE)/rtems/score/timestamp.h: include/rtems/score/timestamp.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/timestamp.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/timestamp.h
+
+$(PROJECT_INCLUDE)/rtems/score/timestamp64.h: include/rtems/score/timestamp64.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/timestamp64.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/timestamp64.h
+
 $(PROJECT_INCLUDE)/rtems/score/tod.h: include/rtems/score/tod.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/tod.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/tod.h
@@ -163,6 +163,15 @@ $(PROJECT_INCLUDE)/rtems/score/cpuopts.h: include/rtems/score/cpuopts.h $(PROJEC
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/cpuopts.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/cpuopts.h
 
+if HAS_PTHREADS
+$(PROJECT_INCLUDE)/rtems/score/corespinlock.h: include/rtems/score/corespinlock.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corespinlock.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corespinlock.h
+
+$(PROJECT_INCLUDE)/rtems/score/corerwlock.h: include/rtems/score/corerwlock.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corerwlock.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corerwlock.h
+endif
 if HAS_MP
 $(PROJECT_INCLUDE)/rtems/score/mpci.h: include/rtems/score/mpci.h $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/mpci.h
@@ -195,14 +204,6 @@ PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corebarrier.inl
 $(PROJECT_INCLUDE)/rtems/score/coremsg.inl: inline/rtems/score/coremsg.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/coremsg.inl
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/coremsg.inl
-
-$(PROJECT_INCLUDE)/rtems/score/corerwlock.inl: inline/rtems/score/corerwlock.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corerwlock.inl
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corerwlock.inl
-
-$(PROJECT_INCLUDE)/rtems/score/corespinlock.inl: inline/rtems/score/corespinlock.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corespinlock.inl
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corespinlock.inl
 
 $(PROJECT_INCLUDE)/rtems/score/coremutex.inl: inline/rtems/score/coremutex.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/coremutex.inl
@@ -264,6 +265,15 @@ $(PROJECT_INCLUDE)/rtems/score/wkspace.inl: inline/rtems/score/wkspace.inl $(PRO
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/wkspace.inl
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/wkspace.inl
 
+if HAS_PTHREADS
+$(PROJECT_INCLUDE)/rtems/score/corespinlock.inl: inline/rtems/score/corespinlock.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corespinlock.inl
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corespinlock.inl
+
+$(PROJECT_INCLUDE)/rtems/score/corerwlock.inl: inline/rtems/score/corerwlock.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/corerwlock.inl
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/score/corerwlock.inl
+endif
 if HAS_MP
 $(PROJECT_INCLUDE)/rtems/score/mppkt.inl: inline/rtems/score/mppkt.inl $(PROJECT_INCLUDE)/rtems/score/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/score/mppkt.inl

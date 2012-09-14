@@ -11,14 +11,14 @@
  *         This code ignores the O_RDONLY/O_WRONLY/O_RDWR flag at open
  *         time.
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueue.c,v 1.20 2007/12/17 16:19:14 joel Exp $
+ *  $Id: mqueue.c,v 1.23 2009/08/05 15:29:19 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -34,6 +34,7 @@
 #include <limits.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/watchdog.h>
 #include <rtems/seterr.h>
 #include <rtems/posix/mqueue.h>
@@ -45,28 +46,26 @@
  *
  *  This routine initializes all message_queue manager related data structures.
  *
- *  Input parameters:
- *    maximum_message_queues - maximum configured message_queues
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _POSIX_Message_queue_Manager_initialization(
-  uint32_t   maximum_message_queues
-)
+void _POSIX_Message_queue_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_POSIX_Message_queue_Information, /* object information table */
     OBJECTS_POSIX_API,                 /* object API */
     OBJECTS_POSIX_MESSAGE_QUEUES,      /* object class */
-    maximum_message_queues,            /* maximum objects of this class */
+    Configuration_POSIX_API.maximum_message_queues,
+                                /* maximum objects of this class */
     sizeof( POSIX_Message_queue_Control ),
                                 /* size of this object's control block */
-    TRUE,                       /* TRUE if names for this object are strings */
+    true,                       /* true if names for this object are strings */
     _POSIX_PATH_MAX             /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                      /* TRUE if this is a global object class */
+    false,                      /* true if this is a global object class */
     NULL                        /* Proxy extraction support callout */
 #endif
   );
@@ -74,14 +73,14 @@ void _POSIX_Message_queue_Manager_initialization(
     &_POSIX_Message_queue_Information_fds,
     OBJECTS_POSIX_API,
     OBJECTS_POSIX_MESSAGE_QUEUE_FDS,
-    maximum_message_queues,
+    Configuration_POSIX_API.maximum_message_queue_descriptors,
     sizeof( POSIX_Message_queue_Control_fd ),
                                 /* size of this object's control block */
-    TRUE,                       /* TRUE if names for this object are strings */
+    true,                       /* true if names for this object are strings */
     NAME_MAX                    /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                      /* TRUE if this is a global object class */
+    false,                      /* true if this is a global object class */
     NULL                        /* Proxy extraction support callout */
 #endif
   );

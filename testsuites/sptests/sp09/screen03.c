@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen03.c,v 1.14 2007/12/04 16:03:06 joel Exp $
+ *  $Id: screen03.c,v 1.17 2009/11/30 03:33:23 ralf Exp $
  */
 
 #include "system.h"
@@ -22,7 +22,9 @@ void Screen3()
 {
   rtems_name        task_name;
   rtems_status_code status;
+  bool              skipUnsatisfied;
 
+  /* task create bad name */
   task_name = 1;
   status = rtems_task_create(
     0,
@@ -39,12 +41,38 @@ void Screen3()
   );
   puts( "TA1 - rtems_task_create - RTEMS_INVALID_NAME" );
 
+  /* null ID */
+  status = rtems_task_create(
+    Task_name[ 1 ],
+    4,
+    RTEMS_MINIMUM_STACK_SIZE,
+    RTEMS_DEFAULT_MODES,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_task_create with NULL ID param"
+  );
+  puts( "TA1 - rtems_task_create - RTEMS_INVALID_ADDRESS" );
+
   /*
    * If the bsp provides its own stack allocator, then
    * skip the test that tries to allocate a stack that is too big.
+   *
+   * If on the m32c, we can't even ask for enough memory to trip this
+   * error.
    */
 
-  if (rtems_configuration_get_stack_allocate_hook()) {
+  skipUnsatisfied = false;
+  if (rtems_configuration_get_stack_allocate_hook())
+    skipUnsatisfied = true;
+  #if defined(__m32c__)
+    skipUnsatisfied = true;
+  #endif
+
+  if ( skipUnsatisfied ) {
     puts(
       "TA1 - rtems_task_create - stack size - RTEMS_UNSATISFIED  -- SKIPPED"
     );

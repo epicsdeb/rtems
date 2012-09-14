@@ -6,14 +6,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: address.inl,v 1.22 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: address.inl,v 1.28 2009/10/08 07:07:36 ccj Exp $
  */
 
 #ifndef _RTEMS_SCORE_ADDRESS_H
@@ -39,12 +39,13 @@
  *
  *  @return This method returns the resulting address.
  */
+#include <rtems/bspIo.h>
 RTEMS_INLINE_ROUTINE void *_Addresses_Add_offset (
-  void       *base,
-  uint32_t    offset
+  const void *base,
+  uintptr_t   offset
 )
 {
-  return (void *)((char *)base + offset);
+  return (void *)((uintptr_t)base + offset);
 }
 
 /** @brief Subtract Offset from Offset
@@ -60,11 +61,11 @@ RTEMS_INLINE_ROUTINE void *_Addresses_Add_offset (
  */
 
 RTEMS_INLINE_ROUTINE void *_Addresses_Subtract_offset (
-  void       *base,
-  uint32_t    offset
+  const void *base,
+  uintptr_t   offset
 )
 {
-  return (void *)((char *)base - offset);
+  return (void *)((uintptr_t)base - offset);
 }
 
 /** @brief Subtract Two Offsets
@@ -80,31 +81,31 @@ RTEMS_INLINE_ROUTINE void *_Addresses_Subtract_offset (
  *  @note  The cast of an address to an uint32_t makes this code
  *         dependent on an addresses being thirty two bits.
  */
-RTEMS_INLINE_ROUTINE uint32_t   _Addresses_Subtract (
-  void *left,
-  void *right
+RTEMS_INLINE_ROUTINE int32_t _Addresses_Subtract (
+  const void *left,
+  const void *right
 )
 {
-  return ((char *) left - (char *) right);
+  return (int32_t) ((const char *) left - (const char *) right);
 }
 
 /** @brief Is Address Aligned
  *
- *  This function returns TRUE if the given address is correctly
- *  aligned for this processor and FALSE otherwise.  Proper alignment
+ *  This function returns true if the given address is correctly
+ *  aligned for this processor and false otherwise.  Proper alignment
  *  is based on correctness and efficiency.
  *
  *  @param[in] address is the address being checked for alignment.
  *
- *  @return This method returns TRUE if the address is aligned and
- *          FALSE otherwise.
+ *  @return This method returns true if the address is aligned and
+ *          false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Addresses_Is_aligned (
-  void *address
+  const void *address
 )
 {
 #if (CPU_ALIGNMENT == 0)
-    return TRUE;
+    return true;
 #else
     return (((uintptr_t)address % CPU_ALIGNMENT) == 0);
 #endif
@@ -112,8 +113,8 @@ RTEMS_INLINE_ROUTINE bool _Addresses_Is_aligned (
 
 /** @brief Is Address In Range
  *
- *  This function returns TRUE if the given address is within the
- *  memory range specified and FALSE otherwise.  base is the address
+ *  This function returns true if the given address is within the
+ *  memory range specified and false otherwise.  base is the address
  *  of the first byte in the memory range and limit is the address
  *  of the last byte in the memory range.  The base address is
  *  assumed to be lower than the limit address.
@@ -122,13 +123,13 @@ RTEMS_INLINE_ROUTINE bool _Addresses_Is_aligned (
  *  @param[in] base is the lowest address of the range to check against.
  *  @param[in] limit is the highest address of the range to check against.
  *
- *  @return This method returns TRUE if the given @a address is within the
- *  memory range specified and FALSE otherwise.
+ *  @return This method returns true if the given @a address is within the
+ *  memory range specified and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Addresses_Is_in_range (
-  void *address,
-  void *base,
-  void *limit
+  const void *address,
+  const void *base,
+  const void *limit
 )
 {
   return (address >= base && address <= limit);

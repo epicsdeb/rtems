@@ -5,14 +5,14 @@
  *
  *  http://www.opengroup.org/onlinepubs/009695399/functions/writev.html
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: writev.c,v 1.2 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: writev.c,v 1.3.2.1 2011/07/31 14:12:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,7 +41,7 @@ ssize_t writev(
   rtems_libio_check_fd( fd );
   iop = rtems_libio_iop( fd );
   rtems_libio_check_is_open( iop );
-  rtems_libio_check_permissions( iop, LIBIO_FLAGS_WRITE );
+  rtems_libio_check_permissions_with_error( iop, LIBIO_FLAGS_WRITE, EBADF );
 
   /*
    *  Argument validation on IO vector
@@ -60,7 +60,7 @@ ssize_t writev(
 
   /*
    *  OpenGroup says that you are supposed to return EINVAL if the
-   *  sum of the iov_len values in the iov array would overflow a 
+   *  sum of the iov_len values in the iov array would overflow a
    *  ssize_t.
    *
    *  Also we would like to ensure that no IO is performed if there
@@ -84,7 +84,7 @@ ssize_t writev(
 
     if ( iov[v].iov_len )
       all_zeros = false;
-   
+
     /* check for wrap */
     old    = total;
     total += iov[v].iov_len;
@@ -98,7 +98,7 @@ ssize_t writev(
   if ( all_zeros == true ) {
     return 0;
   }
-   
+
   /*
    *  Now process the writev().
    */

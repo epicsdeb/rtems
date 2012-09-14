@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_fsunmount.c,v 1.11 2008/07/03 01:37:38 ccj Exp $
+ *  $Id: imfs_fsunmount.c,v 1.12 2009/06/12 01:53:33 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -74,12 +74,12 @@ int IMFS_fsunmount(
      IMFS_Set_handlers( &loc );
 
      if ( jnode->type != IMFS_DIRECTORY ) {
-        result = IMFS_unlink( &loc );
+        result = IMFS_unlink( NULL, &loc );
         if (result != 0)
           return -1;
         jnode = next;
      } else if ( jnode_has_no_children( jnode ) ) {
-        result = IMFS_unlink( &loc );
+        result = IMFS_unlink( NULL, &loc );
         if (result != 0)
           return -1;
         jnode = next;

@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.18 2008/07/18 18:47:30 joel Exp $
+ *  $Id: init.c,v 1.23.2.1 2011/08/21 19:59:56 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -104,13 +104,13 @@ void Validate_attributes(
 #define Get_Queue_Name( i )  Test_q[i].name
 char *Build_Queue_Name( int i ) {
 
-  static char Queue_Name[PATH_MAX + 2]; 
+  static char Queue_Name[PATH_MAX + 2];
 
   sprintf(Queue_Name,"mq%d", i+1 );
   return Queue_Name;
 }
 
-void open_test_queues()
+void open_test_queues(void)
 {
   struct mq_attr   attr;
   int              status;
@@ -130,7 +130,7 @@ void open_test_queues()
     else
       Test_q[que].mq = mq_open( tq->name, tq->oflag, 0x777, &attr );
 
-    assert( Test_q[que].mq != (-1) );
+    rtems_test_assert(  Test_q[que].mq != (-1) );
   }
 
   status = mq_close( Test_q[NUMBER_OF_TEST_QUEUES].mq );
@@ -146,7 +146,7 @@ void open_test_queues()
  * opened but closes the rest.
  */
 
-void validate_mq_open_error_codes()
+void validate_mq_open_error_codes(void)
 {
   int             i;
   mqd_t           n_mq2;
@@ -170,8 +170,8 @@ void validate_mq_open_error_codes()
   attr.mq_maxmsg = -1;
   puts( "Init: mq_open - Create with maxmsg (-1) (EINVAL)" );
   n_mq2 = mq_open( "mq2", O_CREAT | O_RDONLY, 0x777, &attr);
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *)n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, EINVAL,  "mq_open errno EINVAL");
   attr.mq_maxmsg  = MAXMSG;
 
@@ -182,8 +182,8 @@ void validate_mq_open_error_codes()
   attr.mq_msgsize = -1;
   puts( "Init: mq_open - Create with msgsize (-1) (EINVAL)" );
   n_mq2 = mq_open( "mq2", O_CREAT | O_RDONLY, 0x777, &attr);
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *) n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, EINVAL,  "mq_open errno EINVAL");
   attr.mq_msgsize = MSGSIZE;
 
@@ -193,8 +193,8 @@ void validate_mq_open_error_codes()
 
   puts( "Init: mq_open - Open new mq without create flag (ENOENT)" );
   n_mq2 = mq_open( "mq3", O_EXCL | O_RDONLY, 0x777, NULL);
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *) n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, ENOENT,  "mq_open errno ENOENT");
 
   /*
@@ -207,8 +207,8 @@ void validate_mq_open_error_codes()
 
   puts( "Init: mq_open - Open with too long of a name (ENAMETOOLONG)" );
   n_mq2 = mq_open( Get_Too_Long_Name(), O_CREAT | O_RDONLY, 0x777, NULL );
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *) n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, ENAMETOOLONG, "mq_open errno ENAMETOOLONG");
 
   /*
@@ -223,12 +223,12 @@ void validate_mq_open_error_codes()
   puts( "Init: mq_open - Create an Existing mq (EEXIST)" );
   open_mq[0] = mq_open(
     Build_Queue_Name(0), O_CREAT | O_RDWR | O_NONBLOCK, 0x777, NULL );
-  assert( open_mq[0] != (-1) );
+  rtems_test_assert(  open_mq[0] != (-1) );
 
   n_mq2 = mq_open(
     Build_Queue_Name(0), O_CREAT | O_EXCL | O_RDONLY, 0x777, NULL);
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *) n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, EEXIST,  "mq_open errno EEXIST");
 
   status = mq_unlink( Build_Queue_Name(0) );
@@ -245,8 +245,8 @@ void validate_mq_open_error_codes()
   for (i = 0; i < CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES; i++) {
     open_mq[i] = mq_open(
       Build_Queue_Name(i), O_CREAT | O_RDWR | O_NONBLOCK, 0x777, NULL );
-    assert( open_mq[i] != (-1) );
-    assert( open_mq[i] );
+    rtems_test_assert(  open_mq[i] != (-1) );
+    rtems_test_assert(  open_mq[i] );
     /*XXX - Isn't there a more general check */
 /* JRS     printf( "mq_open 0x%x %s\n", open_mq[i], Build_Queue_Name(i) ); */
   }
@@ -269,8 +269,8 @@ void validate_mq_open_error_codes()
 
   puts( "Init: mq_open - system is out of resources (ENFILE)" );
   n_mq2 = mq_open( Build_Queue_Name(i), O_CREAT | O_RDONLY, 0x777, NULL );
-  fatal_posix_service_status(
-    (int) n_mq2, (int ) (-1), "mq_open error return status" );
+  fatal_posix_service_pointer_minus_one(
+    (void *) n_mq2, "mq_open error return status" );
   fatal_posix_service_status( errno, ENFILE,  "mq_open errno ENFILE");
 
   /*
@@ -291,7 +291,7 @@ void validate_mq_open_error_codes()
   }
 }
 
-void validate_mq_unlink_error_codes()
+void validate_mq_unlink_error_codes(void)
 {
   int             status;
 
@@ -349,7 +349,7 @@ void validate_mq_unlink_error_codes()
   fatal_posix_service_status( errno, EINVAL, "mq_unlink errno value");
 }
 
-void validate_mq_close_error_codes()
+void validate_mq_close_error_codes(void)
 {
   int             status;
 
@@ -366,7 +366,7 @@ void validate_mq_close_error_codes()
 }
 
 
-void validate_mq_getattr_error_codes()
+void validate_mq_getattr_error_codes(void)
 {
   struct mq_attr  attr;
   int             status;
@@ -494,7 +494,7 @@ void Read_msg_from_que(
   sprintf( err_msg, "%s msg %s size failure", Test_q[ que ].name, ptr->msg );
   fatal_int_service_status( status, ptr->size, err_msg );
 
-  assert( !strcmp( message, ptr->msg ) );
+  rtems_test_assert(  !strcmp( message, ptr->msg ) );
   strcpy( message, "No Message" );
 
   sprintf( err_msg,"%s msg %s size failure", Test_q[ que ].name, ptr->msg );
@@ -523,7 +523,7 @@ int empty_message_queues(
  * first queue.
  */
 
-int validate_mq_send_error_codes( )
+int validate_mq_send_error_codes(void)
 {
   int             status;
   int             i;
@@ -606,7 +606,7 @@ int validate_mq_send_error_codes( )
   return i-1;
 }
 
-void validate_mq_receive_error_codes( )
+void validate_mq_receive_error_codes(void)
 {
   int            status;
   char           message[100];
@@ -667,7 +667,7 @@ void validate_mq_receive_error_codes( )
    */
 }
 
-void verify_open_functionality()
+void verify_open_functionality(void)
 {
 #if 0
   mqd_t           n_mq;
@@ -683,11 +683,11 @@ void verify_open_functionality()
   puts( "Init: mq_open - Open an existing mq ( same id )" );
   n_mq = mq_open( RD_NAME, 0 );
   fatal_posix_service_status(
-    (int) n_mq, (int ) Test_q[RD_QUEUE].mq, "mq_open error return status" );
+  rtems_test_assert(  n_mq == Test_q[RD_QUEUE].mq );
 #endif
 }
 
-void verify_unlink_functionality()
+void verify_unlink_functionality(void)
 {
   mqd_t           n_mq;
   int             status;
@@ -704,8 +704,8 @@ void verify_unlink_functionality()
   fatal_posix_service_status( status, 0, "mq_unlink locked message queue");
 
   n_mq = mq_open( DEFAULT_NAME, DEFAULT_ATTR, 0x777, NULL );
-  assert( n_mq != (-1) );
-  assert( n_mq != Test_q[ DEFAULT_RW ].mq );
+  rtems_test_assert(  n_mq != (-1) );
+  rtems_test_assert(  n_mq != Test_q[ DEFAULT_RW ].mq );
 
 
   status = mq_unlink( DEFAULT_NAME );
@@ -716,7 +716,7 @@ void verify_unlink_functionality()
   Test_q[ DEFAULT_RW ].mq = n_mq;
 }
 
-void verify_close_functionality()
+void verify_close_functionality(void)
 {
   int i;
   int status;
@@ -769,7 +769,7 @@ void verify_timed_send_queue(
     Test_q[que].count++;
 }
 
-void verify_timed_send()
+void verify_timed_send(void)
 {
   int              que;
 
@@ -819,7 +819,7 @@ void verify_timed_receive_queue(
 
 }
 
-void verify_timed_receive()
+void verify_timed_receive(void)
 {
   int  que;
 
@@ -834,7 +834,7 @@ void verify_timed_receive()
 }
 
 #if (0)
-void verify_set_attr()
+void verify_set_attr(void)
 {
   struct mq_attr save_attr[ NUMBER_OF_TEST_QUEUES ];
   struct mq_attr attr;
@@ -888,10 +888,10 @@ void wait_for_signal(
   timeout.tv_nsec = 0;
 
   status = sigemptyset( waitset );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( waitset, SIGUSR1 );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   printf( "waiting on any signal for %d seconds.\n", sec );
   signo = sigtimedwait( waitset, &siginfo, &timeout );
@@ -903,7 +903,7 @@ void wait_for_signal(
   }
 }
 
-void verify_notify()
+void verify_notify(void)
 {
   struct sigevent event;
   int             status;
@@ -958,7 +958,6 @@ void verify_notify()
   wait_for_signal( &set, 3, 0 );
   Read_msg_from_que( RW_QUEUE, 0 );
 
-
   /*
    * EBUSY - Already Registered
    */
@@ -988,7 +987,7 @@ void verify_notify()
 
 }
 
-void verify_with_threads()
+void verify_with_threads(void)
 {
   int               status;
   pthread_t         id;
@@ -1008,7 +1007,7 @@ void verify_with_threads()
 
   Start_Test( "multi-thread Task 4 Receive Test"  );
   status = pthread_create( &id, NULL, Task_4, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   puts( "Init: mq_receive - Empty queue changes to non-blocking (EAGAIN)" );
   status = mq_receive( Test_q[BLOCKING].mq, message, 100, &priority );
   fatal_int_service_status( status, -1, "mq_receive error return status");
@@ -1023,7 +1022,7 @@ void verify_with_threads()
 
   Start_Test( "multi-thread Task 1 Test"  );
   status = pthread_create( &id, NULL, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   Read_msg_from_que(  BLOCKING, 0 ); /* Block until init writes */
   print_current_time( "Init: ", "" );
 
@@ -1037,7 +1036,7 @@ void verify_with_threads()
   Start_Test( "multi-thread Task 4 Send Test"  );
   fill_message_queues( "Init:" );
   status = pthread_create( &id, NULL, Task_4, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   puts( "Init: mq_send - Full queue changes to non-blocking (EAGAIN)" );
   status = mq_send(Test_q[BLOCKING].mq, message, 0, 0 );
   fatal_posix_service_status( status, -1, "mq_send error return status");
@@ -1052,7 +1051,7 @@ void verify_with_threads()
   Start_Test( "multi-thread Task 2 Test"  );
   fill_message_queues( "Init:" );
   status = pthread_create( &id, NULL, Task_2, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   Show_send_msg_to_que( "Init:", BLOCKING, Priority_Order[0] );
   print_current_time( "Init: ", "" );
   verify_queues_full( "Init:" );
@@ -1066,7 +1065,7 @@ void verify_with_threads()
   Start_Test( "multi-thread Task 3 Test"  );
   fill_message_queues( "Init:" );
   status = pthread_create( &id, NULL, Task_3, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
   puts( "Init: mq_send - Block while thread deletes queue (EBADF)" );
   ptr = &Predefined_Msgs[0];
   status = mq_send( Test_q[BLOCKING].mq, ptr->msg, ptr->size , ptr->priority );
@@ -1075,7 +1074,7 @@ void verify_with_threads()
 
 }
 
-void validate_mq_setattr()
+void validate_mq_setattr(void)
 {
   struct mq_attr  attr;
   struct mq_attr  save_attr[ NUMBER_OF_TEST_QUEUES ];
@@ -1132,6 +1131,100 @@ void validate_mq_setattr()
   }
 }
 
+void verify_timedout_mq_timedreceive(
+  char *task_name,
+  int   que,
+  int   is_blocking
+)
+{
+  char             message[ 100 ];
+  struct timespec  tm;
+  struct timeval   tv1, tv2, tv3;
+  struct timezone  tz1, tz2;
+  int              status;
+
+  printf(
+    "Init: %s verify_timedout_mq_timedreceive - on queue %s ",
+    task_name,
+    Test_q[que].name
+  );
+
+  gettimeofday( &tv1, &tz1 );
+  tm.tv_sec  = tv1.tv_sec - 1;
+  tm.tv_nsec = tv1.tv_usec * 1000;
+
+  status = mq_timedreceive( Test_q[ que ].mq, message, 100, NULL, &tm );
+
+  gettimeofday( &tv2, &tz2 );
+  tv3.tv_sec  = tv2.tv_sec - tv1.tv_sec;
+  tv3.tv_usec = tv2.tv_usec - tv1.tv_usec;
+
+  fatal_int_service_status( status, -1, "mq_timedreceive status");
+
+/* FIXME: This is wrong. */
+  printf( "Init: %ld sec %ld us\n", (long)tv3.tv_sec, (long)tv3.tv_usec );
+}
+
+void verify_mq_receive(void)
+{
+  int  que;
+
+  Start_Test( "mq_timedout_receive"  );
+
+  for( que = RW_QUEUE; que < CLOSED; que++ ) {
+    if (( que == BLOCKING ) || ( que == DEFAULT_RW ))
+      break;
+    else
+      verify_timedout_mq_timedreceive( "Init:", que, 0 );
+  }
+}
+
+void verify_timedout_mq_timedsend(
+  int  que,
+  int  is_blocking
+)
+{
+  struct timespec timeout;
+  struct timeval  tv1, tv2, tv3;
+  struct timezone tz1, tz2;
+  int              len;
+  int              status;
+  char            *msg;
+
+  printf( "Init: verify_timedout_mq_timedsend - on queue %s ", Test_q[que].name);
+  len = Predefined_Msgs[MAXMSG].size;
+  msg = Predefined_Msgs[MAXMSG].msg;
+
+  gettimeofday( &tv1, &tz1 );
+  timeout.tv_sec  = tv1.tv_sec - 1;
+  timeout.tv_nsec = tv1.tv_usec * 1000;
+
+  status = mq_timedsend( Test_q[que].mq, msg, len , 0, &timeout );
+
+  gettimeofday( &tv2, &tz2 );
+  tv3.tv_sec  = tv2.tv_sec - tv1.tv_sec;
+  tv3.tv_usec = tv2.tv_usec - tv1.tv_usec;
+
+  printf( "Init: %ld sec %ld us\n", (long)tv3.tv_sec, (long)tv3.tv_usec );
+
+  if ( que == DEFAULT_RW )
+    Test_q[que].count++;
+}
+
+void verify_mq_send(void)
+{
+  int              que;
+
+  Start_Test( "verify_timedout_mq_timedsend"  );
+
+  for( que = RW_QUEUE; que < CLOSED; que++ ) {
+    if ( que == BLOCKING )
+      verify_timedout_mq_timedsend( que, 1 );
+    else
+      verify_timedout_mq_timedsend( que, 0 );
+  }
+}
+
 void *POSIX_Init(
   void *argument
 )
@@ -1152,6 +1245,8 @@ void *POSIX_Init(
   verify_open_functionality();
   verify_notify();
   verify_with_threads();
+  verify_mq_receive();
+  verify_mq_send();
 
   puts( "*** END OF POSIX MESSAGE QUEUE TEST ***" );
   rtems_test_exit( 0 );
@@ -1175,7 +1270,7 @@ void *Task_1 (
 
   /* switch to Init */
 
-  assert( 0 );
+  rtems_test_assert(  0 );
   return NULL; /* just so the compiler thinks we returned something */
 }
 
@@ -1210,7 +1305,7 @@ void *Task_3 (
    * close and unlink all queues.
    */
 
-  verify_close_functionality( "Task_3: " );
+  verify_close_functionality();
   puts( "Task_3: pthread_exit" );
   pthread_exit( NULL );
 

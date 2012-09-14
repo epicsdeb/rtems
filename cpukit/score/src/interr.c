@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: interr.c,v 1.15 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: interr.c,v 1.17 2009/10/12 12:16:22 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -46,7 +46,7 @@
 void _Internal_error_Occurred(
   Internal_errors_Source  the_source,
   bool                    is_internal,
-  uint32_t                the_error
+  Internal_errors_t       the_error
 )
 {
 
@@ -61,5 +61,5 @@ void _Internal_error_Occurred(
   _CPU_Fatal_halt( the_error );
 
   /* will not return from this routine */
-  while (TRUE);
+  while (true);
 }

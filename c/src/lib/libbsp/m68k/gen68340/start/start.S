@@ -22,7 +22,7 @@
  *
  * e-mail: g_montel@yahoo.com
  *
- *  $Id: start.S,v 1.13 2006/10/17 02:35:11 ralf Exp $
+ *  $Id: start.S,v 1.14 2009/04/28 06:25:48 ccj Exp $
  */
 
 #include <rtems/asm.h>
@@ -848,9 +848,7 @@ ZEROLOOPTEST:
 	bcs.s	ZEROLOOP					| No, skip
 
 	movel	#_stack_init,a7					| set master stack pointer
-	movel	d0,a7@-						| environp
-	movel	d0,a7@-						| argv
-	movel	d0,a7@-						| argc
+	movel	d0,a7@-						| command line
 	jsr	SYM(boot_card)					| Call C main
 
 	PUBLIC (_mainDone)

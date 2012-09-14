@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.36.2.1 2009/02/11 16:20:10 joel Exp $
+##
+## $Id: configure.ac,v 1.39.2.1 2011/02/02 15:17:29 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libcpu-m68k],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([m68040])
 RTEMS_TOP([../../../../..],[../../..])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.10])
+AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENV_RTEMSBSP
@@ -46,10 +46,13 @@ AM_CONDITIONAL(mcf5272, test "$RTEMS_CPU_MODEL" = "mcf5272" )
 AM_CONDITIONAL(mcf5282, test "$RTEMS_CPU_MODEL" = "mcf5282" )
 AM_CONDITIONAL(mcf5235, test "$RTEMS_CPU_MODEL" = "mcf5235" )
 AM_CONDITIONAL(mcf5223x, test "$RTEMS_CPU_MODEL" = "mcf5223x" )
+AM_CONDITIONAL(mcf5225x, test "$RTEMS_CPU_MODEL" = "mcf52258" )
 AM_CONDITIONAL(mcf532x, test "$RTEMS_CPU_MODEL" = "mcf532x" )
 AM_CONDITIONAL(mcf548x, test "$RTEMS_CPU_MODEL" = "mcf548x" )
 
-RTEMS_AMPOLISH3
+RTEMS_CHECK_NETWORKING
+AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
+
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile

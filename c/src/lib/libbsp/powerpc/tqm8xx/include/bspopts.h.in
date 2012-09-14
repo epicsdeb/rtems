@@ -1,15 +1,16 @@
 /* include/bspopts.h.in.  Generated from configure.ac by autoheader.  */
 
-/* BSP uses shared logic in bootcard.c */
-#undef BSP_BOOTCARD_HANDLES_RAM_ALLOCATION
-
-/* If defined, then PSIM will put a non-zero pattern into the RTEMS Workspace
-   and C program heap. This should assist in finding code that assumes memory
-   starts set to zero. */
+/* If defined, then the BSP Framework will put a non-zero pattern into the
+   RTEMS Workspace and C program heap. This should assist in finding code that
+   assumes memory starts set to zero. */
 #undef BSP_DIRTY_MEMORY
 
-/* If defined, then the BSP assumes it is booted via U-Boot (not TQMon) */
-#undef BSP_HAS_UBOOT
+/* If defined, print a message and wait until pressed before resetting board
+   when application exits. */
+#undef BSP_PRESS_KEY_FOR_RESET
+
+/* If defined, reset the board when the application exits. */
+#undef BSP_RESET_BOARD_AT_EXIT
 
 /* If defined, then the BSP will use the Fast Ethernet Controller for
    10/100MBit networking and used as primary networking interface. */
@@ -81,6 +82,9 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -96,3 +100,15 @@
    ports should use the same type of I/O, otherwise the drivers will likely
    conflict with each other. */
 #undef PRINTK_CHN
+
+/* (BSP--SPI board init function) Specify the function that inits the board
+   port lines and further devices. */
+#undef SPI_BOARD_INIT_FNC
+
+/* (BSP--SPI send address function) Specify the function that addresses SPI
+   devices. Set to bsp_dummy_spi_sel_addr for dummy implementation */
+#undef SPI_SEND_ADDR_FNC
+
+/* (BSP--SPI send stop function) Specify the function that deaddresses SPI
+   devices. Set to bsp_dummy_spi_send_stop for dummy implementation */
+#undef SPI_SEND_STOP_FNC

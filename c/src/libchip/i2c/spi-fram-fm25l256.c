@@ -32,13 +32,13 @@ static spi_memdrv_t spi_fram_fm25l256_rw_drv_t = {
   baudrate:             2000000,
   erase_before_program: false,
   empty_state:          0xff,
-  page_size:            32*1024, /* programming page size in byte */
+  page_size:            0x8000 /* 32*1024 */, /* programming page size in byte */
   sector_size:          1,       /* erase sector size in byte     */
-  mem_size:             32*1024  /* total capacity in byte        */
+  mem_size:             0x8000 /* 32*1024 */ /* total capacity in byte        */
   }
 };
 
-rtems_libi2c_drv_t *spi_fram_fm25l256_rw_driver_descriptor = 
+rtems_libi2c_drv_t *spi_fram_fm25l256_rw_driver_descriptor =
 &spi_fram_fm25l256_rw_drv_t.libi2c_drv_entry;
 
 static spi_memdrv_t spi_fram_fm25l256_ro_drv_t = {
@@ -50,11 +50,11 @@ static spi_memdrv_t spi_fram_fm25l256_ro_drv_t = {
   baudrate:             2000000,
   erase_before_program: false,
   empty_state:          0xff,
-  page_size:            32*1024, /* programming page size in byte */
+  page_size:            0x8000 /* 32*1024 */, /* programming page size in byte */
   sector_size:          1,       /* erase sector size in byte     */
-  mem_size:             32*1024  /* total capacity in byte        */
+  mem_size:             0x8000 /* 32*1024 */ /* total capacity in byte        */
   }
 };
 
-rtems_libi2c_drv_t *spi_fram_fm25l256_ro_driver_descriptor = 
+rtems_libi2c_drv_t *spi_fram_fm25l256_ro_driver_descriptor =
 &spi_fram_fm25l256_ro_drv_t.libi2c_drv_entry;

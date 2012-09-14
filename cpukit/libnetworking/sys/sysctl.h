@@ -36,7 +36,7 @@
 #ifndef _SYS_SYSCTL_H_
 #define	_SYS_SYSCTL_H_
 
-#include <rtems/stdint.h>
+#include <stdint.h>
 #include <rtems/bsd/sys/queue.h>
 
 struct thread;
@@ -151,7 +151,7 @@ struct sysctl_oid {
 	int		oid_number;
 	uint32_t	oid_kind;
 	void		*oid_arg1;
-	int		oid_arg2;
+	int32_t		oid_arg2;
 	const char	*oid_name;
 	int 		(*oid_handler)(SYSCTL_HANDLER_ARGS);
 	const char	*oid_fmt;

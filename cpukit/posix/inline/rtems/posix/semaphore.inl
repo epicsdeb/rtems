@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semaphore.inl,v 1.15 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: semaphore.inl,v 1.16 2009/01/05 20:26:01 joel Exp $
  */
  
 #ifndef _RTEMS_POSIX_SEMAPHORE_H
@@ -66,14 +66,13 @@ RTEMS_INLINE_ROUTINE void _POSIX_Semaphore_Namespace_remove (
  *
  *  _POSIX_Semaphore_Get
  */
- 
 RTEMS_INLINE_ROUTINE POSIX_Semaphore_Control *_POSIX_Semaphore_Get (
   sem_t             *id,
   Objects_Locations *location
 )
 {
   return (POSIX_Semaphore_Control *)
-    _Objects_Get( &_POSIX_Semaphore_Information, *id, location );
+    _Objects_Get( &_POSIX_Semaphore_Information, (Objects_Id)*id, location );
 }
  
 /*PAGE

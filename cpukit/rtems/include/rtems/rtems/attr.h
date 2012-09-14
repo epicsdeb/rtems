@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: attr.h,v 1.23 2008/07/01 18:44:12 joel Exp $
+ *  $Id: attr.h,v 1.26 2009/11/29 11:55:14 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_ATTR_H
@@ -23,7 +23,9 @@ extern "C" {
 #endif
 
 /**
- *  @defgroup ClassicAttributes Classic API Attributes
+ *  @defgroup ClassicAttributes Attributes
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which defines and manages the
  *  set of Classic API object attributes.
@@ -50,13 +52,13 @@ typedef uint32_t   rtems_attribute;
  */
 #define RTEMS_GLOBAL              0x00000002
 
-/** 
+/**
  *  This is the attribute constant which reflects that blocking
  *  tasks will be managed using FIFO discipline.
  */
 #define RTEMS_FIFO                0x00000000
 
-/** 
+/**
  *  This is the attribute constant which reflects that blocking
  *  tasks will be managed using task priority discipline.
  */
@@ -181,16 +183,6 @@ typedef uint32_t   rtems_attribute;
 #else
 #define ATTRIBUTES_REQUIRED            0
 #endif
-
-/**
- *  @brief _Attributes_Handler_initialization
- *
- *  This routine performs initialization for this handler.
- *
- *  NOTE: There is no initialization required in C.  Conditional compilation
- *        takes care of this in C.
- */
-#define _Attributes_Handler_initialization()
 
 #ifndef __RTEMS_APPLICATION__
 #include <rtems/rtems/attr.inl>

@@ -19,7 +19,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: console.c,v 1.16.2.1 2008/11/03 21:08:49 strauman Exp $
+ * $Id: console.c,v 1.19 2009/11/30 04:28:46 ralf Exp $
  */
 
 #include <stdlib.h>
@@ -74,7 +74,7 @@ static int  conSetAttr(int minor, const struct termios *);
 typedef struct TtySTblRec_ {
   char          *name;
   rtems_irq_hdl  isr;
-} TtySTblRec, *TtySTbl;               
+} TtySTblRec, *TtySTbl;
 
 static TtySTblRec ttyS[]={
     { "/dev/ttyS0",
@@ -197,7 +197,7 @@ rtems_device_driver console_open(
   rtems_status_code              status;
   static rtems_termios_callbacks cb =
 #if defined(USE_POLLED_IO)
-  { 
+  {
      NULL,                              /* firstOpen */
      NULL,                              /* lastClose */
      NULL,                              /* pollRead */
@@ -208,7 +208,7 @@ rtems_device_driver console_open(
      TERMIOS_POLLED                     /* outputUsesInterrupts */
   };
 #else
-  { 
+  {
      console_first_open,                /* firstOpen */
      console_last_close,                /* lastClose */
 #if ( TERMIOS_OUTPUT_MODE == TERMIOS_TASK_DRIVEN )
@@ -305,9 +305,9 @@ static int conSetAttr(
   const struct termios *t
 )
 {
-  int baud;
+  rtems_termios_baud_t baud;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 

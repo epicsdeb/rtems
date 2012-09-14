@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: dmaRegs.h,v 1.1 2008/08/15 20:18:41 joel Exp $
+ *  $Id: dmaRegs.h,v 1.1.4.1 2011/04/20 20:19:52 joel Exp $
  */
 
 #ifndef _dmaRegs_h_

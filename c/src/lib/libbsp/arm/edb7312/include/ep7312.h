@@ -16,7 +16,7 @@
  *        only one or read the write only one. I'm not sure what will
  *        happen if you do.
  *
- *  $Id: ep7312.h,v 1.4 2004/04/21 10:42:43 ralf Exp $
+ *  $Id: ep7312.h,v 1.6 2009/08/28 03:17:17 joel Exp $
 */
 #ifndef __EP7312_H__
 #define __EP7312_H__

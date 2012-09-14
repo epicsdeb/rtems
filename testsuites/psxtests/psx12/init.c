@@ -1,13 +1,15 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.9 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.15 2010/04/03 06:07:24 ralf Exp $
  */
+
+#include <sched.h>
 
 #define CONFIGURE_INIT
 #include "system.h"
@@ -16,17 +18,23 @@
 void print_schedparam(
   char               *prefix,
   struct sched_param *schedparam
+);
+
+void print_schedparam(
+  char               *prefix,
+  struct sched_param *schedparam
 )
 {
   printf( "%ssched priority      = %d\n", prefix, schedparam->sched_priority );
 #if defined(_POSIX_SPORADIC_SERVER)
-  printf( "%sss_low_priority     = %d\n", prefix, schedparam->ss_low_priority );
-  printf( "%sss_replenish_period = (%ld, %ld)\n", prefix,
-     schedparam->ss_replenish_period.tv_sec,
-     schedparam->ss_replenish_period.tv_nsec );
-  printf( "%sss_initial_budget = (%ld, %ld)\n", prefix,
-     schedparam->ss_initial_budget.tv_sec,
-     schedparam->ss_initial_budget.tv_nsec );
+  printf( "%ssched_ss_low_priority     = %d\n",
+     prefix, schedparam->sched_ss_low_priority );
+  printf( "%ssched_ss_repl_period = (%ld, %ld)\n", prefix,
+     schedparam->sched_ss_repl_period.tv_sec,
+     schedparam->sched_ss_repl_period.tv_nsec );
+  printf( "%ssched_ss_init_budget = (%ld, %ld)\n", prefix,
+     schedparam->sched_ss_init_budget.tv_sec,
+     schedparam->sched_ss_init_budget.tv_nsec );
 #else
   printf( "%s_POSIX_SPORADIC_SERVER is not defined\n" );
 #endif
@@ -49,86 +57,86 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   /* invalid scheduling policy error */
 
   puts( "Init: pthread_attr_init - SUCCESSFUL" );
   status = pthread_attr_init( &attr );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = pthread_attr_setinheritsched( &attr, PTHREAD_EXPLICIT_SCHED );
-  assert( !status );
+  rtems_test_assert(  !status );
   attr.schedpolicy = -1;
 
   puts( "Init: pthread_create - EINVAL (invalid scheduling policy)" );
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( status == EINVAL );
+  rtems_test_assert(  status == EINVAL );
 
   /* replenish period < budget error */
 
   puts( "Init: pthread_attr_init - SUCCESSFUL" );
   status = pthread_attr_init( &attr );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: set scheduling parameter attributes for sporadic server" );
   status = pthread_attr_setschedpolicy( &attr, SCHED_SPORADIC );
-  assert( !status );
+  rtems_test_assert(  !status );
 
-  schedparam.ss_replenish_period.tv_sec = 1;
-  schedparam.ss_replenish_period.tv_nsec = 0;
-  schedparam.ss_initial_budget.tv_sec = 2;
-  schedparam.ss_initial_budget.tv_nsec = 0;
+  schedparam.sched_ss_repl_period.tv_sec = 1;
+  schedparam.sched_ss_repl_period.tv_nsec = 0;
+  schedparam.sched_ss_init_budget.tv_sec = 2;
+  schedparam.sched_ss_init_budget.tv_nsec = 0;
 
   schedparam.sched_priority = 200;
-  schedparam.ss_low_priority = 100;
+  schedparam.sched_ss_low_priority = 100;
 
   status = pthread_attr_setschedparam( &attr, &schedparam );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = pthread_attr_setinheritsched( &attr, PTHREAD_EXPLICIT_SCHED );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: pthread_create - EINVAL (replenish < budget)" );
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( status == EINVAL );
+  rtems_test_assert(  status == EINVAL );
 
-  /* invalid ss_low_priority error */
+  /* invalid sched_ss_low_priority error */
 
-  schedparam.ss_replenish_period.tv_sec = 2;
-  schedparam.ss_replenish_period.tv_nsec = 0;
-  schedparam.ss_initial_budget.tv_sec = 1;
-  schedparam.ss_initial_budget.tv_nsec = 0;
+  schedparam.sched_ss_repl_period.tv_sec = 2;
+  schedparam.sched_ss_repl_period.tv_nsec = 0;
+  schedparam.sched_ss_init_budget.tv_sec = 1;
+  schedparam.sched_ss_init_budget.tv_nsec = 0;
 
   schedparam.sched_priority = 200;
-  schedparam.ss_low_priority = -1;
+  schedparam.sched_ss_low_priority = -1;
 
   status = pthread_attr_setschedparam( &attr, &schedparam );
-  assert( !status );
+  rtems_test_assert(  !status );
 
-  puts( "Init: pthread_create - EINVAL (invalid ss_low_priority)" );
+  puts( "Init: pthread_create - EINVAL (invalid sched_ss_low_priority)" );
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( status == EINVAL );
+  rtems_test_assert(  status == EINVAL );
 
   /* create a thread as a sporadic server */
 
-  schedparam.ss_replenish_period.tv_sec = 2;
-  schedparam.ss_replenish_period.tv_nsec = 0;
-  schedparam.ss_initial_budget.tv_sec = 1;
-  schedparam.ss_initial_budget.tv_nsec = 0;
+  schedparam.sched_ss_repl_period.tv_sec = 2;
+  schedparam.sched_ss_repl_period.tv_nsec = 0;
+  schedparam.sched_ss_init_budget.tv_sec = 1;
+  schedparam.sched_ss_init_budget.tv_nsec = 0;
 
-  schedparam.sched_priority = 200;
-  schedparam.ss_low_priority = 100;
+  schedparam.sched_priority = sched_get_priority_max( SCHED_FIFO );
+  schedparam.sched_ss_low_priority = sched_get_priority_max( SCHED_FIFO ) - 6;
 
   status = pthread_attr_setschedparam( &attr, &schedparam );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: pthread_create - SUCCESSFUL" );
   status = pthread_create( &Task_id, &attr, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = pthread_join( Task_id, NULL );
-  assert( status );
+  rtems_test_assert(  status );
 
     /* switch to Task_1 */
 

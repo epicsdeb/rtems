@@ -40,6 +40,10 @@ static char *rcsid = "$FreeBSD: src/lib/libc/rpc/pmap_clnt.c,v 1.11 2000/01/27 2
  * Copyright (C) 1984, Sun Microsystems, Inc.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -68,7 +72,7 @@ pmap_set(
 {
 	struct sockaddr_in myaddress;
 	int socket = -1;
-	register CLIENT *client;
+	CLIENT *client;
 	struct pmap parms;
 	bool_t rslt;
 	struct stat st;
@@ -93,7 +97,7 @@ pmap_set(
 	parms.pm_vers = version;
 	parms.pm_prot = protocol;
 	parms.pm_port = port;
-	if (CLNT_CALL(client, PMAPPROC_SET, xdr_pmap, &parms, xdr_bool, &rslt,
+	if (CLNT_CALL(client, PMAPPROC_SET, (xdrproc_t)xdr_pmap, &parms, (xdrproc_t)xdr_bool, &rslt,
 	    tottimeout) != RPC_SUCCESS) {
 		clnt_perror(client, "Cannot register service");
 		return (FALSE);
@@ -105,7 +109,7 @@ pmap_set(
 }
 
 /*
- * Remove the mapping between program,version and port.
+ * Remove the mapping between program, version and port.
  * Calls the pmap service remotely to do the un-mapping.
  */
 bool_t
@@ -138,7 +142,7 @@ pmap_unset(
 	parms.pm_prog = program;
 	parms.pm_vers = version;
 	parms.pm_port = parms.pm_prot = 0;
-	CLNT_CALL(client, PMAPPROC_UNSET, xdr_pmap, &parms, xdr_bool, &rslt,
+	CLNT_CALL(client, PMAPPROC_UNSET, (xdrproc_t)xdr_pmap, &parms, (xdrproc_t)xdr_bool, &rslt,
 	    tottimeout);
 	CLNT_DESTROY(client);
 	if (socket != -1)

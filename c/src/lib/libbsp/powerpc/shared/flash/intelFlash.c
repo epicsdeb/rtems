@@ -1,4 +1,4 @@
-/* $Id: intelFlash.c,v 1.1 2007/11/27 20:36:22 strauman Exp $ */
+/* $Id: intelFlash.c,v 1.2.2.1 2010/08/25 22:24:01 strauman Exp $ */
 
 /*
  * Trivial driver for 16-bit intel flash present on the
@@ -10,19 +10,19 @@
  * mode (width=2).
  */
 
-/* 
+/*
  * Authorship
  * ----------
  * This software was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2005-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The software was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -31,18 +31,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -51,20 +51,24 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
 #ifdef TESTING
 
-#define TIMEOUT_US	100000
-#define rtems_task_wake_after(args...) do {} while (0)
+#define TIMEOUT_US       100000
+#define rtems_task_wake_after(t) sleep(t)
+#define CLOCKRATE_GET(p) (*(p)=1)
 
 #else
 
 #include <rtems.h>
-#define TIMEOUT_US			1000
+#define TIMEOUT_US       1000
+#define CLOCKRATE_GET(p) rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, p )
 
 #endif
+
+#define ERASE_TIMEOUT_S 2
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -176,7 +180,7 @@ struct vendesc BSP_flash_vendor_intel[] =
 
 /********* Helper Subroutines ******************/
 
-/* Basic low-level access routine for writing a command to the 
+/* Basic low-level access routine for writing a command to the
  * internal state machine.
  *
  * Flash is slow, so who cares if these access routines
@@ -321,14 +325,19 @@ uint32_t sta;
 STATIC int
 flash_erase_block_intel(struct bankdesc *b, uint32_t addr)
 {
-uint32_t sta;
-int i;
+uint32_t       sta;
+int            i;
+rtems_interval p;
+
 	if ( (sta = flash_check_ready_intel(b, addr)) )
 		return sta;
 
 	(void)BSP_flashReadRaw(F_CMD_WR_ERA, addr);
 	(void)BSP_flashReadRaw(F_CMD_WR_CMD, addr);
-	i = 50;
+
+	CLOCKRATE_GET( &p );
+	i = p * ERASE_TIMEOUT_S;
+
 	while ( STA_RDYRDY != (STA_RDYRDY & (sta = BSP_flashReadRaw(F_CMD_RD_STA, addr))) && --i > 0 ) {
 		rtems_task_wake_after(1);
 	}
@@ -351,7 +360,7 @@ int i;
 }
 
 /* Unlock block holding 'addr'ess
- * 
+ *
  *   NOTES: - device switched back to array mode on exit.
  *          - 'addr' must be 32-bit aligned.
  */
@@ -368,7 +377,7 @@ flash_unlock_block_intel(struct bankdesc *b, uint32_t addr)
 }
 
 /* Lock block holding 'addr'ess
- * 
+ *
  *   NOTES: - device switched back to array mode on exit.
  *          - 'addr' must be 32-bit aligned.
  */
@@ -428,7 +437,7 @@ union	{
 
 /* Query device for basic information verifying that we talk
  * to a 'known'/'supported' device.
- * 
+ *
  *   NOTES: - device switched back to array mode on exit.
  *          - 'addr' must be 32-bit aligned.
  */

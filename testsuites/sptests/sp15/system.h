@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.18 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: system.h,v 1.19 2009/01/05 19:44:53 joel Exp $
  */
 
 #include <tmacros.h>
@@ -43,7 +43,7 @@ rtems_task Task_1(
 TEST_EXTERN rtems_id   Task_id[ 4 ];         /* array of task ids */
 TEST_EXTERN rtems_name Task_name[ 4 ];       /* array of task names */
 
-TEST_EXTERN rtems_name Partition_id[ 4 ];   /* array of partition ids */
+TEST_EXTERN rtems_id   Partition_id[ 4 ];   /* array of partition ids */
 TEST_EXTERN rtems_name Partition_name[ 4 ]; /* array of partition names */
 
 TEST_EXTERN uint8_t   Area_1[4096] CPU_STRUCTURE_ALIGNMENT;

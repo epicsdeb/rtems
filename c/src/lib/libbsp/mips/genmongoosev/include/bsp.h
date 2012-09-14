@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.16 2007/12/11 15:48:49 joel Exp $
+ *  $Id: bsp.h,v 1.19 2009/11/16 14:11:16 ralf Exp $
  */
 
 #ifndef _BSP_H
@@ -50,27 +50,14 @@ extern void assertSoftwareInterrupt(uint32_t);
 
 #define CLOCK_VECTOR	MONGOOSEV_IRQ_TIMER1
 
-/* Constants */
-
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* functions */
 
-void bsp_cleanup( void );
-
 rtems_isr_entry set_vector( rtems_isr_entry, rtems_vector_number, int );
+
+
+/* from start.S */
+extern void promCopyIcacheFlush(void);
+extern void promCopyDcacheFlush(void);
 
 #ifdef __cplusplus
 }

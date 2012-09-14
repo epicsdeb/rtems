@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task2.c,v 1.9 2003/09/04 18:53:48 joel Exp $
+ *  $Id: task2.c,v 1.12 2009/10/27 08:13:58 ralf Exp $
  */
 
 #include "system.h"
@@ -28,7 +28,7 @@ rtems_task Task_2(
   rtems_time_of_day time;
   rtems_status_code status;
 
-  status = rtems_task_wake_after( 1*TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   puts( "TA2 - rtems_event_receive - waiting forever on RTEMS_EVENT_16" );
@@ -39,7 +39,7 @@ rtems_task Task_2(
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA2 - RTEMS_EVENT_16 received - eventout => %08x\n", eventout );
+  printf( "TA2 - RTEMS_EVENT_16 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
   puts(
     "TA2 - rtems_event_send - send RTEMS_EVENT_14 and RTEMS_EVENT_15 to TA1"
@@ -59,7 +59,7 @@ rtems_task Task_2(
   );
   directive_failed( status, "rtems_event_receive" );
   printf(
-    "TA2 - RTEMS_EVENT_17 or RTEMS_EVENT_18 received - eventout => %08x\n",
+    "TA2 - RTEMS_EVENT_17 or RTEMS_EVENT_18 received - eventout => %08" PRIxrtems_event_set "\n",
     eventout
   );
 
@@ -93,11 +93,11 @@ rtems_task Task_2(
   );
   directive_failed( status, "rtems_event_receive" );
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-  directive_failed( status, "rtems_clock_get" );
+  status = rtems_clock_get_tod( &time );
+  directive_failed( status, "rtems_clock_get_tod" );
 
-  printf( "TA2 - RTEMS_EVENT_10 received - eventout => %08x\n", eventout );
-  print_time( "TA2 - rtems_clock_get - ", &time, "\n" );
+  printf( "TA2 - RTEMS_EVENT_10 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
+  print_time( "TA2 - rtems_clock_get_tod - ", &time, "\n" );
 
   puts( "TA2 - rtems_event_receive - RTEMS_PENDING_EVENTS" );
   status = rtems_event_receive(
@@ -107,7 +107,7 @@ rtems_task Task_2(
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA2 - eventout => %08x\n", eventout );
+  printf( "TA2 - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
   puts( "TA2 - rtems_event_receive - RTEMS_EVENT_19 - RTEMS_NO_WAIT" );
   status = rtems_event_receive(
@@ -117,7 +117,7 @@ rtems_task Task_2(
     &eventout
   );
   directive_failed( status, "rtems_event_receive" );
-  printf( "TA2 - RTEMS_EVENT_19 received - eventout => %08x\n", eventout );
+  printf( "TA2 - RTEMS_EVENT_19 received - eventout => %08" PRIxrtems_event_set "\n", eventout );
 
   puts( "TA2 - rtems_task_delete - deletes self" );
   status = rtems_task_delete( Task_id[ 2 ] );

@@ -16,14 +16,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.13 2008/02/01 00:45:06 joel Exp $
+ *  $Id: init.c,v 1.15 2009/10/30 13:18:33 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -39,7 +39,7 @@ rtems_task Init(
   void              *bufaddr;
 
   printf(
-    "\n\n*** TEST 12 -- NODE %d ***\n",
+    "\n\n*** TEST 12 -- NODE %" PRId32 " ***\n",
     Multiprocessing_configuration.node
    );
 
@@ -51,7 +51,7 @@ rtems_task Init(
   puts( "Got to initialization task" );
 
   if ( Multiprocessing_configuration.node == 2 )  {
-    status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
     puts( "Getting ID of remote Partition (Global)" );
@@ -84,7 +84,7 @@ rtems_task Init(
     status = rtems_partition_return_buffer( Partition_id[ 1 ], bufaddr );
     directive_failed( status, "rtems_partition_return_buffer" );
 
-    status = rtems_task_wake_after( 2 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 2 * rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
   }
   else {
@@ -100,7 +100,7 @@ rtems_task Init(
     directive_failed( status, "rtems_partition_create" );
 
     puts( "Sleeping for two seconds" );
-    status = rtems_task_wake_after( 2 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 2 * rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
     puts( "Deleting Partition (Global)" );

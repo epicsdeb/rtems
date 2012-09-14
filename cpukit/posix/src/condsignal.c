@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: condsignal.c,v 1.4 2007/12/17 16:19:13 joel Exp $
+ *  $Id: condsignal.c,v 1.5 2009/02/03 10:10:44 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -33,5 +33,5 @@ int pthread_cond_signal(
   pthread_cond_t   *cond
 )
 {
-  return _POSIX_Condition_variables_Signal_support( cond, FALSE );
+  return _POSIX_Condition_variables_Signal_support( cond, false );
 }

@@ -16,7 +16,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.6 2004/04/16 21:51:30 ralf Exp $
+ *  $Id: start.S,v 1.10 2010/04/07 21:50:11 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -54,10 +54,10 @@ SYM (start):
 	ldc     r0,vbr
 
 	! call the mainline
-	mov #0,r4		! argc
+	mov #0,r4		! command line
 	mov.l main_k,r0
 	jsr @r0
-	mov #0,r5		! argv
+
 
 	! call exit
 	mov	r0,r4
@@ -77,7 +77,7 @@ end_k:
 main_k:
 	.long	SYM(boot_card)
 exit_k:
-	.long	SYM(exit)
+	.long	SYM(_sys_exit)
 
 vects_k:
 	.long	SYM(vectab)

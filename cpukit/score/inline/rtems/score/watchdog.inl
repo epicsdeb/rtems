@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: watchdog.inl,v 1.17 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: watchdog.inl,v 1.18 2008/12/22 09:22:17 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_WATCHDOG_H
@@ -48,8 +48,8 @@ RTEMS_INLINE_ROUTINE void _Watchdog_Initialize(
 }
 
 /**
- *  This routine returns TRUE if the watchdog timer is in the ACTIVE
- *  state, and FALSE otherwise.
+ *  This routine returns true if the watchdog timer is in the ACTIVE
+ *  state, and false otherwise.
  */
 
 RTEMS_INLINE_ROUTINE bool _Watchdog_Is_active(

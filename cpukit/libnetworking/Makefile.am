@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.92 2008/07/02 13:40:19 joel Exp $
+## $Id: Makefile.am,v 1.96.2.1 2010/09/01 11:17:39 ralf Exp $
 ##
 
 include $(top_srcdir)/automake/multilib.am
@@ -17,7 +17,7 @@ UNUSED_FILES += sys/poll.h
 
 if LIBNETWORKING
 # Add -DFORWARD_PROTOCOL to enable UDP forwarding -- requires missing net/pf.h
-libnetworking_CPPFLAGS = -D_COMPILING_BSD_KERNEL_ -DKERNEL -DINET -DNFS \
+libnetworking_CPPFLAGS = -DINET -DNFS \
     -DDIAGNOSTIC -DBOOTP_COMPAT -D_KERNEL -D__BSD_VISIBLE
 
 noinst_LIBRARIES = libnetworking.a
@@ -116,7 +116,7 @@ include_rtems_HEADERS = rtems/rtems_bsdnet.h rtems/rtems_bsdnet_internal.h \
     rtems/mkrootfs.h
 include_rtems_HEADERS += rtems/rtems_mii_ioctl.h
 
-libnetworking_a_SOURCES += rtems/sghostname.c rtems/issetugid.c \
+libnetworking_a_SOURCES += rtems/sghostname.c \
     rtems/rtems_glue.c rtems/rtems_malloc_mbuf.c rtems/rtems_syscall.c \
     rtems/rtems_bootp.c rtems/rtems_dhcp.c rtems/rtems_dhcp_failsafe.c \
     rtems/rtems_showmbuf.c rtems/rtems_showroute.c rtems/rtems_showifstat.c \
@@ -135,7 +135,7 @@ include_sys_HEADERS = sys/callout.h sys/conf.h sys/domain.h \
     sys/mount.h sys/proc.h sys/protosw.h sys/reboot.h \
     sys/resourcevar.h sys/select.h sys/signalvar.h sys/socket.h \
     sys/socketvar.h sys/sysctl.h sys/syslog.h sys/systm.h sys/ttydefaults.h \
-    sys/ucred.h sys/uio.h sys/un.h
+    sys/ucred.h sys/un.h
 
 # vm
 
@@ -156,7 +156,7 @@ libc_a_CPPFLAGS = $(AM_CPPFLAGS) $(libc_CPPFLAGS)
 
 include_HEADERS += ifaddrs.h
 
-libc_a_SOURCES = libc/addr2ascii.c libc/ascii2addr.c libc/base64.c \
+libc_a_SOURCES = libc/base64.c \
     libc/gethostbydns.c libc/gethostbyht.c libc/gethostbynis.c \
     libc/gethostnamadr.c libc/getnetbydns.c libc/getnetbyht.c \
     libc/getnetbynis.c libc/getnetnamadr.c libc/getproto.c \
@@ -181,7 +181,7 @@ UNUSED_FILES += libc/ether_addr.c libc/gethostname.c libc/inet_neta.c \
     libc/inet_net_ntop.c libc/inet_net_pton.c libc/ns_addr.c \
     libc/ns_ntoa.c
 
-libc_mans = libc/addr2ascii.3 libc/byteorder.3 libc/ethers.3 \
+libc_mans = libc/byteorder.3 libc/ethers.3 \
     libc/gethostbyname.3 libc/getnetent.3 libc/getprotoent.3 \
     libc/getservent.3 libc/inet.3 libc/linkaddr.3 libc/ns.3 \
     libc/rcmd.3 libc/resolver.3

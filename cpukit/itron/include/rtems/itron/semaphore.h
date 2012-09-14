@@ -3,14 +3,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semaphore.h,v 1.8 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: semaphore.h,v 1.9 2008/12/17 22:12:23 joel Exp $
  */
 
 #ifndef _RTEMS_ITRON_SEMAPHORE_H
@@ -48,9 +48,7 @@ ITRON_EXTERN Objects_Information  _ITRON_Semaphore_Information;
  *  This routine performs the initialization necessary for this manager.
  */
 
-void _ITRON_Semaphore_Manager_initialization(
-  uint32_t   maximum_semaphores
-);
+void _ITRON_Semaphore_Manager_initialization(void);
 
 #include <rtems/itron/semaphore.inl>
 

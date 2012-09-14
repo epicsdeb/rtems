@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectfree.c,v 1.7 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: objectfree.c,v 1.8 2009/10/08 07:07:36 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -50,8 +50,8 @@ void _Objects_Free(
   if ( information->auto_extend ) {
     uint32_t    block;
 
-    block =
-      _Objects_Get_index( the_object->id ) - _Objects_Get_index( information->minimum_id );
+    block = (uint32_t) (_Objects_Get_index( the_object->id ) -
+                        _Objects_Get_index( information->minimum_id ));
     block /= information->allocation_size;
 
     information->inactive_per_block[ block ]++;

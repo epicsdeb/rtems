@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqrequeue.c,v 1.5 2008/01/22 18:28:53 joel Exp $
+ *  $Id: threadqrequeue.c,v 1.6 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -65,7 +65,7 @@ void _Thread_queue_Requeue(
     _ISR_Disable( level );
     if ( _States_Is_waiting_on_thread_queue( the_thread->current_state ) ) {
       _Thread_queue_Enter_critical_section( tq );
-      _Thread_queue_Extract_priority_helper( tq, the_thread, TRUE );
+      _Thread_queue_Extract_priority_helper( tq, the_thread, true );
       (void) _Thread_queue_Enqueue_priority( tq, the_thread, &level_ignored );
     }
     _ISR_Enable( level );

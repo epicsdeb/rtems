@@ -1,6 +1,1119 @@
+2011-02-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp69/init.c: Use "ld" instead of PRId32 to print
+	struct timespec->tv_nsec.
+	* sp19/inttest.h: Use PRIx32 instead of "lx".
+
+2011-02-02	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* sp04/tswitch.c: Shrink memory requirements.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp62/init.c, sp65/init.c: #include <unistd.h>.
+
+2010-03-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp43/init.c: Readdress use of ctype methods per recommendation from
+	D.J. Delorie on the newlib mailing list. We should pass an unsigned
+	char into these methods.
+
+2010-03-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add new fatal error for configuring
+	unlimited and maximum of 0.
+	* spfatal13/.cvsignore, spfatal13/Makefile.am, spfatal13/spfatal13.doc,
+	spfatal13/spfatal13.scn, spfatal13/testcase.h: New files.
+
+2010-01-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp43/init.c: Fix warning.
+
+2009-12-15	Glenn Humphrey <glenn.humphrey@OARcorp.com>
+
+	* sp69/init.c: Fixed warnings.
+
+2009-12-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp14/sp14.doc, sp14/sp14.scn: doc file have scn contents. Fix and
+	update.
+
+2009-12-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp69/init.c, sp69/sp69.doc, sp69/sp69.scn: Add test for statistics on
+	expired periods. This detected the recently introduced PR1480.
+
+2009-12-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp69/.cvsignore: New file.
+
+2009-12-08	Glenn Humphrey <glenn.humphrey@OARcorp.com>
+
+	* Makefile.am, configure.ac: Added a test for rate_monotonic_get_status
+	to ensure that all paths are tested.
+	* sp69/Makefile.am, sp69/init.c, sp69/sp69.doc, sp69/sp69.scn: New files.
+
+2009-12-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp31/task1.c: Fixed spacing.
+
+2009-12-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp18/init.c, sp31/task1.c, sp43/init.c, sp63/init.c, sp64/init.c,
+	spfatal10/testcase.h, spfatal11/testcase.h, spobjgetnext/init.c,
+	spwkspace/init.c: Use rtems_test_assert() consistently instead of
+	system assert(). rtems_test_assert() is designed to integrate into
+	the RTEMS test suite infrastructure.
+
+2009-12-04	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* sp31/sp31.scn, sp31/task1.c, spintrcritical17/init.c: New test
+	cases. Updated copyright notice.
+
+2009-12-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp25/task1.c: Use PRIuPTR for segment_sizes.
+
+2009-11-30	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* sp68/Makefile.in, sp68/.cvsignore,
+	* spintrcritical17/Makefile.in, spintrcritical17/.cvsignore:
+	removed unneeded Makefile.in, added cvsignore
+	
+2009-11-30	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* sp68/init.c, sp68/Makefile.am, sp68/sp68.doc, sp68/sp68.scn,
+	spintrcritical17/init.c, spintrcritical17/Makefile.am,
+	spintrcritical17/spintrcritical17.doc,
+	spintrcritical17/spintrcritical17.scn: New files.
+	* Makefile.am, configure.ac: Update for test sp68 and spintrcritical17.
+	* sp31/task1.c, sp67/init.c: Changes for new timer server
+	implementation.
+	* sp52/init.c: The init task must be preemptible to let the timer
+	server run.
+
+2009-11-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1460/cpukit
+	* sp43/init.c: Change return type on methods accessing portions of
+	RTEMS Ids to int. This allows -1 to be return on error.
+
+2009-11-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* spsize/Makefile.am: Fix broken install rule.
+
+2009-11-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spprintk/spprintk.scn: Add end of line at end of file.
+
+2009-11-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp32/Makefile.am, sp33/Makefile.am, sp37/Makefile.am,
+	sp38/Makefile.am, sp39/Makefile.am, sp43/Makefile.am,
+	sp44/Makefile.am, spfatal01/Makefile.am, spfatal02/Makefile.am,
+	spfatal03/Makefile.am, spfatal04/Makefile.am, spfatal05/Makefile.am,
+	spfatal06/Makefile.am, spfatal07/Makefile.am, spfatal08/Makefile.am,
+	spfatal09/Makefile.am, spobjgetnext/Makefile.am,
+	spprintk/Makefile.am, spsize/Makefile.am, spwatchdog/Makefile.am,
+	spwkspace/Makefile.am: Add documentation files for multiple tests.
+	* sp32/sp32.doc, sp33/sp33.doc, sp37/sp37.doc, sp38/sp38.doc,
+	sp39/sp39.doc, sp43/sp43.doc, sp44/sp44.doc, spfatal01/spfatal01.doc,
+	spfatal02/spfatal02.doc, spfatal03/spfatal03.doc,
+	spfatal04/spfatal04.doc, spfatal05/spfatal05.doc,
+	spfatal06/spfatal06.doc, spfatal07/spfatal07.doc,
+	spfatal08/spfatal08.doc, spfatal09/spfatal09.doc,
+	spobjgetnext/spobjgetnext.doc, spprintk/spprintk.doc,
+	spsize/spsize.doc, spwatchdog/spwatchdog.doc,
+	spwkspace/spwkspace.doc: New files.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp14/asr.c: Remove PRIxrtems_signal_set (moved to tmacros.h).
+	Include "tmacros.h".
+	* sp63/init.c: Pass UINTPTR_MAX instead of 0xffffffff to 
+	_Heap_Allocate for 16bit compliance.
+	* sp44/init.c: Another printf format fix.
+
+2009-10-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp37/init.c: Add local prototypes for
+	rtems_interrupt_disable, rtems_interrupt_enable,
+	rtems_interrupt_flash, rtems_interrupt_is_in_progress.
+	* sp43/init.c: Add local prototypes for
+	rtems_object_api_minimum_class, rtems_object_api_maximum_class,
+	rtems_build_id, rtems_build_name, rtems_object_id_api_maximum,
+	rtems_object_id_api_minimum, rtems_object_id_get_api,
+	rtems_object_id_get_class, rtems_object_id_get_index,
+	rtems_object_id_get_node.
+	Spray PRId32's into printf's for 16bit target complianance.
+	* sp37/init.c: Add local prototype for
+	rtems_interrupt_level_attribute.
+
+2009-10-27	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp29/init.c: Include "tmacros.h".
+	Misc. changes related to rtems_intervals.
+	* sp14/asr.c: Add PRIxrtems_signal_set.
+	Use PRIxrtems_signal_set to print rtems_signal_set's.
+	* sp13/task3.c: Use PRIu32 to print "count".
+	* sp09/screen12.c: Segment sizes are uintptr_t's.
+	* sp09/screen11.c: Use size_t for "size".
+	* sp62/init.c: Segment sizes are uintptr_t's.
+	* sp25/task1.c: Use PRIuPTR to print segment_size's.
+	* sp21/task1.c: Add PRIurtems_device_major_number.
+	* sp11/task1.c, sp11/task2.c:
+	Use PRIxrtems_event_set to print rtems_event_set's.
+	* sp09/screen13.c: Revert previous change.
+	Remove broken extraneous line seemingly having crept into in 
+	2009-08-10 patch.
+	* sp27/init.c: Remove extraneous argument to print.
+	* spsize/size.c: Use PRIu32 to print sys_req.
+	* sp37/init.c: Add missing argument to printf.
+	* sp44/init.c, sp35/priinv.c, sp33/init.c, sp28/init.c,
+	sp12/pritask.c, sp34/changepri.c:
+	Use PRIdrtems_task_argument to print rtems_task_argument's.
+
+2009-10-27	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp25/task1.c: segment_size is uintptr_t.
+	* spfatal06/testcase.h: Add missing return.
+	* sp07/tcreate.c, sp07/tdelete.c, sp07/trestart.c, sp07/tstart.c:
+	Duplicate code from rtems_name_to_characters to convert rtems_name's
+	into char arrays.
+	* sp09/screen13.c: Comment out unused return status.
+	* sp63/init.c: Use PRIu32 to print uint32_t's.
+	* sp33/init.c: Use PRIu32 to print uint32_t's.
+	* sp28/init.c: Use PRIu32 to print uint32_t's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp31/task1.c: Use PRIdWatchdog_Interval to print
+	Watchdog_Interval's.
+	* sp20/task1.c, sp32/init.c, spclockget/init.c: Use
+	PRIdrtems_interval to print rtems_interval's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp13/task1.c: Misc. uint32_t fixes.
+	* sp20/task1.c: Misc. uint32_t fixes.
+	* sp47/init.c: Add PRIXModes_Control, PRIXrtems_mode.
+	Use PRIXrtems_mode to print rtems_mode's.
+	* sp08/system.h: Add PRIxModes_Control, PRIxrtems_mode.
+	Use PRIxrtems_mode to print rtems_mode's.
+	* sp19/first.c, sp19/fptask.c, sp19/fptest.h, sp19/inttest.h,
+	sp19/task1.c: Add missing PRI*32's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp34/changepri.c, sp35/priinv.c:
+	Use PRIdPriority_Control to print Priority_Control's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp34/changepri.c, sp59/init.c:
+	Use PRIdrtems_task_priority to print rtems_task_priority's.
+	* sp07/task1.c, sp07/task2.c, ssp12/pritask.c: 
+	Use PRIdrtems_task_priority to print rtems_task_priority's.
+	* sp12/system.h:
+	Change Priority_Test_driver to use rtems_task_priority argument.
+	* sp12/pridrv.c: 
+	Change Priority_Test_driver to use rtems_task_priority argument.
+	Use PRIdrtems_task_priority to print rtems_task_priority's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp02/task1.c, sp12/task1.c, sp13/task1.c, sp14/task1.c, sp15/task1.c,
+	sp16/task1.c, sp20/task1.c, sp22/init.c, sp22/task1.c, sp23/task1.c,
+	sp25/task1.c, sp31/init.c, sp31/task1.c, sp34/changepri.c,
+	sp35/priinv.c, sp43/init.c, sp45/init.c, spwatchdog/init.c,
+	spwatchdog/task1.c: Use PRIxrtems_id to print rtems_ids.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp13/task1.c, sp48/init.c: Use %zu instead of %d to print size_t's.
+	* sp50/init.c, spclockget/init.c: Use PRItime_t to print time_t's.
+	* sp63/init.c: Fix _Heap_Resize_block args.
+	* sp09/screen09.c: Eliminate unused var warning.
+
+2009-10-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp27/init.c, spsize/init.c: Fix prototypes.
+	* spwatchdog/task1.c: Remove unused vars.
+
+2009-10-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp10/init.c, sp18/init.c, sp27/init.c, sp35/priinv.c
+	sp63/init.c, sp65/init.c, sp67/init.c, spintrcritical11/init.c
+	spobjgetnext/init.c, spprintk/init.c:
+	Eliminate unused vars.
+
+2009-10-23	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* spintrcritical06/init.c, spintrcritical15/init.c, sp46/init.c: Fixed
+	confdefs.h define typos.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp32/init.c: Lengthen the clock tick and move configuration to the
+	bottom of the file.
+
+2009-10-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise when the ticks
+	since boot wraps around 0 and the timer server must deal with that
+	condition.
+	* sp67/.cvsignore, sp67/Makefile.am, sp67/init.c, sp67/sp67.doc,
+	sp67/sp67.scn: New files.
+
+2009-10-09	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* sp40/init.c, sp40/sp40.doc, sp40/sp40.scn: New test cases.
+
+2009-10-04	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* spintrcritical09/init.c, spintrcritical10/init.c,
+	spintrcritical11/init.c: Fixed potentially infinite loops.
+	* sp20/system.h: Increased micro seconds per tick in order to be more
+	independent of the console output speed.
+
+2009-10-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp07/init.c, sp07/sp07.scn, sp09/init.c, sp09/screen01.c,
+	sp09/sp09.scn, sp28/init.c, sp62/init.c, sp62/sp62.scn, sp64/init.c,
+	sp64/sp64.scn: Add more test cases highlighted on SPARC at -O2, x86
+	at -Os and m68k at -Os. Fix typos.
+
+2009-10-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp54/init.c: Use rtems_build_id to make building Objects_Id
+	RTEMS_USE_16_BIT_OBJECT clean.
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise when notepads are
+	not configured.
+	* spnotepad01/.cvsignore, spnotepad01/Makefile.am, spnotepad01/init.c,
+	spnotepad01/spnotepad01.doc, spnotepad01/spnotepad01.scn: New files.
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp09/screen01.c, sp09/screen02.c, sp09/screen03.c, sp09/screen05.c,
+	sp09/screen09.c, sp09/screen14.c, sp09/sp09.scn, sp28/init.c,
+	sp28/sp28.scn, sp43/init.c: Add more error cases uncovered by uC5282
+	coverage runs.
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp09/screen02.c, sp09/screen04.c, sp09/screen07.c, sp09/screen09.c,
+	sp09/screen10.c, sp09/screen11.c, sp09/screen12.c, sp09/sp09.scn: Add
+	some error cases uncovered by uC5282 coverage runs.
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp33/init.c, sp33/sp33.scn: Add some barrier error cases uncovered by
+	uC5282 coverage runs.
+
+2009-09-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp59/init.c, spintrcritical15/init.c, spintrcritical16/init.c:
+	Correct minor issues uncovered on uC5282.
+
+2009-09-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp04/tswitch.c, sp07/system.h, sp07/taskexit.c, sp07/tdelete.c,
+	sp07/tstart.c, spfatal_support/init.c, spfatal_support/system.h:
+	Eliminate use of deprecated rtems_extension.
+
+2009-09-25	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp14/asr.c, sp14/sp14.doc, sp14/task1.c, sp14/task2.c: Adjust test to
+	run when IO speed varies.
+
+2009-09-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp43/init.c, sp43/sp43.scn: Minor correction to test case so it hits
+	the intended code.
+
+2009-09-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* configure.ac: Revert accidentally committed lines.
+
+2009-09-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp65/init.c: Add new test to exercise very
+	simple priority ceiling case that was previously only tested via the
+	POSIX API.
+	* sp66/.cvsignore, sp66/Makefile.am, sp66/init.c, sp66/sp66.doc,
+	sp66/sp66.scn: New files.
+
+2009-09-13	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp43/Makefile.am, sp43/init.c, sp43/sp43.scn, sp43/system.h: Add test
+	for Id which is in range for the object class but not allocated yet.
+
 2009-09-09	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* sp46/init.c, sp46/sp46.scn: Fix numbering.
+
+2009-09-07	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* spintrcritical_support/intrcritical.c: Fixed timing rountines.
+
+2009-09-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spfatal01/spfatal01.scn, spfatal01/testcase.h,
+	spfatal02/spfatal02.scn, spfatal02/testcase.h,
+	spfatal03/spfatal03.scn, spfatal03/testcase.h,
+	spfatal04/spfatal04.scn, spfatal04/testcase.h,
+	spfatal05/spfatal05.scn, spfatal05/testcase.h,
+	spfatal06/spfatal06.scn, spfatal06/testcase.h,
+	spfatal07/spfatal07.scn, spfatal07/testcase.h,
+	spfatal08/spfatal08.scn, spfatal08/testcase.h,
+	spfatal09/spfatal09.scn, spfatal09/testcase.h, spfatal10/Makefile.am,
+	spfatal10/spfatal10.scn, spfatal11/Makefile.am,
+	spfatal11/spfatal11.scn, spfatal12/Makefile.am,
+	spfatal12/spfatal12.scn, spfatal_support/init.c: Make all fatal error
+	tests use testcase.h and spfatal_support framework. Print test name
+	herald in all cases.
+	* spfatal10/testcase.h, spfatal11/testcase.h, spfatal12/testcase.h:
+	New files.
+	* spfatal10/init.c, spfatal11/init.c, spfatal12/init.c: Removed.
+
+2009-09-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spfatal07/testcase.h: Indicate test is not applicable on some
+	architectures.
+
+2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Fix spacing.
+
+2009-08-26	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* spstkalloc/init.c: Changed allocator signature. Functions are now
+	static.
+
+2009-08-25	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* sp29/init.c: Fixed return value evaluation.
+	* sp59/init.c, sp59/sp59.scn: Added status code assignment. Fixed typos.
+	* sp63/init.c: Check return value of _Heap_Initialize().
+
+2009-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spwatchdog/spwatchdog.scn, spwatchdog/task1.c: Add test for
+	_Watchdog_Report() when name is not NULL. This case was covered at
+	-Os on erc32 but at -O2 we had more code.
+
+2009-08-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp63/init.c, sp63/sp63.scn: Add case for math on size requested
+	overflowing on _Heap_Allocate_aligned.
+
+2009-08-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spobjgetnext/init.c, spobjgetnext/spobjgetnext.scn: Add error cases
+	for various null parameters.
+
+2009-08-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp16/sp16.scn, sp16/task1.c: Fix typo.
+
+2009-08-17	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	* sp65/init.c: Remove stray print.
+	* sp65/sp65.doc: Add information on second case.
+
+2009-08-13	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	* sp65/init.c, sp65/sp65.doc, sp65/sp65.scn: Add new test case to
+	verify that obtaining a priority ceiling mutex when the calling
+	task's priority is the same as the priority ceiling is handled
+	correctly.
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp02/task1.c, sp02/task2.c, sp02/task3.c, sp03/task2.c, sp05/task1.c,
+	sp05/task2.c, sp05/task3.c, sp06/task1.c, sp06/task2.c,
+	sp09/screen02.c, sp09/screen04.c, sp09/screen06.c, sp09/screen07.c,
+	sp09/screen10.c, sp09/screen12.c, sp09/screen13.c, sp09/screen14.c,
+	sp11/task1.c, sp11/task2.c, sp12/pridrv.c, sp12/pritask.c,
+	sp12/task1.c, sp13/task1.c, sp13/task2.c, sp14/task1.c, sp16/task1.c,
+	sp16/task4.c, sp19/fptask.c, sp19/task1.c, sp22/task1.c,
+	sp24/task1.c, sp26/task1.c, sp29/init.c, sp30/task1.c, sp31/task1.c,
+	sp33/init.c, sp45/init.c, sp46/init.c, sp50/init.c,
+	spintrcritical06/init.c, spwatchdog/task1.c: Eliminate test routines
+	TICKS_PER_SECOND and get_ticks_per_second() in favor of new
+	rtems_clock_get_ticks_per_second().
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp65/init.c: Add semi-colon to end of rtems_semaphore_create call.
+	Change attributes to priority ceiling. Use directive_failed, not
+	assert. Configure a semaphore not a region.
+
+2009-08-12	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	* ChangeLog, Makefile.am, configure.ac: Add new test for some core
+	mutex cases.
+	* sp65/.cvsignore, sp65/Makefile.am, sp65/init.c, sp65/sp65.doc,
+	sp65/sp65.scn: New files.
+
+2009-08-12	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	* Makefile.am, configure.ac: Add new test for some core mutex cases.
+	* sp65/.cvsignore, sp65/Makefile.am, sp65/init.c, sp65/sp65.doc,
+	sp65/sp65.scn: New files.
+
+2009-08-11	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical01/init.c, spintrcritical06/init.c: Use 1 millisecond
+	per tick.
+
+2009-08-11	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp62/init.c, sp64/init.c: Add new test and
+	adjust existing for alignment. New test ensures coverage begin and
+	end marker methods are exercised so they do not get considered
+	unexecuted.
+	* spcoverage/.cvsignore, spcoverage/Makefile.am, spcoverage/init.c,
+	spcoverage/spcoverage.doc, spcoverage/spcoverage.scn: New files.
+
+2009-08-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise legacy
+	rtems_clock_get().
+	* spclockget/.cvsignore, spclockget/Makefile.am, spclockget/init.c,
+	spclockget/spclockget.doc, spclockget/spclockget.scn: New files.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp04/task1.c, sp09/screen02.c, sp09/screen04.c, sp09/sp09.scn,
+	sp38/init.c: Convert calls to legacy routine rtems_clock_get(
+	RTEMS_CLOCK_GET_xxx, ..) to rtems_clock_get_xxx().
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp01/sp01.scn, sp01/task1.c, sp03/task1.c, sp03/task2.c,
+	sp04/task1.c, sp04/tswitch.c, sp09/screen02.c, sp09/screen13.c,
+	sp09/screen14.c, sp09/sp09.scn, sp11/sp11.scn, sp11/task1.c,
+	sp11/task2.c, sp19/fptask.c, sp19/sp19.scn, sp19/task1.c,
+	sp22/prtime.c, sp22/sp22.scn, sp22/task1.c, sp24/sp24.scn,
+	sp24/task1.c, sp30/task1.c, sp31/prtime.c, sp31/sp31.scn,
+	sp31/task1.c, spwatchdog/prtime.c, spwatchdog/spwatchdog.scn,
+	spwatchdog/task1.c: Convert calls to legacy routine rtems_clock_get(
+	RTEMS_CLOCK_GET_TOD, ..) to rtems_clock_get_tod(..).
+
+2009-08-07	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp28/init.c, sp28/sp28.scn: Update screen. Add a few missing error
+	cases.
+
+2009-08-06	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp64/init.c, sp64/sp64.scn: Chris ensured that nothing is moved until
+	all memory is successfully allocated. This means the test can
+	validate the heap is unchanged on extend failure.
+
+2009-08-06	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical01/init.c, spintrcritical06/init.c,
+	spintrcritical08/init.c, spintrcritical13/init.c: Lower microseconds
+	per tick so tests run quicker and more reliably hit the intended
+	critical section.
+
+2009-08-05	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp63/init.c: Add new test for exercising
+	when we are unable to allocate the memory needed for an object
+	extend. Make sure all is handled properly.
+	* sp64/.cvsignore, sp64/Makefile.am, sp64/init.c, sp64/sp64.doc,
+	sp64/sp64.scn: New files.
+
+2009-08-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp63/init.c: Correct test case two.
+
+2009-08-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp63/init.c, sp63/sp63.scn: Move into subroutines and add a second
+	test case to exercise another odd branch not taken.
+
+2009-07-31	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, sp62/init.c: Add new test to ensure a
+	particular path is taken through the _Heap_Resize_block code.
+	* sp63/.cvsignore, sp63/Makefile.am, sp63/init.c, sp63/sp63.doc,
+	sp63/sp63.scn: New files.
+
+2009-07-30	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp42/Makefile.am, sp42/init.c, sp42/sp42.scn: Test was testing the
+	wrong thing in a cpp macro. Added contents to screen file and add
+	documentation file.
+	* sp42/sp42.doc: New file.
+
+2009-07-30	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical16/spintrcritical16.doc: Remove junk and typos.
+
+2009-07-30	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical16/init.c: Tinker with test to make it hit the case
+	more reliably.
+
+2009-07-29	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise as many cases as
+	possible of not being able to allocate memory from the workspace
+	during thread creation.
+	* sp18/.cvsignore, sp18/Makefile.am, sp18/init.c, sp18/sp18.doc,
+	sp18/sp18.scn: New files.
+
+2009-07-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to handle the case where
+	a region resize frees enough memory to unblock a task.
+	* sp62/.cvsignore, sp62/Makefile.am, sp62/init.c, sp62/sp62.doc,
+	sp62/sp62.scn: New files.
+	* sp61/init.c: Test does not need regions.
+
+2009-07-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test case for processing a timeout
+	on a thread (that is the thread executing) that has also had its
+	request satisfied while it is being enqueued.
+	* spintrcritical16/.cvsignore, spintrcritical16/Makefile.am,
+	spintrcritical16/init.c, spintrcritical16/spintrcritical16.doc,
+	spintrcritical16/spintrcritical16.scn: New files.
+	* spintrcritical15/init.c: Remove unused TSR>
+
+2009-07-27	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test case for a thread timing out on a
+	thread queue while another thread is in the process of blocking on
+	the same thread queue.
+	* spintrcritical15/.cvsignore, spintrcritical15/Makefile.am,
+	spintrcritical15/init.c, spintrcritical15/spintrcritical15.doc,
+	spintrcritical15/spintrcritical15.scn: New files.
+
+2009-07-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: spintrcritical15 not ready yet.
+
+2009-07-24	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp40/Makefile.am, sp40/init.c,
+	sp40/sp40.scn: Now verified to hit coverage cases.
+	* sp40/sp40.doc: New file.
+
+2009-07-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp40/Makefile.am, sp40/init.c, sp40/sp40.scn: Attempt to write test
+	to catch two remaining uncovered cases in rtems_io_register_driver.
+	* sp40/system.h: Removed.
+
+2009-07-24	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise odd case in
+	rtems_iterate_over_all_threads.
+	* sp41/.cvsignore, sp41/Makefile.am, sp41/init.c, sp41/sp41.doc,
+	sp41/sp41.scn: New files.
+
+2009-07-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp36/strict_order_mut.c: Simple binary semaphores cannot have an
+	inheritance protocol since there is no holder associated with them.
+
+2009-07-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new tests to exercise cases where a
+	timer is scheduled from an ISR while it is being scheduled at the
+	task level.
+	* spintrcritical13/.cvsignore, spintrcritical13/Makefile.am,
+	spintrcritical13/init.c, spintrcritical13/spintrcritical13.doc,
+	spintrcritical13/spintrcritical13.scn, spintrcritical14/.cvsignore,
+	spintrcritical14/Makefile.am, spintrcritical14/spintrcritical14.doc,
+	spintrcritical14/spintrcritical14.scn: New files.
+
+2009-07-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical01/init.c, spintrcritical06/init.c,
+	spintrcritical08/init.c, spintrcritical09/init.c: Perform some
+	cleanup and make the tests more similar.
+
+2009-07-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical06/init.c: Test now hits forward and reverse cases.
+
+2009-07-22	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical09/init.c, spintrcritical09/spintrcritical09.scn: Make
+	test work for case that it is documented to handle.
+
+2009-07-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical10/.cvsignore, spintrcritical10/Makefile.am,
+	spintrcritical10/init.c, spintrcritical10/spintrcritical10.doc,
+	spintrcritical10/spintrcritical10.scn: New files.
+
+2009-07-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp39/init.c, sp39/sp39.scn: Move
+	unreliable third case in sp39 to spintrcritical10. New tests to hit
+	other event synchronization critical sections.
+	* spintrcritical11/.cvsignore, spintrcritical11/Makefile.am,
+	spintrcritical11/init.c, spintrcritical11/spintrcritical11.doc,
+	spintrcritical11/spintrcritical11.scn, spintrcritical12/.cvsignore,
+	spintrcritical12/Makefile.am, spintrcritical12/spintrcritical12.doc,
+	spintrcritical12/spintrcritical12.scn: New files.
+
+2009-07-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise Debug Manager.
+	* sp10/.cvsignore, sp10/Makefile.am, sp10/init.c, sp10/sp10.doc,
+	sp10/sp10.scn: New files.
+
+2009-07-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical06/init.c: Clean up.
+	* spintrcritical09/init.c: Adjust clock tick so it works on erc32.
+	* spintrcritical09/spintrcritical09.scn: Fill in.
+
+2009-07-21	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spintrcritical06/init.c: Add comment to indicate test is not finished
+	and known to not hit the case.
+	* Makefile.am, configure.ac: Add a couple more interrupt critical
+	section tests.
+	* spintrcritical08/.cvsignore, spintrcritical08/Makefile.am,
+	spintrcritical08/init.c, spintrcritical08/spintrcritical08.doc,
+	spintrcritical08/spintrcritical08.scn, spintrcritical09/.cvsignore,
+	spintrcritical09/Makefile.am, spintrcritical09/init.c,
+	spintrcritical09/spintrcritical09.doc,
+	spintrcritical09/spintrcritical09.scn: New files.
+
+2009-07-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, spintrcritical06/init.c: Add first attempt
+	at hitting interrupt synchronization critical section in thread queue
+	enqueue priority for reverse insertions.
+	* spintrcritical07/.cvsignore, spintrcritical07/Makefile.am,
+	spintrcritical07/spintrcritical07.doc,
+	spintrcritical07/spintrcritical07.scn: New files.
+
+2009-07-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test case for the
+	_Thread_queue_Enqueue_priority interrupt critical section where the
+	TCB we are using as a current pointer is removed from the thread
+	queue when we flash interrupts while searching forward.
+	* spintrcritical06/.cvsignore, spintrcritical06/Makefile.am,
+	spintrcritical06/init.c, spintrcritical06/spintrcritical06.doc,
+	spintrcritical06/spintrcritical06.scn: New files.
+
+2009-07-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical_support/intrcritical.c,
+	spintrcritical_support/intrcritical.h: Change prototype of delay
+	method to indicate when counter is reset. This can be used to count
+	how many iterations we are doing.
+
+2009-07-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add sp60 to exercise case where a task is
+	blocked on one period while another expires. Add sp61 which exercises
+	the case where a call is made to rtems_shutdown_executive when the
+	system is not up.
+	* sp60/.cvsignore, sp60/Makefile.am, sp60/init.c, sp60/sp60.doc,
+	sp60/sp60.scn, sp61/.cvsignore, sp61/Makefile.am, sp61/init.c,
+	sp61/sp61.doc, sp61/sp61.scn: New files.
+
+2009-07-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp04/init.c: To be timesliced, tasks must also me preemptible.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spfatal03/spfatal03.scn, spfatal03/testcase.h: Fix spfatal03 to do
+	what it was intended to do.
+
+2009-07-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spintrcritical_support/intrcritical.c,
+	spintrcritical_support/intrcritical.h: New files.
+
+2009-07-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new infrastructure which is more
+	reliable about generating cases which hit interrupt critical
+	sections. Remove sp41 since it used its own mechanism.
+	* spintrcritical01/.cvsignore, spintrcritical01/Makefile.am,
+	spintrcritical01/init.c, spintrcritical01/spintrcritical01.doc,
+	spintrcritical01/spintrcritical01.scn, spintrcritical02/.cvsignore,
+	spintrcritical02/Makefile.am, spintrcritical02/spintrcritical02.doc,
+	spintrcritical02/spintrcritical02.scn, spintrcritical03/.cvsignore,
+	spintrcritical03/Makefile.am, spintrcritical03/spintrcritical03.doc,
+	spintrcritical03/spintrcritical03.scn, spintrcritical04/.cvsignore,
+	spintrcritical04/Makefile.am, spintrcritical04/spintrcritical04.doc,
+	spintrcritical04/spintrcritical04.scn, spintrcritical05/.cvsignore,
+	spintrcritical05/Makefile.am, spintrcritical05/spintrcritical05.doc,
+	spintrcritical05/spintrcritical05.scn: New files.
+	* sp41/.cvsignore, sp41/Makefile.am, sp41/init.c, sp41/sp41.scn,
+	sp41/system.h: Removed.
+
+2009-07-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp41/init.c: Remove incorrect comment.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp29/init.c: Simple binary semaphores can not be inherit priority.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp25/init.c: Spacing.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add sp59 to test path through
+	_Thread_queue_First_priority where the task's priority was in the
+	bottom 1/4 of the range.
+	* sp59/.cvsignore, sp59/Makefile.am, sp59/init.c, sp59/sp59.doc,
+	sp59/sp59.scn: New files.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test for Thread Queue extract a thread
+	not blocked on a thread queue.
+	* spthreadq01/.cvsignore, spthreadq01/Makefile.am, spthreadq01/init.c,
+	spthreadq01/spthreadq01.doc, spthreadq01/spthreadq01.scn: New files.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test for timespec divide by zero.
+	* sp58/.cvsignore, sp58/Makefile.am, sp58/init.c, sp58/sp58.doc,
+	sp58/sp58.scn: New files.
+
+2009-07-09	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp43/init.c, sp43/sp43.scn: Add test of having the object class
+	pointer being null. This does not happen naturally at this time so
+	force the point.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp12/sp12.scn: Update screen to reflect priority changes from long
+	ago.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, sp27/Makefile.am, sp27/init.c,
+	sp27/sp27.doc, sp27/sp27.scn: Rework sp27 so it can be reinstantiated
+	as sp27a and test flushing both counting and binary semaphores.
+	Reformatted.
+	* sp27a/.cvsignore, sp27a/Makefile.am, sp27a/sp27a.doc,
+	sp27a/sp27a.scn: New files.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spstkalloc/Makefile.am: Remove unneeded USE_TIMER_SERVER which was
+	copied fomr other Makefile.am's.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp51/init.c, sp54/Makefile.am, sp55/Makefile.am, sp56/Makefile.am,
+	sp57/Makefile.am, spchain/Makefile.am, spfatal10/Makefile.am,
+	spfatal11/Makefile.am, spfatal12/Makefile.am: Remove unneeded
+	USE_TIMER_SERVER which was copied fomr other Makefile.am's.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp57/sp57.doc: Correct.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add test of restarting a task which is in
+	the middle of a sleep or wake after.
+	* sp57/.cvsignore, sp57/Makefile.am, sp57/init.c, sp57/sp57.doc,
+	sp57/sp57.scn: New files.
+
+2009-07-08	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp43/init.c, sp43/sp43.scn: Add more cases for
+	rtems_object_get_class_information() to improve coverage.
+
+2009-07-07	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to verify that when a user
+	extension create hook fails, that the error is properly propagated.
+	* sp56/.cvsignore, sp56/Makefile.am, sp56/init.c, sp56/sp56.doc,
+	sp56/sp56.scn: New files.
+
+2009-07-07	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp04/sp04.doc, sp04/sp04.scn, sp04/task1.c: Add test of
+	rtems_extension_delete.
+
+2009-07-07	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp09/screen01.c, sp09/sp09.scn: Add test for
+	rtems_object_get_classic_name with invalid id.
+
+2009-07-07	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp02/task1.c: Minor spacing.
+
+2009-07-06	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spfatal12/init.c: Address to heap initialize must be aligned but size
+	must be too small.
+
+2009-07-06	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to exercise case when
+	broadcasting to a message queue with a pending message.
+	* sp55/.cvsignore, sp55/Makefile.am, sp55/init.c, sp55/sp55.doc,
+	sp55/sp55.scn: New files.
+
+2009-07-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Remove obsolete test now that the numbered
+	spfatal tests appear to cover all fatal error cases.
+	* spfatal/.cvsignore, spfatal/Makefile.am, spfatal/README,
+	spfatal/fatal.c, spfatal/init.c, spfatal/puterr.c,
+	spfatal/spfatal.doc, spfatal/spfatal.scn, spfatal/system.h,
+	spfatal/task1.c: Removed.
+
+2009-07-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, spfatal11/init.c: Add test of cannot
+	initialize workspace heap during initialize. Can be caused by
+	unaligned address or not enough memory to initialize heap required
+	overhead.
+	* spfatal12/.cvsignore, spfatal12/Makefile.am, spfatal12/init.c,
+	spfatal12/spfatal12.doc, spfatal12/spfatal12.scn: New files.
+
+2009-07-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp54/init.c, sp54/sp54.doc: Add test for Workspace zeroed.
+
+2009-07-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp54/init.c, sp54/sp54.doc: Fix typos and comments.
+
+2009-07-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spstkalloc/spstkalloc.scn: Update screen.
+
+2009-07-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test for user configured stack
+	allocator/deallocator. Test both pass and fail cases.
+	* spstkalloc/.cvsignore, spstkalloc/Makefile.am, spstkalloc/init.c,
+	spstkalloc/spstkalloc.doc, spstkalloc/spstkalloc.scn: New files.
+
+2009-07-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spchain/init.c, spchain/spchain.scn: Clean up test.
+
+2009-07-01	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: Add new test to cover bodies of some chain
+	routines whose bodies are not used by RTEMS itself.
+	* spchain/.cvsignore, spchain/Makefile.am, spchain/init.c,
+	spchain/spchain.doc, spchain/spchain.scn: New files.
+
+2009-07-01	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spwatchdog/init.c, spwatchdog/spwatchdog.scn: Add test case of empty
+	chain for coverage.
+
+2009-07-01	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp01/sp01.doc, sp01/task1.c, sp16/sp16.doc, sp16/task5.c: Bypass
+	RTEMS_MILLISECONDS_TO_TICKS and RTEMS_MICROSECONDS_TO_TICKS to
+	improve coverage.
+
+2009-07-01	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp01/task1.c: Use RTEMS_MILLISECONDS_TO_TICKS to improve coverage.
+
+2009-06-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spfatal10/.cvsignore, spfatal10/Makefile.am, spfatal10/init.c,
+	spfatal10/spfatal10.doc, spfatal10/spfatal10.scn: New files.
+
+2009-06-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, spprintk/init.c, spprintk/spprintk.scn:
+	Enhance spprintk. Add two new fatal error tests to cover
+	__assert_func.
+	* spfatal11/.cvsignore, spfatal11/Makefile.am, spfatal11/init.c,
+	spfatal11/spfatal11.doc, spfatal11/spfatal11.scn: New files.
+
+2009-06-18	Chris Johns <chrisj@rtems.org>
+
+	* sp35/priinv.c, sp35/priinv.c: Declare unions volatile to
+	workaround the H8300 gcc bug.
+
+2009-06-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp54/init.c: Fix spacing.
+
+2009-06-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp02/sp02.doc, sp02/system.h: Update copyright year.
+
+2009-06-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* sp02/sp02.doc, sp02/system.h: Add test case for configuring the IDLE
+
+2009-06-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add new test.
+	* sp54/.cvsignore, sp54/Makefile.am, sp54/init.c, sp54/sp54.doc,
+	sp54/sp54.scn: New files.
+
+2009-06-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add sp52 and sp53 based upon bug report
+	from Sergio Faustino <sergio.faustino@edisoft.pt> regarding moving
+	the time of day forward not making server based timers fire.
+	* sp52/.cvsignore, sp52/Makefile.am, sp52/init.c, sp52/sp52.doc,
+	sp52/sp52.scn, sp53/.cvsignore, sp53/Makefile.am, sp53/sp53.doc,
+	sp53/sp53.scn: New files.
+
+2009-05-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp51/init.c, sp51/sp51.scn: Add more priority ceiling test cases.
+
+2009-05-21	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1415/cpukit
+	* Makefile.am, configure.ac: Add test for very simple priority ceiling
+	violation.
+	* sp51/.cvsignore, sp51/Makefile.am, sp51/init.c, sp51/sp51.doc,
+	sp51/sp51.scn: New files.
+
+2009-05-21	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1413/cpukit
+	* Makefile.am, configure.ac: Add test for case where server based
+	timers which reinitiated themselves did not get reinserted onto timer
+	chain.
+	* sp50/.cvsignore, sp50/Makefile.am, sp50/init.c, sp50/sp50.doc,
+	sp50/sp50.scn: New files.
+
+2009-05-21	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1414/cpukit
+	* Makefile.am, configure.ac: Tighten math on extraction of index so it
+	is harder to trick by passing in a valid id of an incorrect object
+	class.
+	* sp49/.cvsignore, sp49/Makefile.am, sp49/init.c, sp49/sp49.doc,
+	sp49/sp49.scn: New files.
+
+2009-05-19	Chris Johns <chrisj@rtems.org>
+
+	* sp04/tswitch.c: Lower sample count for small memory targets.
+	
+2009-05-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* spprintk/init.c: printk() now 100% covered.
+
+2009-05-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spprintk/init.c: More test cases.
+
+2009-05-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp09/screen11.c, sp09/sp09.scn: Add case where buffer size is not
+	large enough for buffer node overhead.
+
+2009-05-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac, spwatchdog/system.h,
+	spwkspace/Makefile.am, spwkspace/init.c: Add shell of test for
+	printk. These will help coverage. Simplify spwkspace.
+	* spprintk/.cvsignore, spprintk/Makefile.am, spprintk/init.c,
+	spprintk/spprintk.scn: New files.
+	* spwkspace/system.h: Removed.
+
+2009-05-13	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, configure.ac: New test to exercise rtems_workspace_XXX
+	methods.
+	* spwkspace/.cvsignore, spwkspace/Makefile.am, spwkspace/init.c,
+	spwkspace/spwkspace.scn, spwkspace/system.h: New files.
+
+2009-05-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp04/system.h, sp04/task1.c, sp04/tswitch.c, sp07/init.c,
+	sp12/init.c, sp13/putbuff.c, sp13/system.h, sp13/task1.c,
+	sp15/init.c, sp16/system.h, sp19/fptask.c, sp25/system.h,
+	sp26/task1.c, sp27/init.c, sp28/init.c, sp29/init.c, sp31/task1.c,
+	sp33/init.c, sp34/changepri.c, sp35/priinv.c, sp37/init.c,
+	sp38/init.c, sp39/init.c, sp41/init.c, sp42/init.c, sp43/init.c,
+	sp44/init.c, sp45/init.c, sp46/init.c, sp47/init.c, sp48/init.c,
+	spfatal03/testcase.h, spfatal05/testcase.h, spfatal06/testcase.h,
+	spfatal_support/system.h, spobjgetnext/init.c, spsize/getint.c,
+	spsize/size.c: Fix warnings.
+
+2009-05-07	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add initial test of _Objects_Get_next.
+	* spobjgetnext/.cvsignore, spobjgetnext/Makefile.am,
+	spobjgetnext/init.c, spobjgetnext/spobjgetnext.scn,
+	spobjgetnext/system.h: New files.
+
+2009-05-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp25/init.c, sp25/system.h, sp25/task1.c: Reduce size of array from
+	64k to 20k. No impact on test behavior.
+
+2009-05-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp09/screen12.c, sp25/task1.c: Remove warnigns for wrong types.
+
+2009-04-20	Santosh G Vattam <vattam.santosh@gmail.com>
+
+	* sp37/init.c, sp37/sp37.scn: Add test case for
+	rtems_interrupt_level_attribute body.
+
+2009-04-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* sp01/Makefile.am, sp02/Makefile.am, sp03/Makefile.am,
+	sp04/Makefile.am, sp05/Makefile.am, sp06/Makefile.am,
+	sp07/Makefile.am, sp08/Makefile.am, sp09/Makefile.am,
+	sp11/Makefile.am, sp12/Makefile.am, sp13/Makefile.am,
+	sp14/Makefile.am, sp15/Makefile.am, sp16/Makefile.am,
+	sp17/Makefile.am, sp19/Makefile.am, sp20/Makefile.am,
+	sp21/Makefile.am, sp22/Makefile.am, sp23/Makefile.am,
+	sp24/Makefile.am, sp25/Makefile.am, sp26/Makefile.am,
+	sp27/Makefile.am, sp28/Makefile.am, sp29/Makefile.am,
+	sp30/Makefile.am, sp31/Makefile.am, sp32/Makefile.am,
+	sp33/Makefile.am, sp34/Makefile.am, sp35/Makefile.am,
+	sp36/Makefile.am, sp37/Makefile.am, sp38/Makefile.am,
+	sp39/Makefile.am, sp40/Makefile.am, sp41/Makefile.am,
+	sp42/Makefile.am, sp43/Makefile.am, sp44/Makefile.am,
+	sp45/Makefile.am, sp46/Makefile.am, sp47/Makefile.am,
+	sp48/Makefile.am, spfatal/Makefile.am,
+	spfatal01/Makefile.am, spfatal02/Makefile.am,
+	spfatal03/Makefile.am, spfatal04/Makefile.am,
+	spfatal05/Makefile.am, spfatal06/Makefile.am,
+	spfatal07/Makefile.am, spfatal08/Makefile.am,
+	spfatal09/Makefile.am, spsize/Makefile.am,
+	spwatchdog/Makefile.am: 
+	Eliminate _exe_/.exe.
 
 2009-03-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -9,6 +1122,14 @@
 	allow both priority inherit and ceiling attributes to be set on
 	semaphore create. These attributes are mutually exclusive and this
 	should be an error.
+
+2009-01-30	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Add sp48 which tests that configuring for
+	unlimited objects when configured for a unified workspace works as
+	expected.
+	* sp48/.cvsignore, sp48/Makefile.am, sp48/init.c, sp48/sp48.doc,
+	sp48/sp48.scn: New files.
 
 2009-01-21	Nickolay Kolchin <nbkolchin@gmail.com>
 	        Joel Sherrill <joel.sherrill@oarcorp.com>
@@ -19,21 +1140,74 @@
 	* sp47/.cvsignore, sp47/Makefile.am, sp47/init.c, sp47/sp47.doc,
 	sp47/sp47.scn: New files.
 
-2008-12-05	Joel Sherrill <joel.sherrill@OARcorp.com>
+2009-01-16	Jennifer Averett <jennifer.averett@OARcorp.com>
 
-	* sp46/sp46.scn: New file.
+	* Makefile.am, configure.ac: Add new test to test Watchdog display
+	helper routines. These reach into the SuperCore.
+	* spwatchdog/.cvsignore, spwatchdog/Makefile.am, spwatchdog/delay.c,
+	spwatchdog/init.c, spwatchdog/prtime.c, spwatchdog/spwatchdog.scn,
+	spwatchdog/system.h, spwatchdog/task1.c: New files.
 
-2008-12-04	Joel Sherrill <joel.sherrill@OARcorp.com>
+2009-01-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp30/task1.c: Cast pointer to id as "void *" rather than task Id.
+
+2009-01-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp09/screen05.c, sp09/screen07.c, sp09/screen10.c, sp09/screen11.c,
+	sp09/screen12.c, sp09/screen14.c: Use rtems_build_id rather than
+	hard-coded hex numbers for bad object Ids.
+
+2009-01-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp15/system.h, sp19/system.h: Array of task names should be of type
+	rtems_name not rtems_id. Similarly array of task ids should be
+	rtems_id not rtems_name.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* spsize/size.c: Eliminate _TOD_Microseconds_per_tick.
+
+2008-12-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, spfatal06/testcase.h,
+	spfatal07/testcase.h, spfatal08/testcase.h, spfatal09/testcase.h,
+	spsize/size.c: Eliminate pointers to API configuration tables in the
+	main configuration table. Reference the main configuration table and
+	the API configuration tables directly using the confdefs.h version
+	rather than obtaining a pointer to it. This eliminated some
+	variables, a potential fatal error, some unnecessary default
+	configuration structures. Overall, about a 4.5% reduction in the code
+	size for minimum and hello on the SPARC.
+	* spfatal10/.cvsignore, spfatal10/Makefile.am, spfatal10/spfatal10.scn,
+	spfatal10/testcase.h: Removed.
+
+2008-12-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp07/init.c, sp12/init.c, sp12/pridrv.c, sp12/pritask.c,
+	sp12/system.h, sp16/system.h, sp25/system.h, sp26/task1.c,
+	sp28/init.c, sp29/init.c, sp35/priinv.c, sp42/init.c: Run all tests
+	successfully with maxixum number of priorities as 16 instead of 256.
+	This was done by temporarily modifying the score priority.h maximum.
+	This allowed testing of all API code to ensure that it worked
+	properly with a reduced number of priorities. Most modifications were
+	to switch from hard-coded maximum to using the API provided methods
+	to determine maximum number of priority levels.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp46/sp46.scn: Add screen missed earlier.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	PR 1348/cpukit
 	* Makefile.am, configure.ac: Add test of special case of resetting cpu
 	usage information while a period is running.
-	* sp46/.cvsignore, sp46/Makefile.am, sp46/init.c, sp46/sp46.doc: New
-	files.
+	* sp46/.cvsignore, sp46/Makefile.am, sp46/init.c, sp46/sp46.doc,
+	sp46/sp46.scn: New files.
 
-2008-12-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-12-03	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	PR 1347/cpukit
 	* sp45/init.c: New file.
 
 2008-12-03	Joel Sherrill <joel.sherrill@OARcorp.com>
@@ -44,6 +1218,35 @@
 	allocating memory, and acquiring semaphores and mutexes.
 	* sp45/.cvsignore, sp45/Makefile.am, sp45/sp45.doc, sp45/sp45.scn:
 	New files.
+
+2008-11-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp25/system.h: Add warning and temporary m32c conditional until size
+	type addressed.
+
+2008-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp09/screen07.c: Use INT_MAX as number of messages so always
+	properly sized and no overflow on constant.
+	* sp09/screen10.c: Delay so on targets with simulator idle clock
+	tick driver this will work.
+	* sp09/screen11.c, sp09/system.h: Move badly aligned objects to odd
+	byte boundaries rather than two byte boundaries.
+	* sp09/screen03.c, sp09/screen14.c: Skip tests which try to
+	allocate more memory than size_t holds on m32c.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp09/screen01.c, sp09/screen12.c, sp25/system.h, sp25/task1.c,
+	sp28/init.c, sp39/init.c, sp41/init.c, spfatal01/testcase.h,
+	spfatal08/testcase.h: Change size_t to ssize_t on all Heap, Workspace
+	and Region calls. On 16-bit architectures, size_t can be 16-bits
+	which would limit sizes to 64K. Also address constants which
+	overflowed on 16-bit integer targets.
+
+2008-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* sp43/sp43.scn: Bump version to 4.9.99.0
 
 2008-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
 

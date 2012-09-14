@@ -1,8 +1,49 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-05	Thomas Znidar <t.znidar@embed-it.com>
+
+	* Makefile.am, configure.ac, preinstall.am: Add mcf5225x support.
+	* mcf5225x/include/fec.h, mcf5225x/include/mcf5225x.h,
+	mcf5225x/network/fec.c: New files.
+
+2010-03-16      Eric Norum <wenorum@lbl.gov>
+
+    * mcf5282/include/mcf5282.h: Fix hex constants.
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* mcf5206/include/mcfuart.h, mcf5206/include/mcfuart.c: adapted to
+	new prototype for *_write function
+
+2009-10-15	Thomas Doefler <thomas.doerfler@embedded-brains.de>
+
+	* Makefile.am, mcf548x/mcdma/MCD_dma.h, mcf548x/mcdma/MCD_dmaApi.c,
+	* mcf548x/mcdma/MCD_progCheck.h, mcf548x/mcdma/MCD_tasks.c,
+	* mcf548x/mcdma/MCD_tasksInit.c, mcf548x/mcdma/MCD_tasksInit.h,
+	* mcf548x/mcdma/ReleaseNotes.txt, mcf548x/mcdma/mcdma_glue.c,
+	* mcf548x/mcdma/mcdma_glue.h: add MC_DMA support
+
+2009-10-08	Thomas Doefler <thomas.doerfler@embedded-brains.de>
+
+	* mcf5282/include/mcf5282.h: add missing (x) params to four
+	macros, added paranthesis around usage of x in some macros
+
 2009-09-10	Till Straumann <strauman@slac.stanford.edu>
 
 	PR 1438/bsps
 	* shared/misc/m68kidle.c: added "cc" clobber to inline
 	asm; STOP instruction modifies CCR!
+
+2009-07-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/cache/cache_.h: Added cache defines for '__mcfv4e__'.
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/misc/m68kidle.c: Change prototype of IDLE thread to
+	consistently return void * and take a uintptr_t argument.
 
 2009-02-11	Till Straumann <strauman@slac.stanford.edu>
 
@@ -10,6 +51,25 @@
 	* Makefile.am, configure.ac: Fix name clashes when using MC68040 fpsp
 	floating-point emulation.
 
+2008-09-30	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* mcf5206/timer/timerisr.S: Make compile again.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am: Split out various BSPs bspstart.c contents. Move cache
+	management code here.
+	* mcf5223x/cache/cachepd.c, mcf5235/cache/cachepd.c: New files.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* mcf5206/timer/timerisr.S: Remove unnecessary include of bsp.h
+
+2008-09-08      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* mcf5206/include/mcfmbus.h,mcf5206/mbus/mcfmbus.c: 
+	converted done_arg to a void pointer 
+	
 2008-09-08	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* mcf548x/include/Freescale_license.txt: Convert to UNIX CR/LF style,

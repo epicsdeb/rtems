@@ -8,7 +8,7 @@
  *  Modifications for virtex by Keith, Greg, and Bob
  *  Modifications for 405GP/EX by Michael Hamel
  *
- *  $Id: linkcmds,v 1.2 2008/07/14 16:15:27 thomas Exp $
+ *  $Id: linkcmds,v 1.4 2009/10/16 10:48:50 ralf Exp $
  */
 
 OUTPUT_FORMAT("elf32-powerpc", "elf32-powerpc", "elf32-powerpc")
@@ -17,6 +17,10 @@ ENTRY(download_entry)
 
 kIntrStackSize = 16K;
 kMainStackSize = 64K;
+
+RamBase = DEFINED(RamBase) ? RamBase : 0;
+RamSize = DEFINED(RamSize) ? RamSize : 256M;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
 
 MEMORY {
         RAM : ORIGIN = 0, LENGTH = 256M
@@ -206,8 +210,7 @@ SECTIONS
       . = ALIGN (4);
 	  PROVIDE(__SBSS_START__ = .);
 	  sbss.start = .;
-      *(.sbss*)
-      *(.gnu.linkonce.sb.*);
+      *(.sbss .sbss.* *.gnu.linkonce.sb.*);
 	  sbss.end = .;
     } > RAM
     PROVIDE(__SBSS_END__ = .);
@@ -238,10 +241,7 @@ SECTIONS
 	stack.end   = .;
 
 	/* RTEMS workspace: size specified by application */
-	_WorkspaceStart = ALIGN(0x20);
-
-	/* Heap: from end of the workspace to _RAMEnd */
-	_RAMEnd = ORIGIN(RAM) + LENGTH(RAM);
+	WorkAreaBase = ALIGN(0x20);
 
 	/* Debugging information */
     .line 0 : { *(.line) }

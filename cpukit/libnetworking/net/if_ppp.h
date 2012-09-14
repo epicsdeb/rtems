@@ -20,7 +20,7 @@
  */
 
 /*
- * $Id: if_ppp.h,v 1.6.4.1 2009/02/04 15:52:41 ralf Exp $
+ * $Id: if_ppp.h,v 1.7 2009/02/04 15:47:39 ralf Exp $
  */
 
 #ifndef _IF_PPP_H_

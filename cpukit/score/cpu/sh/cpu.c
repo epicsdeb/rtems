@@ -10,7 +10,7 @@
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * 
+ *
  *
  *  COPYRIGHT (c) 1998-2001.
  *  On-Line Applications Research Corporation (OAR).
@@ -19,9 +19,13 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.14 2008/09/08 15:19:19 joel Exp $
+ *  $Id: cpu.c,v 1.21 2010/05/23 05:47:27 ralf Exp $
  */
- 
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/sh_io.h>
@@ -39,29 +43,12 @@ extern proc_ptr _Hardware_isr_Table[];
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  */
 
-
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
   register uint32_t   level = 0;
-
-  /*
-   *  The thread_dispatch argument is the address of the entry point
-   *  for the routine called at the end of an ISR once it has been
-   *  decided a context switch is necessary.  On some compilation
-   *  systems it is difficult to call a high-level language routine
-   *  from assembly.  This allows us to trick these systems.
-   *
-   *  If you encounter this problem save the entry point in a CPU
-   *  dependent variable.
-   */
-
-  _CPU_Thread_dispatch_pointer = thread_dispatch;
 
   /*
    *  If there is not an easy way to initialize the FP context
@@ -88,7 +75,7 @@ void _CPU_Initialize(
  *
  *  _CPU_ISR_Get_level
  */
- 
+
 uint32_t   _CPU_ISR_Get_level( void )
 {
   /*
@@ -96,9 +83,9 @@ uint32_t   _CPU_ISR_Get_level( void )
    */
 
   register uint32_t   _mask ;
-  
+
   sh_get_interrupt_level( _mask );
-  
+
   return ( _mask);
 }
 
@@ -106,7 +93,7 @@ uint32_t   _CPU_ISR_Get_level( void )
  *
  *  _CPU_ISR_install_raw_handler
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -119,11 +106,11 @@ void _CPU_ISR_install_raw_handler(
    */
   volatile proc_ptr	*vbr ;
 
-#if SH_PARANOID_ISR  
+#if SH_PARANOID_ISR
   uint32_t  		level ;
 
   sh_disable_interrupts( level );
-#endif    
+#endif
 
   /* get vbr */
   asm ( "stc vbr,%0" : "=r" (vbr) );
@@ -153,40 +140,33 @@ void _CPU_ISR_install_raw_handler(
  *
  */
 
-#if defined(__sh1__) || defined(__sh2__)
 void _CPU_ISR_install_vector(
   uint32_t    vector,
   proc_ptr    new_handler,
   proc_ptr   *old_handler
 )
 {
+#if defined(__sh1__) || defined(__sh2__)
    proc_ptr ignored ;
-#if 0 
-   if(( vector <= 113) && ( vector >= 11))
-     {
 #endif
-       *old_handler = _ISR_Vector_table[ vector ];
+   *old_handler = _ISR_Vector_table[ vector ];
 
-       /*
-	*  If the interrupt vector table is a table of pointer to isr entry
-	*  points, then we need to install the appropriate RTEMS interrupt
-	*  handler for this vector number.
-	*/
-       _CPU_ISR_install_raw_handler(vector, 
-				    _Hardware_isr_Table[vector],
-				    &ignored );
-
-       /*
-	*  We put the actual user ISR address in '_ISR_Vector_table'.  
-	*  This will be used by __ISR_Handler so the user gets control.
-	*/
-
-       _ISR_Vector_table[ vector ] = new_handler;
-#if 0
-     }
+ /*
+  *  If the interrupt vector table is a table of pointer to isr entry
+  *  points, then we need to install the appropriate RTEMS interrupt
+  *  handler for this vector number.
+  */
+#if defined(__sh1__) || defined(__sh2__)
+  _CPU_ISR_install_raw_handler(vector, _Hardware_isr_Table[vector], &ignored );
 #endif
+
+ /*
+  *  We put the actual user ISR address in '_ISR_Vector_table'.
+  *  This will be used by __ISR_Handler so the user gets control.
+  */
+
+ _ISR_Vector_table[ vector ] = new_handler;
 }
-#endif /* _CPU_ISR_install_vector */
 
 /*PAGE
  *
@@ -206,7 +186,7 @@ void _CPU_ISR_install_vector(
  */
 
 #if (CPU_PROVIDES_IDLE_THREAD_BODY == TRUE)
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
 
   for( ; ; )
@@ -219,7 +199,7 @@ void *_CPU_Thread_Idle_body( uint32_t ignored )
 
 #if (CPU_USE_GENERIC_BITFIELD_CODE == FALSE)
 
-uint8_t   _bit_set_table[16] = 
+uint8_t   _bit_set_table[16] =
   { 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 1,0};
 
 

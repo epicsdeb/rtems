@@ -1,5 +1,7 @@
+#include <bsp.h>
+#if !BSP_SMALL_MEMORY
 /*
- *  $Id: paranoia.c,v 1.7 2000/10/31 16:40:03 joel Exp $
+ *  $Id: paranoia.c,v 1.9 2010/03/29 11:30:49 thomas Exp $
  *
  *      A C version of Kahan's Floating Point Test "Paranoia"
  *
@@ -153,10 +155,8 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#if defined(solaris2)
 #include <math.h>
-#endif
+#include <stdlib.h>
 
 /*
  * To compile this on host using only libm from newlib (and using host libc)
@@ -196,26 +196,29 @@ struct _reent *_impure_ptr = &libm_reent;
 #endif /* SINGLE_PRECISION */
 
 jmp_buf ovfl_buf;
-extern double fabs (), floor (), log (), pow (), sqrt ();
-extern void exit ();
-typedef void (*Sig_type) ();
-FLOAT   Sign (), Random ();
-extern void BadCond ();
-extern void SqXMinX ();
-extern void TstCond ();
-extern void notify ();
+/* extern double fabs (), floor (), log (), pow (), sqrt (); */
+/* extern void exit (); */
+extern void _sigfpe(int);
+typedef void (*Sig_type) (int);
+FLOAT   Sign (FLOAT), Random (void);
+extern void BadCond (int, char*);
+extern void SqXMinX (int);
+extern void TstCond (int, int, char*);
+extern void notify (char *);
 /* extern int read (); */
-extern void Characteristics ();
-extern void Heading ();
-extern void History ();
-extern void Instructions ();
-extern void IsYeqX ();
-extern void NewD ();
-extern void Pause ();
-extern void PrintIfNPositive ();
-extern void SR3750 ();
-extern void SR3980 ();
-extern void TstPtUf ();
+extern void Characteristics (void);
+extern void Heading (void);
+extern void History (void);
+extern void Instructions (void);
+extern void IsYeqX (void);
+extern void NewD (void);
+extern void Pause (void);
+extern void PrintIfNPositive (void);
+extern void SR3750 (void);
+extern void SR3980 (void);
+extern void TstPtUf (void);
+
+void msglist(char**);
 
 Sig_type sigsave;
 
@@ -340,6 +343,7 @@ int x;
 
 #ifdef NOMAIN
 #define main paranoia
+int paranoia(int, char**);
 #endif
 
 int
@@ -2302,3 +2306,4 @@ History ()
 
     msglist (hist);
 }
+#endif /* BSP_SMALL_MEMORY */

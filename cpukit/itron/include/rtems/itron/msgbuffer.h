@@ -3,14 +3,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: msgbuffer.h,v 1.10 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: msgbuffer.h,v 1.11 2008/12/17 22:12:23 joel Exp $
  */
 
 #ifndef _RTEMS_ITRON_MSGBUFFER_H
@@ -49,9 +49,7 @@ ITRON_EXTERN Objects_Information  _ITRON_Message_buffer_Information;
  *  This routine performs the initialization necessary for this manager.
  */
 
-void _ITRON_Message_buffer_Manager_initialization(
-  uint32_t   maximum_message_buffers
-);
+void _ITRON_Message_buffer_Manager_initialization(void);
 
 /*
  *  _ITRON_Message_buffer_Translate_core_message_buffer_return_code

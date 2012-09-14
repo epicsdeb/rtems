@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: keydelete.c,v 1.9 2007/12/17 16:19:14 joel Exp $
+ *  $Id: keydelete.c,v 1.11 2009/07/22 00:09:31 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -42,11 +42,7 @@ int pthread_key_delete(
     case OBJECTS_LOCAL:
       _Objects_Close( &_POSIX_Keys_Information, &the_key->Object );
 
-      the_key->is_active = FALSE;
-
-      for ( the_api = 1;
-            the_api <= OBJECTS_APIS_LAST;
-            the_api++ )
+      for ( the_api = 1; the_api <= OBJECTS_APIS_LAST; the_api++ )
         if ( the_key->Values[ the_api ] )
           _Workspace_Free( the_key->Values[ the_api ] );
 

@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.1 2008/08/15 20:18:40 joel Exp $
-## 
+##
+## $Id: configure.ac,v 1.2.2.2 2011/04/20 20:19:52 joel Exp $
+##
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libcpu-bfin],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 RTEMS_TOP([../../../../..],[../../..])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.10])
+AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENV_RTEMSBSP
@@ -23,6 +23,10 @@ RTEMS_PROG_CCAS
 
 RTEMS_CHECK_NETWORKING
 AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
+
+# AM_CONDITIONAL(shared, test "$RTEMS_CPU_MODEL" = "bf52x")
+AM_CONDITIONAL(bf52x, test "$RTEMS_CPU_MODEL" = "bf52x")
+
 
 RTEMS_AMPOLISH3
 

@@ -12,10 +12,10 @@
  *  the STREAM API Specification Document link.
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: irq.h,v 1.2 2005/10/31 14:14:32 ralf Exp $
+ * $Id: irq.h,v 1.4.2.1 2011/05/25 14:17:51 ralf Exp $
  */
 
 #ifndef _RTEMS_IRQ_H
@@ -34,7 +34,7 @@ extern "C" {
 typedef unsigned char  rtems_irq_prio;
 struct  __rtems_irq_connect_data__;     /* forward declaratiuon */
 
-typedef unsigned int rtems_irq_number; 
+typedef unsigned int rtems_irq_number;
 typedef void *rtems_irq_hdl_param;
 typedef void (*rtems_irq_hdl)           (rtems_irq_hdl_param);
 typedef void (*rtems_irq_enable)        (const struct __rtems_irq_connect_data__*);
@@ -77,7 +77,7 @@ typedef struct __rtems_irq_connect_data__ {
    * function enabling to know what interrupt may currently occur
    * if someone manipulates the i8259s interrupt mask without care...
    */
-    rtems_irq_is_enabled        isOn;
+  rtems_irq_is_enabled        isOn;
 
 #ifdef BSP_SHARED_HANDLER_SUPPORT
   /*
@@ -119,7 +119,7 @@ typedef struct {
 | Function Prototypes.
 +--------------------------------------------------------------------------*/
 /*
- * ------------------------ RTEMS Single Irq Handler Mngt Routines ----------------
+ * -------------------- RTEMS Single Irq Handler Mngt Routines ----------------
  */
 /*
  * function to connect a particular irq handler. This hanlder will NOT be called
@@ -138,11 +138,11 @@ typedef struct {
  * As a result the hdl function provided
  *
  *      a) can perfectly be written is C,
- *      b) may also well directly call the part of the RTEMS API that can be used
- *      from interrupt level,
+ *      b) may also well directly call the part of the RTEMS API that can be
+ *      used from interrupt level,
  *      c) It only responsible for handling the jobs that need to be done at
- *      the device level including (aknowledging/re-enabling the interrupt at device,
- *      level, getting the data,...)
+ *      the device level including (aknowledging/re-enabling the interrupt at
+ *      device level, getting the data,...)
  *
  *      When returning from the function, the following will be performed by
  *      the RTEMS irq epilogue :
@@ -170,15 +170,14 @@ int BSP_remove_rtems_irq_handler        (const rtems_irq_connect_data*);
 
 
 /*
- * ------------------------ RTEMS Shared Irq Handler Mngt Routines ----------------
+ * ----------------- RTEMS Shared Irq Handler Mngt Routines ----------------
  */
 #ifdef BSP_SHARED_HANDLER_SUPPORT
 int BSP_install_rtems_shared_irq_handler  (const rtems_irq_connect_data*);
 #endif
 
-
 /*
- * ------------------------ RTEMS Global Irq Handler Mngt Routines ----------------
+ * ----------------- RTEMS Global Irq Handler Mngt Routines ----------------
  */
 /*
  * (Re) Initialize the RTEMS interrupt management.
@@ -201,13 +200,11 @@ int BSP_install_rtems_shared_irq_handler  (const rtems_irq_connect_data*);
  */
 
 int BSP_rtems_irq_mngt_set(rtems_irq_global_settings* config);
+
 /*
  * (Re) get info on current RTEMS interrupt management.
  */
 int BSP_rtems_irq_mngt_get(rtems_irq_global_settings**);
-
-
-
 
 #ifdef __cplusplus
 }

@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cre_tsk.c,v 1.14 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: cre_tsk.c,v 1.16 2009/11/03 05:23:05 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -58,7 +58,7 @@ ER cre_tsk(
       (pk_ctsk->tskatr != TA_COP7))
     return E_RSATR;
 
-  if (( pk_ctsk->itskpri <= 0 ) || ( pk_ctsk->itskpri >= 256 ))
+  if (( pk_ctsk->itskpri <= 0 ) || ( pk_ctsk->itskpri >= PRIORITY_MAXIMUM-1 ))
     return E_PAR;
   if ( pk_ctsk->task == NULL )
     return E_PAR;
@@ -92,12 +92,12 @@ ER cre_tsk(
     NULL,
     pk_ctsk->stksz,
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
-    TRUE,          /* XXX - All tasks FP (if the HW supports it) for now */
+    true,          /* XXX - All tasks FP (if the HW supports it) for now */
 #else
-    FALSE,
+    false,
 #endif
     core_priority,
-    TRUE,        /* preemptible */
+    true,        /* preemptible */
     THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE,
     NULL,        /* no budget algorithm callout */
     0,

@@ -1,5 +1,5 @@
 /*  Blackfin MMU Support
- * 
+ *
  *  Copyright (c) 2008 Kallisti Labs, Los Gatos, CA, USA
  *             written by Allan Hessenflow <allanh@kallisti.com>
  *
@@ -7,14 +7,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mmu.c,v 1.1 2008/08/15 20:18:41 joel Exp $
+ *  $Id: mmu.c,v 1.3 2009/11/30 05:03:49 ralf Exp $
  */
- 
+
 
 #include <rtems.h>
 
+#include <libcpu/memoryRegs.h>
 #include "mmu.h"
-
 
 /* NOTE: see notes in mmu.h */
 
@@ -32,6 +32,7 @@ void bfin_mmu_init(bfin_mmu_config_t *config) {
     *(uint32_t volatile *) data = config->instruction[i].flags;
     data += ICPLB_DATA_PITCH;
   }
+  *(uint32_t volatile *) IMEM_CONTROL |= IMEM_CONTROL_ENICPLB;
   addr = (intptr_t) DCPLB_ADDR0;
   data = (intptr_t) DCPLB_DATA0;
   for (i = 0; i < sizeof(config->data) / sizeof(config->data[0]); i++) {
@@ -40,5 +41,6 @@ void bfin_mmu_init(bfin_mmu_config_t *config) {
     *(uint32_t volatile *) data = config->data[i].flags;
     data += DCPLB_DATA_PITCH;
   }
+  *(uint32_t volatile *) DMEM_CONTROL |= DMEM_CONTROL_ENDCPLB;
 }
 

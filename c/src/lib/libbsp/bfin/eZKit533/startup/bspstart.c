@@ -4,7 +4,7 @@
  *  board, and monitor specific initialization and configuration.
  *  The generic CPU dependent initialization has been performed
  *  before this routine is invoked.
- *  
+ *
  *  Copyright (c) 2006 by Atos Automacao Industrial Ltda.
  *             written by Alain Schaefer <alain.schaefer@easc.ch>
  *                    and Antonio Giovanini <antonio@atos.com.br>
@@ -13,69 +13,58 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.13 2008/08/18 21:51:35 joel Exp $
+ *  $Id: bspstart.c,v 1.17 2009/11/30 03:38:33 ralf Exp $
  */
 
 
-#include <string.h>
-
 #include <bsp.h>
 #include <cplb.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <libcpu/interrupt.h>
 
-const unsigned int dcplbs_table[16][2] = {  
-	{ 0xFFA00000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) },
-        { 0xFF900000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) }, /* L1 Data B */
-        { 0xFF800000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) }, /* L1 Data A */
-        { 0xFFB00000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },
+const unsigned int dcplbs_table[16][2] = {
+  { 0xFFA00000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) },
+  { 0xFF900000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) }, /* L1 Data B */
+  { 0xFF800000,   (PAGE_SIZE_1MB | CPLB_D_PAGE_MGMT | CPLB_WT) }, /* L1 Data A */
+  { 0xFFB00000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },
+  { 0x20300000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 3 */
+  { 0x20200000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 2 (Secnd)  */
+  { 0x20100000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 1 (Prim B) */
+  { 0x20000000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 0 (Prim A) */
 
-        { 0x20300000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 3 */
-        { 0x20200000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 2 (Secnd)  */
-        { 0x20100000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 1 (Prim B) */
-        { 0x20000000,   (PAGE_SIZE_1MB | CPLB_DNOCACHE) },      /* Async Memory Bank 0 (Prim A) */
+  { 0x02400000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0x02000000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0x00C00000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0x00800000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0x00400000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0x00000000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
+  { 0xffffffff, 0xffffffff }                 /* end of section - termination */
 
-        { 0x02400000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-        { 0x02000000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-        { 0x00C00000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-        { 0x00800000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-        { 0x00400000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-        { 0x00000000,   (PAGE_SIZE_4MB | CPLB_DNOCACHE) },
-
-        { 0xffffffff, 0xffffffff }                                                      /* end of section - termination */
-
-       }
-;
+};
 
 
-const unsigned int _icplbs_table[16][2] = { 
-        { 0xFFA00000,   (PAGE_SIZE_1MB | CPLB_I_PAGE_MGMT | CPLB_I_PAGE_MGMT | 0x4) },  /* L1 Code */
-        { 0xEF000000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* AREA DE BOOT */
-        { 0xFFB00000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      
+const unsigned int _icplbs_table[16][2] = {
+  { 0xFFA00000,   (PAGE_SIZE_1MB | CPLB_I_PAGE_MGMT | CPLB_I_PAGE_MGMT | 0x4) },  /* L1 Code */
+  { 0xEF000000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* AREA DE BOOT */
+  { 0xFFB00000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },
+  { 0x20300000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 3 */
+  { 0x20200000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 2 (Secnd) */
+  { 0x20100000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 1 (Prim B) */
+  { 0x20000000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 0 (Prim A) */
 
-        { 0x20300000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 3 */
-        { 0x20200000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 2 (Secnd) */
-        { 0x20100000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 1 (Prim B) */
-        { 0x20000000,   (PAGE_SIZE_1MB | CPLB_INOCACHE) },      /* Async Memory Bank 0 (Prim A) */
+  { 0x02400000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0x02000000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0x00C00000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0x00800000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0x00400000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0x00000000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
+  { 0xffffffff, 0xffffffff }               /* end of section - termination */
 
-        { 0x02400000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-        { 0x02000000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-        { 0x00C00000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-        { 0x00800000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-        { 0x00400000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-        { 0x00000000,   (PAGE_SIZE_4MB | CPLB_INOCACHE) },
-
-        { 0xffffffff, 0xffffffff }                                                      /* end of section - termination */
-
-       }
-;
+};
 
 /*
  *  Use the shared implementations of the following routines
  */
 
-void bsp_libc_init( void *, uint32_t, int );
 void Init_PLL (void);
 void Init_EBIU (void);
 void Init_Flags(void);
@@ -84,29 +73,13 @@ void Init_RTC (void);
 void null_isr(void);
 
 /*
- *  Function:   bsp_pretasking_hook
- *  Created:    95/03/10
- *
- *  Description:
  *      BSP pretasking hook.  Called just before drivers are initialized.
  *      Used to setup libc and install any BSP extensions.
- *
- *  NOTES:
- *      Must not use libc (to do io) from here, since drivers are
- *      not yet initialized.
- *
  */
 
 void bsp_pretasking_hook(void)
 {
-    extern int HeapBase;
-    extern int HeapSize;
-    void         *heapStart = &HeapBase;
-    unsigned long heapSize = (unsigned long)&HeapSize;
-
-    bfin_interrupt_init();
-
-    bsp_libc_init(heapStart, heapSize, 0);
+  bfin_interrupt_init();
 }
 
 /*
@@ -117,50 +90,28 @@ void bsp_pretasking_hook(void)
 
 void bsp_start( void )
 {
-    
-  extern void          * _WorkspaceBase;
-
   /* BSP Hardware Initialization*/
-  Init_RTC();   /* Blackfin Real Time Clock initialization */  
+  Init_RTC();   /* Blackfin Real Time Clock initialization */
   Init_PLL();   /* PLL initialization */
   Init_EBIU();  /* EBIU initialization */
   Init_Flags(); /* GPIO initialization */
-
-  /*
-   *  Allocate the memory for the RTEMS Work Space.  This can come from
-   *  a variety of places: hard coded address, malloc'ed from outside
-   *  RTEMS world (e.g. simulator or primitive memory manager), or (as
-   *  typically done by stock BSPs) by subtracting the required amount
-   *  of work space from the last physical address on the CPU board.
-   */
-
-  /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
-   */
-
-  Configuration.work_space_start = (void *) &_WorkspaceBase;
 
   int i=0;
   for (i=5;i<16;i++) {
     set_vector((rtems_isr_entry)null_isr, i, 1);
   }
-  
 }
 
- /*
-  * Init_PLL
-  * 
-  * Routine to initialize the PLL. The Ezkit uses a 27 Mhz XTAL.
-  * See "../eZKit533/include/bsp.h" for more information.
-  */
-
+/*
+ * Init_PLL
+ *
+ * Routine to initialize the PLL. The Ezkit uses a 27 Mhz XTAL.
+ * See "../eZKit533/include/bsp.h" for more information.
+ */
 void Init_PLL (void)
 {
- 
   unsigned int n;
-  
+
   /* Configure PLL registers */
   *((uint16_t*)PLL_LOCKCNT) = 0x1000;
   *((uint16_t*)PLL_DIV) = PLL_CSEL|PLL_SSEL;
@@ -170,15 +121,14 @@ void Init_PLL (void)
   asm("cli r0;");
   asm("idle;");
   asm("sti r0;");
-  
+
   /* Delay for PLL stabilization */
-  for (n=0; n<200; n++) {} 
-  
+  for (n=0; n<200; n++) {}
 }
 
  /*
   * Init_EBIU
-  * 
+  *
   * Configure extern memory
   */
 
@@ -188,28 +138,28 @@ void Init_EBIU (void)
   *((uint32_t*)EBIU_AMBCTL0)  = 0x7bb07bb0L;
   *((uint32_t*)EBIU_AMBCTL1)  = 0x7bb07bb0L;
   *((uint16_t*)EBIU_AMGCTL)   = 0x000f;
-  
-  /* Configure SDRAM 
+
+  /* Configure SDRAM
   *((uint32_t*)EBIU_SDGCTL) = 0x0091998d;
   *((uint16_t*)EBIU_SDBCTL) = 0x0013;
   *((uint16_t*)EBIU_SDRRC)  = 0x0817;
   */
 }
 
- /*
-  * Init_Flags
-  * 
-  * Enable LEDs port
-  */
+/*
+ * Init_Flags
+ *
+ * Enable LEDs port
+ */
 void Init_Flags(void)
 {
   *((uint16_t*)FIO_INEN)    = 0x0100;
   *((uint16_t*)FIO_DIR)     = 0x0000;
   *((uint16_t*)FIO_EDGE)    = 0x0100;
   *((uint16_t*)FIO_MASKA_D) = 0x0100;
-  
+
   *((uint8_t*)FlashA_PortB_Dir)  = 0x3f;
-  *((uint8_t*)FlashA_PortB_Data) = 0x00;    
+  *((uint8_t*)FlashA_PortB_Data) = 0x00;
 }
 
 /*
@@ -218,7 +168,7 @@ void Init_Flags(void)
  */
 void setLED (uint8_t value)
 {
-  *((uint8_t*)FlashA_PortB_Data) = value;    
+  *((uint8_t*)FlashA_PortB_Data) = value;
 }
 
 /*
@@ -229,20 +179,19 @@ uint8_t getLED (void)
   return *((uint8_t*)FlashA_PortB_Data);
 }
 
-void initCPLB() {
+void initCPLB(void)
+{
+  int i = 0;
+  unsigned int *addr;
+  unsigned int *data;
 
-       int i = 0;
-       unsigned int *addr;
-       unsigned int *data;
-        
-       addr = (unsigned int *)0xffe00100;
-       data = (unsigned int *)0xffe00200;
+  addr = (unsigned int *)0xffe00100;
+  data = (unsigned int *)0xffe00200;
 
-       while ( dcplbs_table[i][0] != 0xffffffff ) {
-               *addr = dcplbs_table[i][0];
-               *data = dcplbs_table[i][1];
-
-               addr++;
-               data++;
-       } 
+  while ( dcplbs_table[i][0] != 0xffffffff ) {
+    *addr = dcplbs_table[i][0];
+    *data = dcplbs_table[i][1];
+    addr++;
+    data++;
+  }
 }

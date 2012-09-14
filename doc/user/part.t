@@ -1,9 +1,9 @@
 @c
-@c  COPYRIGHT (c) 1988-2008.
+@c  COPYRIGHT (c) 1988-2010.
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: part.t,v 1.17.2.1 2008/11/03 19:02:25 joel Exp $
+@c  $Id: part.t,v 1.19.2.1 2010/08/09 07:29:14 sh Exp $
 @c
 
 @chapter Partition Manager
@@ -83,8 +83,8 @@ RTEMS allocates a Partition Control
 Block (PTCB) from the PTCB free list.  This data structure is
 used by RTEMS to manage the newly created partition.  The number
 of buffers in the partition is calculated based upon the
-specified partition length and buffer size, and returned to the
-calling task along with a unique partition ID.
+specified partition length and buffer size. If successful,the
+unique partition ID is returned to the calling task.
 
 @subsection Obtaining Partition IDs
 
@@ -457,3 +457,6 @@ preempted.
 Returning a buffer to a global partition which does
 not reside on the local node will generate a request telling the
 remote node to return the buffer to the specified partition.
+
+Returning a buffer multiple times is an error.  It will corrupt the internal
+state of the partition.

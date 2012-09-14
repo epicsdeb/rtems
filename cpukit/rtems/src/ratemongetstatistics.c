@@ -1,14 +1,14 @@
 /*
  *  Rate Monotonic Manager -- Get Statistics
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemongetstatistics.c,v 1.3 2007/11/30 21:49:41 joel Exp $
+ *  $Id: ratemongetstatistics.c,v 1.7 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,12 +41,14 @@
  */
 
 rtems_status_code rtems_rate_monotonic_get_statistics(
-  Objects_Id                               id,
-  rtems_rate_monotonic_period_statistics  *statistics
+  rtems_id                                id,
+  rtems_rate_monotonic_period_statistics *statistics
 )
 {
-  Objects_Locations              location;
-  Rate_monotonic_Control        *the_period;
+  Objects_Locations                        location;
+  Rate_monotonic_Control                  *the_period;
+  rtems_rate_monotonic_period_statistics  *dst;
+  Rate_monotonic_Statistics               *src;
 
   if ( !statistics )
     return RTEMS_INVALID_ADDRESS;
@@ -55,7 +57,26 @@ rtems_status_code rtems_rate_monotonic_get_statistics(
   switch ( location ) {
 
     case OBJECTS_LOCAL:
-      *statistics = the_period->Statistics;
+      dst = statistics;
+      src = &the_period->Statistics;
+      dst->count        = src->count;
+      dst->missed_count = src->missed_count;
+      #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+        _Timestamp_To_timespec( &src->min_cpu_time,   &dst->min_cpu_time );
+        _Timestamp_To_timespec( &src->max_cpu_time,   &dst->max_cpu_time );
+        _Timestamp_To_timespec( &src->total_cpu_time, &dst->total_cpu_time );
+        _Timestamp_To_timespec( &src->min_wall_time,   &dst->min_wall_time );
+        _Timestamp_To_timespec( &src->max_wall_time,   &dst->max_wall_time );
+        _Timestamp_To_timespec( &src->total_wall_time, &dst->total_wall_time );
+      #else
+        dst->min_cpu_time    = src->min_cpu_time;
+        dst->max_cpu_time    = src->max_cpu_time;
+        dst->total_cpu_time  = src->total_cpu_time;
+        dst->min_wall_time   = src->min_wall_time;
+        dst->max_wall_time   = src->max_wall_time;
+        dst->total_wall_time = src->total_wall_time;
+      #endif
+
       _Thread_Enable_dispatch();
       return RTEMS_SUCCESSFUL;
 

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectshrinkinformation.c,v 1.7 2008/01/24 15:12:09 joel Exp $
+ *  $Id: objectshrinkinformation.c,v 1.9 2009/07/07 22:47:03 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -55,51 +55,35 @@ void _Objects_Shrink_information(
   uint32_t          index;
 
   /*
-   * Search the list to find block or chunnk with all objects inactive.
+   * Search the list to find block or chunk with all objects inactive.
    */
 
   index_base = _Objects_Get_index( information->minimum_id );
-  block_count = ( information->maximum - index_base ) / information->allocation_size;
+  block_count = (information->maximum - index_base) /
+                 information->allocation_size;
 
   for ( block = 0; block < block_count; block++ ) {
-    if ( information->inactive_per_block[ block ] == information->allocation_size ) {
-
-      /*
-       * XXX - Not to sure how to use a chain where you need to iterate and
-       *       and remove elements.
-       */
-
-      the_object = (Objects_Control *) information->Inactive.first;
+    if ( information->inactive_per_block[ block ] ==
+         information->allocation_size ) {
 
       /*
        *  Assume the Inactive chain is never empty at this point
        */
+      the_object = (Objects_Control *) information->Inactive.first;
 
       do {
-        index = _Objects_Get_index( the_object->id );
-
-        if ((index >= index_base) &&
-            (index < (index_base + information->allocation_size))) {
-
-          /*
-           *  Get the next node before the node is extracted
-           */
-
-          extract_me = the_object;
-
-          if ( !_Chain_Is_last( &the_object->Node ) )
-            the_object = (Objects_Control *) the_object->Node.next;
-          else
-            the_object = NULL;
-
-          _Chain_Extract( &extract_me->Node );
-        }
-        else {
-          the_object = (Objects_Control *) the_object->Node.next;
-        }
-      }
-      while ( the_object && !_Chain_Is_last( &the_object->Node ) );
-
+         index = _Objects_Get_index( the_object->id );
+         /*
+          *  Get the next node before the node is extracted
+          */
+         extract_me = the_object;
+         the_object = (Objects_Control *) the_object->Node.next;
+         if ((index >= index_base) &&
+             (index < (index_base + information->allocation_size))) {
+           _Chain_Extract( &extract_me->Node );
+         }
+       }
+       while ( the_object );
       /*
        *  Free the memory and reset the structures in the object' information
        */

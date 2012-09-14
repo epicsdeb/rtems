@@ -1,4 +1,4 @@
-/*  Minimum Size Application Initialization 
+/*  Minimum Size Application Initialization
  *
  *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.15 2008/06/17 21:10:25 joel Exp $
+ *  $Id: init.c,v 1.19 2009/11/30 03:33:23 ralf Exp $
  */
 
 #include <bsp.h>
@@ -16,13 +16,11 @@ rtems_task Init(
   rtems_task_argument ignored
 )
 {
-  rtems_mode mode;
-
   /* initialize application */
 
   /* Real application would call idle loop functionality */
 
-  /* but in this case, just return and fall into a fatal error */ 
+  /* but in this case, just return and fall into a fatal error */
 }
 
 /* configuration information */
@@ -34,9 +32,9 @@ rtems_task Init(
 #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
 
 /*
- *  This is the smallest IO subsystem RTEMS currently supports.
+ *  This application has no filesytem and libio support.
  */
-#define CONFIGURE_USE_MINIIMFS_AS_BASE_FILESYSTEM
+#define CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
 
 /*
  *  This disables reentrancy support in the C Library.  It is usually
@@ -76,6 +74,21 @@ rtems_task Init(
  *  on RAM, this is an option.
  */
 #define CONFIGURE_DISABLE_CLASSIC_API_NOTEPADS
+
+/*
+ *  This configures RTEMS to use a single memory pool for the RTEMS Workspace
+ *  and C Program Heap.  If not defined, there will be separate memory pools
+ *  for the RTEMS Workspace and C Program Heap.  Having separate pools
+ *  does haved some advantages in the event a task blows a stack or writes
+ *  outside its memory area. However, in low memory systems the overhead of
+ *  the two pools plus the potential for unused memory in either pool is
+ *  very undesirable.
+ *
+ *  In high memory environments, this is desirable when you want to use
+ *  the RTEMS "unlimited" objects option.  You will be able to create objects
+ *  until you run out of memory.
+ */
+#define CONFIGURE_UNIFIED_WORK_AREAS
 
 /*
  *  In this application, the initialization task performs the system

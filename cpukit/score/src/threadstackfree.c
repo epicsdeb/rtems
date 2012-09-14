@@ -2,14 +2,14 @@
  *  Thread Handler
  *
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadstackfree.c,v 1.5 2007/12/03 22:23:13 joel Exp $
+ *  $Id: threadstackfree.c,v 1.7.2.1 2011/05/25 14:17:53 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,23 +41,22 @@ void _Thread_Stack_Free(
   Thread_Control *the_thread
 )
 {
+  #if defined(RTEMS_SCORE_THREAD_ENABLE_USER_PROVIDED_STACK_VIA_API)
     /*
      *  If the API provided the stack space, then don't free it.
      */
-
     if ( !the_thread->Start.core_allocated_stack )
       return;
+  #endif
 
-    /*
-     * Call ONLY the CPU table stack free hook, or the
-     * the RTEMS workspace free.  This is so the free
-     * routine properly matches the allocation of the stack.
-     */
+  /*
+   * Call ONLY the CPU table stack free hook, or the
+   * the RTEMS workspace free.  This is so the free
+   * routine properly matches the allocation of the stack.
+   */
 
-    if ( _Configuration_Table->stack_free_hook )
-      (*_Configuration_Table->stack_free_hook)(
-        the_thread->Start.Initial_stack.area
-      );
-    else
-        _Workspace_Free( the_thread->Start.Initial_stack.area );
+  if ( Configuration.stack_free_hook )
+    (*Configuration.stack_free_hook)( the_thread->Start.Initial_stack.area );
+  else
+    _Workspace_Free( the_thread->Start.Initial_stack.area );
 }

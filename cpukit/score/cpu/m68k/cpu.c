@@ -8,25 +8,30 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.31 2008/09/08 15:19:14 joel Exp $
+ *  $Id: cpu.c,v 1.35 2010/03/27 15:02:07 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
+
+#if defined( __mcoldfire__ ) && ( M68K_HAS_FPU == 1 )
+  uint32_t _CPU_cacr_shadow;
+#endif
 
 /*  _CPU_Initialize
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - entry pointer to thread dispatcher
+ *  INPUT PARAMETERS: NONE
  *
  *  OUTPUT PARAMETERS: NONE
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
 #if ( M68K_HAS_VBR == 0 )
   /* fill the isr redirect table with the code to place the format/id
@@ -48,7 +53,7 @@ void _CPU_Initialize(
  *
  *  _CPU_ISR_Get_level
  */
- 
+
 uint32_t   _CPU_ISR_Get_level( void )
 {
   uint32_t   level;
@@ -62,7 +67,7 @@ uint32_t   _CPU_ISR_Get_level( void )
  *
  *  _CPU_ISR_install_raw_handler
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -87,7 +92,7 @@ void _CPU_ISR_install_raw_handler(
   /*
    *  On CPU models without a VBR, it is necessary for there to be some
    *  header code for each ISR which saves a register, loads the vector
-   *  number, and jumps to _ISR_Handler. 
+   *  number, and jumps to _ISR_Handler.
    */
 
   m68k_get_vbr( interrupt_table );
@@ -188,7 +193,7 @@ const unsigned char _CPU_m68k_BFFFO_table[256] = {
 #if (CPU_SOFTWARE_FP == TRUE)
 extern Context_Control_fp _fpCCR;
 
-void CPU_Context_save_fp (Context_Control_fp **fp_context_ptr)
+void _CPU_Context_save_fp (Context_Control_fp **fp_context_ptr)
 {
   Context_Control_fp *fp;
 
@@ -197,7 +202,7 @@ void CPU_Context_save_fp (Context_Control_fp **fp_context_ptr)
   *fp = _fpCCR;
 }
 
-void CPU_Context_restore_fp (Context_Control_fp **fp_context_ptr)
+void _CPU_Context_restore_fp (Context_Control_fp **fp_context_ptr)
 {
   Context_Control_fp *fp;
 

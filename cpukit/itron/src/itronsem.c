@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: itronsem.c,v 1.10 2004/04/15 04:00:25 ralf Exp $
+ *  $Id: itronsem.c,v 1.12 2009/11/03 05:23:05 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -14,7 +14,7 @@
 #endif
 
 #include <rtems/itron.h>
-
+#include <rtems/config.h>
 #include <rtems/itron/semaphore.h>
 #include <rtems/itron/task.h>
 #include <rtems/score/tod.h>
@@ -26,27 +26,25 @@
  *
  *  This routine initializes all semaphore manager related data structures.
  *
- *  Input parameters:
- *    maximum_semaphores - maximum configured semaphores
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _ITRON_Semaphore_Manager_initialization(
-  uint32_t   maximum_semaphores
-)
+void _ITRON_Semaphore_Manager_initialization(void)
 {
   _Objects_Initialize_information(
-    &_ITRON_Semaphore_Information,     /* object information table */
-    OBJECTS_ITRON_API,                 /* object API */
-    OBJECTS_ITRON_SEMAPHORES,          /* object class */
-    maximum_semaphores,                /* maximum objects of this class */
-    sizeof( ITRON_Semaphore_Control ), /* size of this object's control block */
-    FALSE,                       /* TRUE if names for this object are strings */
+    &_ITRON_Semaphore_Information,   /* object information table */
+    OBJECTS_ITRON_API,               /* object API */
+    OBJECTS_ITRON_SEMAPHORES,        /* object class */
+    Configuration_ITRON_API.maximum_semaphores,
+                                     /* maximum objects of this class */
+    sizeof(ITRON_Semaphore_Control), /* size of this object's control block */
+    false,                       /* true if names for this object are strings */
     ITRON_MAXIMUM_NAME_LENGTH    /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                       /* TRUE if this is a global object class */
+    false,                       /* true if this is a global object class */
     NULL                         /* Proxy extraction support callout */
 #endif
   );

@@ -1,19 +1,20 @@
-/** 
- *  @file  rtems/score/heap.inl
+/**
+ * @file
  *
- *  This file contains the static inline implementation of the inlined
- *  routines from the heap handler.
+ * @ingroup ScoreHeap
+ *
+ * @brief Heap Handler API.
  */
 
 /*
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: heap.inl,v 1.23 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: heap.inl,v 1.35 2009/09/09 14:58:37 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_HEAP_H
@@ -23,352 +24,202 @@
 #ifndef _RTEMS_SCORE_HEAP_INL
 #define _RTEMS_SCORE_HEAP_INL
 
-/**
- *  @addtogroup ScoreHeap 
- *  @{
- */
-
 #include <rtems/score/address.h>
 
 /**
- *  This function returns the head of the specified heap.
+ * @addtogroup ScoreHeap
  *
- *  @param[in] the_heap points to the heap being operated upon
- *
- *  @return This method returns a pointer to the dummy head of the free
- *          block list.
+ * @{
  */
-RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Head (
-  Heap_Control *the_heap
-)
+
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Free_list_head( Heap_Control *heap )
 {
-  return &the_heap->free_list;
+  return &heap->free_list;
 }
 
-/**
- *  This function returns the tail of the specified heap.
- *
- *  @param[in] the_heap points to the heap being operated upon
- *
- *  @return This method returns a pointer to the dummy tail of the heap
- *          free list.
- */
-RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Tail (
-  Heap_Control *the_heap
-)
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Free_list_tail( Heap_Control *heap )
 {
-  return &the_heap->free_list;
+  return &heap->free_list;
 }
 
-/**
- *  Return the first free block of the specified heap.
- *
- *  @param[in] the_heap points to the heap being operated upon
- *
- *  @return This method returns a pointer to the first free block.
- */
-RTEMS_INLINE_ROUTINE Heap_Block *_Heap_First (
-  Heap_Control *the_heap
-)
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Free_list_first( Heap_Control *heap )
 {
-  return _Heap_Head(the_heap)->next;
+  return _Heap_Free_list_head(heap)->next;
 }
 
-/**
- *  Return the last free block of the specified heap.
- *
- *  @param[in] the_heap points to the heap being operated upon
- *
- *  @return This method returns a pointer to the last block on the free list.
- */
-RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Last (
-  Heap_Control *the_heap
-)
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Free_list_last( Heap_Control *heap )
 {
-  return _Heap_Tail(the_heap)->prev;
+  return _Heap_Free_list_tail(heap)->prev;
 }
 
-/**
- *  This function removes 'the_block' from doubly-linked list.
- *
- *  @param[in] the_block is the block to remove from the heap used block
- *             list.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Block_remove (
-  Heap_Block *the_block
-)
+RTEMS_INLINE_ROUTINE void _Heap_Free_list_remove( Heap_Block *block )
 {
-  Heap_Block *block = the_block;
-
   Heap_Block *next = block->next;
   Heap_Block *prev = block->prev;
+
   prev->next = next;
   next->prev = prev;
 }
 
-/**
- *  This function replaces @a old_block by @a new_block in doubly-linked list.
- *  When a block is allocated, the memory is allocated from the low memory 
- *  address range of the block.  This means that the upper address range of 
- *  the memory block must be added to the free block list in place of the
- *  lower address portion being allocated.  This method is also used as part
- *  of resizing a block.
- *
- *  @param[in] old_block is the block which is currently on the list.
- *  @param[in] new_block is the new block which will replace it on the list.
- */
-
-RTEMS_INLINE_ROUTINE void _Heap_Block_replace (
+RTEMS_INLINE_ROUTINE void _Heap_Free_list_replace(
   Heap_Block *old_block,
   Heap_Block *new_block
 )
 {
-  Heap_Block *block = old_block;
-  Heap_Block *next = block->next;
-  Heap_Block *prev = block->prev;
+  Heap_Block *next = old_block->next;
+  Heap_Block *prev = old_block->prev;
 
-  block = new_block;
-  block->next = next;
-  block->prev = prev;
-  next->prev = prev->next = block;
+  new_block->next = next;
+  new_block->prev = prev;
+
+  next->prev = new_block;
+  prev->next = new_block;
 }
 
-/**
- *  This function inserts @a the_block after @a prev_block
- *  in the doubly-linked free block list.
- *
- *  @param[in] prev_block is the previous block in the free list.
- *  @param[in] the_block is the block being freed.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Block_insert_after (
-  Heap_Block *prev_block,
-  Heap_Block *the_block
+RTEMS_INLINE_ROUTINE void _Heap_Free_list_insert_after(
+  Heap_Block *block_before,
+  Heap_Block *new_block
 )
 {
-  Heap_Block *prev = prev_block;
-  Heap_Block *block = the_block;
+  Heap_Block *next = block_before->next;
 
-  Heap_Block *next = prev->next;
-  block->next  = next;
-  block->prev  = prev;
-  next->prev = prev->next = block;
+  new_block->next = next;
+  new_block->prev = block_before;
+  block_before->next = new_block;
+  next->prev = new_block;
 }
 
-/**
- *  Return TRUE if @a value is a multiple of @a alignment,  FALSE otherwise
- *
- *  @param[in] value is the address to verify alignment of.
- *  @param[in] alignment is the alignment factor to verify.
- *
- *  @return This method returns TRUE if the address is aligned and false
- *          otherwise.
- */
-RTEMS_INLINE_ROUTINE bool _Heap_Is_aligned (
-  uint32_t  value,
-  uint32_t  alignment
+RTEMS_INLINE_ROUTINE bool _Heap_Is_aligned(
+  uintptr_t value,
+  uintptr_t alignment
 )
 {
   return (value % alignment) == 0;
 }
 
-/**
- *  Align @a *value up to the nearest multiple of @a alignment.
- *
- *  @param[in] value is a pointer to be aligned.
- *  @param[in] alignment is the alignment value.
- *
- *  @return Upon return, @a value will contain the aligned result.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Align_up (
-  uint32_t *value,
-  uint32_t  alignment
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Align_up(
+  uintptr_t value,
+  uintptr_t alignment
 )
 {
-  uint32_t v = *value;
-  uint32_t a = alignment;
-  uint32_t r = v % a;
-  *value = r ? v - r + a : v;
+  uintptr_t remainder = value % alignment;
+
+  if ( remainder != 0 ) {
+    return value - remainder + alignment;
+  } else {
+    return value;
+  }
+}
+
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Align_down(
+  uintptr_t value,
+  uintptr_t alignment
+)
+{
+  return value - (value % alignment);
 }
 
 /**
- *  Align @a *value down to the nearest multiple of @a alignment.
- *
- *  @param[in] value is a pointer to be aligned.
- *  @param[in] alignment is the alignment value.
- *
- *  @return Upon return, @a value will contain the aligned result.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Align_down (
-  uint32_t *value,
-  uint32_t  alignment
-)
-{
-  uint32_t v = *value;
-  *value = v - (v % alignment);
-}
-
-/**
- *  Return TRUE if @a ptr is aligned at @a alignment boundary,
- *  FALSE otherwise.
- *
- *  @param[in] ptr is the pointer to verify alignment of.
- *  @param[in] alignment is the alignment factor.
- *
- *  @return This method returns TRUE if @a ptr is aligned at @a alignment
- *          boundary, and FALSE otherwise.
- */
-RTEMS_INLINE_ROUTINE bool _Heap_Is_aligned_ptr (
-  void      *ptr,
-  uint32_t  alignment
-)
-{
-  return (_H_p2u(ptr) % alignment) == 0;
-}
-
-/**
- *  Align @a *value up to the nearest multiple of @a alignment.
- *
- *  @param[in] value is a pointer to be aligned.
- *  @param[in] alignment is the alignment value.
- *
- *  @return Upon return, @a value will contain the aligned result.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Align_up_uptr (
-  _H_uptr_t *value,
-  uint32_t  alignment
-)
-{
-  _H_uptr_t v = *value;
-  uint32_t a = alignment;
-  _H_uptr_t r = v % a;
-  *value = r ? v - r + a : v;
-}
-
-/**
- *  Align @a *value down to the nearest multiple of @a alignment.
- *
- *  @param[in] value is a pointer to be aligned.
- *  @param[in] alignment is the alignment value.
- *
- *  @return Upon return, @a value will contain the aligned result.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Align_down_uptr (
-  _H_uptr_t *value,
-  uint32_t  alignment
-)
-{
-  _H_uptr_t v = *value;
-  *value = v - (v % alignment);
-}
-
-/**
- *  This function calculates and returns a block's location (address)
- *  in the heap based upon a base address @a base and an @a offset.
- *
- *  @param[in] base is the base address of the memory area.
- *  @param[in] offset is the byte offset into @a base.
- *
- *  @return This method returns a pointer to the block's address.
+ * @brief Returns the block which is @a offset away from @a block.
  */
 RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Block_at(
-  void     *base,
-  uint32_t  offset
+  const Heap_Block *block,
+  uintptr_t offset
 )
 {
-  return (Heap_Block *) _Addresses_Add_offset( base, offset );
+  return (Heap_Block *) ((uintptr_t) block + offset);
+}
+
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Prev_block(
+  const Heap_Block *block
+)
+{
+  return (Heap_Block *) ((uintptr_t) block - block->prev_size);
+}
+
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Alloc_area_of_block(
+  const Heap_Block *block
+)
+{
+  return (uintptr_t) block + HEAP_BLOCK_HEADER_SIZE;
+}
+
+RTEMS_INLINE_ROUTINE Heap_Block *_Heap_Block_of_alloc_area(
+  uintptr_t alloc_begin,
+  uintptr_t page_size
+)
+{
+  return (Heap_Block *) (_Heap_Align_down( alloc_begin, page_size )
+    - HEAP_BLOCK_HEADER_SIZE);
+}
+
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Block_size( const Heap_Block *block )
+{
+  return block->size_and_flag & ~HEAP_PREV_BLOCK_USED;
+}
+
+RTEMS_INLINE_ROUTINE void _Heap_Block_set_size(
+  Heap_Block *block,
+  uintptr_t size
+)
+{
+  uintptr_t flag = block->size_and_flag & HEAP_PREV_BLOCK_USED;
+
+  block->size_and_flag = size | flag;
+}
+
+RTEMS_INLINE_ROUTINE bool _Heap_Is_prev_used( const Heap_Block *block )
+{
+  return block->size_and_flag & HEAP_PREV_BLOCK_USED;
+}
+
+RTEMS_INLINE_ROUTINE bool _Heap_Is_used(
+  const Heap_Block *block
+)
+{
+  const Heap_Block *const next_block =
+    _Heap_Block_at( block, _Heap_Block_size( block ) );
+
+  return _Heap_Is_prev_used( next_block );
+}
+
+RTEMS_INLINE_ROUTINE bool _Heap_Is_free(
+  const Heap_Block *block
+)
+{
+  return !_Heap_Is_used( block );
+}
+
+RTEMS_INLINE_ROUTINE bool _Heap_Is_block_in_heap(
+  const Heap_Control *heap,
+  const Heap_Block *block
+)
+{
+  return (uintptr_t) block >= (uintptr_t) heap->first_block
+    && (uintptr_t) block <= (uintptr_t) heap->last_block;
 }
 
 /**
- *  This function returns the starting address of the portion of @a the_block
- *  which the user may access.
+ * @brief Returns the size of the allocatable area in bytes.
  *
- *  @param[in] the_block is the heap block to find the user area of.
- *
- *  @return This method returns a pointer to the start of the user area in
- *          the block.
+ * This value is an integral multiple of the page size.
  */
-RTEMS_INLINE_ROUTINE void *_Heap_User_area (
-  Heap_Block *the_block
-)
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Get_size( const Heap_Control *heap )
 {
-  return (void *) _Addresses_Add_offset ( the_block, HEAP_BLOCK_USER_OFFSET );
+  return heap->stats.size;
 }
 
-/**
- *  Fill @a *the_block with the address of the beginning of the block given
- *  pointer to the user accessible area @a base.
- *
- *  @param[in] the_heap points to the heap being operated upon
- *  @param[in] base points to the user area in the block.
- *  @param[in] the_block will be the address of the heap block.
- *
- *  @return This method returns a pointer to the heap block based upon the
- *               given heap and user pointer.
- */
-RTEMS_INLINE_ROUTINE void _Heap_Start_of_block (
-  Heap_Control  *the_heap,
-  void          *base,
-  Heap_Block   **the_block
-)
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Max( uintptr_t a, uintptr_t b )
 {
-  _H_uptr_t addr = _H_p2u(base);
-  /* The address passed could be greater than the block address plus
-   * HEAP_BLOCK_USER_OFFSET as _Heap_Allocate_aligned() may produce such user
-   * pointers. To get rid of this offset we need to align the address down
-   * to the nearest 'page_size' boundary. */
-  _Heap_Align_down_uptr ( &addr, the_heap->page_size );
-  *the_block = (Heap_Block *)(addr - HEAP_BLOCK_USER_OFFSET);
+  return a > b ? a : b;
 }
 
-/**
- *  This function returns TRUE if the previous block of @a the_block
- *  is in use, and FALSE otherwise.
- *
- *  @param[in] the_block is the block to operate upon.
- *
- *  @return This method returns TRUE if the previous block is used and FALSE
- *          if the previous block is free.
- */
-RTEMS_INLINE_ROUTINE bool _Heap_Is_prev_used (
-  Heap_Block *the_block
-)
+RTEMS_INLINE_ROUTINE uintptr_t _Heap_Min( uintptr_t a, uintptr_t b )
 {
-  return (the_block->size & HEAP_PREV_USED);
+  return a < b ? a : b;
 }
 
-/**
- *  This function returns the size of @a the_block in bytes.
- *
- *  @param[in] the_block is the block to operate upon.
- *
- *  @return This method returns the size of the specified heap block in bytes.
- */
-RTEMS_INLINE_ROUTINE uint32_t _Heap_Block_size (
-  Heap_Block *the_block
-)
-{
-  return (the_block->size & ~HEAP_PREV_USED);
-}
-
-/**
- *  This function returns TRUE if @a the_block is within the memory area
- *  managed by @a the_heap, and FALSE otherwise.
- *
- *  @param[in] the_heap points to the heap being operated upon
- *  @param[in] the_block is the block address to check.
- *
- *  @return This method returns TRUE if @a the_block appears to have been
- *          allocated from @a the_heap, and FALSE otherwise.
- */
-RTEMS_INLINE_ROUTINE bool _Heap_Is_block_in (
-  Heap_Control *the_heap,
-  Heap_Block   *the_block
-)
-{
-  return _Addresses_Is_in_range( the_block, the_heap->start, the_heap->final );
-}
-
-/**@}*/
+/** @} */
 
 #endif
 /* end of include file */

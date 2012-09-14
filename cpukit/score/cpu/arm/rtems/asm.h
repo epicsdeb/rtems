@@ -1,6 +1,12 @@
 /**
- * @file rtems/asm.h
+ * @file
  *
+ * @ingroup ScoreCPU
+ *
+ * @brief ARM assembler support API.
+ */
+
+/*
  *  This include file attempts to address the problems
  *  caused by incompatible flavors of assemblers and
  *  toolsets.  It primarily addresses variations in the
@@ -11,7 +17,7 @@
  *  NOTE: The spacing in the use of these macros
  *        is critical to them working as advertised.
  */
- 
+
 /*
  *  COPYRIGHT:
  *
@@ -41,6 +47,16 @@
 #endif
 #include <rtems/score/cpuopts.h>
 #include <rtems/score/arm.h>
+
+/**
+ * @defgroup ScoreCPUARMASM ARM Assembler Support
+ *
+ * @ingroup ScoreCPU
+ *
+ * @brief ARM assembler support.
+ *
+ * @{
+ */
 
 /*
  *  Recent versions of GNU cpp define variables which indicate the
@@ -96,7 +112,7 @@
 
 #define NUM_IRQ_VECTOR          6       // IRQ number
 #define NUM_FIQ_VECTOR          7       // IRQ number
-										// 										// 
+										// 										//
 #define CPSR_IRQ_DISABLE        0x80    // FIQ disabled when =1
 #define CPSR_FIQ_DISABLE        0x40    // FIQ disabled when =1
 #define CPSR_THUMB_ENABLE       0x20    // Thumb mode when =1
@@ -132,4 +148,31 @@
 #define PUBLIC(sym) .globl SYM (sym)
 #define EXTERN(sym) .globl SYM (sym)
 
+#ifdef __thumb__
+  #define DEFINE_FUNCTION_ARM(name) \
+    .thumb_func ; .globl name ; name: ; bx pc ; \
+    .arm ; .globl name ## _arm ; name ## _arm:
+#else
+  #define DEFINE_FUNCTION_ARM(name) \
+    .globl name ; name: ; .globl name ## _arm ; name ## _arm:
 #endif
+
+.macro SWITCH_FROM_THUMB_TO_ARM
+#ifdef __thumb__
+.align 2
+	bx	pc
+.arm
+#endif /* __thumb__ */
+.endm
+
+.macro SWITCH_FROM_ARM_TO_THUMB REG
+#ifdef __thumb__
+	add	\REG, pc, #1
+	bx	\REG
+.thumb
+#endif /* __thumb__ */
+.endm
+
+/** @} */
+
+#endif /* _RTEMS_ASM_H */

@@ -5,7 +5,7 @@
  *  CPU dependent initialization has been performed before any of these are
  *  invoked.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
@@ -15,27 +15,18 @@
  *  Modifications of respective RTEMS files:
  *  Copyright (c) 1998, National Research Council of Canada
  *
- *  $Id: bspstart.c,v 1.15 2008/05/12 18:43:36 joel Exp $
+ *  $Id: bspstart.c,v 1.17 2010/04/28 13:23:11 joel Exp $
  */
 
-#include <string.h>
-
 #include <bsp.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <page_table.h>
 #include <fatal.h>
 
 /* XXX If RTEMS let the BSP replace the default fatal error handler... */
 rtems_extensions_table user_extension_table;
 
-/*
- *  Use the shared implementations of the following routines.
- *  Look in rtems/c/src/lib/libbsp/shared/bsppost.c and
- *  rtems/c/src/lib/libbsp/shared/bsplibc.c.
- */
-void bsp_libc_init( void *, uint32_t, int );
-void bsp_pretasking_hook(void);               /* m68k version */
+void M68KFPSPInstallExceptionHandlers (void);
+extern m68k_isr_entry  M68Kvec[];
 
 /*
  *  bsp_start()
@@ -66,18 +57,8 @@ void bsp_pretasking_hook(void);               /* m68k version */
  */
 void bsp_start( void )
 {
-  void M68KFPSPInstallExceptionHandlers (void);
-
-  extern m68k_isr_entry  M68Kvec[];
-  extern void           *_WorkspaceBase;
-  extern void           *_RamSize;
-  extern unsigned long   _M68k_Ramsize;
-
   m68k_isr_entry *rom_monitor_vector_table;
   int index;
-
-  /* RAM size set in linker script */
-  _M68k_Ramsize = (unsigned long)&_RamSize;
 
   /*
    *  167Bug Vectors are at 0xFFE00000
@@ -124,11 +105,4 @@ void bsp_start( void )
     user_extension_table.fatal = bsp_fatal_error_occurred;
     Configuration.User_extension_table = &user_extension_table;
   }
-
-  /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
-   */
-  Configuration.work_space_start = (void *)&_WorkspaceBase;
 }

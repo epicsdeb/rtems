@@ -1,9 +1,13 @@
 /**
- * @file rtems/score/types.h
+ * @file
+ *
+ * @ingroup ScoreCPU
+ *
+ * @brief ARM architecture types API.
  */
 
 /*
- *  $Id: types.h,v 1.14.2.1 2008/09/18 03:01:44 ralf Exp $
+ *  $Id: types.h,v 1.18 2010/04/08 10:13:46 thomas Exp $
  *
  *  This include file contains type definitions pertaining to the
  *  arm processor family.
@@ -23,11 +27,17 @@
 #ifndef ASM
 
 #include <stdbool.h>
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @addtogroup ScoreCPU
+ *
+ * @{
+ */
 
 /*
  *  This section defines the basic types for this processor.
@@ -35,14 +45,13 @@ extern "C" {
 
 typedef uint16_t         Priority_Bit_map_control;
 
-typedef void               arm_cpu_isr;
-typedef void            (*arm_cpu_isr_entry)( void );
-
 #ifdef RTEMS_DEPRECATED_TYPES
 typedef bool		boolean;            /* Boolean value   */
 typedef float           single_precision;   /* single precision float */
 typedef double          double_precision;   /* double precision float */
 #endif
+
+/** @} */
 
 #ifdef __cplusplus
 }

@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.18 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: system.h,v 1.19 2008/10/14 13:03:38 joel Exp $
  */
 
 #include <tmacros.h>
@@ -131,10 +131,10 @@ TEST_EXTERN rtems_id   Junk_id;             /* id used to return errors */
 #define External_port_area (void *) 0x00002000
 
 TEST_EXTERN uint8_t   Partition_good_area[256] CPU_STRUCTURE_ALIGNMENT;
-#define Partition_bad_area (void *) 0x00000006
+#define Partition_bad_area (void *) 0x00000005
 
 TEST_EXTERN uint32_t   Region_good_area[4096] CPU_STRUCTURE_ALIGNMENT;
-#define Region_bad_area    (void *) 0x00000006
+#define Region_bad_area    (void *) 0x00000005
 #define REGION_START_OFFSET 1024
 #define REGION_LENGTH       512
 

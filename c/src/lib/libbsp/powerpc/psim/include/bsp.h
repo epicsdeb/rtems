@@ -26,7 +26,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.20 2007/12/11 15:46:47 joel Exp $
+ *  $Id: bsp.h,v 1.26 2009/09/11 22:53:25 strauman Exp $
  */
 
 #ifndef _BSP_H
@@ -56,20 +56,10 @@ extern "C" {
  *  Information placed in the linkcmds file.
  */
 
-extern int   RAM_END;
 extern int   end;        /* last address in the program */
+extern int   RAM_END;
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
+extern uint32_t   BSP_mem_size;
 
 #define BSP_Convert_decrementer( _value ) ( (unsigned long long) _value )
 
@@ -77,11 +67,17 @@ extern int   end;        /* last address in the program */
 #define Processor_Synchronize() \
   asm(" eieio ")
 
-/* functions */
+struct rtems_bsdnet_ifconfig;
 
-void bsp_cleanup( void );
+int
+rtems_ifsim_attach(struct rtems_bsdnet_ifconfig *ifcfg, int attaching);
+
+#define RTEMS_BSP_NETWORK_DRIVER_NAME   "ifsim1"
+#define RTEMS_BSP_NETWORK_DRIVER_ATTACH rtems_ifsim_attach
 
 #endif /* ASM */
+
+#define BSP_HAS_NO_VME
 
 #ifdef __cplusplus
 }

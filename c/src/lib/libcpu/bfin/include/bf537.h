@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bf537.h,v 1.1 2008/08/15 20:18:41 joel Exp $
+ *  $Id: bf537.h,v 1.2 2008/09/25 20:07:47 joel Exp $
  */
 
 #ifndef _bf537_h_
@@ -172,6 +172,8 @@
 
 
 /* System Interrupt Controller vectors */
+
+#define SIC_IAR_COUNT                                      4
 
 #define SIC_PLL_WAKEUP_VECTOR                              0
 #define SIC_DMA_ERROR_VECTOR                               1

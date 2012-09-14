@@ -1,19 +1,18 @@
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mutexinit.c,v 1.11 2008/01/23 22:57:43 joel Exp $
+ *  $Id: mutexinit.c,v 1.15 2009/07/06 14:47:09 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 
@@ -41,16 +40,11 @@ int pthread_mutex_init(
   CORE_mutex_Attributes        *the_mutex_attr;
   const pthread_mutexattr_t    *the_attr;
   CORE_mutex_Disciplines        the_discipline;
-#if 0
-  register POSIX_Mutex_Control *mutex_in_use;
-  Objects_Locations             location;
-#endif
 
   if ( attr ) the_attr = attr;
   else        the_attr = &_POSIX_Mutex_Default_attributes;
 
   /* Check for NULL mutex */
-
   if ( !mutex )
     return EINVAL;
 
@@ -72,44 +66,48 @@ int pthread_mutex_init(
    *  RTEMS port of omniORB2 when this code was enabled.
    *
    *  Joel Sherrill <joel@OARcorp.com>     14 May 1999
+   *  NOTE: Be careful to avoid infinite recursion on call to this
+   *        routine in _POSIX_Mutex_Get.
    */
-#if 0
-  /* avoid infinite recursion on call to this routine in _POSIX_Mutex_Get */
+  #if 0
+  {
+    POSIX_Mutex_Control *mutex_in_use;
+    Objects_Locations    location;
 
-  if ( *mutex != PTHREAD_MUTEX_INITIALIZER ) {
+    if ( *mutex != PTHREAD_MUTEX_INITIALIZER ) {
 
-    /* EBUSY if *mutex is a valid id */
+      /* EBUSY if *mutex is a valid id */
 
-    mutex_in_use = _POSIX_Mutex_Get( mutex, &location );
-    switch ( location ) {
-      case OBJECTS_LOCAL:
-        _Thread_Enable_dispatch();
-        return EBUSY;
-#if defined(RTEMS_MULTIPROCESSING)
-      case OBJECTS_REMOTE:
-#endif
-      case OBJECTS_ERROR:
-        break;
+      mutex_in_use = _POSIX_Mutex_Get( mutex, &location );
+      switch ( location ) {
+        case OBJECTS_LOCAL:
+          _Thread_Enable_dispatch();
+          return EBUSY;
+        #if defined(RTEMS_MULTIPROCESSING)
+          case OBJECTS_REMOTE:
+        #endif
+        case OBJECTS_ERROR:
+          break;
+      }
     }
   }
-#endif
+  #endif
 
   if ( !the_attr->is_initialized )
     return EINVAL;
 
   /*
-   *  XXX: Be careful about attributes when global!!!
+   *  We only support process private mutexes.
    */
-
-  assert( the_attr->process_shared == PTHREAD_PROCESS_PRIVATE );
-
   if ( the_attr->process_shared == PTHREAD_PROCESS_SHARED )
     return ENOSYS;
+
+  if ( the_attr->process_shared != PTHREAD_PROCESS_PRIVATE )
+    return EINVAL;
 
   /*
    *  Determine the discipline of the mutex
    */
-
   switch ( the_attr->protocol ) {
     case PTHREAD_PRIO_NONE:
       the_discipline = CORE_MUTEX_DISCIPLINES_FIFO;
@@ -124,9 +122,32 @@ int pthread_mutex_init(
       return EINVAL;
   }
 
+  /*
+   *  Validate the priority ceiling field -- should always be valid.
+   */
   if ( !_POSIX_Priority_Is_valid( the_attr->prio_ceiling ) )
     return EINVAL;
 
+#if defined(_UNIX98_THREAD_MUTEX_ATTRIBUTES)
+  /*
+   *  Validate the mutex type and set appropriate SuperCore mutex
+   *  attributes.
+   */
+  switch ( the_attr->type ) {
+    case PTHREAD_MUTEX_NORMAL:
+    case PTHREAD_MUTEX_RECURSIVE:
+    case PTHREAD_MUTEX_ERRORCHECK:
+    case PTHREAD_MUTEX_DEFAULT:
+      break;
+
+    default:
+      return EINVAL;
+  }
+#endif
+
+  /*
+   *  Enter a dispatching critical section and begin to do the real work.
+   */
   _Thread_Disable_dispatch();
 
   the_mutex = _POSIX_Mutex_Allocate();
@@ -144,7 +165,7 @@ int pthread_mutex_init(
     the_mutex_attr->lock_nesting_behavior = CORE_MUTEX_NESTING_ACQUIRES;
   else
     the_mutex_attr->lock_nesting_behavior = CORE_MUTEX_NESTING_IS_ERROR;
-  the_mutex_attr->only_owner_release = TRUE;
+  the_mutex_attr->only_owner_release = true;
   the_mutex_attr->priority_ceiling =
     _POSIX_Priority_To_core( the_attr->prio_ceiling );
   the_mutex_attr->discipline = the_discipline;
@@ -152,7 +173,6 @@ int pthread_mutex_init(
   /*
    *  Must be initialized to unlocked.
    */
-
   _CORE_mutex_Initialize(
     &the_mutex->Mutex,
     the_mutex_attr,

@@ -64,7 +64,7 @@ SECTIONS
   .fini		  : { _fini = .; *(.fini)	}
   .rodata  	  : { *(.rodata*) *(.gnu.linkonce.r*) }
   .rodata1	  : { *(.rodata1) }
-  .eh_frame	  : { *.(eh_frame) }
+  .eh_frame	  : { *(.eh_frame) }
   _etext = .;
   PROVIDE (etext = .);
   PROVIDE (__SDATA2_START__ = .);
@@ -139,7 +139,7 @@ SECTIONS
   .sbss      :
   {
     PROVIDE (__sbss_start = .);
-    *(.sbss*)
+    *(.sbss* .sbss.* .gnu.linkonce.sb.*)
     *(.scommon)
     PROVIDE (__sbss_end = .);
   }
@@ -152,9 +152,7 @@ SECTIONS
    *(COMMON)
    PROVIDE (__bss_end = .);
   }
-  . =  ALIGN(0x100);
-  PROVIDE (__stackLow = .);
-  . += 0x8000;
+  . =  ALIGN(8) + 0x8000;
   PROVIDE (__stack = .);
   _end = . ;
   __rtems_end = . ;

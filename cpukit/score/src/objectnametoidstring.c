@@ -1,15 +1,14 @@
 /*
  *  Object Handler - Object ID to Name (String)
  *
- *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectnametoidstring.c,v 1.4 2008/02/26 19:20:36 joel Exp $
+ *  $Id: objectnametoidstring.c,v 1.7.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,6 +29,7 @@
 #include <rtems/score/sysstate.h>
 #include <rtems/score/isr.h>
 
+#if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
 /*PAGE
  *
  *  _Objects_Name_to_id_string
@@ -58,7 +58,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_string(
   uint32_t                   index;
   uint32_t                   name_length;
 
-  /* ASSERT: information->is_string == TRUE */
+  /* ASSERT: information->is_string == true */
 
   if ( !id )
     return OBJECTS_INVALID_ADDRESS;
@@ -86,3 +86,4 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_string(
 
   return OBJECTS_INVALID_NAME;
 }
+#endif

@@ -4,14 +4,14 @@
  *  Pseudo-code from Chris Johns, implemented and debugged
  *  by Joel Sherrill.
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: shell_script.c,v 1.6.2.1 2008/12/02 18:50:43 joel Exp $
+ *  $Id: shell_script.c,v 1.13 2010/02/28 20:14:10 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -30,6 +30,7 @@
 
 #include <rtems.h>
 #include <rtems/shell.h>
+#include <rtems/stringto.h>
 #include "internal.h"
 
 static void rtems_shell_joel_usage(void)
@@ -68,7 +69,7 @@ static int findOnPATH(
     strcat( scriptFile, "/" );
     strcat(
       scriptFile,
-      ( (userScriptName[0] == '.' && userScriptName[1] == '/') ? 
+      ( (userScriptName[0] == '.' && userScriptName[1] == '/') ?
          &userScriptName[2] : userScriptName)
     );
   }
@@ -81,7 +82,7 @@ static int findOnPATH(
   return 0;
 
 #if 0
-   /* 
+   /*
     * Does the command (argv[0]) contain a path ?, i.e. starts with
     * '.' or contains a '/'?
     */
@@ -100,8 +101,14 @@ static int findOnPATH(
 int rtems_shell_main_joel(
   int    argc,
   char **argv
+);
+
+int rtems_shell_main_joel(
+  int    argc,
+  char **argv
 )
 {
+  unsigned long        tmp;
   int                  option;
   int                  sc;
   int                  verbose = 0;
@@ -113,25 +120,39 @@ int rtems_shell_main_joel(
   char                 scriptFile[PATH_MAX];
   struct getopt_data   getopt_reent;
 
-  memset(&getopt_reent, 0, sizeof(getopt_data)); 
+  memset(&getopt_reent, 0, sizeof(getopt_data));
   while ( (option = getopt_r( argc, argv, "o:p:s:t:v", &getopt_reent)) != -1 ) {
     switch ((char)option) {
       case 'o':
         outputFile = getopt_reent.optarg;
         break;
-      case 'p':
-        taskPriority = rtems_shell_str2int(getopt_reent.optarg);
+      case 'p': {
+        const char *s = getopt_reent.optarg;
+
+	if ( rtems_string_to_unsigned_long( s, &tmp, NULL, 0) ) {
+	  printf( "Task Priority argument (%s) is not a number\n", s );
+	  return -1;
+	}
+	taskPriority = (rtems_task_priority) tmp;
         break;
-      case 's':
-        stackSize = rtems_shell_str2int(getopt_reent.optarg);
+      }
+      case 's': {
+        const char *s = getopt_reent.optarg;
+
+	if ( rtems_string_to_unsigned_long( s, &tmp, NULL, 0) ) {
+	  printf( "Stack size argument (%s) is not a number\n", s );
+	  return -1;
+	}
+        stackSize = (uint32_t) tmp;
         break;
+      }
       case 't':
         taskName = getopt_reent.optarg;
         break;
-      case 'v':  
+      case 'v':
         verbose = 1;
         break;
-      case '?':  
+      case '?':
       default:
         rtems_shell_joel_usage();
         return -1;
@@ -139,7 +160,7 @@ int rtems_shell_main_joel(
   }
 
   if ( verbose ) {
-    fprintf( stderr, 
+    fprintf( stderr,
       "outputFile: %s\n"
       "taskPriority: %" PRId32 "\n"
       "stackSize: %" PRId32 "\n"
@@ -158,10 +179,10 @@ int rtems_shell_main_joel(
   if ( getopt_reent.optind >= argc ) {
     fprintf( stderr, "Shell: No script to execute\n" );
     return -1;
-  } 
- 
+  }
+
   /*
-   *  Find script on the path.  
+   *  Find script on the path.
    *
    *  NOTE: It is terrible that this is done twice but it
    *        seems to be the most expedient thing.
@@ -196,7 +217,7 @@ int rtems_shell_main_joel(
     return -1;
   return 0;
 }
-      
+
 rtems_shell_cmd_t rtems_shell_JOEL_Command = {
   "joel",                        /* name */
   "joel [args] SCRIPT",          /* usage */
@@ -213,7 +234,7 @@ rtems_shell_cmd_t rtems_shell_JOEL_Command = {
  *  appears to be a shell script.
  */
 int rtems_shell_script_file(
-  int   argc,
+  int   argc __attribute__((unused)),
   char *argv[]
 )
 {
@@ -282,7 +303,7 @@ int rtems_shell_script_file(
   scriptHead[length - 1] = '\0';
 
   /* fprintf( stderr, "FIRST LINE: -%s-\n", scriptHead ); */
-   
+
   /*
    *  Verify the name of the "shell" is joel.  This means
    *  the line starts with "#! joel".
@@ -299,7 +320,7 @@ int rtems_shell_script_file(
    */
 
   /*
-   * Check for arguments in fist line of the script.  This changes
+   * Check for arguments in the first line of the script.  This changes
    * how the shell task is run.
    */
 
@@ -326,4 +347,3 @@ int rtems_shell_script_file(
 
   return 0;
 }
-

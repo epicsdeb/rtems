@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Thread Ready
  *
- *
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadready.c,v 1.6 2006/01/16 15:13:58 joel Exp $
+ *  $Id: threadready.c,v 1.7.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -72,7 +71,7 @@ void _Thread_Ready(
   heir = _Thread_Heir;
 
   if ( !_Thread_Is_executing( heir ) && _Thread_Executing->is_preemptible )
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
 
   _ISR_Enable( level );
 }

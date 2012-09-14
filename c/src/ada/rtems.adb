@@ -17,7 +17,7 @@
 --  the file LICENSE in this distribution or at
 --  http://www.rtems.com/license/LICENSE.
 --
---  $Id: rtems.adb,v 1.33.2.1 2008/11/20 15:14:39 joel Exp $
+--  $Id: rtems.adb,v 1.36 2009/08/24 12:15:24 joel Exp $
 --
 
 with Ada;
@@ -70,8 +70,8 @@ package body RTEMS is
    function Microseconds_To_Ticks (
       Microseconds : RTEMS.Unsigned32
    ) return RTEMS.Interval is
-      Microseconds_Per_Tick : RTEMS.Interval;
-      pragma Import (C, Microseconds_Per_Tick, "_TOD_Microseconds_per_tick");
+      function Microseconds_Per_Tick return RTEMS.Unsigned32;
+      pragma Import (C, Microseconds_Per_Tick, "_ada_microseconds_per_tick");
    begin
 
       return Microseconds / Microseconds_Per_Tick;
@@ -2154,7 +2154,7 @@ package body RTEMS is
       function Debug_Is_Enabled_Base (
          Level : RTEMS.Debug_Set
       )  return RTEMS.Boolean;
-      pragma Import (C, Debug_Is_Enabled_Base, "_Debug_Is_enabled");
+      pragma Import (C, Debug_Is_Enabled_Base, "rtems_debug_is_enabled");
    begin
 
       return Debug_Is_Enabled_Base (Level);

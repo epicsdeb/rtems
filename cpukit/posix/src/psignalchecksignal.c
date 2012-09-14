@@ -6,14 +6,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psignalchecksignal.c,v 1.8 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: psignalchecksignal.c,v 1.9 2009/06/29 23:19:28 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <assert.h>
+#if defined(RTEMS_DEBUG)
+  #include <assert.h>
+#endif
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>

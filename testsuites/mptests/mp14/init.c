@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.16 2008/09/03 22:06:22 joel Exp $
+ *  $Id: init.c,v 1.18 2009/10/30 13:18:33 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -42,7 +42,7 @@ rtems_task Init(
   rtems_task_priority previous_priority;
 
   printf(
-    "\n\n*** TEST 14 -- NODE %d ***\n",
+    "\n\n*** TEST 14 -- NODE %" PRId32 " ***\n",
     Multiprocessing_configuration.node
   );
 
@@ -56,7 +56,7 @@ rtems_task Init(
 
   status = rtems_timer_fire_after(
     timer_id,
-    MAX_LONG_TEST_DURATION * TICKS_PER_SECOND,
+    MAX_LONG_TEST_DURATION * rtems_clock_get_ticks_per_second(),
     Stop_Test_TSR,
     NULL
   );

@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.c,v 1.10.2.1 2008/09/30 16:28:07 joel Exp $
+ *  $Id: timer.c,v 1.11 2008/09/30 16:25:57 joel Exp $
  */
 
 #include <bsp.h>

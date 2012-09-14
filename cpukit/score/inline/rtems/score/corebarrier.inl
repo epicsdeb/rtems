@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: corebarrier.inl,v 1.3 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: corebarrier.inl,v 1.4 2008/12/22 09:22:17 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_COREBARRIER_H
@@ -32,11 +32,11 @@
 #include <rtems/score/threadq.h>
 
 /**
- *  This function returns TRUE if the automatic release attribute is
- *  enabled in the @a attribute_set and FALSE otherwise.
+ *  This function returns true if the automatic release attribute is
+ *  enabled in the @a attribute_set and false otherwise.
  *
  *  @param[in] the_attribute is the attribute set to test
- *  @return TRUE if the priority attribute is enabled
+ *  @return true if the priority attribute is enabled
  */
 RTEMS_INLINE_ROUTINE bool _CORE_barrier_Is_automatic(
   CORE_barrier_Attributes *the_attribute

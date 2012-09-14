@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_mmove.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: main_mmove.c,v 1.6 2009/07/23 14:32:34 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,6 +22,7 @@
 
 #include <rtems.h>
 #include <rtems/shell.h>
+#include <rtems/stringto.h>
 #include "internal.h"
 
 extern int rtems_shell_main_mdump(int, char *);
@@ -31,19 +32,39 @@ int rtems_shell_main_mmove(
   char *argv[]
 )
 {
- uintptr_t  src;
- uintptr_t  dst;
- size_t     length;
+  unsigned long  tmp;
+  void          *src;
+  void          *dst;
+  size_t         length;
 
- if ( argc<4 ) {
-  fprintf(stderr,"%s: too few arguments\n", argv[0]);
-  return -1;
- }
+  if ( argc < 4 ) {
+    fprintf(stderr,"%s: too few arguments\n", argv[0]);
+    return -1;
+   }
 
- dst    = rtems_shell_str2int(argv[1]);
- src    = rtems_shell_str2int(argv[2]);
- length = rtems_shell_str2int(argv[3]);
- memcpy((unsigned char*)dst, (unsigned char*)src, length);
+  /*
+   *  Convert arguments into numbers
+   */
+  if ( rtems_string_to_pointer(argv[1], &dst, NULL) ) {
+    printf( "Destination argument (%s) is not a number\n", argv[1] );
+    return -1;
+  }
+
+  if ( rtems_string_to_pointer(argv[2], &src, NULL) ) {
+    printf( "Source argument (%s) is not a number\n", argv[2] );
+    return -1;
+  }
+
+  if ( rtems_string_to_unsigned_long(argv[3], &tmp, NULL, 0) ) {
+    printf( "Length argument (%s) is not a number\n", argv[3] );
+    return -1;
+  }
+  length = (size_t) tmp;
+
+  /*
+   *  Now copy the memory.
+   */
+  memcpy(dst, src, length);
 
  return 0;
 }

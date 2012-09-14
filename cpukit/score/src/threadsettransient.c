@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Thread Set Transient
  *
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadsettransient.c,v 1.5 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: threadsettransient.c,v 1.5.8.1 2011/05/25 14:17:53 ralf Exp $
  */
 
 #if HAVE_CONFIG_H

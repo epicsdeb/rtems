@@ -6,7 +6,7 @@
  *
  * http://www.rtems.com/license/LICENSE
  *
- * $Id: bsp.h,v 1.1 2008/04/16 18:37:31 joel Exp $
+ * $Id: bsp.h,v 1.2 2008/09/10 21:35:21 joel Exp $
  */
 
 #ifndef __BSP_H_
@@ -32,10 +32,6 @@ extern "C"
 
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"dswifi0"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_wifi_driver_attach
-
-  void bsp_start (void);
-  void bsp_cleanup (void);
-
 
 #define RTC_DRIVER_TABLE_ENTRY \
     { rtc_initialize, NULL, NULL, NULL, NULL, NULL }

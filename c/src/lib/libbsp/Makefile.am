@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.24 2008/07/24 14:52:54 thomas Exp $
+## $Id: Makefile.am,v 1.26 2009/04/28 06:36:25 ccj Exp $
 ##
 
 include $(top_srcdir)/automake/compile.am
@@ -10,10 +10,10 @@ DIST_SUBDIRS = @libbsp_cpu_subdir@
 EXTRA_DIST = MERGE.PROCEDURE bsp.am
 
 # shared
-EXTRA_DIST += shared/bootcard.c shared/bspclean.c shared/bsplibc.c \
-    shared/bsppost.c shared/console-polled.c shared/console.c \
-    shared/gnatinstallhandler.c shared/sbrk.c shared/tod.c \
-    shared/tod.h
+EXTRA_DIST += shared/bootcard.c shared/bspclean.c shared/bspinit.c \
+    shared/bsplibc.c shared/bsppost.c shared/console-polled.c \
+    shared/console.c shared/gnatinstallhandler.c shared/sbrk.c \
+    shared/tod.c shared/tod.h
 EXTRA_DIST += shared/vmeUniverse/vmeUniverse.c \
     shared/vmeUniverse/vmeUniverse.h \
     shared/vmeUniverse/vmeUniverseDMA.h \
@@ -31,10 +31,7 @@ EXTRA_DIST += shared/vmeUniverse/vmeUniverse.c \
 
 EXTRA_DIST += shared/include/coverhd.h
 EXTRA_DIST += shared/gdbstub/rtems-stub-glue.c
+EXTRA_DIST += shared/include/bootcard.h
 
-include_bspdir = $(includedir)/bsp
-include_bsp_HEADERS = shared/include/bootcard.h
-
-include $(srcdir)/preinstall.am
 include $(top_srcdir)/automake/subdirs.am
 include $(top_srcdir)/automake/local.am

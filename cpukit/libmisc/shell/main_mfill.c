@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_mfill.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: main_mfill.c,v 1.6 2009/07/23 14:32:34 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,6 +22,7 @@
 
 #include <rtems.h>
 #include <rtems/shell.h>
+#include <rtems/stringto.h>
 #include "internal.h"
 
 int rtems_shell_main_mfill(
@@ -29,19 +30,39 @@ int rtems_shell_main_mfill(
   char *argv[]
 )
 {
-  uintptr_t     addr;
-  size_t        size;
-  unsigned char value;
+  unsigned long  tmp;
+  void          *addr;
+  size_t         size;
+  unsigned char  value;
 
   if ( argc != 4 ) {
     fprintf(stderr,"%s: too few arguments\n", argv[0]);
     return -1;
   }
 
-  addr  = rtems_shell_str2int(argv[1]);
-  size  = rtems_shell_str2int(argv[2]);
-  value = rtems_shell_str2int(argv[3]) % 0x100;
-  memset((unsigned char*)addr,size,value);
+  /*
+   *  Convert arguments into numbers
+   */
+  if ( rtems_string_to_pointer(argv[1], &addr, NULL) ) {
+    printf( "Address argument (%s) is not a number\n", argv[1] );
+    return -1;
+  }
+
+  if ( rtems_string_to_unsigned_long(argv[2], &tmp, NULL, 0) ) {
+    printf( "Size argument (%s) is not a number\n", argv[2] );
+    return -1;
+  }
+  size = (size_t) tmp;
+
+  if ( rtems_string_to_unsigned_char(argv[3], &value, NULL, 0) ) {
+    printf( "Value argument (%s) is not a number\n", argv[3] );
+    return -1;
+  }
+
+  /*
+   *  Now fill the memory.
+   */
+  memset(addr, size, value);
 
   return 0;
 }

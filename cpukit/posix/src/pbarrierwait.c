@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pbarrierwait.c,v 1.3 2007/11/30 20:34:13 humph Exp $
+ *  $Id: pbarrierwait.c,v 1.4 2009/01/02 10:04:23 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -52,7 +52,7 @@ int pthread_barrier_wait(
       _CORE_barrier_Wait(
         &the_barrier->Barrier,
         the_barrier->Object.id,
-        TRUE,
+        true,
         0,
         NULL
       );

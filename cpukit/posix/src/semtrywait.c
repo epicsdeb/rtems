@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semtrywait.c,v 1.5 2008/07/18 18:45:56 joel Exp $
+ *  $Id: semtrywait.c,v 1.6 2009/02/03 10:10:57 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -38,5 +38,5 @@ int sem_trywait(
   sem_t *sem
 )
 {
-  return _POSIX_Semaphore_Wait_support(sem, FALSE, THREAD_QUEUE_WAIT_FOREVER);
+  return _POSIX_Semaphore_Wait_support(sem, false, THREAD_QUEUE_WAIT_FOREVER);
 }

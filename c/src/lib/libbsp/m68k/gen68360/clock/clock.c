@@ -10,7 +10,7 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@skatter.usask.ca
  *
- *  $Id: clock.c,v 1.5 2008/08/19 17:41:56 joel Exp $
+ *  $Id: clock.c,v 1.6 2008/09/30 05:09:55 ralf Exp $
  */
 
 #include <rtems.h>
@@ -100,4 +100,4 @@ extern int m360_clock_rate;
         m360.pitr |= divisor;                                                 \
     } while (0)
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

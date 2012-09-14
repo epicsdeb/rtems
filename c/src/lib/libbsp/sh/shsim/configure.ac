@@ -1,51 +1,19 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.17 2006/12/02 06:00:34 ralf Exp $
+##
+## $Id: configure.ac,v 1.24.2.1 2011/02/02 15:17:10 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-sh-shsim],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
-
-## bsp-specific options
-RTEMS_BSP_ARG_ENABLE([console],
-[  --enable-console=[[null|gdbsci1]]],[
-  case $enable_console in
-  null)
-    BSP_CONSOLE_DEVNAME=\"/dev/null\"
-    BSP_CONSOLE_DRIVER_TABLE_ENTRY=DEVNULL_DRIVER_TABLE_ENTRY
-    ;;
-# Not yet
-#  trap34)
-#    BSP_CONSOLE_DEVNAME=\"/dev/trap34\"
-#    BSP_CONSOLE_DRIVER_TABLE_ENTRY=DEVTRAP34_DRIVER_TABLE_ENTRY
-#    ;;
-  yes|gdbsci1)
-    BSP_CONSOLE_DEVNAME=\"/dev/gdbsci1\"
-    BSP_CONSOLE_DRIVER_TABLE_ENTRY=DEVGDBSCI_DRIVER_TABLE_ENTRY
-    ;;
-  *) AC_MSG_WARN([bad value $enable_console for --enable-console=<value>])
-    ;;
-  esac],[
-    BSP_CONSOLE_DEVNAME=\"/dev/gdbsci1\"
-    BSP_CONSOLE_DRIVER_TABLE_ENTRY=DEVGDBSCI_DRIVER_TABLE_ENTRY
-])
-AC_DEFINE_UNQUOTED(
-  [BSP_CONSOLE_DEVNAME],
-  [${BSP_CONSOLE_DEVNAME}],
-  [device name to redirect the console to])
-AC_DEFINE_UNQUOTED(
-  [BSP_CONSOLE_DRIVER_TABLE_ENTRY],
-  [${BSP_CONSOLE_DRIVER_TABLE_ENTRY}],
-  [Driver table entry for the console device])
 
 ##
 RTEMS_BSP_ARG_ENABLE([iomem-patch],
@@ -61,8 +29,15 @@ RTEMS_BSPOPTS_SET([CPU_CLOCK_RATE_HZ],[*],[20000000])
 RTEMS_BSPOPTS_HELP([CPU_CLOCK_RATE_HZ],
 [cpu clock rate in HZ])
 
+RTEMS_BSPOPTS_SET([START_HW_INIT],[*],[])
+RTEMS_BSPOPTS_HELP([START_HW_INIT],
+[If defined, selects whether 'early_hw_init()' is called from 'start.S';
+ 'bsp_hw_init()' is always called from 'bspstart.c'])
+
 ## Used in scitab/Makefile.am
 AC_SUBST(CPU_CLOCK_RATE_HZ)
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

@@ -17,7 +17,7 @@
 | 13.04.02  creation                                         doe  |
 \*===============================================================*/
 /*
- * $Id: termios_printk.h,v 1.4 2004/09/17 17:00:19 joel Exp $
+ * $Id: termios_printk.h,v 1.5 2008/12/18 15:25:27 joel Exp $
  */
 #ifndef _TERMIOS_PRINTK_H
 #define _TERMIOS_PRINTK_H
@@ -61,7 +61,7 @@ void termios_printk_outputchar
 /*=========================================================================*\
 | Function:                                                                 |
 \*-------------------------------------------------------------------------*/
-char termios_printk_inputchar
+int termios_printk_inputchar
 /*-------------------------------------------------------------------------*\
 | Purpose:                                                                  |
 |    wait for one character from serial port                                |

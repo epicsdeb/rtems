@@ -29,7 +29,7 @@
 | *  http://www.rtems.com/license/LICENSE.
 | **************************************************************************
 |
-|  $Id: console.c,v 1.14 2008/05/23 15:48:38 joel Exp $
+|  $Id: console.c,v 1.15 2009/09/30 03:18:35 ralf Exp $
 +--------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -43,6 +43,7 @@
 #include <termios.h>
 #include <uart.h>
 #include <libcpu/cpuModel.h>
+#include <rtems/termiostypes.h>
 
 /*
  * Possible value for console input/output :
@@ -275,9 +276,9 @@ console_control(rtems_device_major_number major,
 static int
 conSetAttr(int minor, const struct termios *t)
 {
-  int baud;
+  rtems_termios_baud_t baud;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 

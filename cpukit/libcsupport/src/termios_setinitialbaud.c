@@ -6,24 +6,28 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: termios_setinitialbaud.c,v 1.1 2008/05/22 20:35:41 joel Exp $
+ *  $Id: termios_setinitialbaud.c,v 1.4 2010/03/27 05:36:47 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/termios.h>
 #include <rtems/termiostypes.h>
 
 int  rtems_termios_set_initial_baud(
   struct rtems_termios_tty *ttyp,
-  int                       baud
+  int32_t                   baud
 )
 {
   int cflags_baud;
 
-  cflags_baud = termios_number_to_baud(baud);
+  cflags_baud = rtems_termios_number_to_baud(baud);
   if ( cflags_baud == -1 )
     return -1;
 
   ttyp->termios.c_cflag = (ttyp->termios.c_cflag & ~CBAUD) | cflags_baud;
-  
+
   return 0;
 }

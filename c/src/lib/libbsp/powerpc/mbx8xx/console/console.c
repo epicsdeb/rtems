@@ -83,7 +83,7 @@
 #include <bsp/mbx.h>
 
 static int _EPPCBug_pollRead( int minor );
-static int _EPPCBug_pollWrite( int minor, const char *buf, int len );
+static ssize_t _EPPCBug_pollWrite( int minor, const char *buf, size_t len );
 static void _BSP_output_char( char c );
 static rtems_status_code do_poll_read( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
 static rtems_status_code do_poll_write( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
@@ -92,6 +92,9 @@ static void _BSP_null_char( char c ) {return;}
 static void serial_putchar(const char c);
 
 BSP_output_char_function_type BSP_output_char = _BSP_null_char;
+
+extern volatile m8xx_t m8xx;
+extern struct rtems_termios_tty *ttyp[];
 
 /*
  * _EPPCBug_pollRead
@@ -111,8 +114,6 @@ static int _EPPCBug_pollRead(
   int minor
 )
 {
-  extern volatile m8xx_t m8xx;
-
   char c;
   volatile int simask;		/* We must read and write m8xx.simask */
   int retval;
@@ -214,16 +215,14 @@ static int _EPPCBug_pollRead(
  *
  *  Return value: IGNORED
  */
-static int _EPPCBug_pollWrite(
+static ssize_t _EPPCBug_pollWrite(
   int minor,
   const char *buf,
-  int len
+  size_t len
 )
 {
-  extern volatile m8xx_t m8xx;
-
   volatile int simask;
-  int i, retval;
+  int i;
   ISR_Level level;
 
   struct {
@@ -248,8 +247,6 @@ static int _EPPCBug_pollWrite(
       } write;
     } u;
   } volatile output_params;
-
-  retval = -1;
 
   input_params.clun = 0;
   input_params.reserved = 0;
@@ -315,7 +312,7 @@ static int _EPPCBug_pollWrite(
   /* Return something */
   m8xx.simask = simask;
   _ISR_Enable( level );
-  return RTEMS_SUCCESSFUL;
+  return len;
 
 error:
   m8xx.simask = simask;
@@ -422,7 +419,7 @@ static rtems_status_code do_poll_write(
 
 #if NVRAM_CONFIGURE == 1
 
-  int (*pollWrite)(int minor, const char *buf, int len);
+  ssize_t (*pollWrite)(int minor, const char *buf, size_t len);
 
   if ( (nvram->console_mode & 0x06) == 0x04 )
     pollWrite = _EPPCBug_pollWrite;
@@ -538,7 +535,7 @@ serial_init(void)
 	bd_t	*bd;
 
 #if NVRAM_CONFIGURE == 1
-	if ( ((nvram->console_mode & 0x06) != 0x04 ) || 
+	if ( ((nvram->console_mode & 0x06) != 0x04 ) ||
 	     ((nvram->console_mode & 0x30) != 0x20 )) {
 	  /*
 	   * FIXME: refine this condition...
@@ -877,7 +874,6 @@ rtems_device_driver console_open(
 {
 #if NVRAM_CONFIGURE == 1
   /* Used to track termios private data for callbacks */
-  extern struct rtems_termios_tty *ttyp[];
   rtems_libio_open_close_args_t *args = arg;
   static const rtems_termios_callbacks sccEPPCBugCallbacks = {
     NULL,                       	/* firstOpen */

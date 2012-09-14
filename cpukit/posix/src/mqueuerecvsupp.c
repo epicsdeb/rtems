@@ -11,14 +11,14 @@
  *         This code ignores the O_RDONLY/O_WRONLY/O_RDWR flag at open
  *         time.
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueuerecvsupp.c,v 1.17 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: mqueuerecvsupp.c,v 1.18.2.1 2011/09/01 18:24:57 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -88,7 +88,7 @@ ssize_t _POSIX_Message_queue_Receive_support(
        *  A timed receive with a bad time will do a poll regardless.
        */
       if ( wait )
-        do_wait = (the_mq_fd->oflag & O_NONBLOCK) ? FALSE : TRUE;
+        do_wait = (the_mq_fd->oflag & O_NONBLOCK) ? false : true;
       else
         do_wait = wait;
 
@@ -105,8 +105,11 @@ ssize_t _POSIX_Message_queue_Receive_support(
       );
 
       _Thread_Enable_dispatch();
-      *msg_prio =
-        _POSIX_Message_queue_Priority_from_core(_Thread_Executing->Wait.count);
+      if (msg_prio) {
+        *msg_prio = _POSIX_Message_queue_Priority_from_core(
+             _Thread_Executing->Wait.count
+          );
+      }
 
       if ( !_Thread_Executing->Wait.return_code )
         return length_out;

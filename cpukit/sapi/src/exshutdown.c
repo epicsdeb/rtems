@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: exshutdown.c,v 1.2 2008/01/04 06:38:06 strauman Exp $
+ *  $Id: exshutdown.c,v 1.3 2009/09/04 13:09:48 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -35,7 +35,7 @@ void rtems_shutdown_executive(
    uint32_t   result
 )
 {
-  if ( _System_state_Current != SYSTEM_STATE_SHUTDOWN ) {
+  if ( !_System_state_Is_shutdown( _System_state_Get() ) ) {
     _System_state_Set( SYSTEM_STATE_SHUTDOWN );
     _Thread_Stop_multitasking();
   }

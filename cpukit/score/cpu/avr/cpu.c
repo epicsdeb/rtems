@@ -1,50 +1,39 @@
 /*
- *  XXX CPU Dependent Source
+ *  AVR CPU Dependent Source
  *
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.4 2008/07/31 14:55:33 joel Exp $
+ *  $Id: cpu.c,v 1.16 2010/03/27 15:01:24 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/wkspace.h>
 
+#include <rtems/bspIo.h> /* XXX remove me later */
+
 /*  _CPU_Initialize
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  *
  *  NO_CPU Specific Information:
  *
  *  XXX document implementation including references if appropriate
  */
-
-
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
-  /*
-   *  The thread_dispatch argument is the address of the entry point
-   *  for the routine called at the end of an ISR once it has been
-   *  decided a context switch is necessary.  On some compilation
-   *  systems it is difficult to call a high-level language routine
-   *  from assembly.  This allows us to trick these systems.
-   *
-   *  If you encounter this problem save the entry point in a CPU
-   *  dependent variable.
-   */
-
-  _CPU_Thread_dispatch_pointer = thread_dispatch;
 
   /*
    *  If there is not an easy way to initialize the FP context
@@ -64,14 +53,15 @@ void _CPU_Initialize(
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 uint32_t   _CPU_ISR_Get_level( void )
 {
   /*
    *  This routine returns the current interrupt level.
    */
+  if((SREG & 0x80))return 1;
+  else 	return 0;
 
-  return 0;
 }
 
 /*PAGE
@@ -82,7 +72,7 @@ uint32_t   _CPU_ISR_Get_level( void )
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -134,7 +124,7 @@ void _CPU_ISR_install_vector(
    /*
     *  We put the actual user ISR address in '_ISR_vector_table'.  This will
     *  be used by the _ISR_Handler so the user gets control.
-    */
+    */	
 
     _ISR_Vector_table[ vector ] = new_handler;
 }
@@ -173,9 +163,10 @@ void _CPU_Install_interrupt_stack( void )
  *  XXX document implementation including references if appropriate
  */
 
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
 
-  for( ; ; )
+  for( ; ; ) asm volatile ("sleep"::);
     /* insert your "halt" instruction here */ ;
+  return (void *) 0;
 }

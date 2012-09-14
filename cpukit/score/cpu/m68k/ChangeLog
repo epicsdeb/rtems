@@ -1,3 +1,28 @@
+2010-04-08	Till Straumann <strauman@slac.stanford.edu>
+
+	* cpu_asm.S, rtems/score/cpu.h: On uC5282, the thread restart needed to
+	reload the frame pointer. As part of doing this, the code was moved
+	from inline asm to the .S file.
+
+2010-03-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, cpu_asm.S: Add include of config.h
+
+2009-09-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: Define CPU_STRUCTURE_ALIGNMENT to be on a 4 byte
+	boundary.
+
+2009-08-24	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* rtems/score/cpu.h: Define M68K_FP_STATE_SIZE also if used in
+	assembler files.
+
+2009-05-11	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* cpu.c, cpu_asm.S, rtems/score/cpu.h: Cleanup of the floating point
+	context initialization, save and restore code.
+
 2009-03-12	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	PR 1385/cpukit
@@ -6,7 +31,28 @@
 	code accesses two boolean variables for scheduling purposes and the
 	assembly implementations of this code did not get updated.
 
-2008-09-18	Ralf Corsépius <ralf.corsepius@rtems.org>
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: Change prototype of IDLE thread to consistently
+	return void * and take a uintptr_t argument.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Eliminate _CPU_Thread_dispatch_pointer and
+	passing address of _Thread_Dispatch to _CPU_Initialize. Clean up
+	comments.
+
+2008-12-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* rtems/score/m68k.h: Don't include rtems/score/types.h,
+	rtems/stdint.h.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/m68k.h: Move set cacr, acr0, acr1 routines here to get
+	them out of a BSP.
+
+2008-09-11	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* rtems/score/types.h: Do not define boolean, single_precision,
 	double_precision unless RTEMS_DEPRECATED_TYPES is given.

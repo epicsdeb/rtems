@@ -2,7 +2,11 @@
  *  Test program to demonstrate reordering of threads on thread queues
  *  when their priority changes.
  *
- *  $Id: changepri.c,v 1.6 2008/01/23 22:57:54 joel Exp $
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: changepri.c,v 1.13 2009/11/30 03:33:24 ralf Exp $
  */
 
 #include <bsp.h>
@@ -24,18 +28,20 @@
 #include "tmacros.h"
 
 rtems_task BlockingTasks(rtems_task_argument arg);
+rtems_task Init(rtems_task_argument ignored);
+const char *CallerName(void);
 
 /*
  *  CallerName -- print the calling tasks name or id as configured
  */
-const char *CallerName()
+const char *CallerName(void)
 {
   static char buffer[32];
 #if defined(TEST_PRINT_TASK_ID)
   sprintf( buffer, "0x%08x -- %d",
       rtems_task_self(), _Thread_Executing->current_priority );
 #else
-  union {
+  volatile union {
     uint32_t u;
     unsigned char c[4];
   } TempName;
@@ -45,7 +51,7 @@ const char *CallerName()
   #else
     TempName.u = _Thread_Executing->Object.name.name_u32;
   #endif
-  sprintf( buffer, "%c%c%c%c -- %d",
+    sprintf( buffer, "%c%c%c%c -- %" PRIdPriority_Control,
       TempName.c[0], TempName.c[1], TempName.c[2], TempName.c[3],
       _Thread_Executing->current_priority
   );
@@ -70,7 +76,7 @@ rtems_task BlockingTasks(rtems_task_argument arg)
   status = rtems_task_set_priority(RTEMS_SELF, RTEMS_CURRENT_PRIORITY, &opri);
   directive_failed( status, "rtems_task_set_priority" );
 
-  printf("semaphore_obtain -- BlockingTask %d @ pri=%d) blocks\n", arg, opri);
+  printf("semaphore_obtain -- BlockingTask %" PRIdrtems_task_argument " @ pri=%" PRIdrtems_task_priority ") blocks\n", arg, opri);
   status = rtems_semaphore_obtain(Semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
   directive_failed( status, "rtems_semaphore_obtain" );
 
@@ -78,7 +84,7 @@ rtems_task BlockingTasks(rtems_task_argument arg)
   status = rtems_task_set_priority(RTEMS_SELF, RTEMS_CURRENT_PRIORITY, &npri);
   directive_failed( status, "rtems_task_set_priority" );
 
-  printf("semaphore_obtain -- BlockingTask %d @ pri=%d) returns\n", arg, npri);
+  printf("semaphore_obtain -- BlockingTask %" PRIdrtems_task_argument " @ pri=%" PRIdrtems_task_priority ") returns\n", arg, npri);
 
   (void) rtems_task_delete( RTEMS_SELF );
 }
@@ -89,36 +95,40 @@ rtems_task BlockingTasks(rtems_task_argument arg)
 
 rtems_task Init(rtems_task_argument ignored)
 {
-  rtems_status_code   status;   
+  rtems_status_code   status;
   int                 i;
-  
+
   puts( "\n\n*** TEST 34 ***" );
 
   /* Create synchronisation semaphore for LocalHwIsr -> Test Tasks */
   status = rtems_semaphore_create(
     rtems_build_name ('S', 'E', 'M', '1'),           /* name */
     0,                                               /* initial count = 0 */
-    RTEMS_LOCAL                   | 
-    RTEMS_COUNTING_SEMAPHORE      | 
+    RTEMS_LOCAL                   |
+    RTEMS_COUNTING_SEMAPHORE      |
     RTEMS_PRIORITY,
     0,
     &Semaphore);                                    /* *id */
   directive_failed( status, "rtems_semaphore_create" );
-  
+
   /* Create and start all tasks in the test */
 
   for (i = 0; i < NUMBER_OF_BLOCKING_TASKS; i++) {
     status = rtems_task_create(
       rtems_build_name('B','L','K','0'+i),               /* Name */
-      2+i,                                               /* Priority */
+      (rtems_task_priority) 2+i,                         /* Priority */
       RTEMS_MINIMUM_STACK_SIZE*2,                        /* Stack size (8KB) */
       RTEMS_DEFAULT_MODES | RTEMS_NO_ASR,                /* Mode */
       RTEMS_DEFAULT_ATTRIBUTES | RTEMS_FLOATING_POINT,   /* Attributes */
       &Blockers[i]);                                     /* Assigned ID */
     directive_failed( status, "rtems_task_create (BLKn)" );
-  
-    printf( "Blockers[%d] Id = 0x%08x\n", i, Blockers[i] );
-    status = rtems_task_start(Blockers[i], BlockingTasks, i);
+
+    printf( "Blockers[%d] Id = 0x%08" PRIxrtems_id "\n", i, Blockers[i] );
+    status = rtems_task_start(
+      Blockers[i],
+      BlockingTasks,
+      (rtems_task_argument)i
+    );
     directive_failed( status, "rtems_task_start (BLKn)" );
   }
 
@@ -128,7 +138,9 @@ rtems_task Init(rtems_task_argument ignored)
   puts( "rtems_task_set_priority -- invert priorities of tasks" );
   for (i = 0; i < NUMBER_OF_BLOCKING_TASKS; i++) {
     rtems_task_priority opri;
-    rtems_task_priority npri= 2 + NUMBER_OF_BLOCKING_TASKS - i - 1;
+    rtems_task_priority npri;
+
+    npri = (rtems_task_priority) (2 + NUMBER_OF_BLOCKING_TASKS - i - 1);
 
     status = rtems_task_set_priority(Blockers[i], npri, &opri);
     directive_failed( status, "rtems_task_set_priority" );

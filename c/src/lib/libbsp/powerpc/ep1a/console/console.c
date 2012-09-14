@@ -1,5 +1,5 @@
 /*
- *  This file contains the TTY driver for the ep1a 
+ *  This file contains the TTY driver for the ep1a
  *
  *  This driver uses the termios pseudo driver.
  *
@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console.c,v 1.4.2.1 2009/10/16 16:42:02 joel Exp $
+ *  $Id: console.c,v 1.6 2009/11/30 04:25:26 ralf Exp $
  */
 
 #include <bsp.h>
@@ -32,7 +32,7 @@
 console_data	Console_Port_Data[NUM_CONSOLE_PORTS];
 unsigned long	Console_Port_Count;
 rtems_device_minor_number  Console_Port_Minor;
-		
+
 /* PAGE
  *
  *  console_open
@@ -70,9 +70,9 @@ rtems_device_driver console_open(
 	Callbacks.pollRead      = c->deviceRead;
 	Callbacks.write         = c->deviceWrite;
 	Callbacks.setAttributes = c->deviceSetAttributes;
-	Callbacks.stopRemoteTx  = 
+	Callbacks.stopRemoteTx  =
 		Console_Port_Tbl[minor].pDeviceFlow->deviceStopRemoteTx;
-	Callbacks.startRemoteTx = 
+	Callbacks.startRemoteTx =
 		Console_Port_Tbl[minor].pDeviceFlow->deviceStartRemoteTx;
 	Callbacks.outputUsesInterrupts = c->deviceOutputUsesInterrupts;
 	status = rtems_termios_open ( major, minor, arg, &Callbacks);
@@ -102,7 +102,7 @@ rtems_device_driver console_open(
 
 	return status;
 }
- 
+
 rtems_device_driver console_close(
   rtems_device_major_number major,
   rtems_device_minor_number minor,
@@ -120,7 +120,7 @@ rtems_device_driver console_close(
 
 	return rtems_termios_close (arg);
 }
- 
+
 rtems_device_driver console_read(
   rtems_device_major_number major,
   rtems_device_minor_number minor,
@@ -129,7 +129,7 @@ rtems_device_driver console_read(
 {
   return rtems_termios_read (arg);
 }
- 
+
 rtems_device_driver console_write(
   rtems_device_major_number major,
   rtems_device_minor_number minor,
@@ -138,7 +138,7 @@ rtems_device_driver console_write(
 {
   return rtems_termios_write (arg);
 }
- 
+
 rtems_device_driver console_control(
   rtems_device_major_number major,
   rtems_device_minor_number minor,
@@ -194,7 +194,7 @@ rtems_device_driver console_initialize(
      */
     rtems_fatal_error_occurred(RTEMS_IO_ERROR);
   }
-	
+
   Console_Port_Minor=minor;
 
   /*
@@ -211,11 +211,6 @@ rtems_device_driver console_initialize(
   if ( Console_Port_Tbl[minor].pDeviceFns->deviceInitialize )
     Console_Port_Tbl[minor].pDeviceFns->deviceInitialize(
       Console_Port_Minor);
-
-  /*
-   * NOTE:  We must probe ALL possible devices, which initializes
-   *        the address information in the config.c tables.
-   */
 
   for(minor++;minor<Console_Port_Count;minor++)
   {

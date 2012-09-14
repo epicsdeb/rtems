@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqtimeout.c,v 1.8 2008/01/22 18:28:53 joel Exp $
+ *  $Id: threadqtimeout.c,v 1.9 2008/12/31 03:36:04 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -39,7 +39,7 @@
 
 void _Thread_queue_Timeout(
   Objects_Id  id,
-  void       *ignored
+  void       *ignored __attribute__((unused))
 )
 {
   Thread_Control       *the_thread;

@@ -32,7 +32,7 @@
 | *  http://www.rtems.com/license/LICENSE.
 | **************************************************************************
 |
-|  $Id: start.S,v 1.11 2008/03/22 14:01:49 joel Exp $
+|  $Id: start.S,v 1.16 2009/11/30 04:52:28 ralf Exp $
 +--------------------------------------------------------------------------*/
 
 /*
@@ -42,10 +42,15 @@
  */
 
 #include <rtems/asm.h>
+#include <rtems/score/cpu.h>
 
 /*----------------------------------------------------------------------------+
 | Size of heap and stack:
 +----------------------------------------------------------------------------*/
+
+#ifndef CPU_STACK_ALIGNMENT
+#error  "Missing header ? CPU_STACK_ALIGNMENT NOT DEFINED"
+#endif
 
 .set STACK_SIZE, 0x1000
 
@@ -63,6 +68,14 @@ BEGIN_CODE
 	EXTERN (_IBMPC_initVideo)
 	EXTERN (debugPollingGetChar)
 	EXTERN (checkCPUtypeSetCr0)
+	EXTERN (BSP_console_select)
+	EXTERN (printk)
+#ifdef __SSE__
+	EXTERN (x86_capability)
+#ifdef __SSE3__
+	EXTERN (x86_capability_x)
+#endif
+#endif
 
 /*
  * In case this crashes on your machine and this is not due
@@ -88,21 +101,42 @@ speakl:	jmp	speakl             # and SPIN!!!
         cli			# DISABLE INTERRUPTS!!!
 	cld
 
-		/* Save multiboot info */
-		cmp 	$0x2badb002,eax
-		jne		1f
-		/* We have multiboot info; let's hope DS and ES are OK... */
-		movl	ebx, SYM(_boot_multiboot_info_p)
-		/* Check for memory size info and save */
-		movl	ebx, esi
-		movl	$SYM(_boot_multiboot_info), edi
-		movsd
-		/* only save flag 1 since that's the only data we save */
-		and		$1,-4(edi)
-		je		1f
-		movl	$2,ecx
-		rep movsd
-1:
+	/* Save multiboot info if we detect a multiboot loader */
+	cmp 	$0x2badb002,eax
+	jne	2f
+
+	/* We have multiboot info; let's hope DS and ES are OK... */
+	movl	ebx, SYM(_boot_multiboot_info_p)
+	/* Check for memory size info and save */
+	movl	ebx, esi
+	movl	(esi), eax
+	movl	eax, ebx
+	movl	$SYM(_boot_multiboot_info), edi
+ 	/* save flags, always present */
+	movsd
+	/* flag 1 is memory */
+	and	$1, eax
+	je	1f
+	movl	$2, ecx
+	rep movsd
+	/* flag 2 is the command line */
+1:	movl	ebx, eax
+	and	$4, eax
+	je	3f
+	movl    (_boot_multiboot_info_p), eax
+	movl    16(eax), esi
+	movl	$255, ecx
+2:	movzbl	(esi), eax
+	test	al, al
+	je	3f
+	movb	al, (edi)
+	inc	edi
+	inc	esi
+	dec	ecx
+	je	3f
+	jmp	2b
+3:	xor	al, al
+	movb	al, (edi)
 #ifdef DEBUG_EARLY_START
 	/*
 	 * Must get video attribute to have a working printk.
@@ -115,7 +149,7 @@ speakl:	jmp	speakl             # and SPIN!!!
 	/*
 	 * try printk and a getchar in polling mode ASAP
 	 */
-	pushl	$welcome_msg
+	movl	$welcome_msg, 0(esp)
 	call	printk
 	addl	$4, esp
 
@@ -143,7 +177,8 @@ SYM (_establish_stack):
 
 	movl	$_end, eax		# eax = end of bss/start of heap
 	addl	$STACK_SIZE, eax	# make room for stack
-	andl	$0xffffffc0, eax	# align it on 16 byte boundary
+	subl    $4,          eax    # reserve room for arg to 'boot_card'
+	andl	$ - CPU_STACK_ALIGNMENT, eax	# align SP on CPU_STACK_ALIGNMENT boundary
 	movl	eax, esp		# set stack pointer
 	movl	eax, ebp		# set base pointer
 
@@ -175,14 +210,61 @@ SYM (zero_bss):
 	call checkCPUtypeSetCr0
 
 /*---------------------------------------------------------------------+
+| Redirect printk (and console) port if desired
++---------------------------------------------------------------------*/
+	call SYM(BSP_console_select)
+
+#ifdef __SSE__
+/*--------------------------------------------------------------------+
+ | Enable SSE; we really only care about fxsave/fxrstor and leave
+ | The only feature *we* (as an OS) use is fxsave/fxrstor.
+ | But as a courtesy we make sure we don't execute on hardware
+ | that doesn't support features possibly used by the compiler.
++---------------------------------------------------------------------*/
+	movl	SYM (x86_capability), eax
+	testl   $0x01000000, eax
+	jne     1f
+	movl    $SYM (no_fxsave_msg), 0(esp)
+	jmp     SYM(_sse_panic)
+1:
+	testl   $0x02000000, eax
+	jne     1f
+	movl    $SYM (no_sse_msg), 0(esp)
+	jmp     SYM(_sse_panic)
+1:
+#ifdef __SSE2__
+	testl   $0x04000000, eax
+	jne     1f
+	movl    $SYM (no_sse2_msg), 0(esp)
+	jmp     SYM(_sse_panic)
+1:
+#endif
+#ifdef __SSE3__
+	movl	SYM (x86_capability_x), eax
+	testl   $1, eax
+	jne     1f
+	movl    $SYM (no_sse3_msg), 0(esp)
+	jmp     SYM(_sse_panic)
+1:
+#endif
+	mov     cr4, eax		# OK to enable now
+	or      $0x600, eax
+	mov     eax, cr4
+#endif
+
+/*---------------------------------------------------------------------+
 | Transfer control to User's Board Support Package
+| Note: at the top we reserved space for the argument
+|       so that
+|          initial_esp = ( TOS - 4 ) & ~(CPU_STACK_ALIGNMENT-1)
+|       this ensures that
+|       1) esp is now aligned
+|       2) there is space for the cmdline pointer which we just
+|          may store at *(esp)
 +---------------------------------------------------------------------*/
 
-	pushl	$0			# environp
-	pushl	$0			# argv
-        pushl	$0			# argc
+	movl	$SYM(_boot_multiboot_cmdline), (esp)
 	call	SYM (boot_card)
-	addl	$12, esp
 
 /*---------------------------------------------------------------------+
 | Clean up - we do not know anything about it, so we will
@@ -190,6 +272,13 @@ SYM (zero_bss):
 +---------------------------------------------------------------------*/
 
 	jmp	SYM (_return_to_monitor)
+
+#ifdef __SSE__
+SYM(_sse_panic):
+	call SYM(printk)
+1:	hlt
+	jmp 1b
+#endif
 
 END_CODE
 
@@ -199,10 +288,19 @@ SYM(_boot_multiboot_info_p):
 	.long 0
 
 	PUBLIC(_boot_multiboot_info)
+	PUBLIC(_boot_multiboot_flags)
+	PUBLIC(_boot_multiboot_memory)
+	PUBLIC(_boot_multiboot_cmdline)
 SYM(_boot_multiboot_info):
+SYM(_boot_multiboot_flags):
 	.long 0	/* flags */
+SYM(_boot_multiboot_memory):
 	.long 0 /* mem_lower */
 	.long 0 /* mem_upper */
+SYM(_boot_multiboot_cmdline):
+	.rept 256 /* cmd line */
+	.byte 0
+	.endr
 
 	PUBLIC(_stack_size)
 SYM(_stack_size):
@@ -222,6 +320,21 @@ SYM (hex_msg) :
 SYM (made_it_msg) :
 	.string "made it to %d\n"
 
+#endif
+
+#ifdef __SSE__
+SYM (no_fxsave_msg) :
+	.string "PANIC: compiled for SSE but CPU seems to have no FXSAVE/FXRSTOR support (which I need)\n"
+SYM (no_sse_msg) :
+	.string "PANIC: compiled for SSE but your CPU seems to have no SSE support\n"
+#ifdef __SSE2__
+SYM (no_sse2_msg) :
+	.string "PANIC: compiled for SSE2 but your CPU seems to have no SSE2 support\n"
+#endif
+#ifdef __SSE3__
+SYM (no_sse3_msg) :
+	.string "PANIC: compiled for SSE3 but your CPU seems to have no SSE3 support\n"
+#endif
 #endif
 
 END_DATA

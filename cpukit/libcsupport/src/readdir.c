@@ -44,10 +44,12 @@ static char sccsid[] = "@(#)readdir.c	5.7 (Berkeley) 6/1/90";
 #include "config.h"
 #endif
 
-#include <dirent.h>
-#include <rtems/stdint.h>
+#ifndef HAVE_READDIR
 
-int getdents(
+#include <dirent.h>
+#include <stdint.h>
+
+extern int getdents(
   int dd_fd,
   char *dd_buf,
   int dd_len
@@ -89,3 +91,5 @@ readdir( DIR *dirp )
     return (dp);
   }
 }
+
+#endif

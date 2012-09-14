@@ -20,7 +20,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: icm7170.c,v 1.7 2004/04/20 10:43:39 ralf Exp $
+ *  $Id: icm7170.c,v 1.9 2010/04/25 21:18:06 joel Exp $
  */
 
 #include <rtems.h>
@@ -37,13 +37,13 @@
  *  icm7170_initialize
  */
 
-void icm7170_initialize(
+static void icm7170_initialize(
   int minor
 )
 {
-  uint32_t       icm7170;
+  uintptr_t      icm7170;
   setRegister_f  setReg;
-  uint32_t       clock;
+  uintptr_t      clock;
 
   icm7170 = RTC_Table[ minor ].ulCtrlPort1;
   setReg = RTC_Table[ minor ].setRegister;
@@ -52,7 +52,7 @@ void icm7170_initialize(
    *  Initialize the RTC with the proper clock frequency
    */
 
-  clock = (uint32_t) RTC_Table[ minor ].pDeviceParams;
+  clock = (uintptr_t) RTC_Table[ minor ].pDeviceParams;
   (*setReg)( icm7170, ICM7170_CONTROL, 0x0c | clock );
 }
 
@@ -60,7 +60,7 @@ void icm7170_initialize(
  *  icm7170_get_time
  */
 
-int icm7170_get_time(
+static int icm7170_get_time(
   int                minor,
   rtems_time_of_day *time
 )
@@ -113,21 +113,21 @@ int icm7170_get_time(
  *  icm7170_set_time
  */
 
-int icm7170_set_time(
+static int icm7170_set_time(
   int                minor,
-  rtems_time_of_day *time
+  const rtems_time_of_day *time
 )
 {
-  uint32_t       icm7170;
+  uintptr_t      icm7170;
   getRegister_f  getReg;
   setRegister_f  setReg;
   uint32_t       year;
-  uint32_t       clock;
+  uintptr_t      clock;
 
   icm7170 = RTC_Table[ minor ].ulCtrlPort1;
   getReg = RTC_Table[ minor ].getRegister;
   setReg = RTC_Table[ minor ].setRegister;
-  clock = (uint32_t) RTC_Table[ minor ].pDeviceParams;
+  clock = (uintptr_t) RTC_Table[ minor ].pDeviceParams;
 
   year = time->year;
 

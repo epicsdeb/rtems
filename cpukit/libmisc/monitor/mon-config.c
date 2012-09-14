@@ -3,7 +3,7 @@
  *
  * TODO
  *
- *  $Id: mon-config.c,v 1.14 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-config.c,v 1.17 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -33,7 +33,7 @@ rtems_monitor_config_canonical(
 )
 {
     rtems_configuration_table *c = (rtems_configuration_table *) config_void;
-    rtems_api_configuration_table *r = c->RTEMS_api_configuration;
+    rtems_api_configuration_table *r = &Configuration_RTEMS_API;
 
     canonical_config->work_space_start = c->work_space_start;
     canonical_config->work_space_size = c->work_space_size;
@@ -58,12 +58,12 @@ rtems_monitor_config_canonical(
 
 void *
 rtems_monitor_config_next(
-    void                  *object_info,
-    rtems_monitor_config_t *canonical_config,
+    void                  *object_info __attribute__((unused)),
+    rtems_monitor_config_t *canonical_config __attribute__((unused)),
     rtems_id              *next_id
 )
 {
-    rtems_configuration_table *c = _Configuration_Table;
+    rtems_configuration_table *c = &Configuration;
     int n = rtems_object_id_get_index(*next_id);
 
     if (n >= 1)
@@ -82,7 +82,7 @@ failed:
 
 void
 rtems_monitor_config_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\
@@ -96,7 +96,7 @@ INITIAL (startup) Configuration Info\n");
 int
 rtems_monitor_config_dump(
     rtems_monitor_config_t *monitor_config,
-    bool                 verbose
+    bool                 verbose __attribute__((unused))
 )
 {
     int     length = 0;

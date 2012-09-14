@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: stat.c,v 1.13 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: stat.c,v 1.16 2009/10/14 16:19:47 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,8 +30,6 @@
 
 
 #include <rtems.h>
-
-#if !defined(RTEMS_UNIX)
 
 #include <rtems/libio.h>
 #include <sys/types.h>
@@ -59,7 +57,8 @@ int _STAT_NAME(
   if ( !buf )
     rtems_set_errno_and_return_minus_one( EFAULT );
 
-  status = rtems_filesystem_evaluate_path( path, 0, &loc, _STAT_FOLLOW_LINKS );
+  status = rtems_filesystem_evaluate_path( path, strlen( path ),
+                                           0, &loc, _STAT_FOLLOW_LINKS );
   if ( status != 0 )
     return -1;
 
@@ -81,7 +80,6 @@ int _STAT_NAME(
 
   return status;
 }
-#endif
 
 /*
  *  _stat_r, _lstat_r
@@ -94,7 +92,7 @@ int _STAT_NAME(
 #include <reent.h>
 
 int _STAT_R_NAME(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   const char    *path,
   struct stat   *buf
 )

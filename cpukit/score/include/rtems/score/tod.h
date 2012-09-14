@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/tod.h
  *
  *  This include file contains all the constants and structures associated
@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tod.h,v 1.33 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: tod.h,v 1.40 2009/11/28 05:58:54 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_TOD_H
@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-#include <rtems/score/object.h>
+#include <rtems/score/timestamp.h>
 #include <time.h>
 
 /** @defgroup ScoreTODConstants TOD Constants
@@ -101,14 +101,6 @@ extern "C" {
   (((1987 - 1970 + 1)  * TOD_SECONDS_PER_NON_LEAP_YEAR) + \
   (4 * TOD_SECONDS_PER_DAY))
 
-/**  @brief Ticks per Second
- *  
- *  This macro calculates the number of ticks per second.
- */
-
-#define TOD_TICKS_PER_SECOND \
-           (TOD_MICROSECONDS_PER_SECOND / _TOD_Microseconds_per_tick)
-
 /** @brief RTEMS Epoch Year
  *
  *  The following constant define the earliest year to which an
@@ -120,46 +112,39 @@ extern "C" {
 /**
  *  @defgroup ScoreTOD Time Of Day (TOD) Handler
  *
- *  This handler encapsulates functionality used to manage time of day. 
+ *  This handler encapsulates functionality used to manage time of day.
  */
 /**@{*/
 
 /** @brief Is the Time Of Day Set
  *
- *  This is TRUE if the application has set the current
- *  time of day, and FALSE otherwise.
+ *  This is true if the application has set the current
+ *  time of day, and false otherwise.
  */
 SCORE_EXTERN bool _TOD_Is_set;
 
 /** @brief Current Time of Day (Timespec)
  *  The following contains the current time of day.
  */
-SCORE_EXTERN struct timespec _TOD_Now;
+SCORE_EXTERN Timestamp_Control _TOD_Now;
 
 /** @brief Current Time of Day (Timespec)
  *  The following contains the running uptime.
  */
-SCORE_EXTERN struct timespec _TOD_Uptime;
+SCORE_EXTERN Timestamp_Control _TOD_Uptime;
 
 /** @brief Seconds Since RTEMS Epoch
  *  The following contains the number of seconds from 00:00:00
  *  January 1, TOD_BASE_YEAR until the current time of day.
  */
-#define _TOD_Seconds_since_epoch (_TOD_Now.tv_sec)
-
-/** @brief Microseconds per Clock Tick
- *
- *  The following contains the number of microseconds per tick.
- */
-SCORE_EXTERN uint32_t   _TOD_Microseconds_per_tick;
+#define _TOD_Seconds_since_epoch() \
+  _Timestamp_Get_seconds(&_TOD_Now)
 
 /** @brief _TOD_Handler_initialization
  *
  *  This routine performs the initialization necessary for this handler.
  */
-void _TOD_Handler_initialization(
-  uint32_t   microseconds_per_tick
-);
+void _TOD_Handler_initialization(void);
 
 /** @brief _TOD_Set
  *
@@ -173,7 +158,7 @@ void _TOD_Set(
 /** @brief _TOD_Get
  *
  *  This routine returns the current time of day with potential accuracy
- *  to the nanosecond.  
+ *  to the nanosecond.
  *
  *  @param[in] time is a pointer to the time to be returned
  */
@@ -184,11 +169,22 @@ void _TOD_Get(
 /** @brief _TOD_Get_uptime
  *
  *  This routine returns the system uptime with potential accuracy
- *  to the nanosecond.  
+ *  to the nanosecond.
  *
  *  @param[in] time is a pointer to the uptime to be returned
  */
 void _TOD_Get_uptime(
+  Timestamp_Control *time
+);
+
+/** @brief _TOD_Get_uptime_as_timespec
+ *
+ *  This routine returns the system uptime with potential accuracy
+ *  to the nanosecond.
+ *
+ *  @param[in] time is a pointer to the uptime to be returned
+ */
+void _TOD_Get_uptime_as_timespec(
   struct timespec *time
 );
 
@@ -212,8 +208,9 @@ void _TOD_Tickle_ticks( void );
  *
  *  @note This must be a macro so it can be used in "static" tables.
  */
-#define TOD_MICROSECONDS_TO_TICKS(_us) \
-    ((_us) / _TOD_Microseconds_per_tick)
+uint32_t TOD_MICROSECONDS_TO_TICKS(
+  uint32_t microseconds
+);
 
 /** @brief TOD_MILLISECONDS_TO_TICKS
  *
@@ -221,20 +218,27 @@ void _TOD_Tickle_ticks( void );
  *
  *  @note This must be a macro so it can be used in "static" tables.
  */
-
-#define TOD_MILLISECONDS_TO_TICKS(_ms) \
-    (TOD_MILLISECONDS_TO_MICROSECONDS(_ms) / _TOD_Microseconds_per_tick)
-
+uint32_t TOD_MILLISECONDS_TO_TICKS(
+  uint32_t milliseconds
+);
 
 /** @brief How many ticks in a second?
  *
- *  This macro returns the number of ticks in a second.
+ *  This method returns the number of ticks in a second.
  *
  *  @note If the clock tick value does not multiply evenly into a second
  *        then this number of ticks will be slightly shorter than a second.
  */
-#define TOD_TICKS_PER_SECOND \
-  (TOD_MICROSECONDS_PER_SECOND / _TOD_Microseconds_per_tick)
+uint32_t TOD_TICKS_PER_SECOND_method(void);
+
+/** @brief Method to return number of ticks in a second
+ *
+ *  This method exists to hide the fact that TOD_TICKS_PER_SECOND can not
+ *  be implemented as a macro in a .h file due to visibility issues.
+ *  The Configuration Table is not available to SuperCore .h files but
+ *  is available to their .c files.
+ */
+#define TOD_TICKS_PER_SECOND TOD_TICKS_PER_SECOND_method()
 
 #ifndef __RTEMS_APPLICATION__
 #include <rtems/score/tod.inl>

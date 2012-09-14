@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  score/src/timespecisvalid.c
  */
 
@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timespecisvalid.c,v 1.2 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: timespecisvalid.c,v 1.4 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,16 +28,16 @@ bool _Timespec_Is_valid(
 )
 {
   if ( !time )
-    return FALSE;
+    return false;
 
   if ( time->tv_sec < 0 )
-    return FALSE;
+    return false;
 
   if ( time->tv_nsec < 0 )
-    return FALSE;
+    return false;
 
   if ( time->tv_nsec >= TOD_NANOSECONDS_PER_SECOND )
-    return FALSE;
+    return false;
 
-  return TRUE;
+  return true;
 }

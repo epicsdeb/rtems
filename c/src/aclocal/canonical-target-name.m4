@@ -1,5 +1,5 @@
 dnl
-dnl $Id: canonical-target-name.m4,v 1.4.6.1 2008/09/10 15:59:44 joel Exp $
+dnl $Id: canonical-target-name.m4,v 1.7 2009/10/16 02:43:38 ralf Exp $
 dnl
 
 dnl canonicalize target cpu
@@ -13,33 +13,13 @@ AC_DEFUN([RTEMS_CANONICAL_TARGET_CPU],
 AC_CANONICAL_HOST
 AC_MSG_CHECKING(rtems target cpu)
 case "${host}" in
-  # hpux unix port should go here
-  i[[34567]]86-*linux*)		# unix "simulator" port
-	RTEMS_CPU=unix
-        RTEMS_HOST=Linux
-	;;
-  i[[34567]]86-*freebsd*) 	# unix "simulator" port
-	RTEMS_CPU=unix
-        RTEMS_HOST=FreeBSD
-	;;
-  i[[34567]]86-pc-cygwin*) 	# Cygwin is just enough unix like :)
-	RTEMS_CPU=unix
-        RTEMS_HOST=Cygwin
-	;;
   no_cpu-*rtems*)
         RTEMS_CPU=no_cpu
-	RTEMS_HOST=$host_os
-	;;
-  sparc-sun-solaris*)           # unix "simulator" port
-	RTEMS_CPU=unix
-        RTEMS_HOST=Solaris
 	;;
   *) 
 	RTEMS_CPU=`echo $host | sed 's%^\([[^-]]*\)-\(.*\)$%\1%'`
-	RTEMS_HOST=$host_os
 	;;
 esac
 AC_SUBST(RTEMS_CPU)
-AC_SUBST(RTEMS_HOST)
 AC_MSG_RESULT($RTEMS_CPU)
 ])

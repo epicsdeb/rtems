@@ -1,18 +1,16 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.18 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.21 2009/12/08 17:53:00 joel Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
-#include <assert.h>
 
 rtems_device_major_number _STUB_major = 1;
 
@@ -58,7 +56,7 @@ rtems_task Init(
 
   status = rtems_task_create(
     rtems_build_name( 'T', 'I', 'M', '1' ),
-    128,
+    (RTEMS_MAXIMUM_PRIORITY / 2u) + 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -71,7 +69,7 @@ rtems_task Init(
 
   status = rtems_task_create(
     rtems_build_name( 'T', 'I', 'M', '2' ),
-    129,
+    (RTEMS_MAXIMUM_PRIORITY / 2u) + 2u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -161,7 +159,7 @@ rtems_task Task_1(
 
     buffer_count++;
 
-    assert( buffer_count < PARTITION_BUFFER_POINTERS );
+    rtems_test_assert( buffer_count < PARTITION_BUFFER_POINTERS );
   }
 
   benchmark_timer_initialize();
@@ -310,7 +308,8 @@ rtems_task Task_1(
   );
   directive_failed( status, "rtems_task_mode" );
 
-  status = rtems_task_set_priority( RTEMS_SELF, 254, &previous_priority );
+  status = rtems_task_set_priority(
+    RTEMS_SELF, RTEMS_MAXIMUM_PRIORITY - 1u, &previous_priority );
   directive_failed( status, "rtems_task_set_priority" );
 
   status = rtems_region_get_segment(

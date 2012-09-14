@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectapimaximumclass.c,v 1.1 2008/01/29 21:52:21 joel Exp $
+ *  $Id: objectapimaximumclass.c,v 1.2 2009/07/07 23:33:17 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -16,7 +16,7 @@
 #include <rtems/system.h>
 #include <rtems/score/object.h>
 
-int _Objects_API_maximum_class(
+unsigned int _Objects_API_maximum_class(
   uint32_t api
 )
 {
@@ -33,6 +33,6 @@ int _Objects_API_maximum_class(
     default:
       break;
   }
-  return -1;
+  return 0;
 }
 

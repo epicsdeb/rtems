@@ -16,11 +16,15 @@
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- *  $Id: linkcmds,v 1.16 2008/03/03 23:07:50 joel Exp $
+ *  $Id: linkcmds,v 1.20 2008/09/25 18:42:02 joel Exp $
  */
 
 OUTPUT_ARCH(sh)
 ENTRY(_start)
+
+_RamBase = DEFINED(_RamBase) ? _RamBase : 0x00000000;
+_RamSize = DEFINED(_RamSize) ? _RamSize : 16M;
+_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x0;
 
 MEMORY
 {
@@ -39,7 +43,7 @@ MEMORY
 SECTIONS
 {
   /* boot vector table */
-  .monvects 0x00000000 (NOLOAD) :
+  .monvects (NOLOAD) :
   { 
     _monvects = . ;
   } > rom
@@ -101,6 +105,7 @@ SECTIONS
   .plt      	 : { *(.plt)	}
   .text   .   	 :
   {
+    _start = .;
     *(.text*)
     *(.stub)
 
@@ -173,13 +178,14 @@ SECTIONS
   _end = . ;
   PROVIDE (end = .);
 
-  _HeapStart = . ;
-  . = . + 1024 * 20 ;
-  PROVIDE( _HeapEnd = . );
+  .stack : { 
+    . += 0x1000;
+    *(.stack)
+    _stack = .;
+  } > ram
+  _stack = .;
 
-  _WorkSpaceStart = . ;
-  /* XXX . = 0x00080000 ; */
-  PROVIDE(_WorkSpaceEnd = .);
+  _WorkAreaBase = . ;
 
   _CPU_Interrupt_stack_low  = 0x00080000 ;
   _CPU_Interrupt_stack_high = _CPU_Interrupt_stack_low + 4096 ;
@@ -218,6 +224,8 @@ SECTIONS
   .debug_typenames 0 : { *(.debug_typenames) }
   .debug_varnames  0 : { *(.debug_varnames) }
 
-  .stack /* 0x00081ff0 */: { _stack = .; *(.stack) } > ram /* > onchip_ram */
+/*
+  .stack 0x00081ff0 : { _stack = .; *(.stack) } > onchip_ram
+*/
   /* These must appear regardless of  .  */
 }

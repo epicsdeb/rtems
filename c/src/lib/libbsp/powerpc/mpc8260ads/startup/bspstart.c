@@ -32,10 +32,8 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.19 2008/09/06 17:16:21 ralf Exp $
+ *  $Id: bspstart.c,v 1.24 2009/11/03 18:45:04 thomas Exp $
  */
-
-#warning The interrupt disable mask is now stored in SPRG0, please verify that this is compatible to this BSP (see also bootcard.c).
 
 #include <bsp.h>
 
@@ -44,8 +42,6 @@
 */
 
 #include <mpc8260.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <rtems/score/thread.h>
 #include <rtems/powerpc/powerpc.h>
 
@@ -56,8 +52,6 @@
 #include <string.h>
 
 SPR_RW(SPRG1)
-
-extern unsigned long intrStackPtr;
 
 /*
  *  Driver configuration parameters
@@ -73,17 +67,12 @@ uint32_t   bsp_timer_average_overhead; /* Average overhead of timer in ticks */
 uint32_t   bsp_timer_least_valid;      /* Least valid number from timer      */
 bool       bsp_timer_internal_clock;   /* TRUE, when timer runs with CPU clk */
 
-/*
- *  Use the shared implementations of the following routines.
- *  Look in rtems/c/src/lib/libbsp/shared/bsppost.c and
- *  rtems/c/src/lib/libbsp/shared/bsplibc.c.
- */
-void bsp_libc_init( void *, uint32_t, int );
-
 void  _BSP_GPLED1_on(void);
 void  _BSP_GPLED0_on(void);
 void  cpu_init(void);
-void  initialize_exceptions(void);
+
+extern char IntrStack_start [];
+extern char intrStack [];
 
 void BSP_panic(char *s)
 {
@@ -100,56 +89,56 @@ void _BSP_Fatal_error(unsigned int v)
   __asm__ __volatile ("sc");
 }
 
-void _BSP_GPLED0_on()
+void _BSP_GPLED0_on(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr0 &=  ~GP0_LED;		/* Turn on GP0 LED */
 }
 
-void _BSP_GPLED0_off()
+void _BSP_GPLED0_off(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr0 |=  GP0_LED;		/* Turn off GP0 LED */
 }
 
-void _BSP_GPLED1_on()
+void _BSP_GPLED1_on(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr0 &=  ~GP1_LED;		/* Turn on GP1 LED */
 }
 
-void _BSP_GPLED1_off()
+void _BSP_GPLED1_off(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr0 |=  GP1_LED;		/* Turn off GP1 LED */
 }
 
-void _BSP_Uart1_enable()
+void _BSP_Uart1_enable(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr1 &= ~UART1_E;		/* Enable Uart1 */
 }
 
-void _BSP_Uart1_disable()
+void _BSP_Uart1_disable(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr1 |=  UART1_E;		/* Disable Uart1 */
 }
 
-void _BSP_Uart2_enable()
+void _BSP_Uart2_enable(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
   csr->bcsr1 &= ~UART2_E;		/* Enable Uart2 */
 }
 
-void _BSP_Uart2_disable()
+void _BSP_Uart2_disable(void)
 {
   BCSR *csr;
   csr = (BCSR *)(m8260.memc[1].br & 0xFFFF8000);
@@ -157,45 +146,11 @@ void _BSP_Uart2_disable()
 
 }
 
-/*
- *  Function:   bsp_pretasking_hook
- *  Created:    95/03/10
- *
- *  Description:
- *      BSP pretasking hook.  Called just before drivers are initialized.
- *      Used to setup libc and install any BSP extensions.
- *
- *  NOTES:
- *      Must not use libc (to do io) from here, since drivers are
- *      not yet initialized.
- *
- */
-
-void
-bsp_pretasking_hook(void)
-{
-  /*
-   *  These are assigned addresses in the linkcmds file for the BSP. This
-   *  approach is better than having these defined as manifest constants and
-   *  compiled into the kernel, but it is still not ideal when dealing with
-   *  multiprocessor configuration in which each board as a different memory
-   *  map. A better place for defining these symbols might be the makefiles.
-   *  Consideration should also be given to developing an approach in which
-   *  the kernel and the application can be linked and burned into ROM
-   *  independently of each other.
-   */
-  extern unsigned char _HeapStart;
-  extern unsigned char _HeapEnd;
-
-  bsp_libc_init( &_HeapStart, &_HeapEnd - &_HeapStart, 0 );
-}
-
 void bsp_start(void)
 {
-  extern void *_WorkspaceBase;
+  rtems_status_code sc = RTEMS_SUCCESSFUL;
   ppc_cpu_id_t myCpu;
   ppc_cpu_revision_t myCpuRevision;
-  register unsigned char* intrStack;
 
   /* Set MPC8260ADS board LEDS and Uart enable lines */
   _BSP_GPLED0_off();
@@ -215,21 +170,24 @@ void bsp_start(void)
 /*
   mmu_init();
 */
-  /*
-   * Initialize some SPRG registers related to irq handling
-   */
 
-  intrStack = (((unsigned char*)&intrStackPtr) - PPC_MINIMUM_STACK_FRAME_SIZE);
-  _write_SPRG1((unsigned int)intrStack);
+  /* Initialize exception handler */
+  /* FIXME: Interrupt stack begin and size */
+  sc = ppc_exc_initialize(
+    PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
+    (uintptr_t) IntrStack_start,
+    (uintptr_t) intrStack - (uintptr_t) IntrStack_start
+  );
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot intitialize exceptions");
+  }
 
-/*
-  printk( "About to call initialize_exceptions\n" );
-*/
-   /*
-    * Install our own set of exception vectors
-    */
+  /* Initalize interrupt support */
+  sc = bsp_interrupt_initialize();
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot intitialize interrupts");
+  }
 
-   initialize_exceptions();
 
 /*
   mmu_init();
@@ -244,22 +202,6 @@ void bsp_start(void)
 #if DATA_CACHE_ENABLE
   rtems_cache_enable_data();
 #endif
-
-  /*
-   *  Allocate the memory for the RTEMS Work Space.  This can come from
-   *  a variety of places: hard coded address, malloc'ed from outside
-   *  RTEMS world (e.g. simulator or primitive memory manager), or (as
-   *  typically done by stock BSPs) by subtracting the required amount
-   *  of work space from the last physical address on the CPU board.
-   */
-
-  /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
-   */
-
-  Configuration.work_space_start = (void *)&_WorkspaceBase;
 
   /*
    *  initialize the device driver parameters
@@ -285,36 +227,8 @@ void bsp_start(void)
   m8260.brgc1 = M8260_BRG_EN + (uint32_t)(((uint16_t)((40016384)/(32768)) - 1) << 1) + 0;
 */
 
-  /*
-   * Initalize RTEMS IRQ system
-   */
-  BSP_rtems_irq_mng_init(0);
-
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Exit from bspstart\n");
 #endif
 
-}
-
-/*
- *
- *  _Thread_Idle_body
- *
- *  Replaces the one in c/src/exec/score/src/threadidlebody.c
- *  The MSR[POW] bit is set to put the CPU into the low power mode
- *  defined in HID0.  HID0 is set during starup in start.S.
- *
- */
-Thread _Thread_Idle_body(
-  uint32_t   ignored )
-{
-
-  for( ; ; )
-  {
-    asm volatile(
-      "mfmsr 3; oris 3,3,4; sync; mtmsr 3; isync; ori 3,3,0; ori 3,3,0"
-    );
-  }
-
-  return 0; /* to remove warning */
 }

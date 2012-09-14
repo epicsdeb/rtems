@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.22.2.2 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: bsp.h,v 1.32 2009/11/30 04:33:54 ralf Exp $
  */
 
 #ifndef _BSP_H
@@ -27,18 +27,6 @@ extern "C" {
 #include <libcpu/io.h>
 #include <rtems/clockdrv.h>
 #include <bsp/vectors.h>
-
-/*
- *  confdefs.h overrides for this BSP:
- *   - termios serial ports (defaults to 1)
- *   - Interrupt stack space is not minimum if defined.
- */
-
-#if (HAS_PMC_PSC8)
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS (4 + 4)
-#else
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS (4)
-#endif
 
 #ifdef ASM
 /* Definition of where to store registers in alignment handler */
@@ -76,7 +64,7 @@ extern "C" {
 
 #define Initialize_Board_ctrl_register()                         \
   *SCORE603E_BOARD_CTRL_REG = (*SCORE603E_BOARD_CTRL_REG |       \
-                               SCORE603E_BRD_FLASH_DISABLE_MASK) 
+                               SCORE603E_BRD_FLASH_DISABLE_MASK)
 
 #define Processor_Synchronize() \
   asm volatile(" eieio ")
@@ -114,6 +102,14 @@ extern int   CPU_PPC_CLICKS_PER_MS;
 extern int   end;        /* last address in the program */
 
 /*
+ * Total RAM available
+ */
+extern int        end;        /* last address in the program */
+extern int        RAM_END;
+extern uint32_t   BSP_mem_size;
+
+
+/*
  * How many libio files we want
  */
 
@@ -121,18 +117,8 @@ extern int   end;        /* last address in the program */
 
 /* functions */
 
-void bsp_start( void );
-
-void bsp_cleanup( void );
-
-rtems_isr_entry set_vector(                    /* returns old vector */
-  rtems_isr_entry     handler,                  /* isr routine        */
-  rtems_vector_number vector,                   /* vector number      */
-  int                 type                      /* RTEMS or RAW intr  */
-);
-
 /*
- * genvec.c
+ *
  */
 rtems_isr_entry  set_EE_vector(
   rtems_isr_entry     handler,                  /* isr routine        */

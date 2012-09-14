@@ -1,6 +1,100 @@
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2011-05-17	Till Straumann <strauman@slac.stanford.edu>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	PR 1797/bsps
+	* configure.ac, include/bsp.h: Made
+	CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK a bspopts.h setting.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-08	Eric Norum <wenorum@lbl.gov>
+
+	* include/bsp.h: Add network configuration preprocessor macros.
+
+2009-10-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for exception support changes.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mcp750.cfg: Remove RTEMS_BSP_FAMILY.
+	* make/custom/mtx603e.cfg: Remove RTEMS_BSP_FAMILY.
+	* make/custom/mvme2100.cfg: Remove RTEMS_BSP_FAMILY.
+	* make/custom/mvme2307.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mcp750.cfg: New (relocated from /make/custom).
+	* make/custom/mtx603e.cfg: New (relocated from /make/custom).
+	* make/custom/mvme2100.cfg: New (relocated from /make/custom).
+	* make/custom/mvme2307.cfg: New (relocated from /make/custom).
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-08-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Eliminate BSPs defining NUMBER_OF_TERMIOS_PORTS.
+	Should be automatically handled by confdefs.h or the application.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2008-12-07	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove -Qy from *link.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac: Make letting boot_card() handle work area
+	allocation mandatory. Rename
+	RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to BSP_BOOTCARD_OPTIONS.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, include/bsp.h: Use standardized bsp_cleanup() which can
+	optionally print a message, poll for user to press key, and call
+	bsp_reset(). Using this eliminates the various bsp_cleanup()
+	implementations which had their own implementation and variety of
+	string constants.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Add use of bsp_get_work_area() in its own file and
+	rely on BSP Framework to perform more initialization.
 
 2008-05-14	Joel Sherrill <joel.sherrill@OARcorp.com>
 

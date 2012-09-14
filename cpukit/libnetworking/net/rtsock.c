@@ -31,8 +31,12 @@
  */
 
 /*
- * $Id: rtsock.c,v 1.10 2008/09/01 04:56:33 ralf Exp $
+ * $Id: rtsock.c,v 1.13 2010/03/28 05:50:29 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
  
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
@@ -50,10 +54,10 @@
 #include <net/route.h>
 #include <net/raw_cb.h>
 
-static struct	sockaddr route_dst = { 2, PF_ROUTE, };
-static struct	sockaddr route_src = { 2, PF_ROUTE, };
-static struct	sockaddr sa_zero   = { sizeof(sa_zero), AF_INET, };
-static struct	sockproto route_proto = { PF_ROUTE, };
+static struct	sockaddr route_dst = { 2, PF_ROUTE, { 0 }  };
+static struct	sockaddr route_src = { 2, PF_ROUTE, { 0 } };
+static struct	sockaddr sa_zero   = { sizeof(sa_zero), AF_INET, { 0 } };
+static struct	sockproto route_proto = { PF_ROUTE, 0 };
 
 struct walkarg {
 	int	w_tmemsize;
@@ -670,7 +674,7 @@ sysctl_dumpentry(struct radix_node *rn, void *vw)
 		rtm->rtm_index = rt->rt_ifp->if_index;
 		rtm->rtm_errno = rtm->rtm_pid = rtm->rtm_seq = 0;
 		rtm->rtm_addrs = info.rti_addrs;
-		error = 0;
+		error = SYSCTL_OUT(w->w_req, (caddr_t)rtm, size);
 		return (error);
 	}
 	return (error);
@@ -784,12 +788,14 @@ static struct protosw routesw[] = {
 { SOCK_RAW,	&routedomain,	0,		PR_ATOMIC|PR_ADDR,
   0,		route_output,	raw_ctlinput,	0,
   route_usrreq,
-  raw_init
+  raw_init,	NULL,		NULL,		NULL,
+  NULL
 }
 };
 
 struct domain routedomain =
     { PF_ROUTE, "route", route_init, 0, 0,
-      routesw, &routesw[sizeof(routesw)/sizeof(routesw[0])] };
+      routesw, &routesw[sizeof(routesw)/sizeof(routesw[0])],
+      NULL, NULL, 0, 0 };
 
 DOMAIN_SET(route);

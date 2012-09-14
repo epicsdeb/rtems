@@ -18,13 +18,12 @@
  *  by Dominique LE CAMPION (Dominique.LECAMPION@enst-bretagne.fr)
  *  May 1996
  *
- *  $Id: ckinit.c,v 1.13 2008/09/05 22:05:19 joel Exp $
+ *  $Id: ckinit.c,v 1.14 2008/09/16 19:03:36 joel Exp $
  */
 
 #include <stdlib.h>
 
 #include <bsp.h>
-#include <rtems/libio.h>
 
 #define MS_COUNT          65376    /* 1ms */
 /* MS_COUNT = 0x10000 - 1e-3/6.25e-6 */

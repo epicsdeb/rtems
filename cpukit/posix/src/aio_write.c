@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: aio_write.c,v 1.1 2007/12/13 16:52:20 joel Exp $
+ *  $Id: aio_write.c,v 1.2 2009/01/02 10:04:23 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,7 +22,7 @@
 #include <rtems/seterr.h>
 
 int aio_write(
-  struct aiocb  *aiocbp
+  struct aiocb  *aiocbp __attribute__((unused))
 )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );

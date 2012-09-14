@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqflush.c,v 1.7 2008/01/22 18:28:53 joel Exp $
+ *  $Id: threadqflush.c,v 1.8 2008/12/31 03:36:04 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,7 +41,11 @@
 
 void _Thread_queue_Flush(
   Thread_queue_Control       *the_thread_queue,
+#if defined(RTEMS_MULTIPROCESSING)
   Thread_queue_Flush_callout  remote_extract_callout,
+#else
+  Thread_queue_Flush_callout  remote_extract_callout __attribute__((unused)),
+#endif
   uint32_t                    status
 )
 {

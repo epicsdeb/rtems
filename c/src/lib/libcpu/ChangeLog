@@ -1,3 +1,19 @@
+2010-05-30	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/src/no_cache.c: New file.
+
+2008-09-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/include/utility.h: Removed file.
+
+2008-09-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Don't install files from shared/.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/include/utility.h: New file.
+
 2008-08-31	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* arm/at91rm9200/timer/timer.c, arm/lpc22xx/timer/timer.c,

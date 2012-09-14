@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.17 2004/04/01 15:16:23 ralf Exp $
+ *  $Id: system.h,v 1.18 2009/06/12 01:14:41 ccj Exp $
  */
 
 #include <rtems.h>
@@ -29,7 +29,7 @@ rtems_task main_task(
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 
 #define CONFIGURE_MAXIMUM_TASKS           1
-#define CONFIGURE_MAXIMUM_SEMAPHORES      1
+#define CONFIGURE_MAXIMUM_SEMAPHORES      5
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 #define CONFIGURE_INIT_TASK_ENTRY_POINT   main_task

@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: msgqsend.c,v 1.11 2008/08/05 13:32:38 joel Exp $
+ *  $Id: msgqsend.c,v 1.13 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -57,9 +57,9 @@
 #endif
 
 rtems_status_code rtems_message_queue_send(
-  Objects_Id            id,
-  const void           *buffer,
-  size_t                size
+  rtems_id    id,
+  const void *buffer,
+  size_t      size
 )
 {
   register Message_queue_Control  *the_message_queue;
@@ -79,7 +79,7 @@ rtems_status_code rtems_message_queue_send(
         size,
         id,
         MESSAGE_QUEUE_MP_HANDLER,
-        FALSE,   /* sender does not block */
+        false,   /* sender does not block */
         0        /* no timeout */
       );
 

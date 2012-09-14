@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: write_r.c,v 1.1 2007/03/26 22:31:31 joel Exp $
+ *  $Id: write_r.c,v 1.2 2009/09/15 09:42:46 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -29,7 +29,7 @@
 #include <reent.h>
 
 _ssize_t _write_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   int            fd,
   const void    *buf,
   size_t         nbytes

@@ -1,3 +1,11 @@
+/**
+ * @file
+ *
+ * @ingroup ScoreUserExt
+ *
+ * @brief User Extension Handler implementation.
+ */
+
 /*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: userextremoveset.c,v 1.1 2007/05/09 18:27:26 joel Exp $
+ *  $Id: userextremoveset.c,v 1.3 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,16 +24,12 @@
 #include <rtems/system.h>
 #include <rtems/score/userext.h>
 
-/**
- *  This routine is used to remove a user extension set from the active list.
- */
-
 void _User_extensions_Remove_set (
   User_extensions_Control  *the_extension
 )
 {
   _Chain_Extract( &the_extension->Node );
-  
+
   /*
    * If a switch handler is present, remove it.
    */

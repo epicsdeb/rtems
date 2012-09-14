@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.24 2007/07/31 20:23:52 joel Exp $
+##
+## $Id: configure.ac,v 1.25.2.1 2011/02/02 15:17:37 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libcpu-sparc],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([reg_win])
 RTEMS_TOP([../../../../..],[../../..])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.10])
+AM_INIT_AUTOMAKE([no-define foreign subdir-objects 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENV_RTEMSBSP

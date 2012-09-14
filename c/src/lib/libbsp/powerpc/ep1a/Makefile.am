@@ -5,7 +5,8 @@
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,47 +14,60 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 nodist_include_HEADERS += ../../shared/include/coverhd.h
-
-include_bspdir = $(includedir)/bsp
 
 ###
 dist_project_lib_DATA += startup/linkcmds
 
-startup_SOURCES = startup/bspstart.c ../../shared/bootcard.c \
-    ../../shared/bspclean.c ../../shared/bsplibc.c \
-    ../../shared/sbrk.c \
-    ../../shared/gnatinstallhandler.c \
-    ../../powerpc/shared/showbats.c  \
-    ../../shared/bsppost.c ../../shared/bsppredriverhook.c 
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
+project_lib_DATA = start.$(OBJEXT)
 
+libbspstart_a_SOURCES += ../../powerpc/shared/start/rtems_crti.S
+project_lib_DATA += rtems_crti.$(OBJEXT)
 
-pclock_SOURCES = ../../powerpc/shared/clock/p_clock.c
-console_SOURCES = console/console.c console/ns16550cfg.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += startup/bspstart.c ../../shared/bootcard.c \
+    ../../shared/bsppost.c ../../shared/bsppredriverhook.c \
+    ../../powerpc/shared/startup/bspgetworkarea.c ../../shared/bsplibc.c \
+    ../../powerpc/shared/startup/sbrk.c \
+    ../../shared/bspclean.c ../../shared/gnatinstallhandler.c \
+    ../../powerpc/shared/startup/pgtbl_setup.c \
+    ../../powerpc/shared/startup/pgtbl_activate.c \
+    ../../powerpc/shared/showbats.c
+
+# pclock
+libbsp_a_SOURCES += ../../powerpc/shared/clock/p_clock.c
+
+include_bsp_HEADERS = ../../powerpc/shared/console/uart.h \
+    ../../powerpc/shared/motorola/motorola.h \
+    ../../powerpc/shared/residual/residual.h \
+    ../../powerpc/shared/residual/pnp.h \
+    ../../powerpc/shared/console/consoleIo.h console/rsPMCQ1.h
+# console
+libbsp_a_SOURCES += console/console.c console/ns16550cfg.c \
     console/mc68360_scc.c console/rsPMCQ1.c console/alloc360.c \
     console/init68360.c
 
-include_bsp_HEADERS = ../../powerpc/shared/pci/pci.h \
-    ../../powerpc/shared/motorola/motorola.h \
-     ../../powerpc/shared/residual/residual.h \
-    ../../powerpc/shared/residual/pnp.h \
-    ../../powerpc/shared/console/consoleIo.h console/rsPMCQ1.h
-
-pci_SOURCES = pci/no_host_bridge.c ../../powerpc/shared/pci/pci.c \
-        ../../powerpc/shared/pci/pcifinddevice.c
-
-include_bsp_HEADERS += irq/irq.h \
-	../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/ppc_exc_bspsupp.h \
-	../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/vectors.h \
-	../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/irq_supp.h
-
-irq_SOURCES =  irq/irq.h  irq/irq_init.c irq/openpic_xxx_irq.c \
-    ../../powerpc/shared/irq/i8259.c 
-    
 include_bsp_HEADERS += ../../powerpc/shared/openpic/openpic.h
+# openpic
+libbsp_a_SOURCES += ../../powerpc/shared/openpic/openpic.h \
+    ../../powerpc/shared/openpic/openpic.c
 
-openpic_SOURCES = ../../powerpc/shared/openpic/openpic.c
+include_bsp_HEADERS += ../../powerpc/shared/pci/pci.h
+# pci
+libbsp_a_SOURCES += pci/no_host_bridge.c ../../powerpc/shared/pci/pci.c \
+    ../../powerpc/shared/pci/pcifinddevice.c
+
+include_bsp_HEADERS += ../../powerpc/shared/irq/irq.h \
+	../../../libcpu/@RTEMS_CPU@/@exceptions@/bspsupport/irq_supp.h
+# irq
+libbsp_a_SOURCES += irq/irq_init.c irq/openpic_xxx_irq.c ../../powerpc/shared/irq/i8259.c
 
 include_bsp_HEADERS += ../../shared/vmeUniverse/vmeUniverse.h \
     vme/VMEConfig.h \
@@ -63,35 +77,19 @@ include_bsp_HEADERS += ../../shared/vmeUniverse/vmeUniverse.h \
     ../../shared/vmeUniverse/bspVmeDmaList.h\
     ../../shared/vmeUniverse/VMEDMA.h
 
-vme_SOURCES = ../../shared/vmeUniverse/vmeUniverse.c \
+# vme
+libbsp_a_SOURCES += ../../shared/vmeUniverse/vmeUniverse.c \
     ../../shared/vmeUniverse/bspVmeDmaList.c \
-    vme/vmeconfig.c \
+    ../shared/vme/vmeconfig.c \
     ../shared/vme/vme_universe.c \
     ../../shared/vmeUniverse/vme_am_defs.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-project_lib_DATA = start.$(OBJEXT)
-
-EXTRA_DIST += ../../powerpc/shared/start/rtems_crti.S
-rtems_crti.$(OBJEXT): ../../powerpc/shared/start/rtems_crti.S
-	$(CPPASCOMPILE) -o $@ -c $<
-project_lib_DATA += rtems_crti.$(OBJEXT)
-
-EXTRA_DIST += README
-
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES =  $(pclock_SOURCES) $(console_SOURCES) $(irq_SOURCES) \
-    $(pci_SOURCES) $(vectors_SOURCES) $(startup_SOURCES) \
-    $(openpic_SOURCES) $(vme_SOURCES) 
-
 libbsp_a_LIBADD = \
+    ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/stack.rel \
     ../../../libcpu/@RTEMS_CPU@/@exceptions@/rtems-cpu.rel \
     ../../../libcpu/@RTEMS_CPU@/mpc6xx/clock.rel \
-    ../../../libcpu/@RTEMS_CPU@/@exceptions@/raw_exception.rel \
     ../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel \
     ../../../libcpu/@RTEMS_CPU@/@exceptions@/irq_bspsupport.rel \
     ../../../libcpu/@RTEMS_CPU@/mpc6xx/mmu.rel \

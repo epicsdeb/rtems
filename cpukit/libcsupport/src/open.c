@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: open.c,v 1.19 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: open.c,v 1.24 2010/02/16 01:47:45 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -111,7 +111,7 @@ int open(
    */
 
   status = rtems_filesystem_evaluate_path(
-     pathname, eval_flags, &loc, true );
+    pathname, strlen( pathname ), eval_flags, &loc, true );
 
   if ( status == -1 ) {
     if ( errno != ENOENT ) {
@@ -133,7 +133,7 @@ int open(
     }
 
     /* Sanity check to see if the file name exists after the mknod() */
-    status = rtems_filesystem_evaluate_path( pathname, 0x0, &loc, true );
+    status = rtems_filesystem_evaluate_path( pathname, strlen( pathname ), 0x0, &loc, true );
     if ( status != 0 ) {   /* The file did not exist */
       rc = EACCES;
       goto done;
@@ -158,14 +158,16 @@ int open(
   iop->flags     |= rtems_libio_fcntl_flags( flags );
   iop->pathinfo   = loc;
 
-  if ( !iop->handlers->open_h ) {
+  if ( !iop->handlers || !iop->handlers->open_h ) {
     rc = ENOTSUP;
     goto done;
   }
 
   rc = (*iop->handlers->open_h)( iop, pathname, flags, mode );
-  if ( rc )
+  if ( rc ) {
+    rc = errno;
     goto done;
+  }
 
   /*
    *  Optionally truncate the file.
@@ -206,12 +208,12 @@ done:
  *  This is the Newlib dependent reentrant version of open().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__OPEN_R)
 
 #include <reent.h>
 
 int _open_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   const char    *buf,
   int            flags,
   int            mode

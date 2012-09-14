@@ -13,7 +13,7 @@
  * Eric sent some e-mail in the rtems-list as a start point for this
  * module implementation.
  *
- * $Id: gxx_wrappers.c,v 1.16.2.1 2009/01/29 14:32:51 joel Exp $
+ * $Id: gxx_wrappers.c,v 1.18.2.1 2010/11/16 18:52:05 joel Exp $
  */
 
 /*
@@ -106,6 +106,7 @@ int rtems_gxx_key_create (__gthread_key_t *key, void (*dtor) (void *))
   /* register with RTEMS the buffer that will hold the key values */
   if( rtems_task_variable_add( RTEMS_SELF, (void **)new_key, dtor ) == RTEMS_SUCCESSFUL )
        return 0;
+  free( new_key );
   return -1;
 }
 
@@ -210,7 +211,7 @@ int rtems_gxx_mutex_lock (__gthread_mutex_t *mutex)
 #ifdef DEBUG_GXX_WRAPPERS
   printk( "gxx_wrappers: lock mutex=%X\n", *mutex );
 #endif
-  return ( rtems_semaphore_obtain( (rtems_id)*mutex,
+  return ( rtems_semaphore_obtain( *(rtems_id *)mutex,
             RTEMS_WAIT, RTEMS_NO_TIMEOUT ) ==  RTEMS_SUCCESSFUL) ? 0 : -1;
 }
 
@@ -219,7 +220,7 @@ int rtems_gxx_mutex_destroy (__gthread_mutex_t *mutex)
 #ifdef DEBUG_GXX_WRAPPERS
   printk( "gxx_wrappers: destroy mutex=%X\n", *mutex );
 #endif
-  return ( rtems_semaphore_delete((rtems_id)*mutex)
+  return ( rtems_semaphore_delete(*(rtems_id *)mutex)
              ==  RTEMS_SUCCESSFUL) ? 0 : -1;
 }
 
@@ -228,7 +229,7 @@ int rtems_gxx_mutex_trylock (__gthread_mutex_t *mutex)
 #ifdef DEBUG_GXX_WRAPPERS
   printk( "gxx_wrappers: trylock mutex=%X\n", *mutex );
 #endif
-  return (rtems_semaphore_obtain ((rtems_id)*mutex,
+  return (rtems_semaphore_obtain (*(rtems_id *)mutex,
                RTEMS_NO_WAIT, 0) == RTEMS_SUCCESSFUL) ? 0 : -1;
 }
 
@@ -237,7 +238,8 @@ int rtems_gxx_mutex_unlock (__gthread_mutex_t *mutex)
 #ifdef DEBUG_GXX_WRAPPERS
    printk( "gxx_wrappers: unlock mutex=%X\n", *mutex );
 #endif
-  return (rtems_semaphore_release( (rtems_id)*mutex ) ==  RTEMS_SUCCESSFUL) ? 0 :-1;
+  return (rtems_semaphore_release( *(rtems_id *)mutex )
+      == RTEMS_SUCCESSFUL) ? 0 :-1;
 }
 
 void rtems_gxx_recursive_mutex_init(__gthread_recursive_mutex_t *mutex)

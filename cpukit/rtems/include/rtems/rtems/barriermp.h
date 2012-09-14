@@ -12,14 +12,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: barriermp.h,v 1.3 2008/04/18 20:08:07 joel Exp $
+ *  $Id: barriermp.h,v 1.4 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_SEMMP_H
 #define _RTEMS_RTEMS_SEMMP_H
 
 /**
- *  @defgroup ClassicBarrierMP Classic API Barrier MP Support
+ *  @defgroup ClassicBarrierMP Barrier MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */

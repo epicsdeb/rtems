@@ -1,16 +1,23 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.1.2.2 2009/09/09 18:28:00 joel Exp $
+ *  $Id: init.c,v 1.7 2009/11/30 12:51:50 thomas Exp $
  */
 
 #include <tmacros.h>
 #include <rtems/cpuuse.h>
+
+rtems_task Periodic_Task(
+  rtems_task_argument argument
+);
+rtems_task Init(
+  rtems_task_argument argument
+);
 
 volatile int partial_loop = 0;
 
@@ -35,7 +42,7 @@ rtems_task Periodic_Task(
     status = rtems_rate_monotonic_period( period_id, 25 );
     directive_failed(status, "rate_monotonic_period");
     partial_loop = 0;
-  
+
     start = rtems_clock_get_ticks_since_boot();
     end   = start + 5;
     while ( end <= rtems_clock_get_ticks_since_boot() )
@@ -86,7 +93,7 @@ rtems_task Init(
 
   rtems_cpu_usage_reset();
 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   /*
@@ -107,7 +114,7 @@ rtems_task Init(
 #define CONFIGURE_MAXIMUM_PERIODS         1
 #define CONFIGURE_INIT_TASK_STACK_SIZE    (RTEMS_MINIMUM_STACK_SIZE * 2)
 #define CONFIGURE_INIT_TASK_PRIORITY      10
-#define CONFIGURE_INIT_TASK_MODES         RTEMS_DEFAULT_MODES
+#define CONFIGURE_INIT_TASK_INITIAL_MODES RTEMS_DEFAULT_MODES
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 

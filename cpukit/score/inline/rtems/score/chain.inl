@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: chain.inl,v 1.18 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: chain.inl,v 1.21 2009/10/08 07:07:36 ccj Exp $
  */
 
 #ifndef _RTEMS_SCORE_CHAIN_H
@@ -32,16 +32,46 @@
  *  @{
  */
 
+/** @brief Set off chain
+ *
+ *  This function sets the next and previous fields of the @a node to NULL
+ *  indicating the @a node is not part of a chain.
+ *
+ *  @param[in] node the node set to off chain.
+ */
+RTEMS_INLINE_ROUTINE void _Chain_Set_off_chain(
+  Chain_Node *node
+)
+{
+  node->next = node->previous = NULL;
+}
+
+/** @brief Is the Node off Chain
+ *
+ *  This function returns true if the @a node is not on a chain. A @a node is
+ *  off chain if the next and previous fields are set to NULL.
+ *
+ *  @param[in] node is the node off chain.
+ *
+ *  @return This function returns true if the @a node is off chain.
+ */
+RTEMS_INLINE_ROUTINE bool _Chain_Is_node_off_chain(
+  const Chain_Node *node
+)
+{
+  return (node->next == NULL) && (node->previous == NULL);
+}
+
 /** @brief Are Two Nodes Equal
  *
- *  This function returns TRUE if @a left and @a right are equal,
- *  and FALSE otherwise.
+ *  This function returns true if @a left and @a right are equal,
+ *  and false otherwise.
  *
  *  @param[in] left is the node on the left hand side of the comparison.
  *  @param[in] right is the node on the left hand side of the comparison.
  *
- *  @return This function returns TRUE if @a left and @a right are equal,
- *          and FALSE otherwise.
+ *  @return This function returns true if @a left and @a right are equal,
+ *          and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Are_nodes_equal(
   const Chain_Node *left,
@@ -53,11 +83,11 @@ RTEMS_INLINE_ROUTINE bool _Chain_Are_nodes_equal(
 
 /** @brief Is this Chain Control Pointer Null
  *
- *  This function returns TRUE if the_chain is NULL and FALSE otherwise.
+ *  This function returns true if the_chain is NULL and false otherwise.
  *
  *  @param[in] the_chain is the chain to be checked for empty status.
  *
- *  @return This method returns TRUE if the_chain is NULL and FALSE otherwise.
+ *  @return This method returns true if the_chain is NULL and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_null(
   const Chain_Control *the_chain
@@ -68,11 +98,11 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_null(
 
 /** @brief Is the Chain Node Pointer NULL
  *
- *  This function returns TRUE if the_node is NULL and FALSE otherwise.
+ *  This function returns true if the_node is NULL and false otherwise.
  *
  *  @param[in] the_node is the node pointer to check.
  *
- *  @return This method returns TRUE if the_node is NULL and FALSE otherwise.
+ *  @return This method returns true if the_node is NULL and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_null_node(
   const Chain_Node *the_node
@@ -83,7 +113,7 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_null_node(
 
 /** @brief Return pointer to Chain Head
  *
- *  This function returns a pointer to the first node on the chain.
+ *  This function returns a pointer to the head node on the chain.
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *
@@ -111,15 +141,77 @@ RTEMS_INLINE_ROUTINE Chain_Node *_Chain_Tail(
    return (Chain_Node *) &the_chain->permanent_null;
 }
 
-/** @brief Is the Chain Empty
+/** @brief Return pointer to Chain's First node
  *
- *  This function returns TRUE if there a no nodes on @a the_chain and
- *  FALSE otherwise.
+ *  This function returns a pointer to the first node on the chain after the
+ *  head.
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *
- *  @return This function returns TRUE if there a no nodes on @a the_chain and
- *  FALSE otherwise.
+ *  @return This method returns the first node of the chain.
+ */
+RTEMS_INLINE_ROUTINE Chain_Node *_Chain_First(
+  Chain_Control *the_chain
+)
+{
+  return the_chain->first;
+}
+
+/** @brief Return pointer to Chain's Last node
+ *
+ *  This function returns a pointer to the last node on the chain just before
+ *  the tail.
+ *
+ *  @param[in] the_chain is the chain to be operated upon.
+ *
+ *  @return This method returns the last node of the chain.
+ */
+RTEMS_INLINE_ROUTINE Chain_Node *_Chain_Last(
+  Chain_Control *the_chain
+)
+{
+  return the_chain->last;
+}
+
+/** @brief Return pointer the next node from this node
+ *
+ *  This function returns a pointer to the next node after this node.
+ *
+ *  @param[in] the_node is the node to be operated upon.
+ *
+ *  @return This method returns the next node on the chain.
+ */
+RTEMS_INLINE_ROUTINE Chain_Node *_Chain_Next(
+  Chain_Node *the_node
+)
+{
+  return the_node->next;
+}
+
+/** @brief Return pointer the previous node from this node
+ *
+ *  This function returns a pointer to the previous node on this chain.
+ *
+ *  @param[in] the_node is the node to be operated upon.
+ *
+ *  @return This method returns the previous node on the chain.
+ */
+RTEMS_INLINE_ROUTINE Chain_Node *_Chain_Previous(
+  Chain_Node *the_node
+)
+{
+  return the_node->previous;
+}
+
+/** @brief Is the Chain Empty
+ *
+ *  This function returns true if there a no nodes on @a the_chain and
+ *  false otherwise.
+ *
+ *  @param[in] the_chain is the chain to be operated upon.
+ *
+ *  @return This function returns true if there a no nodes on @a the_chain and
+ *  false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_empty(
   Chain_Control *the_chain
@@ -130,14 +222,14 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_empty(
 
 /** @brief Is this the First Node on the Chain
  *
- *  This function returns TRUE if the_node is the first node on a chain and
- *  FALSE otherwise.
+ *  This function returns true if the_node is the first node on a chain and
+ *  false otherwise.
  *
  *  @param[in] the_node is the node the caller wants to know if it is
  *             the first node on a chain.
  *
- *  @return This function returns TRUE if @a the_node is the first node on
- *          a chain and FALSE otherwise.
+ *  @return This function returns true if @a the_node is the first node on
+ *          a chain and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_first(
   const Chain_Node *the_node
@@ -148,13 +240,13 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_first(
 
 /** @brief Is this the Last Node on the Chain
  *
- *  This function returns TRUE if @a the_node is the last node on a chain and
- *  FALSE otherwise.
+ *  This function returns true if @a the_node is the last node on a chain and
+ *  false otherwise.
  *
  *  @param[in] the_node is the node to check as the last node.
  *
- *  @return This function returns TRUE if @a the_node is the last node on
- *          a chain and FALSE otherwise.
+ *  @return This function returns true if @a the_node is the last node on
+ *          a chain and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_last(
   const Chain_Node *the_node
@@ -165,13 +257,13 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_last(
 
 /** @brief Does this Chain have only One Node
  *
- *  This function returns TRUE if there is only one node on @a the_chain and
- *  FALSE otherwise.
+ *  This function returns true if there is only one node on @a the_chain and
+ *  false otherwise.
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *
- *  @return This function returns TRUE if there is only one node on
- *          @a the_chain and FALSE otherwise.
+ *  @return This function returns true if there is only one node on
+ *          @a the_chain and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Has_only_one_node(
   const Chain_Control *the_chain
@@ -182,14 +274,14 @@ RTEMS_INLINE_ROUTINE bool _Chain_Has_only_one_node(
 
 /** @brief Is this Node the Chain Head
  *
- *  This function returns TRUE if @a the_node is the head of the_chain and
- *  FALSE otherwise.
+ *  This function returns true if @a the_node is the head of the_chain and
+ *  false otherwise.
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *  @param[in] the_node is the node to check for being the Chain Head.
  *
- *  @return This function returns TRUE if @a the_node is the head of
- *          @a the_chain and FALSE otherwise.
+ *  @return This function returns true if @a the_node is the head of
+ *          @a the_chain and false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool _Chain_Is_head(
   Chain_Control *the_chain,
@@ -201,8 +293,8 @@ RTEMS_INLINE_ROUTINE bool _Chain_Is_head(
 
 /** @brief Is this Node the Chail Tail
  *
- *  This function returns TRUE if the_node is the tail of the_chain and
- *  FALSE otherwise.
+ *  This function returns true if the_node is the tail of the_chain and
+ *  false otherwise.
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *  @param[in] the_node is the node to check for being the Chain Tail.

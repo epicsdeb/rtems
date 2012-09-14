@@ -1,6 +1,6 @@
 /*
   ------------------------------------------------------------------------
-  $Id: rtemsTask.cc,v 1.4 2006/12/13 15:52:00 joel Exp $
+  $Id: rtemsTask.cc,v 1.7 2009/11/23 15:29:54 ralf Exp $
   ------------------------------------------------------------------------
 
   COPYRIGHT (c) 1997
@@ -18,7 +18,7 @@
   ------------------------------------------------------------------------
 */
 
-#include <string.h>
+#include <cstring>
 #include <rtems++/rtemsTask.h>
 // include to allow it to be compiled
 #include <rtems++/rtemsTaskMode.h>
@@ -232,9 +232,9 @@ const rtems_status_code rtemsTask::resume()
 const rtems_status_code rtemsTask::wake_after(const rtems_interval micro_secs)
 {
   rtems_interval usecs =
-    micro_secs && (micro_secs < _TOD_Microseconds_per_tick) ?
-    _TOD_Microseconds_per_tick : micro_secs;
-  return set_status_code(rtems_task_wake_after(TOD_MICROSECONDS_TO_TICKS(usecs)));
+    (micro_secs < rtems_configuration_get_microseconds_per_tick()) ?
+    rtems_configuration_get_microseconds_per_tick() : micro_secs;
+  return set_status_code(rtems_task_wake_after(RTEMS_MICROSECONDS_TO_TICKS(usecs)));
 }
 
 const rtems_status_code rtemsTask::wake_when(const rtems_time_of_day& tod)

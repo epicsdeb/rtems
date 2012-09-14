@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: ide_part_table.c,v 1.12.2.1 2009/03/19 10:20:10 thomas Exp $
+ * $Id: ide_part_table.c,v 1.19 2010/03/12 16:35:13 joel Exp $
  *
  *****************************************************************************/
 
@@ -192,7 +192,7 @@ data_to_part_desc(uint8_t *data, rtems_part_desc_t **new_part_desc)
      * - FAT type and non-zero
      */
     if (is_extended(part_desc->sys_type) ||
-	((is_fat_partition(part_desc->sys_type)) && (part_desc->size != 0))) {
+       ((is_fat_partition(part_desc->sys_type)) && (part_desc->size != 0))) {
       *new_part_desc = part_desc;
     }
     else {
@@ -223,7 +223,7 @@ read_extended_partition(uint32_t start, rtems_part_desc_t *ext_part)
 {
     int                  i;
     dev_t                dev;
-    rtems_sector_data_t *sector;
+    rtems_sector_data_t *sector = NULL;
     uint32_t             here;
     uint8_t             *data;
     rtems_part_desc_t   *new_part_desc;
@@ -244,11 +244,14 @@ read_extended_partition(uint32_t start, rtems_part_desc_t *ext_part)
     rc = get_sector(dev, here, &sector);
     if (rc != RTEMS_SUCCESSFUL)
     {
+        if (sector)
+            free(sector);
         return rc;
     }
 
     if (!msdos_signature_check(sector))
     {
+        free(sector);
         return RTEMS_INTERNAL_ERROR;
     }
 
@@ -317,7 +320,7 @@ static rtems_status_code
 read_mbr(rtems_disk_desc_t *disk_desc)
 {
     int                  part_num;
-    rtems_sector_data_t *sector;
+    rtems_sector_data_t *sector = NULL;
     rtems_part_desc_t   *part_desc;
     uint8_t             *data;
     rtems_status_code    rc;
@@ -327,12 +330,15 @@ read_mbr(rtems_disk_desc_t *disk_desc)
     rc = get_sector(dev, 0, &sector);
     if (rc != RTEMS_SUCCESSFUL)
     {
+        if (sector)
+            free(sector);
         return rc;
     }
 
     /* check if the partition table structure is MS-DOS style */
     if (!msdos_signature_check(sector))
     {
+        free(sector);
         return RTEMS_INTERNAL_ERROR;
     }
 
@@ -420,6 +426,66 @@ partition_free(rtems_part_desc_t *part_desc)
 
 
 /*
+ * partition_table_free - frees disk descriptor structure
+ *
+ * PARAMETERS:
+ *      disk_desc - disc descriptor structure to free
+ *
+ * RETURNS:
+ *      N/A
+ */
+static void
+partition_table_free(rtems_disk_desc_t *disk_desc)
+{
+    int part_num;
+
+    for (part_num = 0;
+         part_num < RTEMS_IDE_PARTITION_MAX_SUB_PARTITION_NUMBER;
+         part_num++)
+    {
+        partition_free(disk_desc->partitions[part_num]);
+    }
+
+    free(disk_desc);
+}
+
+
+/*
+ * partition_table_get - reads partition table structure from the device
+ *                            and creates disk description structure
+ *
+ * PARAMETERS:
+ *      dev_name - path to physical device in /dev filesystem
+ *      disk_desc       - returned disc description structure
+ *
+ * RETURNS:
+ *      RTEMS_SUCCESSFUL if success,
+ *      RTEMS_INTERNAL_ERROR otherwise
+ */
+static rtems_status_code
+partition_table_get(const char *dev_name, rtems_disk_desc_t *disk_desc)
+{
+    struct stat         dev_stat;
+    rtems_status_code   rc;
+
+    rc = stat(dev_name, &dev_stat);
+    if (rc != RTEMS_SUCCESSFUL)
+    {
+        return RTEMS_INTERNAL_ERROR;
+    }
+
+    strncpy (disk_desc->dev_name, dev_name, 15);
+    disk_desc->dev = dev_stat.st_rdev;
+    disk_desc->sector_size = (dev_stat.st_blksize) ? dev_stat.st_blksize :
+                                              RTEMS_IDE_SECTOR_SIZE;
+
+    rc = read_mbr(disk_desc);
+
+    return rc;
+}
+
+
+/*
  * rtems_ide_part_table_free - frees disk descriptor structure
  *
  * PARAMETERS:
@@ -431,14 +497,7 @@ partition_free(rtems_part_desc_t *part_desc)
 void
 rtems_ide_part_table_free(rtems_disk_desc_t *disk_desc)
 {
-    int part_num;
-
-    for (part_num = 0; part_num < RTEMS_IDE_PARTITION_MAX_SUB_PARTITION_NUMBER; part_num++)
-    {
-        partition_free(disk_desc->partitions[part_num]);
-    }
-
-    free(disk_desc);
+    partition_table_free( disk_desc );
 }
 
 
@@ -457,23 +516,7 @@ rtems_ide_part_table_free(rtems_disk_desc_t *disk_desc)
 rtems_status_code
 rtems_ide_part_table_get(const char *dev_name, rtems_disk_desc_t *disk_desc)
 {
-    struct stat         dev_stat;
-    rtems_status_code   rc;
-
-    rc = stat(dev_name, &dev_stat);
-    if (rc != RTEMS_SUCCESSFUL)
-    {
-        return RTEMS_INTERNAL_ERROR;
-    }
-
-    strncpy (disk_desc->dev_name, dev_name, 15);
-    disk_desc->dev = dev_stat.st_dev;
-    disk_desc->sector_size = (dev_stat.st_blksize) ? dev_stat.st_blksize :
-                                              RTEMS_IDE_SECTOR_SIZE;
-
-    rc = read_mbr(disk_desc);
-
-    return rc;
+    return partition_table_get( dev_name, disk_desc );
 }
 
 
@@ -510,9 +553,10 @@ rtems_ide_part_table_initialize(char *dev_name)
     }
 
     /* get partition table */
-    rc = rtems_ide_part_table_get(dev_name, disk_desc);
+    rc = partition_table_get(dev_name, disk_desc);
     if (rc != RTEMS_SUCCESSFUL)
     {
+        free(disk_desc);
         return rc;
     }
 
@@ -544,7 +588,7 @@ rtems_ide_part_table_initialize(char *dev_name)
         }
     }
 
-    rtems_ide_part_table_free(disk_desc);
+    partition_table_free(disk_desc);
 
     return RTEMS_SUCCESSFUL;
 }

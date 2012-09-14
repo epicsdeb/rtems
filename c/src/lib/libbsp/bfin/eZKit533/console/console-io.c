@@ -1,5 +1,5 @@
 /*  console-io.c
- * 
+ *
  *  This file contains the hardware specific portions of the TTY driver
  *  for the serial ports for ezkit533.
  *
@@ -11,9 +11,9 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console-io.c,v 1.3 2008/08/18 21:51:35 joel Exp $
+ *  $Id: console-io.c,v 1.5.2.1 2011/04/20 20:25:05 joel Exp $
  */
- 
+
 
 #include <rtems.h>
 #include <rtems/libio.h>
@@ -26,14 +26,18 @@
 
 static bfin_uart_channel_t channels[] = {
   {"/dev/console",
-   (char *) UART0_BASE_ADDRESS,
+   UART0_BASE_ADDRESS,
+   0,
+   0,
    CONSOLE_USE_INTERRUPTS,
+   0,
 #ifdef CONSOLE_FORCE_BAUD
    CONSOLE_FORCE_BAUD,
 #else
    0,
 #endif
    NULL,
+   0,
    0}
 };
 
@@ -45,8 +49,8 @@ static bfin_uart_config_t config = {
 
 #if CONSOLE_USE_INTERRUPTS
 static bfin_isr_t bfinUARTISRs[] = {
-  {SIC_DMA6_UART0_RX_VECTOR, bfin_uart_isr, 0, 0, NULL},
-  {SIC_DMA7_UART0_TX_VECTOR, bfin_uart_isr, 0, 0, NULL},
+  {SIC_DMA6_UART0_RX_VECTOR, bfinUart_rxIsr, 0, 0, NULL},
+  {SIC_DMA7_UART0_TX_VECTOR, bfinUart_txIsr, 0, 0, NULL},
 };
 #endif
 
@@ -56,7 +60,7 @@ static void eZKit533_BSP_output_char(char c) {
   bfin_uart_poll_write(0, c);
 }
 
-static char eZKit533_BSP_poll_char(void) {
+static int eZKit533_BSP_poll_char(void) {
 
   return bfin_uart_poll_read(0);
 }

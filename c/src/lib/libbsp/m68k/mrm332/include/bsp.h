@@ -2,14 +2,14 @@
  *
  *  This include file contains all mrm board IO definitions.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.17 2007/12/11 15:49:20 joel Exp $
+ *  $Id: bsp.h,v 1.21 2009/08/21 17:59:03 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -30,14 +30,9 @@ extern "C" {
 #include <rtems/m68k/sim.h>
 #include <rtems/m68k/qsm.h>
 
-/*
- *  confdefs.h overrides for this BSP:
- *   - number of termios serial ports (defaults to 1)
- *   - Interrupt stack space is not minimum if defined.
- */
+#define BSP_SMALL_MEMORY 1
 
 #define CONSOLE_SCI
-/* #define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2 */
 
 /*
  *  Simple spin delay in microsecond units for device drivers.
@@ -96,21 +91,7 @@ extern m68k_isr_entry M68Kvec[];   /* vector table address */
 extern int stack_size;
 extern int stack_start;
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,
