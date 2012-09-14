@@ -36,3 +36,11 @@ Architecture: any
 Depends: rtems-powerpc, ${shlibs:Depends}, ${misc:Depends}
 Description: Base RTEMS MVME5500 support
  RTEMS support for the mvme5500 PowerPC board
+
+Package: rtems-beatnik
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         rtems-powerpc (= ${binary:Version})
+Description: Base RTEMS beatnik support
+ RTEMS support for the beatnik PowerPC BSP.
+ Supports mvme6100 and mvme5500

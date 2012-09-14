@@ -1,0 +1,3 @@
+usr/make/custom/beatnik.cfg
+usr/lib/pkgconfig/powerpc-rtems*-beatnik.pc
+usr/powerpc-rtems*/beatnik
