@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semopen.c,v 1.12 2007/12/17 16:19:14 joel Exp $
+ *  $Id: semopen.c,v 1.15 2009/05/03 23:10:02 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -53,7 +53,7 @@ sem_t *sem_open(
   unsigned int               value = 0;
   int                        status;
   sem_t                      the_semaphore_id;
-  Objects_Id                *id;
+  sem_t                     *id;
   POSIX_Semaphore_Control   *the_semaphore;
   Objects_Locations          location;
 
@@ -101,9 +101,7 @@ sem_t *sem_open(
     the_semaphore->open_count += 1;
     _Thread_Enable_dispatch();
     _Thread_Enable_dispatch();
-    id = &the_semaphore->Object.id;
-    return (sem_t *)id;
-
+    goto return_id;
   }
 
   /*
@@ -113,7 +111,7 @@ sem_t *sem_open(
 
   status =_POSIX_Semaphore_Create_support(
     name,
-    FALSE,         /* not shared across processes */
+    false,         /* not shared across processes */
     value,
     &the_semaphore
   );
@@ -127,6 +125,12 @@ sem_t *sem_open(
   if ( status == -1 )
     return SEM_FAILED;
 
-  id = &the_semaphore->Object.id;
-  return (sem_t *)id;
+return_id:
+  #if defined(RTEMS_USE_16_BIT_OBJECT)
+    the_semaphore->Semaphore_id = the_semaphore->Object.id;
+    id = &the_semaphore->Semaphore_id;
+  #else
+    id = (sem_t *)&the_semaphore->Object.id;
+  #endif
+  return id;
 }

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqextractwithproxy.c,v 1.12 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: threadqextractwithproxy.c,v 1.13 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -61,7 +61,7 @@ bool _Thread_queue_Extract_with_proxy(
     #endif
     _Thread_queue_Extract( the_thread->Wait.queue, the_thread );
 
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }

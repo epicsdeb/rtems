@@ -1,7 +1,7 @@
 /*
  * RTEMS Monitor extension support
  *
- *  $Id: mon-extension.c,v 1.13 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-extension.c,v 1.14 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,7 +43,7 @@ rtems_monitor_extension_canonical(
 
 void
 rtems_monitor_extension_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\

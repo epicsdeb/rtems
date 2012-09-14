@@ -9,22 +9,22 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.e
  *
- *  $Id: linkcmds,v 1.2 2008/06/20 16:30:25 joel Exp $
+ *  $Id: linkcmds,v 1.3 2008/09/16 22:16:09 joel Exp $
  */
 
 /*
  * Declare some sizes.
  */
-_CoreSRamBase = DEFINED(_RamBase) ? _RamBase : 0x80000000;
-_CoreSRamSize = DEFINED(_RamSize) ? _RamSize : 32K;
+_CoreSRamBase = DEFINED(RamBase) ? RamBase : 0x80000000;
+_CoreSRamSize = DEFINED(RamSize) ? RamSize : 32K;
 
-_RamBase = DEFINED(_RamBase) ? _RamBase : 0x40000000;
-_RamSize = DEFINED(_RamSize) ? _RamSize : 32M;
+RamBase = DEFINED(RamBase) ? RamBase : 0x40000000;
+RamSize = DEFINED(RamSize) ? RamSize : 32M;
 
 _BootFlashBase = DEFINED(_FlashBase) ? _FlashBase : 0x00000000;
 _BootFlashSize = DEFINED(_FlashBase) ? _FlashBase : 2M;
 
-_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0;
 _StackSize = DEFINED(_StackSize) ? _StackSize : 0x400;
 
 _VBR = 0x40000000;
@@ -160,7 +160,7 @@ SECTIONS
         PROVIDE (_end = .);
 
         _clear_end = .;
-        _WorkspaceBase = .;
+        WorkAreaBase = .;
     } > dram
 
     .start_stack :

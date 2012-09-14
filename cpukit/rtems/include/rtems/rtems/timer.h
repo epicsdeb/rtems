@@ -22,21 +22,23 @@
  *     - cancel a time
  */
 
-/*  COPYRIGHT (c) 1989-2008.
+/*  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
+ *
+ *  Copyright (c) 2009 embedded brains GmbH.
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.h,v 1.27.2.1 2008/12/03 21:01:08 joel Exp $
+ *  $Id: timer.h,v 1.34 2009/12/15 18:26:41 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_TIMER_H
 #define _RTEMS_RTEMS_TIMER_H
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -52,11 +54,14 @@ extern "C" {
 #include <rtems/score/object.h>
 #include <rtems/score/watchdog.h>
 #include <rtems/score/thread.h>
+#include <rtems/score/chain.h>
 #include <rtems/rtems/clock.h>
 #include <rtems/rtems/attr.h>
 
 /**
- *  @defgroup ClassicTimer Classic API Timer
+ *  @defgroup ClassicTimer Timers
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality related to the Classic API Timer
  *  Manager.  This manager provides functionality which allows the
@@ -118,19 +123,6 @@ typedef rtems_timer_service_routine ( *rtems_timer_service_routine_entry )(
              );
 
 /**
- *  The following defines the information control block used to manage
- *  this class of objects.
- */
-RTEMS_TIMER_EXTERN Objects_Information  _Timer_Information;
-
-/**
- *  Pointer to TCB of the Timer Server.  This is NULL before the
- *  server is executing and task-based timers are not allowed to be
- *  initiated until the server is started.
- */
-RTEMS_TIMER_EXTERN Thread_Control *_Timer_Server;
-
-/**
  *  The following records define the control block used to manage
  *  each timer.
  */
@@ -143,14 +135,97 @@ typedef struct {
   Timer_Classes    the_class;
 }   Timer_Control;
 
+typedef struct Timer_server_Control Timer_server_Control;
+
+/**
+ * @brief Method used to schedule the insertion of task based timers.
+ */
+typedef void (*Timer_server_Schedule_operation)(
+  Timer_server_Control *timer_server,
+  Timer_Control        *timer
+);
+
+typedef struct {
+  /**
+   * @brief This watchdog that will be registered in the system tick mechanic
+   * for timer server wake-up.
+   */
+  Watchdog_Control System_watchdog;
+
+  /**
+   * @brief Chain for watchdogs which will be triggered by the timer server.
+   */
+  Chain_Control Chain;
+
+  /**
+   * @brief Last known time snapshot of the timer server.
+   *
+   * The units may be ticks or seconds.
+   */
+  Watchdog_Interval volatile last_snapshot;
+} Timer_server_Watchdogs;
+
+struct Timer_server_Control {
+  /**
+   * @brief Timer server thread.
+   */
+  Thread_Control *thread;
+
+  /**
+   * @brief The schedule operation method of the timer server.
+   */
+  Timer_server_Schedule_operation schedule_operation;
+
+  /**
+   * @brief Interval watchdogs triggered by the timer server.
+   */
+  Timer_server_Watchdogs Interval_watchdogs;
+
+  /**
+   * @brief TOD watchdogs triggered by the timer server.
+   */
+  Timer_server_Watchdogs TOD_watchdogs;
+
+  /**
+   * @brief Chain of timers scheduled for insert.
+   *
+   * This pointer is not @c NULL whenever the interval and TOD chains are
+   * processed.  After the processing this list will be checked and if
+   * necessary the processing will be restarted.  Processing of these chains
+   * can be only interrupted through interrupts.
+   */
+  Chain_Control *volatile insert_chain;
+
+  /**
+   * @brief Indicates that the timer server is active or not.
+   *
+   * The server is active after the delay on a system watchdog.  The activity
+   * period of the server ends when no more watchdogs managed by the server
+   * fire.  The system watchdogs must not be manipulated when the server is
+   * active.
+   */
+  bool volatile active;
+};
+
+/**
+ * @brief Pointer to default timer server control block.
+ *
+ * This value is @c NULL when the default timer server is not initialized.
+ */
+RTEMS_TIMER_EXTERN Timer_server_Control *volatile _Timer_server;
+
+/**
+ *  The following defines the information control block used to manage
+ *  this class of objects.
+ */
+RTEMS_TIMER_EXTERN Objects_Information  _Timer_Information;
+
 /**
  *  @brief _Timer_Manager_initialization
  *
  *  This routine performs the initialization necessary for this manager.
  */
-void _Timer_Manager_initialization(
-  uint32_t   maximum_timers
-);
+void _Timer_Manager_initialization(void);
 
 /**
  *  @brief rtems_timer_create
@@ -161,7 +236,7 @@ void _Timer_Manager_initialization(
  */
 rtems_status_code rtems_timer_create(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 );
 
 /**
@@ -174,7 +249,7 @@ rtems_status_code rtems_timer_create(
  */
 rtems_status_code rtems_timer_ident(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 );
 
 /**
@@ -184,7 +259,7 @@ rtems_status_code rtems_timer_ident(
  *  to stop the timer associated with ID from firing.
  */
 rtems_status_code rtems_timer_cancel(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -194,7 +269,7 @@ rtems_status_code rtems_timer_cancel(
  *  timer indicated by ID is deleted.
  */
 rtems_status_code rtems_timer_delete(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -207,7 +282,7 @@ rtems_status_code rtems_timer_delete(
  *  part of servicing a periodic interupt.
  */
 rtems_status_code rtems_timer_fire_after(
-  Objects_Id                         id,
+  rtems_id                           id,
   rtems_interval                     ticks,
   rtems_timer_service_routine_entry  routine,
   void                              *user_data
@@ -223,7 +298,7 @@ rtems_status_code rtems_timer_fire_after(
  *  clock tick interrupt.
  */
 rtems_status_code rtems_timer_server_fire_after(
-  Objects_Id                         id,
+  rtems_id                           id,
   rtems_interval                     ticks,
   rtems_timer_service_routine_entry  routine,
   void                              *user_data
@@ -239,7 +314,7 @@ rtems_status_code rtems_timer_server_fire_after(
  *  part of servicing a periodic interupt.
  */
 rtems_status_code rtems_timer_fire_when(
-  Objects_Id                          id,
+  rtems_id                            id,
   rtems_time_of_day                  *wall_time,
   rtems_timer_service_routine_entry   routine,
   void                               *user_data
@@ -255,7 +330,7 @@ rtems_status_code rtems_timer_fire_when(
  *  clock tick interrupt.
  */
 rtems_status_code rtems_timer_server_fire_when(
-  Objects_Id                          id,
+  rtems_id                            id,
   rtems_time_of_day                  *wall_time,
   rtems_timer_service_routine_entry   routine,
   void                               *user_data
@@ -270,7 +345,7 @@ rtems_status_code rtems_timer_server_fire_when(
  *  were used to initiate this timer.
  */
 rtems_status_code rtems_timer_reset(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -291,7 +366,7 @@ rtems_status_code rtems_timer_initiate_server(
  *  When given this priority, a special high priority not accessible
  *  via the Classic API is used.
  */
-#define RTEMS_TIMER_SERVER_DEFAULT_PRIORITY -1
+#define RTEMS_TIMER_SERVER_DEFAULT_PRIORITY (uint32_t) -1
 
 /**
  *  This is the structure filled in by the timer get information
@@ -315,24 +390,9 @@ typedef struct {
  *  This directive returns information about the timer.
  */
 rtems_status_code rtems_timer_get_information(
-  Objects_Id               id,
+  rtems_id                 id,
   rtems_timer_information *the_info
 );
-
-/**
- *  This type defines the method used to schedule the insertion of task
- *  based timers.
- */
-typedef void (*Timer_Server_schedule_operation_t)(
-  Timer_Control     *the_timer
-);
-
-/**
- *  This variable will point to the schedule operation method once the
- *  timer server is initialized.
- */
-RTEMS_TIMER_EXTERN Timer_Server_schedule_operation_t
-  _Timer_Server_schedule_operation;
 
 #ifndef __RTEMS_APPLICATION__
 #include <rtems/rtems/timer.inl>

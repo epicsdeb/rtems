@@ -16,7 +16,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Header: /usr1/CVS/rtems/c/src/lib/libcpu/i386/page.c,v 1.13 2008/08/16 05:44:00 ralf Exp $
+ * $Header: /usr1/CVS/rtems/c/src/lib/libcpu/i386/page.c,v 1.17 2010/05/21 19:03:21 joel Exp $
  */
 
 #include <stdio.h>
@@ -31,8 +31,7 @@ static int directoryEntry=0;
 static int tableEntry=0;
 static page_directory *pageDirectory;
 
-extern uint32_t   rtemsFreeMemStart;
-
+extern uint32_t   bsp_mem_size;
 
 /*************************************************************************/
 /************** IT IS A ONE-TO-ONE TRANSLATION ***************************/
@@ -42,24 +41,26 @@ extern uint32_t   rtemsFreeMemStart;
 /*
  * Disable the paging
  */
-void _CPU_disable_paging(void) {
-  cr0 regCr0;
+void _CPU_disable_paging(void)
+{
+  unsigned int regCr0;
 
   rtems_cache_flush_entire_data();
-  regCr0.i = i386_get_cr0();
-  regCr0.cr0.paging = 0;
-  i386_set_cr0( regCr0.i );
+  regCr0 = i386_get_cr0();
+  regCr0 &= ~(CR0_PAGING);
+  i386_set_cr0( regCr0 );
 }
 
 /*
  * Enable the paging
  */
-void _CPU_enable_paging(void) {
-  cr0 regCr0;
+void _CPU_enable_paging(void)
+{
+  unsigned int regCr0;
 
-  regCr0.i = i386_get_cr0();
-  regCr0.cr0.paging = 1;
-  i386_set_cr0( regCr0.i );
+  regCr0 = i386_get_cr0();
+  regCr0 |= CR0_PAGING;
+  i386_set_cr0( regCr0 );
   rtems_cache_flush_entire_data();
 }
 
@@ -68,32 +69,25 @@ void _CPU_enable_paging(void) {
  * Initialize the paging with 1-to-1 mapping
  */
 
-int init_paging(void) {
-
-  int memorySize;
+int init_paging(void)
+{
   int nbPages;
   int nbInitPages;
   char *Tables;
-  cr3 regCr3;
+  unsigned int regCr3;
   page_table *pageTable;
   unsigned int physPage;
   int nbTables=0;
-  
-  /*
-   * rtemsFreeMemStart is the last valid 32-bits address
-   * so the size is rtemsFreeMemStart + 4
-   */
-  memorySize = rtemsFreeMemStart + 4;
-  
-  nbPages = ( (memorySize - 1) / PG_SIZE ) + 1;
-  nbTables = ( (memorySize - 1) / FOUR_MB ) + 2;
+
+  nbPages = ( (bsp_mem_size - 1) / PG_SIZE ) + 1;
+  nbTables = ( (bsp_mem_size - 1) / FOUR_MB ) + 2;
 
   /* allocate 1 page more to page alignement */
-  Tables = (char *)malloc( (nbTables + 1)*sizeof(page_table) ); 
+  Tables = (char *)malloc( (nbTables + 1)*sizeof(page_table) );
   if ( Tables == NULL ){
     return -1; /*unable to allocate memory */
   }
-  
+
   /* 4K-page alignement */
   Tables += (PG_SIZE - (int)Tables) & 0xFFF;
 
@@ -137,18 +131,19 @@ int init_paging(void) {
       directoryEntry ++;
       pageTable ++;
     }
-      
+
     nbInitPages++;
   }
 
-  regCr3.cr3.page_write_transparent = 0;
-  regCr3.cr3.page_cache_disable     = 0;
-  regCr3.cr3.page_directory_base    = (unsigned int)pageDirectory >> 12;
+  regCr3 &= ~(CR3_PAGE_WRITE_THROUGH);
+  regCr3 &= ~(CR3_PAGE_CACHE_DISABLE);
+  /*regCr3.cr3.page_directory_base    = (unsigned int)pageDirectory >> 12;*/
+  regCr3 = (unsigned int)pageDirectory & CR3_PAGE_DIRECTORY_MASK;
 
-  i386_set_cr3( regCr3.i );
+  i386_set_cr3( regCr3 );
 
-  _CPU_enable_cache();  
-  _CPU_enable_paging();  
+  _CPU_enable_cache();
+  _CPU_enable_paging();
 
   return 0;
 }
@@ -156,21 +151,23 @@ int init_paging(void) {
 /*
  * Is cache enable
  */
-int  _CPU_is_cache_enabled() {
-  cr0 regCr0;
+int  _CPU_is_cache_enabled(void)
+{
+  unsigned int regCr0;
 
-  regCr0.i = i386_get_cr0();
-  return( ~(regCr0.cr0.page_level_cache_disable) );
+  regCr0 = i386_get_cr0();
+  return( ~(regCr0 & CR0_PAGE_LEVEL_CACHE_DISABLE) );
 }
 
 /*
  * Is paging enable
  */
-int  _CPU_is_paging_enabled() {
-  cr0 regCr0;
+int  _CPU_is_paging_enabled(void)
+{
+  unsigned int regCr0;
 
-  regCr0.i = i386_get_cr0();
-  return(regCr0.cr0.paging);
+  regCr0 = i386_get_cr0();
+  return(regCr0 & CR0_PAGING);
 }
 
 
@@ -179,15 +176,19 @@ int  _CPU_is_paging_enabled() {
  * the translated address in mappedAddress
  */
 
-int _CPU_map_phys_address
-        (void **mappedAddress, void *physAddress, int size, int flag){ 
-
+int _CPU_map_phys_address(
+  void **mappedAddress,
+  void  *physAddress,
+  int    size,
+  int    flag
+)
+{
   page_table *localPageTable;
   unsigned int lastAddress, countAddress;
   char *Tables;
   linear_address virtualAddress;
   unsigned char pagingWasEnabled;
-  
+
   pagingWasEnabled = 0;
 
   if (_CPU_is_paging_enabled()){
@@ -199,7 +200,7 @@ int _CPU_map_phys_address
   lastAddress = (unsigned int)physAddress + (size - 1);
   virtualAddress.address = 0;
 
-  while (1){
+  while (1) {
 
     if ((countAddress & ~MASK_OFFSET) > (lastAddress & ~MASK_OFFSET))
       break;
@@ -207,7 +208,7 @@ int _CPU_map_phys_address
     /* Need to allocate a new page table */
     if (pageDirectory->pageDirEntry[directoryEntry].bits.page_frame_address == 0){
       /* We allocate 2 pages to perform 4k-page alignement */
-      Tables = (char *)malloc(2*sizeof(page_table)); 
+      Tables = (char *)malloc(2*sizeof(page_table));
       if ( Tables == NULL ){
 	if (pagingWasEnabled)
 	  _CPU_enable_paging();
@@ -217,7 +218,7 @@ int _CPU_map_phys_address
       Tables += (PG_SIZE - (int)Tables) & 0xFFF;
 
       /* Reset Table */
-      memset( Tables, 0, sizeof(page_table) );      
+      memset( Tables, 0, sizeof(page_table) );
       pageDirectory->pageDirEntry[directoryEntry].bits.page_frame_address =
 	(unsigned int)Tables >> 12;
       pageDirectory->pageDirEntry[directoryEntry].bits.available      = 0;
@@ -229,7 +230,7 @@ int _CPU_map_phys_address
       pageDirectory->pageDirEntry[directoryEntry].bits.writable       = 1;
       pageDirectory->pageDirEntry[directoryEntry].bits.present        = 1;
     }
-      
+
 
     localPageTable = (page_table *)(pageDirectory->
 				    pageDirEntry[directoryEntry].bits.
@@ -256,7 +257,7 @@ int _CPU_map_phys_address
 
     countAddress += PG_SIZE;
     tableEntry++;
-    if (tableEntry >= MAX_ENTRY){      
+    if (tableEntry >= MAX_ENTRY){
       tableEntry = 0;
       directoryEntry++;
     }
@@ -273,10 +274,11 @@ int _CPU_map_phys_address
  * "Compress" the Directory and Page tables to avoid
  * important loss of address range
  */
-static void Paging_Table_Compress() {
+static void Paging_Table_Compress(void)
+{
   unsigned int dirCount, pageCount;
   page_table *localPageTable;
-  
+
   if (tableEntry == 0){
     dirCount  = directoryEntry - 1;
     pageCount = MAX_ENTRY - 1;
@@ -285,7 +287,7 @@ static void Paging_Table_Compress() {
     dirCount  = directoryEntry;
     pageCount = tableEntry - 1;
   }
-    
+
   while (1){
 
     localPageTable = (page_table *)(pageDirectory->
@@ -294,7 +296,7 @@ static void Paging_Table_Compress() {
 
     if (localPageTable->pageTableEntry[pageCount].bits.present == 1){
       pageCount++;
-      if (pageCount >= MAX_ENTRY){      
+      if (pageCount >= MAX_ENTRY){
 	pageCount = 0;
 	dirCount++;
       }
@@ -303,13 +305,13 @@ static void Paging_Table_Compress() {
 
 
     if (pageCount == 0) {
-      if (dirCount == 0){	
+      if (dirCount == 0){
 	break;
       }
       else {
 	pageCount = MAX_ENTRY - 1;
 	dirCount-- ;
-      }	
+      }
     }
     else
       pageCount-- ;
@@ -318,21 +320,25 @@ static void Paging_Table_Compress() {
   directoryEntry = dirCount;
   tableEntry = pageCount;
 }
-      
-  
+
+
 /*
  * Unmap the virtual address from the tables
  * (we do not deallocate the table already allocated)
  */
 
-int _CPU_unmap_virt_address(void *mappedAddress, int size){ 
+int _CPU_unmap_virt_address(
+  void *mappedAddress,
+  int   size
+)
+{
 
   linear_address linearAddr;
   page_table *localPageTable;
   unsigned int lastAddr ;
   unsigned int dirCount ;
   unsigned char pagingWasEnabled;
-  
+
   pagingWasEnabled = 0;
 
   if (_CPU_is_paging_enabled()){
@@ -358,15 +364,15 @@ int _CPU_unmap_virt_address(void *mappedAddress, int size){
     localPageTable = (page_table *)(pageDirectory->
 				    pageDirEntry[linearAddr.bits.directory].bits.
 				    page_frame_address << 12);
-    
+
     if (localPageTable->pageTableEntry[linearAddr.bits.page].bits.present == 0){
       if (pagingWasEnabled)
 	_CPU_enable_paging();
       return -1;
     }
-  
-    localPageTable->pageTableEntry[linearAddr.bits.page].bits.present = 0;    
-    
+
+    localPageTable->pageTableEntry[linearAddr.bits.page].bits.present = 0;
+
     linearAddr.address += PG_SIZE ;
   }
   Paging_Table_Compress();
@@ -377,25 +383,30 @@ int _CPU_unmap_virt_address(void *mappedAddress, int size){
 }
 
 /*
- * Modify the flags PRESENT, WRITABLE, USER, WRITE_TROUGH, CACHE_DISABLE 
+ * Modify the flags PRESENT, WRITABLE, USER, WRITE_TROUGH, CACHE_DISABLE
  * of the page's descriptor.
  */
 
-int _CPU_change_memory_mapping_attribute
-    (void **newAddress, void *mappedAddress, unsigned int size, unsigned int flag){ 
+int _CPU_change_memory_mapping_attribute(
+  void         **newAddress,
+  void          *mappedAddress,
+  unsigned int   size,
+  unsigned int   flag
+)
+{
 
   linear_address linearAddr;
   page_table *localPageTable;
   unsigned int lastAddr ;
   unsigned char pagingWasEnabled;
-  
+
   pagingWasEnabled = 0;
 
   if (_CPU_is_paging_enabled()){
     pagingWasEnabled = 1;
     _CPU_disable_paging();
   }
-  
+
   linearAddr.address  = (unsigned int)mappedAddress;
   lastAddr = (unsigned int)mappedAddress + (size - 1);
 
@@ -412,18 +423,18 @@ int _CPU_change_memory_mapping_attribute
     localPageTable = (page_table *)(pageDirectory->
 				    pageDirEntry[linearAddr.bits.directory].bits.
 				    page_frame_address << 12);
-    
+
     if (localPageTable->pageTableEntry[linearAddr.bits.page].bits.present == 0){
       if (pagingWasEnabled)
 	_CPU_enable_paging();
       return -1;
     }
-  
+
     localPageTable->pageTableEntry[linearAddr.bits.page].table_entry &= ~MASK_FLAGS ;
     localPageTable->pageTableEntry[linearAddr.bits.page].table_entry |= flag ;
-    
+
     linearAddr.address += PG_SIZE ;
-  }  
+  }
 
   if (newAddress != NULL)
     *newAddress = mappedAddress ;
@@ -441,28 +452,29 @@ int _CPU_change_memory_mapping_attribute
 
 #include <rtems/bspIo.h>
 
-int  _CPU_display_memory_attribute(){ 
+int  _CPU_display_memory_attribute(void)
+{
   unsigned int dirCount, pageCount;
-  cr0 regCr0;
+  unsigned int regCr0;
   page_table *localPageTable;
   unsigned int prevCache;
   unsigned int prevPresent;
   unsigned int maxPage;
   unsigned char pagingWasEnabled;
-  
-  regCr0.i = i386_get_cr0();
-  
+
+  regCr0 = i386_get_cr0();
+
   printk("\n\n********* MEMORY CACHE CONFIGURATION *****\n");
 
-  printk("CR0 -> paging           : %s\n",(regCr0.cr0.paging ? "ENABLE ":"DISABLE"));
-  printk("       page-level cache : %s\n\n",(regCr0.cr0.page_level_cache_disable ? "DISABLE":"ENABLE"));
+  printk("CR0 -> paging           : %s\n",((regCr0 & CR0_PAGING) ? "ENABLE ":"DISABLE"));
+  printk("       page-level cache : %s\n\n",((regCr0 & CR0_PAGE_LEVEL_CACHE_DISABLE) ? "DISABLE":"ENABLE"));
 
-  if (regCr0.cr0.paging == 0)
+  if ((regCr0 & CR0_PAGING) == 0)
     return 0;
-  
+
   prevPresent = 0;
   prevCache   = 1;
-  
+
   pagingWasEnabled = 0;
 
   if (_CPU_is_paging_enabled()){
@@ -505,6 +517,6 @@ int  _CPU_display_memory_attribute(){
   }
   if (pagingWasEnabled)
     _CPU_enable_paging();
-  return 0;
 
+  return 0;
 }

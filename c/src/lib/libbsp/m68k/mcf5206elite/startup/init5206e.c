@@ -25,27 +25,15 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init5206e.c,v 1.7 2008/08/19 11:23:02 ralf Exp $
+ *  $Id: init5206e.c,v 1.9 2010/04/27 22:01:18 joel Exp $
  */
 
 #include <rtems.h>
 #include <bsp.h>
 #include "mcf5206/mcf5206e.h"
 
-#define m68k_set_cacr( _cacr ) \
-  asm volatile ( "movec %0,%%cacr\n\t" \
-                 "nop\n" \
-                 : : "d" (_cacr) )
-
-#define m68k_set_acr0( _acr0 ) \
-  asm volatile (  "movec %0,%%acr0\n\t" \
-                  "nop\n\t" \
-                  : : "d" (_acr0) )
-
-#define m68k_set_acr1( _acr1 ) \
-  asm volatile (  "movec %0,%%acr1\n\t" \
-                  "nop\n\t" \
-                  : : "d" (_acr1) )
+extern void CopyDataClearBSSAndStart(unsigned long ramsize);
+extern void INTERRUPT_VECTOR(void);
 
 #define m68k_set_srambar( _rambar0 ) \
   asm volatile (  "movec %0,%%rambar0\n\t" \
@@ -80,7 +68,6 @@
 void
 Init5206e(void)
 {
-    extern void CopyDataClearBSSAndStart(unsigned long ramsize);
 
     /* Set Module Base Address register */
     m68k_set_mbar((MBAR & MCF5206E_MBAR_BA) | MCF5206E_MBAR_V);
@@ -200,7 +187,6 @@ Init5206e(void)
                              MCF5206E_CSCR_RD;
 
     {
-        extern void INTERRUPT_VECTOR(void);
         uint32_t         *inttab = (uint32_t*)&INTERRUPT_VECTOR;
         uint32_t         *intvec = (uint32_t*)BSP_MEM_ADDR_ESRAM;
         register int i;

@@ -3,14 +3,14 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.20 2008/09/03 22:06:25 joel Exp $
+ *  $Id: system.h,v 1.21 2009/09/26 15:47:16 joel Exp $
  */
 
 #include <tmacros.h>
@@ -52,22 +52,22 @@ bool Task_create_extension(
   rtems_tcb *created_task
 );
 
-rtems_extension Task_delete_extension(
+void Task_delete_extension(
   rtems_tcb *running_task,
   rtems_tcb *deleted_task
 );
 
-rtems_extension Task_restart_extension(
+void Task_restart_extension(
   rtems_tcb *unused,
   rtems_tcb *restarted_task
 );
 
-rtems_extension Task_start_extension(
+void Task_start_extension(
   rtems_tcb *unused,
   rtems_tcb *started_task
 );
 
-rtems_extension Task_exit_extension(
+void Task_exit_extension(
   rtems_tcb *running_task
 );
 

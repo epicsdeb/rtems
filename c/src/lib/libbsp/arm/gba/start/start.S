@@ -18,7 +18,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.1 2005/07/06 18:46:04 joel Exp $
+ *  $Id: start.S,v 1.5 2010/04/30 14:55:55 sh Exp $
  */
 
 /*****************************************************************************
@@ -165,7 +165,7 @@
     .align
     PUBLIC_ARM_FUNCTION(_gba_ISR_handler)
         ldmfd  r13!,{r0-r3,r12,r14}
-        b      _ISR_Handler
+        b      arm_exc_interrupt
     LABEL_END(_gba_ISR_handler)
 
 
@@ -278,16 +278,17 @@
 
 /* Enter the C code.  If it returns, then restart */
     STATIC_THUMB_FUNCTION(_gba_call_arm_boot_card)
-        adr     r0, .Larm
-        bx      r0
+        adr     r1, .Larm
+        bx      r1
         .arm
     .Larm:
-        ldr     r0, =boot_card
-        bl      SYM(_gba_call_via_r0)
+        ldr     r1, =boot_card
+        mov     r0, #0
+        bl      SYM(_gba_call_via_r1)
 
         ldr     r0, =SYM(_gba_reset)
-    SYM(_gba_call_via_r0):
-        bx      r0
+    SYM(_gba_call_via_r1):
+        bx      r1
 
 /* GBA Reset  */
     PUBLIC_ARM_FUNCTION(_gba_reset)

@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen07.c,v 1.18 2008/01/07 15:26:46 joel Exp $
+ *  $Id: screen07.c,v 1.22 2009/09/28 19:39:06 joel Exp $
  */
 
 #include "system.h"
@@ -35,6 +35,52 @@ void Screen7()
   );
   puts( "TA1 - rtems_message_queue_broadcast - RTEMS_INVALID_ID" );
 
+  /* null ID parameter */
+  status = rtems_message_queue_create(
+    Queue_name[ 1 ],
+    3,
+    MESSAGE_SIZE,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_message_queue_create with null param"
+  );
+  puts( "TA1 - rtems_message_queue_create - NULL Id - RTEMS_INVALID_ADDRESS" );
+
+  /* count == 0 */
+  status = rtems_message_queue_create(
+    Queue_name[ 1 ],
+    0,
+    MESSAGE_SIZE,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    &Junk_id
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_NUMBER,
+    "rtems_message_queue_create with 0 count"
+  );
+  puts( "TA1 - rtems_message_queue_create - count = 0 - RTEMS_INVALID_NUMBER" );
+
+  /* max size == 0 */
+  status = rtems_message_queue_create(
+    Queue_name[ 1 ],
+    3,
+    0,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    &Junk_id
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_SIZE,
+    "rtems_message_queue_create with 0 msg size"
+  );
+  puts( "TA1 - rtems_message_queue_create - size = 0 - RTEMS_INVALID_SIZE" );
+
+  /* bad name parameter */
   status = rtems_message_queue_create(
     0,
     3,
@@ -73,7 +119,7 @@ void Screen7()
   /* not enough memory for messages */
   status = rtems_message_queue_create(
     Queue_name[ 1 ],
-    1000000,                     /* 1 million messages should do it */
+    INT_MAX,
     MESSAGE_SIZE,
     RTEMS_DEFAULT_ATTRIBUTES,
     &Queue_id[ 1 ]
@@ -117,7 +163,7 @@ void Screen7()
   );
   puts( "TA1 - rtems_message_queue_delete - unknown RTEMS_INVALID_ID" );
 
-  status = rtems_message_queue_delete( 0x10100 );
+  status = rtems_message_queue_delete( rtems_build_id( 1, 1, 1, 256 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,
@@ -133,6 +179,16 @@ void Screen7()
   );
   puts( "TA1 - rtems_message_queue_ident - RTEMS_INVALID_NAME" );
 
+  /* number pending - bad Id */
+  status = rtems_message_queue_get_number_pending( Queue_id[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_message_queue_get_number_pending with NULL param"
+  );
+  puts("TA1 - rtems_message_queue_get_number_pending - RTEMS_INVALID_ADDRESS");
+
+  /* number pending - bad Id */
   status = rtems_message_queue_get_number_pending( 100, &count );
   fatal_directive_status(
     status,
@@ -141,6 +197,16 @@ void Screen7()
   );
   puts( "TA1 - rtems_message_queue_get_number_pending - RTEMS_INVALID_ID" );
 
+  /* flush null param */
+  status = rtems_message_queue_flush( Queue_id[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_message_queue_flush with NULL param"
+  );
+  puts( "TA1 - rtems_message_queue_flush - RTEMS_INVALID_ADDRESS" );
+
+  /* flush invalid id */
   status = rtems_message_queue_flush( 100, &count );
   fatal_directive_status(
     status,
@@ -211,7 +277,7 @@ void Screen7()
     (long (*)[4]) buffer,
     &size,
     RTEMS_DEFAULT_OPTIONS,
-    3 * TICKS_PER_SECOND
+    3 * rtems_clock_get_ticks_per_second()
   );
   fatal_directive_status(
     status,
@@ -223,6 +289,18 @@ void Screen7()
     "TA1 - rtems_message_queue_receive - Q 1 - woke up with RTEMS_TIMEOUT"
   );
 
+  /* send NULL message*/
+  status = rtems_message_queue_send( Queue_id[ 1 ], NULL, MESSAGE_SIZE );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_message_queue_send with NULL buffer"
+  );
+  puts(
+    "TA1 - rtems_message_queue_send - NULL buffer - RTEMS_INVALID_ADDRESS"
+  );
+
+  /* send bad id */
   status = rtems_message_queue_send( 100, buffer, MESSAGE_SIZE );
   fatal_directive_status(
     status,
@@ -247,6 +325,18 @@ void Screen7()
   );
   puts( "TA1 - rtems_message_queue_send - BUFFER 3 TO Q 1 - RTEMS_TOO_MANY" );
 
+  /* urgent NULL message*/
+  status = rtems_message_queue_urgent( Queue_id[ 1 ], NULL, MESSAGE_SIZE );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_message_queue_urgent with NULL buffer"
+  );
+  puts(
+    "TA1 - rtems_message_queue_urgent - NULL buffer - RTEMS_INVALID_ADDRESS"
+  );
+
+  /* urgent bad Id */
   status = rtems_message_queue_urgent( 100, buffer, MESSAGE_SIZE );
   fatal_directive_status(
     status,

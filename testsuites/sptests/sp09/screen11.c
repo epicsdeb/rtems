@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen11.c,v 1.10 2003/09/04 18:53:48 joel Exp $
+ *  $Id: screen11.c,v 1.15 2009/10/27 11:29:03 ralf Exp $
  */
 
 #include "system.h"
@@ -24,6 +24,7 @@ void Screen11()
   void              *buffer_address_2;
   void              *buffer_address_3;
   rtems_status_code  status;
+  size_t             size;
 
   status = rtems_partition_create(
     0,
@@ -44,7 +45,7 @@ void Screen11()
     Partition_name[ 1 ],
     Partition_good_area,
     0,
-    80,
+    71,
     RTEMS_DEFAULT_ATTRIBUTES,
     &Junk_id
   );
@@ -86,6 +87,33 @@ void Screen11()
   puts(
     "TA1 - rtems_partition_create - length < buffer size - RTEMS_INVALID_SIZE"
   );
+
+  /*
+   * Attempt to create a partition with a buffer size that is not large
+   * enough to account for the overhead.
+   */
+  puts(
+    "TA1 - rtems_partition_create - buffer size < overhead - RTEMS_INVALID_SIZE"
+  );
+#define SIZEOF_CHAIN_NODE 2 * sizeof(void *)
+  for ( size=0 ; size < SIZEOF_CHAIN_NODE ; size++) {
+    status = rtems_partition_create(
+      Partition_name[ 1 ],
+      Partition_good_area,
+      size,
+      256,
+      RTEMS_DEFAULT_ATTRIBUTES,
+      &Junk_id
+    );
+    if ( status != RTEMS_INVALID_SIZE )
+      printf( "ERROR when size == %zu\n", size );
+
+    fatal_directive_status(
+      status,
+      RTEMS_INVALID_SIZE,
+      "rtems_partition_create with buffer_size > length"
+    );
+  }
 
   /*
    *  The check for an object being global is only made if
@@ -135,7 +163,7 @@ void Screen11()
     Partition_name[ 1 ],
     Partition_good_area,
     128,
-    34,
+    35,
     RTEMS_DEFAULT_ATTRIBUTES,
     &Junk_id
   );
@@ -155,7 +183,7 @@ void Screen11()
   );
   puts( "TA1 - rtems_partition_delete - unknown RTEMS_INVALID_ID" );
 
-  status = rtems_partition_delete( 0x10100 );
+  status = rtems_partition_delete( rtems_build_id( 1, 1, 1, 256 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,
@@ -163,6 +191,16 @@ void Screen11()
   );
   puts( "TA1 - rtems_partition_delete - local RTEMS_INVALID_ID" );
 
+  /* get bad address */
+  status = rtems_partition_get_buffer( 100, NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_partition_get_buffer with NULL param"
+  );
+  puts( "TA1 - rtems_partition_get_buffer - RTEMS_INVALID_ADDRESS" );
+
+  /* get bad Id */
   status = rtems_partition_get_buffer( 100, &buffer_address_1 );
   fatal_directive_status(
     status,
@@ -187,6 +225,23 @@ void Screen11()
   );
   puts( "TA1 - rtems_partition_return_buffer - RTEMS_INVALID_ID" );
 
+  /* create bad area */
+  status = rtems_partition_create(
+    Partition_name[ 1 ],
+    NULL,
+    128,
+    64,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    &Junk_id
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_partition_return_buffer with NULL area"
+  );
+  puts( "TA1 - rtems_partition_create - RTEMS_INVALID_ADDRESS" );
+
+  /* create OK */
   status = rtems_partition_create(
     Partition_name[ 1 ],
     Partition_good_area,

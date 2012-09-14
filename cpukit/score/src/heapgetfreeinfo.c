@@ -1,6 +1,12 @@
-/*
- *  Heap Handler
+/**
+ * @file
  *
+ * @ingroup ScoreHeap
+ *
+ * @brief Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2004.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -8,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: heapgetfreeinfo.c,v 1.4 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: heapgetfreeinfo.c,v 1.6 2009/09/06 15:24:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -19,34 +25,19 @@
 #include <rtems/score/sysstate.h>
 #include <rtems/score/heap.h>
 
-/*PAGE
- *
- *  _Heap_Get_free_information
- *
- *  This heap routine returns information about the free blocks
- *  in the specified heap.
- *
- *  Input parameters:
- *    the_heap  - pointer to heap header.
- *    info      - pointer to the free block information.
- *
- *  Output parameters:
- *    returns - free block information filled in.
- */
-
 void _Heap_Get_free_information(
   Heap_Control        *the_heap,
   Heap_Information    *info
 )
 {
   Heap_Block *the_block;
-  Heap_Block *const tail = _Heap_Tail(the_heap);
+  Heap_Block *const tail = _Heap_Free_list_tail(the_heap);
 
   info->number = 0;
   info->largest = 0;
   info->total = 0;
 
-  for(the_block = _Heap_First(the_heap);
+  for(the_block = _Heap_Free_list_first(the_heap);
       the_block != tail;
       the_block = the_block->next)
   {

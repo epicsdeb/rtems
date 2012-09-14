@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: iterateoverthreads.c,v 1.6 2007/04/05 22:13:08 joel Exp $
+ *  $Id: iterateoverthreads.c,v 1.7 2009/07/23 15:46:48 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -32,21 +32,21 @@ void rtems_iterate_over_all_threads(rtems_per_thread_routine routine)
   if ( !routine )
     return;
 
-  for ( api_index = 1 ;
-        api_index <= OBJECTS_APIS_LAST ;
-        api_index++ ) {
+  for ( api_index = 1 ; api_index <= OBJECTS_APIS_LAST ; api_index++ ) {
     if ( !_Objects_Information_table[ api_index ] )
       continue;
+
     information = _Objects_Information_table[ api_index ][ 1 ];
-    if ( information ) {
-      for ( i=1 ; i <= information->maximum ; i++ ) {
-        the_thread = (Thread_Control *)information->local_table[ i ];
+    if ( !information )
+      continue;
 
-        if ( !the_thread )
-          continue;
+    for ( i=1 ; i <= information->maximum ; i++ ) {
+      the_thread = (Thread_Control *)information->local_table[ i ];
 
-        (*routine)(the_thread);
-      }
+      if ( !the_thread )
+	continue;
+
+      (*routine)(the_thread);
     }
   }
 

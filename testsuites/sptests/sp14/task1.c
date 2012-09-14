@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.11 2003/09/04 18:53:48 joel Exp $
+ *  $Id: task1.c,v 1.14 2009/10/26 11:29:24 ralf Exp $
  */
 
 #include "system.h"
@@ -59,6 +59,8 @@ rtems_task Task_1(
   status = rtems_signal_catch( Process_asr, RTEMS_NO_ASR );
   directive_failed( status, "rtems_signal_catch" );
 
+  FLUSH_OUTPUT();
+
 rtems_test_pause();
 
   puts( "TA1 - rtems_signal_send - RTEMS_SIGNAL_1 to self" );
@@ -75,7 +77,7 @@ rtems_test_pause();
   puts( "TA1 - sending signal to RTEMS_SELF from timer" );
   status = rtems_timer_fire_after(
     Timer_id[ 1 ],
-    TICKS_PER_SECOND / 2,
+    rtems_clock_get_ticks_per_second() / 2,
     Signal_3_to_task_1,
     (void *) Task_1
   );
@@ -94,7 +96,7 @@ rtems_test_pause();
     puts( "TA1 - timer routine got the correct arguments" );
   else
     printf(
-      "TA1 - timer got (0x%x, %p) instead of (0x%x, %p)!!!!\n",
+      "TA1 - timer got (0x%" PRIxrtems_id ", %p) instead of (0x%" PRIxrtems_id ", %p)!!!!\n",
       Timer_got_this_id,
       Timer_got_this_pointer,
       Timer_id[ 1 ],
@@ -102,8 +104,12 @@ rtems_test_pause();
     );
 
   puts( "TA1 - rtems_task_mode - enable ASRs" );
+  FLUSH_OUTPUT();
   status = rtems_task_mode( RTEMS_ASR, RTEMS_ASR_MASK, &previous_mode );
   directive_failed( status, "rtems_task_mode" );
+
+  status = rtems_task_wake_after(2 * rtems_clock_get_ticks_per_second());
+  directive_failed( status, "rtems_task_wake_after" );
 
   puts( "TA1 - rtems_signal_catch - asraddr of NULL" );
   status = rtems_signal_catch( NULL, RTEMS_DEFAULT_MODES );

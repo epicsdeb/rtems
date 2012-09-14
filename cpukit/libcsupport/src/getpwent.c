@@ -5,7 +5,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: getpwent.c,v 1.12 2007/03/29 14:26:36 ralf Exp $
+ *  $Id: getpwent.c,v 1.13 2009/09/15 04:18:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -259,7 +259,7 @@ struct passwd *getpwuid(
   return p;
 }
 
-struct passwd *getpwent()
+struct passwd *getpwent(void)
 {
   if (passwd_fp == NULL)
     return NULL;
@@ -418,7 +418,7 @@ struct group *getgrgid(
   return p;
 }
 
-struct group *getgrent()
+struct group *getgrent(void)
 {
   if (group_fp == NULL)
     return NULL;

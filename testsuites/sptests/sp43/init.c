@@ -1,41 +1,63 @@
 /*
  *  Exercise Object Manager Services
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.8 2008/09/06 03:28:07 ralf Exp $
+ *  $Id: init.c,v 1.21 2010/03/12 16:26:36 joel Exp $
  */
 
+#define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
 #define CONFIGURE_INIT
 #include "system.h"
 
+/* These functions have both macro and function incarnations */
 #undef rtems_build_id
+extern rtems_id rtems_build_id(int api,int class,int node,int index);
 #undef rtems_build_name
+extern rtems_name rtems_build_name(char C1,char C2,char C3,char C4);
 #undef rtems_object_id_api_maximum
+extern int rtems_object_id_api_maximum(void);
 #undef rtems_object_id_api_minimum
+extern int rtems_object_id_api_minimum(void);
 #undef rtems_object_id_get_api
+extern int rtems_object_id_get_api(rtems_id id);
 #undef rtems_object_id_get_class
+extern int rtems_object_id_get_class(rtems_id id);
 #undef rtems_object_id_get_index
+extern int rtems_object_id_get_index(rtems_id id);
 #undef rtems_object_id_get_node
+extern int rtems_object_id_get_node(rtems_id id);
+
+void print_class_info(
+  int                                 api,
+  int                                 class,
+  rtems_object_api_class_information *info
+);
+
+void change_name(
+  rtems_id    id,
+  const char *newName,
+  bool        printable
+);
 
 rtems_id         main_task;
 rtems_name       main_name;
 
 void print_class_info(
-  uint32_t                            api,
-  uint32_t                            class,
+  int                                 api,
+  int                                 class,
   rtems_object_api_class_information *info
 )
 {
   printf(
     "%s API %s Information\n"
-    "    minimum id  : 0x%08x maximum id: 0x%08x\n"
-    "    maximum     :    %7d available : %d\n"
+    "    minimum id  : 0x%08" PRIxrtems_id " maximum id: 0x%08" PRIxrtems_id "\n"
+    "    maximum     :    %7" PRIu32 " available : %" PRIu32 "\n"
     "    auto_extend : %s\n",
     rtems_object_get_api_name(api),
     rtems_object_get_api_class_name(api, class),
@@ -53,7 +75,7 @@ void change_name(
   bool        printable
 )
 {
-  rtems_status_code    status;
+  rtems_status_code    sc;
   char                 name[ 5 ];
   char                *ptr;
   const char          *c;
@@ -64,8 +86,8 @@ void change_name(
   else {
     printf( "(" );
     for (c=newName ; *c ; ) {
-       if (isprint(*c)) printf( "%c", *c );
-       else             printf( "0x%02x", *c );
+       if (isprint((unsigned char)*c)) printf( "%c", *c );
+       else                            printf( "0x%02x", *c );
        c++;
        if ( *c )
          printf( "-" );
@@ -73,11 +95,11 @@ void change_name(
     printf( ")\n" );
   }
 
-  status = rtems_object_set_name( id, newName );
-  directive_failed( status, "rtems_object_set_name" );
+  sc = rtems_object_set_name( id, newName );
+  directive_failed( sc, "rtems_object_set_name" );
 
-  status = rtems_object_get_classic_name( id, &main_name );
-  directive_failed( status, "rtems_object_get_classic_name" );
+  sc = rtems_object_get_classic_name( id, &main_name );
+  directive_failed( sc, "rtems_object_get_classic_name" );
   put_name( main_name, FALSE );
   puts( " - name returned by rtems_object_get_classic_name" );
 
@@ -90,14 +112,14 @@ rtems_task Init(
   rtems_task_argument argument
 )
 {
-  rtems_status_code                   status;
+  rtems_status_code                   sc;
   rtems_id                            tmpId;
   rtems_name                          tmpName;
   char                                name[5];
   char                               *ptr;
   const char                          newName[5] = "New1";
   char                                tmpNameString[5];
-  uint32_t                            part;
+  int                                 part;
   rtems_object_api_class_information  info;
 
   puts( "\n\n*** TEST 43 ***" );
@@ -107,45 +129,45 @@ rtems_task Init(
   main_task = rtems_task_self();
 
   puts( "rtems_object_get_classic_name - INVALID_ADDRESS" );
-  status = rtems_object_get_classic_name( main_task, NULL );
+  sc = rtems_object_get_classic_name( main_task, NULL );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ADDRESS,
     "rtems_object_get_classic_name #1"
   );
 
   puts( "rtems_object_get_classic_name - INVALID_ID (bad index)" );
-  status = rtems_object_get_classic_name( main_task + 5, &main_name );
+  sc = rtems_object_get_classic_name( main_task + 5, &main_name );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ID,
     "rtems_object_get_classic_name #2"
   );
 
   puts( "rtems_object_get_classic_name - INVALID_ID (unallocated index)" );
-  status = rtems_object_get_classic_name( main_task + 1, &main_name );
+  sc = rtems_object_get_classic_name( main_task + 1, &main_name );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ID,
     "rtems_object_get_classic_name #4"
   );
 
   puts( "rtems_object_get_classic_name - INVALID_ID (bad API)" );
   tmpId = rtems_build_id( 0xff, OBJECTS_RTEMS_TASKS, 1, 1 ),
-  status = rtems_object_get_classic_name( tmpId, &main_name );
+  sc = rtems_object_get_classic_name( tmpId, &main_name );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ID,
     "rtems_object_get_classic_name #5"
   );
 
-  status = rtems_object_get_classic_name( main_task, &main_name );
-  directive_failed( status, "rtems_object_get_classic_name" );
+  sc = rtems_object_get_classic_name( main_task, &main_name );
+  directive_failed( sc, "rtems_object_get_classic_name" );
   put_name( main_name, FALSE );
   puts( " - name returned by rtems_object_get_classic_name for Init task id" );
 
-  status = rtems_object_get_classic_name( RTEMS_SELF, &main_name );
-  directive_failed( status, "rtems_object_get_classic_name" );
+  sc = rtems_object_get_classic_name( RTEMS_SELF, &main_name );
+  directive_failed( sc, "rtems_object_get_classic_name" );
   put_name( main_name, FALSE );
   puts( " - name returned by rtems_object_get_classic_name for RTEMS_SELF" );
 
@@ -153,7 +175,7 @@ rtems_task Init(
   put_name( tmpName, FALSE );
   puts( " - rtems_build_name for TEMP" );
 
-  
+
   /*
    * rtems_object_get_name - cases
    */
@@ -189,19 +211,27 @@ rtems_task Init(
    * rtems_object_set_name - errors
    */
 
+  puts( "rtems_object_set_name - INVALID_ADDRESS" );
+  sc = rtems_object_set_name( tmpId, NULL );
+  fatal_directive_status(
+    sc,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_object_set_name INVALID_ADDRESS"
+  );
+
   puts( "rtems_object_set_name - INVALID_ID (bad API)" );
   tmpId = rtems_build_id( 0xff, OBJECTS_RTEMS_TASKS, 1, 1 ),
-  status = rtems_object_set_name( tmpId, newName );
+  sc = rtems_object_set_name( tmpId, newName );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ID,
     "rtems_object_set_name #1"
   );
 
   puts( "rtems_object_set_name - INVALID_ID (bad index)" );
-  status = rtems_object_set_name( main_task + 10, newName );
+  sc = rtems_object_set_name( main_task + 10, newName );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ID,
     "rtems_object_set_name #2"
   );
@@ -240,24 +270,24 @@ rtems_task Init(
    */
 
   puts( "rtems_build_id - build an id to match init task" );
-  tmpId = rtems_build_id( OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TASKS, 1, 1 ),
-  assert( tmpId == main_task );
-  
+  tmpId = rtems_build_id( OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TASKS, 1, 1 );
+  rtems_test_assert( tmpId == main_task );
+
   puts( "rtems_object_id_get_api - OK" );
   part = rtems_object_id_get_api( main_task );
-  assert( part == OBJECTS_CLASSIC_API );
+  rtems_test_assert( part == OBJECTS_CLASSIC_API );
 
   puts( "rtems_object_id_get_class - OK" );
   part = rtems_object_id_get_class( main_task );
-  assert( part == OBJECTS_RTEMS_TASKS );
+  rtems_test_assert( part == OBJECTS_RTEMS_TASKS );
 
   puts( "rtems_object_id_get_node - OK" );
   part = rtems_object_id_get_node( main_task );
-  assert( part == 1 );
+  rtems_test_assert( part == 1 );
 
   puts( "rtems_object_id_get_index - OK" );
   part = rtems_object_id_get_index( main_task );
-  assert( part == 1 );
+  rtems_test_assert( part == 1 );
 
   /*
    * Start another screen and do the API/Class min/max routines
@@ -302,7 +332,7 @@ rtems_task Init(
    *  Another screen break for the API and class name tests
    */
   rtems_test_pause();
- 
+
   printf( "rtems_object_get_api_name(0) = %s\n", rtems_object_get_api_name(0) );
   printf( "rtems_object_get_api_name(255) = %s\n",
     rtems_object_get_api_name(255));
@@ -314,14 +344,14 @@ rtems_task Init(
   printf( "rtems_object_get_api_name(ITRON_API) = %s\n",
      rtems_object_get_api_name(OBJECTS_ITRON_API) );
 
-  printf( "rtems_object_get_api_class_name(0, RTEMS_TASKS) = %s\n", 
+  printf( "rtems_object_get_api_class_name(0, RTEMS_TASKS) = %s\n",
     rtems_object_get_api_class_name( 0, OBJECTS_RTEMS_TASKS ) );
-  printf( "rtems_object_get_api_class_name(CLASSIC_API, 0) = %s\n", 
+  printf( "rtems_object_get_api_class_name(CLASSIC_API, 0) = %s\n",
     rtems_object_get_api_class_name( OBJECTS_CLASSIC_API, 0 ) );
-  printf("rtems_object_get_api_class_name(INTERNAL_API, MUTEXES) = %s\n", 
+  printf("rtems_object_get_api_class_name(INTERNAL_API, MUTEXES) = %s\n",
     rtems_object_get_api_class_name(
        OBJECTS_INTERNAL_API, OBJECTS_INTERNAL_MUTEXES));
-  printf("rtems_object_get_api_class_name(CLASSIC_API, RTEMS_BARRIERS) = %s\n", 
+  printf("rtems_object_get_api_class_name(CLASSIC_API, RTEMS_BARRIERS) = %s\n",
     rtems_object_get_api_class_name(
        OBJECTS_CLASSIC_API, OBJECTS_RTEMS_BARRIERS));
 
@@ -330,46 +360,125 @@ rtems_task Init(
    */
 
   rtems_test_pause();
-  
+
   puts( "rtems_object_get_class_information - INVALID_ADDRESS" );
-  status = rtems_object_get_class_information(
+  sc = rtems_object_get_class_information(
              OBJECTS_INTERNAL_API, OBJECTS_INTERNAL_THREADS, NULL );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_ADDRESS,
     "rtems_object_get_class_information"
   );
 
   puts( "rtems_object_get_class_information - INVALID_NUMBER (bad API)" );
-  status =
+  sc =
     rtems_object_get_class_information(0, OBJECTS_INTERNAL_THREADS, &info);
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_NUMBER,
     "rtems_object_get_class_information (API)"
   );
 
-  puts( "rtems_object_get_class_information - INVALID_NUMBER (bad class)" );
-  status =
-    rtems_object_get_class_information( OBJECTS_INTERNAL_API, 0, &info );
+  puts( "rtems_object_get_class_information - INVALID_NUMBER (api=0xff)" );
+  sc = rtems_object_get_class_information( 0xff, 1, &info );
   fatal_directive_status(
-    status,
+    sc,
     RTEMS_INVALID_NUMBER,
-    "rtems_object_get_class_information (API)"
+    "rtems_object_get_class_information (api=0xff)"
+  );
+
+  puts( "rtems_object_get_class_information - INVALID_NUMBER (class=0)" );
+  sc = rtems_object_get_class_information(
+    OBJECTS_INTERNAL_API, 0, &info );
+  fatal_directive_status(
+    sc,
+    RTEMS_INVALID_NUMBER,
+    "rtems_object_get_class_information (class=0)"
+  );
+
+  puts(
+    "rtems_object_get_class_information - INVALID_NUMBER (class too high)" );
+  sc = rtems_object_get_class_information(
+    OBJECTS_INTERNAL_API, 0xff, &info);
+  fatal_directive_status(
+    sc,
+    RTEMS_INVALID_NUMBER,
+    "rtems_object_get_class_information (class #2)"
   );
 
   puts( "rtems_object_get_class_information - Classic Tasks - OK" );
-  status = rtems_object_get_class_information(
+  sc = rtems_object_get_class_information(
              OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TASKS, &info );
-  directive_failed( status, "rtems_object_get_class_information" );
+  directive_failed( sc, "rtems_object_get_class_information" );
   print_class_info( OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TASKS, &info );
 
   puts( "rtems_object_get_class_information - Classic Timers - OK" );
-  status = rtems_object_get_class_information(
+  sc = rtems_object_get_class_information(
              OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TIMERS, &info );
-  directive_failed( status, "rtems_object_get_class_information" );
+  directive_failed( sc, "rtems_object_get_class_information" );
   print_class_info( OBJECTS_CLASSIC_API, OBJECTS_RTEMS_TIMERS, &info );
 
+  /*
+   *  Ugly hack to force a weird error.
+   *
+   *  The weird case is that we need to look up a thread Id where the
+   *  thread classes' object information table pointer is NULL.  Probably
+   *  impossible to really hit until registration is completely dynamically
+   *  configurable.
+   */
+  {
+    rtems_task_priority              old_priority;
+    void                            *tmp;
+    int                              class;
+    int                              api;
+
+    class = OBJECTS_INTERNAL_API;
+    api   = OBJECTS_INTERNAL_THREADS;
+
+    puts( "rtems_task_set_priority - use valid Idle thread id" );
+    sc = rtems_task_set_priority(
+      rtems_build_id( class, api, 1, 1 ),
+      RTEMS_CURRENT_PRIORITY,
+      &old_priority
+    );
+    directive_failed( sc, "rtems_task_set_priority" );
+
+    /* destroy class pointer */
+    puts( "rtems_task_set_priority - clobber internal thread class info" );
+    tmp = _Objects_Information_table[ class ][ api ];
+    _Objects_Information_table[ class ][ api ] = NULL;
+
+    puts( "rtems_task_set_priority - use valid Idle thread id again" );
+    sc = rtems_task_set_priority(
+      rtems_build_id( class, api, 1, 1 ),
+      RTEMS_CURRENT_PRIORITY,
+      &old_priority
+    );
+    fatal_directive_status( sc, RTEMS_INVALID_ID, "rtems_task_set_priority" );
+
+    /* restore pointer */
+    puts( "rtems_task_set_priority - restore internal thread class info" );
+    _Objects_Information_table[ class ][ api ] = tmp;
+  }
+
+  /*
+   *  Bad Id on an object which disables interrupts as part of translating
+   *  the Id into an object pointer.  Semaphore is the only object that
+   *  needs this. This is a "good" Id in that is it in range, but bad in
+   *  that it has not been allocated so the local_table pointer is NULL.
+   */
+  puts( "rtems_semaphore_obtain - good but uncreated ID - INVALID_ID - OK" );
+  sc = rtems_semaphore_obtain(
+    rtems_build_id(
+      OBJECTS_CLASSIC_API,
+      OBJECTS_RTEMS_SEMAPHORES,
+      1,
+      rtems_configuration_get_maximum_semaphores()
+    ),
+    RTEMS_DEFAULT_OPTIONS,
+    0
+  );
+  fatal_directive_status( sc, RTEMS_INVALID_ID, "rtems_semaphore_obtain" );
 
   puts( "*** END OF TEST 43 ***" );
   rtems_test_exit( 0 );

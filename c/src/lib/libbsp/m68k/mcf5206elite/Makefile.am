@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.27.2.1 2008/09/29 01:47:39 ralf Exp $
+## $Id: Makefile.am,v 1.35 2008/09/30 10:35:39 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,6 +14,7 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 SUBDIRS = . tools
@@ -26,29 +28,31 @@ nodist_include_HEADERS += ../../shared/tod.h
 
 EXTRA_DIST = times
 
-EXTRA_DIST += start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds startup/gdbinit \
     startup/linkcmds.flash
 
-startup_SOURCES = startup/bspclean.c ../../shared/bsplibc.c \
-    ../../shared/bsppredriverhook.c \
-    ../../shared/bsppost.c ../../m68k/shared/m68kpretaskinghook.c \
-    startup/bspstart.c startup/init5206e.c ../../shared/bootcard.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsplibc.c \
+    ../../shared/bsppredriverhook.c ../../shared/bspgetworkarea.c \
+    ../../shared/bsppost.c ../../shared/bsppretaskinghook.c \
+    ../../shared/bspstart.c startup/init5206e.c ../../shared/bootcard.c \
     ../../shared/sbrk.c ../../m68k/shared/setvec.c \
     ../../shared/gnatinstallhandler.c
-console_SOURCES = console/console.c ../../shared/dummy_printk_support.c
-i2c_SOURCES = i2c/i2c.c i2c/i2cdrv.c
-tod_SOURCES = tod/ds1307.c tod/todcfg.c ../../shared/tod.c
-nvram_SOURCES = nvram/nvram.c
-
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(console_SOURCES) \
-    $(i2c_SOURCES) $(tod_SOURCES) $(nvram_SOURCES)
+# console
+libbsp_a_SOURCES += console/console.c ../../shared/dummy_printk_support.c
+# i2c
+libbsp_a_SOURCES += i2c/i2c.c i2c/i2cdrv.c
+# tod
+libbsp_a_SOURCES += tod/ds1307.c tod/todcfg.c ../../shared/tod.c
+# nvram
+libbsp_a_SOURCES += nvram/nvram.c
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \

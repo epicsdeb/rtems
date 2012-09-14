@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: realloc.c,v 1.2 2008/01/29 17:28:27 joel Exp $
+ *  $Id: realloc.c,v 1.6 2009/09/14 14:48:38 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,9 +25,9 @@ void *realloc(
   size_t size
 )
 {
-  size_t  old_size;
-  char   *new_area;
-  size_t  resize;
+  uintptr_t old_size;
+  char    *new_area;
+  uintptr_t resize;
 
   MSBUMP(realloc_calls, 1);
 
@@ -54,7 +54,7 @@ void *realloc(
     return (void *) 0;
   }
 
-  if ( !_Protected_heap_Get_block_size(&RTEMS_Malloc_Heap, ptr, &old_size) ) {
+  if ( !_Protected_heap_Get_block_size(RTEMS_Malloc_Heap, ptr, &old_size) ) {
     errno = EINVAL;
     return (void *) 0;
   }
@@ -69,7 +69,7 @@ void *realloc(
       resize += (*rtems_malloc_boundary_helpers->overhead)();
   #endif
 
-  if ( _Protected_heap_Resize_block( &RTEMS_Malloc_Heap, ptr, resize ) ) {
+  if ( _Protected_heap_Resize_block( RTEMS_Malloc_Heap, ptr, resize ) ) {
     #if defined(RTEMS_MALLOC_BOUNDARY_HELPERS)
       /*
        *  Successful resize.  Update the boundary on the same block.
@@ -88,7 +88,7 @@ void *realloc(
 
   new_area = malloc( size );
 
-  MSBUMP(malloc_calls, -1);   /* subtract off the malloc */
+  MSBUMP(malloc_calls, (uint32_t) -1);   /* subtract off the malloc */
 
   if ( !new_area ) {
     return (void *) 0;

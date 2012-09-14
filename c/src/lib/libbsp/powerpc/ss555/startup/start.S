@@ -289,10 +289,7 @@ spin:
 	mtmsr	r0
 
 	/* Start system. */
-	lis	r5, environ@ha
-	la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
+	li	r3, 0			/* command line */
         EXTERN_PROC (boot_card)
         bl       PROC (boot_card)	/* call the first C routine */
 

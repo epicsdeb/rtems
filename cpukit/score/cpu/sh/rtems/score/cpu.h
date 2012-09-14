@@ -14,7 +14,7 @@
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * 
+ *
  *
  *  COPYRIGHT (c) 1998-2006.
  *  On-Line Applications Research Corporation (OAR).
@@ -23,7 +23,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.28 2008/08/19 12:07:28 ralf Exp $
+ *  $Id: cpu.h,v 1.31 2009/12/04 05:25:30 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_CPU_H
@@ -125,11 +125,11 @@ extern "C" {
 /*
  * We define the interrupt stack in the linker script
  */
-#define CPU_ALLOCATE_INTERRUPT_STACK FALSE 
+#define CPU_ALLOCATE_INTERRUPT_STACK FALSE
 
 /*
  *  Does the RTEMS invoke the user's ISR with the vector number and
- *  a pointer to the saved interrupt frame (1) or just the vector 
+ *  a pointer to the saved interrupt frame (1) or just the vector
  *  number (0)?
  */
 
@@ -293,7 +293,7 @@ extern "C" {
 #define CPU_BIG_ENDIAN                           TRUE
 #define CPU_LITTLE_ENDIAN                        FALSE
 #endif
- 
+
 /*
  *  The following defines the number of bits actually used in the
  *  interrupt field of the task mode.  How those bits map to the
@@ -374,7 +374,7 @@ typedef struct {
   uint32_t   *r0;	/* arg return */
 
   uint32_t   gbr;
-  uint32_t   sr; 
+  uint32_t   sr;
 
 } Context_Control;
 
@@ -427,18 +427,6 @@ SCORE_EXTERN Context_Control_fp  _CPU_Null_fp_context;
 
 SCORE_EXTERN void               *_CPU_Interrupt_stack_low;
 SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
-
-/*
- *  With some compilation systems, it is difficult if not impossible to
- *  call a high-level language routine from assembly language.  This
- *  is especially true of commercial Ada compilers and name mangling
- *  C++ ones.  This variable can be optionally defined by the CPU porter
- *  and contains the address of the routine _Thread_Dispatch.  This
- *  can make it easier to invoke that routine at the end of the interrupt
- *  sequence (if a dispatch is necessary).
- */
-
-SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
 
 /*
  *  Nothing prevents the porter from declaring more CPU specific variables.
@@ -548,9 +536,9 @@ SCORE_EXTERN void CPU_delay( uint32_t   microseconds );
  *
  *  SH Specific Information: NONE
  */
- 
+
 #define _CPU_Initialize_vectors()
- 
+
 /*
  *  Disable all interrupts for an RTEMS critical section.  The previous
  *  level is returned in _level.
@@ -619,7 +607,7 @@ uint32_t   _CPU_ISR_Get_level( void );
  *        where the PSR contains an enable FPU bit.
  */
 
-/* 
+/*
  * FIXME: defined as a function for debugging - should be a macro
  */
 SCORE_EXTERN void _CPU_Context_Initialize(
@@ -825,17 +813,15 @@ extern uint8_t   _bit_set_table[];
  *  This routine performs CPU dependent initialization.
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)
-);
+void _CPU_Initialize(void);
 
 /*
  *  _CPU_ISR_install_raw_handler
  *
- *  This routine installs a "raw" interrupt handler directly into the 
+ *  This routine installs a "raw" interrupt handler directly into the
  *  processor's vector table.
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -874,7 +860,7 @@ void _CPU_Install_interrupt_stack( void );
  *         is TRUE.
  */
 
-void *_CPU_Thread_Idle_body( uint32_t );
+void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 /*
  *  _CPU_Context_switch

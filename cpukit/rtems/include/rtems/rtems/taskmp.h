@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskmp.h,v 1.17 2008/04/18 20:08:08 joel Exp $
+ *  $Id: taskmp.h,v 1.18 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_TASKMP_H
@@ -26,7 +26,9 @@
 #include <rtems/score/thread.h>
 
 /**
- *  @defgroup ClassicTaskMP Classic API Task MP Support
+ *  @defgroup ClassicTaskMP Task MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */

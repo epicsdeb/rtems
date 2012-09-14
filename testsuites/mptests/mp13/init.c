@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.15 2008/02/01 00:45:06 joel Exp $
+ *  $Id: init.c,v 1.17 2009/10/30 13:18:33 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -31,7 +31,7 @@ rtems_task Init(
   rtems_status_code status;
 
   printf(
-    "\n\n*** TEST 13 -- NODE %d ***\n",
+    "\n\n*** TEST 13 -- NODE %" PRId32 " ***\n",
     Multiprocessing_configuration.node
   );
 
@@ -102,7 +102,7 @@ rtems_task Init(
   directive_failed( status, "rtems_task_start" );
 
   if ( Multiprocessing_configuration.node == 1 ) {
-    status = rtems_task_wake_after( 5 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 5 * rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
     puts( "*** END OF TEST 13 ***" );

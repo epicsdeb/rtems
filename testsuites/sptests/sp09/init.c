@@ -1,24 +1,12 @@
-/*  Init
- *
- *  This routine is the initialization task for this test program.
- *  It is a user initialization task and has the responsibility for creating
- *  and starting the tasks that make up the test.  If the time of day
- *  clock is required for the test, it should also be set to a known
- *  value by this function.
- *
- *  Input parameters:
- *    argument - task argument
- *
- *  Output parameters:  NONE
- *
- *  COPYRIGHT (c) 1989-1999.
+/*
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.12 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.13 2009/10/04 22:02:18 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -60,6 +48,7 @@ rtems_task Init(
 
   Period_name[ 1 ]     =  rtems_build_name( 'T', 'M', '1', ' ' );
 
+  /* priority of 0 error */
   status = rtems_task_create(
      Task_name[1],
      0,
@@ -73,7 +62,25 @@ rtems_task Init(
     RTEMS_INVALID_PRIORITY,
     "rtems_task_create with illegal priority"
   );
-  puts( "INIT - rtems_task_create - RTEMS_INVALID_PRIORITY" );
+  puts( "INIT - rtems_task_create - priority of 0 - RTEMS_INVALID_PRIORITY" );
+
+  /* priority > 255 error */
+  status = rtems_task_create(
+     Task_name[1],
+     257,
+     RTEMS_MINIMUM_STACK_SIZE,
+     RTEMS_DEFAULT_MODES,
+     RTEMS_DEFAULT_ATTRIBUTES,
+     &Task_id[ 1 ]
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_PRIORITY,
+    "rtems_task_create with illegal priority"
+  );
+  puts(
+    "INIT - rtems_task_create - priority too high - RTEMS_INVALID_PRIORITY"
+  );
 
   status = rtems_task_create(
     Task_name[ 1 ],

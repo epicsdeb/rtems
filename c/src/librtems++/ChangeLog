@@ -1,3 +1,45 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-12-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/rtems++/rtemsEvent.h, include/rtems++/rtemsMessageQueue.h:
+	Fixed timeout calculation.
+
+2009-11-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* src/rtemsInterrupt.cc: #include <cstdlib>.
+	* src/rtemsMessageQueue.cc, src/rtemsSemaphore.cc, 
+	src/rtemsTask.cc, src/rtemsTimer.cc: #include <cstring>.
+
+2009-11-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Check for cstdlib, cstring.
+
+2009-08-06	Chris Johns <chrisj@rtems.org>
+
+	* src/rtemsInterrupt.cc: Fixed the code to compile on targets with
+	CPU_SIMPLE_VECTORED_INTERRUPTS defined to true.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/rtems++/rtemsEvent.h, include/rtems++/rtemsMessageQueue.h,
+	include/rtems++/rtemsSemaphore.h, include/rtems++/rtemsTimer.h,
+	src/rtemsTask.cc: Eliminate all public use of TOD conversion
+	routines.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/rtems++/rtemsTimer.h: Use public API not
+	_TOD_Microseconds_per_tick.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/rtems++/rtemsEvent.h, include/rtems++/rtemsMessageQueue.h,
+	include/rtems++/rtemsSemaphore.h, src/rtemsTask.cc: Use public API
+	not _TOD_Microseconds_per_tick.
+
 2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* include/rtems++/rtemsTaskMode.h: Convert to "bool".

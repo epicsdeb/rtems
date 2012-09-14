@@ -1,29 +1,27 @@
 ## Process this file with autoconf to produce a configure script.
 ## 
-## $Id: configure.ac,v 1.34.2.3 2009/01/21 20:48:07 joel Exp $
+## $Id: configure.ac,v 1.88.2.1 2011/02/02 15:18:10 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-tests-sptests],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([sp01])
 RTEMS_TOP([../..],[..])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign 1.10])
+AM_INIT_AUTOMAKE([no-define foreign 1.11.1])
 AM_MAINTAINER_MODE
-
 
 RTEMS_ENV_RTEMSBSP
 RTEMS_CHECK_RTEMS_TEST_NO_PAUSE
 
 RTEMS_PROJECT_ROOT
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 
 RTEMS_CANONICALIZE_TOOLS
 
 RTEMS_CHECK_CUSTOM_BSP(RTEMS_BSP)
-
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile
@@ -36,6 +34,7 @@ sp06/Makefile
 sp07/Makefile
 sp08/Makefile
 sp09/Makefile
+sp10/Makefile
 sp11/Makefile
 sp12/Makefile
 sp13/Makefile
@@ -43,6 +42,7 @@ sp14/Makefile
 sp15/Makefile
 sp16/Makefile
 sp17/Makefile
+sp18/Makefile
 sp19/Makefile
 sp20/Makefile
 sp21/Makefile
@@ -52,6 +52,7 @@ sp24/Makefile
 sp25/Makefile
 sp26/Makefile
 sp27/Makefile
+sp27a/Makefile
 sp28/Makefile
 sp29/Makefile
 sp30/Makefile
@@ -72,8 +73,31 @@ sp44/Makefile
 sp45/Makefile
 sp46/Makefile
 sp47/Makefile
-spsize/Makefile
-spfatal/Makefile
+sp48/Makefile
+sp49/Makefile
+sp50/Makefile
+sp51/Makefile
+sp52/Makefile
+sp53/Makefile
+sp54/Makefile
+sp55/Makefile
+sp56/Makefile
+sp57/Makefile
+sp58/Makefile
+sp59/Makefile
+sp60/Makefile
+sp61/Makefile
+sp62/Makefile
+sp63/Makefile
+sp64/Makefile
+sp65/Makefile
+sp66/Makefile
+sp67/Makefile
+sp68/Makefile
+sp69/Makefile
+spchain/Makefile
+spclockget/Makefile
+spcoverage/Makefile
 spfatal01/Makefile
 spfatal02/Makefile
 spfatal03/Makefile
@@ -84,5 +108,33 @@ spfatal07/Makefile
 spfatal08/Makefile
 spfatal09/Makefile
 spfatal10/Makefile
+spfatal11/Makefile
+spfatal12/Makefile
+spfatal13/Makefile
+spintrcritical01/Makefile
+spintrcritical02/Makefile
+spintrcritical03/Makefile
+spintrcritical04/Makefile
+spintrcritical05/Makefile
+spintrcritical06/Makefile
+spintrcritical07/Makefile
+spintrcritical08/Makefile
+spintrcritical09/Makefile
+spintrcritical10/Makefile
+spintrcritical11/Makefile
+spintrcritical12/Makefile
+spintrcritical13/Makefile
+spintrcritical14/Makefile
+spintrcritical15/Makefile
+spintrcritical16/Makefile
+spintrcritical17/Makefile
+spnotepad01/Makefile
+spobjgetnext/Makefile
+spprintk/Makefile
+spsize/Makefile
+spstkalloc/Makefile
+spthreadq01/Makefile
+spwatchdog/Makefile
+spwkspace/Makefile
 ])
 AC_OUTPUT

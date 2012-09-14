@@ -18,7 +18,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console.c,v 1.12 2008/08/31 18:15:27 joel Exp $
+ *  $Id: console.c,v 1.15 2009/12/17 08:42:16 thomas Exp $
  */
 
 #include <termios.h>
@@ -31,6 +31,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <rtems/termiostypes.h>
 
 #define CONSOLE_VECTOR 121
 #define CONSOLE_IRQ_LEVEL 3
@@ -170,8 +171,8 @@ InterruptHandler (rtems_vector_number v)
 	       may be called by either console_write
 	       or rtems_termios_enqueue_raw_characters
  *****************************************************/
-static int
-InterruptWrite (int minor, const char *buf, int len)
+static ssize_t
+InterruptWrite (int minor, const char *buf, size_t len)
 {
  if (minor==UART_CHANNEL_A) {
     if (len>0) DUTBA=*buf;
@@ -245,7 +246,7 @@ int dbug_char_present( int minor )
   Description: Init the UART
  *****************************************************/
 static void
-dbugInitialise ()
+dbugInitialise (void)
 {
      t_baud_speed_table uart_config;		/* configuration of UARTS */
 
@@ -294,8 +295,6 @@ dbugInitialise ()
 	if (USE_INTERRUPTS_A) {
 	   rtems_isr_entry old_handler;
 	   rtems_status_code sc;
-
-	   extern void _Debug_ISR_Handler_Console(void);
 
 	   sc = rtems_interrupt_catch (InterruptHandler,
 	  			       CONSOLE_VECTOR,
@@ -380,8 +379,6 @@ dbugInitialise ()
 	   || (USE_INTERRUPTS_B && CHANNEL_ENABLED_A && !USE_INTERRUPTS_A)) {
 	   rtems_isr_entry old_handler;
 	   rtems_status_code sc;
-
-	   extern void _Debug_ISR_Handler_Console(void);
 
 	   sc = rtems_interrupt_catch (InterruptHandler,
 	  			       CONSOLE_VECTOR,
@@ -486,8 +483,8 @@ SetAttributes (int minor, const struct termios *t)
  isp = (t->c_cflag / (CIBAUD / CBAUD)) &  CBAUD;
 
  /* convert it */
- ispeed = termios_baud_to_number(isp);
- ospeed = termios_baud_to_number(osp);
+ ispeed = rtems_termios_baud_to_number(isp);
+ ospeed = rtems_termios_baud_to_number(osp);
 
  if (ispeed || ospeed) {
        /* update config table */

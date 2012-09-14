@@ -1,17 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.17 2006/12/02 05:56:10 ralf Exp $
+##
+## $Id: configure.ac,v 1.23.2.1 2011/02/02 15:16:06 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-m68k-ods68302],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -30,6 +30,8 @@ AM_CONDITIONAL(ODS68302_DEBUG,[test "$ODS68302_DEBUG" = "yes"])
 #        For now, deactivate it.
 # BSP_VARIANT=${BSP_VARIANT-bare}
 # AC_DEFINE_UNQUOTED([VARIANT],[${BSP_VARIANT}],[missing explanation])
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

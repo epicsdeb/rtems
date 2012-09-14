@@ -1,27 +1,582 @@
+2011-11-09	Jennifer Averett <jennifer.averett@oarcorp.com>
+
+	PR 1934/bsps
+	* libchip/serial/ns16550.c: Change to unsigned variable.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2011-01-19	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/ide/ata.c: Fix spelling.
+
+2010-06-14	Arnout Vandecappelle <arnout@mind.be>
+
+	PR 1557/misc
+	* libchip/i2c/spi-sd-card.c: Fixed low capacity special case.
+
+2010-06-09	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/rtems-cpu-subdirs.m4: Remove nios2.
+
+2010-06-03	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/network/if_dc.c: Fix warning.
+
+2010-05-31	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/network/greth.c: Misc. hacks to allow compilation on 
+	16bit targets.
+
+2010-05-31	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1531/newlib
+	* libchip/network/i82586.c:
+	Add local copy of ALIGN().
+
+2010-05-31	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/network/cs8900.c:
+	Misc. changes to make code 16bit-target compliant.
+	* libchip/network/i82586.c:
+	Use int32_t instead of int for 16bit-target compliance.
+	* libchip/network/open_eth.c: 
+	Misc. changes to make code 16bit-target compliant.
+
+2010-05-18	Chris Johns <chrisj@rtems.org>
+
+	* libchip/i2c/spi-sd-card.c, libchip/ide/ata.c: PR
+	1448/filesystem.
+
+2010-05-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: Change quoting to work-round
+	http://www.freebsd.org/cgi/query-pr.cgi?pr=146378.
+
+2010-04-28	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/network/if_dc.c: Remove warnings.
+
+2010-04-25	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/serial/mc68681.c, libchip/serial/mc68681_reg.c,
+	libchip/serial/ns16550.c, libchip/serial/serial.h,
+	libchip/serial/z85c30.c, libchip/serial/z85c30_reg.c: Use uintptr_t
+	or intptr_t instead of uint32_t or int32_t.
+
+2010-04-25	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/rtc/ds1375-rtc.h, libchip/rtc/ds1375.c,
+	libchip/rtc/icm7170.c, libchip/rtc/icm7170_reg.c,
+	libchip/rtc/m48t08_reg.c, libchip/rtc/rtc.h: Use uintptr_t instead of
+	uint32_t.
+
+2010-04-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/serial/serial.h: Add extern "C".
+
+2010-04-10	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* libchip/serial/serial.h, serial/mc68681.c, serial/mc68681_p.h,
+	serial/ns16550.c, serial/ns16550_p.h, serial/serial.h,
+	serial/z85c30.c, serial/z85c30_p.h: adapt _write_ functions to new
+	prototype
+
+2010-04-08	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* libchip/ide/ata.c: Change missed use of ATA_USE_OLD_EXCEPTIONS to
+	CPU_SIMPLE_VECTORED_INTERRUPTS.
+
+2010-04-07	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/ide/ata.c: Use correct macro from RTEMS to determine whether
+	simple or PIC interrupt model.
+
+2010-04-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/rtc/ds1375.c: #include <unistd.h>.
+
+2010-03-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/i82586.c: Readdress use of ctype methods per
+	recommendation from D.J. Delorie on the newlib mailing list. We
+	should pass an unsigned char into these methods.
+
+2010-03-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/ide/ide_controller.c: Fix warnings for uninitialized
+	variable.
+
+2010-03-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/i82586.c: Fix warnings for ctype methods.
+
+2010-02-19	Chris Johns <chrisj@rtems.org>
+
+	* libchip/ide/ide_controller.c: Create the devices as block
+	devices.
+
+2010-01-18	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/ide/ata_internal.h, libchip/ide/ata.c
+	libchip/i2c/spi-sd-card.c: Update for block device API change.
+
+2010-01-18	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* libchip/display/disp_hcms29xx.c,
+	libchip/display/disp_hcms29xx.h, libchip/display/font_hcms29xx.c,
+	libchip/display/font_hcms29xx.h: various fixes
+
+2009-12-18	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	PR 1474
+	* libchip/i2c/spi-sd-card.c, libchip/ide/ata.c: Update for block
+	device API change.
+
+2009-12-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/greth.c: Eliminate unused type
+	rtems_clock_time_value.
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/network/dec21140.c: Warning elimination
+	(dec21140_softc->base now is an uint32_t).
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* libchip/network/dec21140.c, libchip/network/elnk.c,
+	libchip/network/if_dc.c: Move #include <rtems/pci.h> into #if
+	*_SUPPORTED-guarded code sections.
+
+2009-12-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/dec21140.c, libchip/network/elnk.c,
+	libchip/network/if_dc.c: Ensure PCI drivers are built on all
+	supported configurations. PowerPC conditionals were not current and
+	code was not being built on supported BSPs.
+
+2009-11-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* libchip/network/smc91111.c: Formatting.
+
+2009-11-12	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/ide/ata.c (rtems_ata_initialize): Avoid implicit cast to uint16_t.
+	* libchip/ide/ata.c (ata_non_data_request): Change arg from int to 
+	uint32_t (16bit ints are too small).
+
+2009-11-06	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/network/elnk.c: Use PRI*32 to print u_int32_t's.
+	* libchip/network/if_dc.c: Fix type mismatch.
+
+2009-11-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-linkcmds.m4: New.
+
+2009-10-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Rework CFLAGS setup.
+	* aclocal/prog-cc.m4: Remove RTEMS_CFLAGS.
+	* automake/compile.am: Remove RTEMS_CFLAGS.
+
+2009-10-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/ide/ata.h: Move extern "C".
+
+2009-10-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/i2c/spi-flash-m25p40.c, libchip/i2c/spi-fram-fm25l256.c:
+	Use hex-constants to avoid implicit int-casts.
+	* libchip/i2c/spi-memdrv.c:
+	Use hex-constants to avoid implicit int-casts.
+	Use rtems_off64_t offsets to avoid loosing precision.
+
+2009-10-21	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/serial/ns16550.c: Update for interrupt handler type change.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: New.
+	* configure.ac: Apply RTEMS_BSP_ALIAS for RTEMS_BSP_FAMILY.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/env-rtemsbsp.m4: Remove AM_CONDITIONAL MULTILIB.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove AM_CONDITIONAL MULTILIB.
+	* Makefile.am: Remove BARE_CPU_MODEL.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove cfg_dir.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove -std=c99 -fasm.
+	Remove AM_CONDITIONAL LIBCHIP.
+	* libchip/Makefile.am, wrapup/Makefile.am:
+	Remove AM_CONDITIONAL LIBCHIP.
+
+2009-10-17	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Pick up make/custom/*.
+	* aclocal/check-custom-bsp.m4: Adapt to changes to configure.ac.
+
+2009-10-16	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* wrapup/Makefile.am: Remove AM_CONDITIONAL HAS_LIBBSP.
+	* configure.ac: Remove AM_CONDITIONAL HAS_LIBBSP.
+
+2009-10-16	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove special case lib/libbsp/bare (Abandoned).
+
+2009-10-16	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Remove RTEMS_HOST (unused).
+	* configure.ac: Remove RTEMS_HOST (unused).
+	* aclocal/canonical-target-name.m4: Remove RTEMS_HOST (unused).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-custom-bsp.m4: Let _RTEMS_CHECK_CUSTOM_BSP look for
+	*.cfg into c/src/lib/libbsp/<cpu>/<bsp_family>/make/custom.
+
+2009-10-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/canonical-target-name.m4, aclocal/check-networking.m4,
+	aclocal/check-posix.m4, aclocal/enable-posix.m4,
+	aclocal/rtems-cpu-subdirs.m4: Remove posix/unix.
+
+2009-10-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Rework make/custom/* handling.
+	* aclocal/check-custom-bsp.m4: Change *.cfg handling.
+	* Makefile.am: Remove make/custom/default.cfg-rule.
+
+2009-10-13	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/serial/ns16550.c: Enable interrupts during open to avoid
+	NULL pointer access in interrupt handler.
+
+2009-10-09	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/i2c/spi-sd-card.c, libchip/ide/ata.c: Update for block
+	device API change.
+
+2009-10-08	Chris Johns <chrisj@rtems.org>
+
+	* libchip/ide/ata.c, c/src/libchip/ide/ata_internal.h: Remove the
+	multiblock support from the ATA driver. Multiblock at the disk
+	level should not be a global policy as a disk may have more than
+	one partition with different block sizes. An IDE driver could
+	decide to use the feature with DMA but this a driver specific
+	design choice. Fixed bugs relating to variable block sizes and
+	large block transfer.
+	* c/src/libchip/ide/ide_controller.c,
+	c/src/libchip/ide/ide_ctrl_cfg.h, c/src/libchip/ide/ide_ctrl_io.h:
+	Changed the block size to 32bits so blocks of 64K or bigger can be
+	transfered in a single driver call.
+
+2009-10-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/ide/ata.c: Revert previous change. Not all ARM BSPs use a
+	shared irq.h yet and this breaks a significant number of them.
+
+2009-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/ide/ata.c: Use simple vectored CPU macro to select interrupt
+	model.
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/serial/z85c30.c, libchip/serial/ns16550.c,
+	libchip/serial/mc68681.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/serial/sersupp.h: Remove termios_baud_to_index,
+	termios_baud_to_number (duplicate prototypes).
+	Add C++-guards.
+	Include rtems/termiostypes.h.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-configure.m4: Add RTEMS_BSP_BOOTCARD_OPTIONS.
+
+2009-08-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* aclocal/check-networking.m4: Disable TCP/IP on targets without enough
+	physical address to support BSD TCP/IP stack.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/elnk.c: Convert calls to legacy routine
+	rtems_clock_get( RTEMS_CLOCK_GET_xxx, ..) to rtems_clock_get_xxx().
+
+2009-08-03	Roger Dahlkvist <ruppe@kth.se>
+
+	* libchip/shmdr/shm_driver.h: nios2 was not accounted for.
+
+2009-07-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/ide/ata.c: Remove warning.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-bootcard-options.m4: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	now use the same macros.
+	* aclocal/bsp-bspcleanup-options.m4: New file.
+
+2009-07-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/serial/ns16550.c, libchip/serial/ns16550_p.h: Removed
+	obsolete defines and declarations.  Set initial baud during device
+	open.  Fixed interrupt mode.
+
+2009-06-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/i2c/spi-sd-card.c, libchip/ide/ata.c: Eliminate using the
+	GNU/Linux specific error numbers EBADRQC and ENOTBLK. Switch to
+	EINVAL and ENOTTY as appropriate.
+
+2009-05-30	Chris Johns <chrisj@rtems.org>
+
+	* c/src/libchip/ide/ata.c: Fixed the bug that ignored slave
+	devices on an IDE bus and cleaned up the initialisation register
+	call.
+
+2009-05-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/i82586.c: Fix warning in manner suggested by 
+	Arnout Vandecappelle <arnout@mind.be> in
+	http://www.rtems.org/pipermail/rtems-users/2009-May/005460.html.
+
+2009-05-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/if_dc.c: Fixed warnings.
+
+2009-05-03	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/rtc/ds1375.c, libchip/rtc/mc146818a.c: Fix warnings. Reformat
+	as needed.
+
+2009-04-29	Chris Johns <chrisj@rtems.org>
+
+	* libchip/ide/ata.c: Remove a detection test that fails in qemu.
+
+	* libchip/ide/ide_controller.c: Change the status detection and
+	add a message if the transfer fails. There is currently no error
+	handle at the IDE drvier level.
+
 2009-03-12	Daniel Hellstrom <daniel@gaisler.com>
 
 	PR 1392/bsps
 	* libchip/i2c/spi-memdrv.c: SPI Memory driver. Fix but where writes
 	over multiple pages results in extra data being written.
 
+2009-02-27	Gene Smith <gene.smith@siemens.com>
+
+	PR 1356
+	* libchip/i2c/spi-sd-card.c: Added support for high capacity and MMC
+	cards.
+
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/dec21140.c, libchip/network/elnk.c: Make sure this is
+	enabled on x86.
+
+2009-02-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bspopts.m4: Quoting cosmetics.
+
 2009-01-21	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
-	* libchip/i2c/spi-sd-card.c: Fixed RTEMS_BLKDEV_CAPABILITIES ioctl
-	which caused invalid multiple block writes.
+	* libchip/i2c/spi-sd-card.h, libchip/i2c/spi-sd-card.c: Fixed
+	RTEMS_BLKDEV_CAPABILITIES ioctl which caused invalid multiple block
+	writes.  Fixed integer type in device structure.
+
+2009-01-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/serial/ns16550.c: Turn on ns16550_process() for
+	BSP_FEATURE_IRQ_LEGACY case also.
+
+2008-11-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/i2c/spi-sd-card.h, libchip/i2c/spi-sd-card.c: Removed high
+	level LibI2C interface.  Added generic block IO functions.
+
+2008-12-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* optman/rtems/no-barrier.c, optman/rtems/no-dpmem.c,
+	optman/rtems/no-msg.c, optman/rtems/no-part.c,
+	optman/rtems/no-region.c, optman/rtems/no-rtmon.c,
+	optman/rtems/no-sem.c, optman/rtems/no-timer.c,
+	optman/sapi/no-ext.c, optman/sapi/no-io.c:
+	Revert previous patch (cvs clash with Joel hacking cpukit).
+
+2008-12-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/canonical-target-name.m4: Remove tic4x.
+
+2008-12-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/rtc/ds1375.c: Include <errno.h> instead of <sys/errno.h>.
+
+2008-12-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* optman/rtems/no-barrier.c, optman/rtems/no-dpmem.c,
+	optman/rtems/no-msg.c, optman/rtems/no-part.c,
+	optman/rtems/no-region.c, optman/rtems/no-rtmon.c,
+	optman/rtems/no-sem.c, optman/rtems/no-timer.c,
+	optman/sapi/no-ext.c, optman/sapi/no-io.c:
+	Fix prototypes.
+
+2008-12-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/serial/ns16550_p.h: Remove prototype with no implementation.
+
+2008-12-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/shmdr/dump.c, libchip/shmdr/init.c, libchip/shmdr/send.c,
+	libchip/shmdr/shm_driver.h: Cleanup and remove variables which
+	duplicated data.
+
+2008-12-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* optman/sapi/no-ext.c, optman/sapi/no-io.c: Convert SAPI manager and
+	SuperCore Handler initialization routines to directly pull parameters
+	from configuration table.
+
+2008-12-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* optman/rtems/no-barrier.c, optman/rtems/no-dpmem.c,
+	optman/rtems/no-event.c, optman/rtems/no-mp.c, optman/rtems/no-msg.c,
+	optman/rtems/no-part.c, optman/rtems/no-region.c,
+	optman/rtems/no-rtmon.c, optman/rtems/no-sem.c,
+	optman/rtems/no-signal.c, optman/rtems/no-timer.c: Convert manager
+	initialization routines to directly pull parameters from
+	configuration table. Eliminate empty routines sportted.
+
+2008-12-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/serial/ns16550.c: Add CVS-Id. Fix #define mess.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/i82586.c, libchip/network/smc91111config.h: Eliminate
+	all public use of TOD conversion routines.
+
+2008-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* libchip/network/smc91111config.h: 
+	#include <stdint.h> instead of <rtems/stdint.h>.
+
+2008-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/prog-cc.m4: Use -r instead of -Wl,-r to build *.rels.
+	* aclocal/rtems-cpu-subdirs.m4: Remove obsolete cpus.
+
+2008-12-04	Jukka Pietarinen <jukka.pietarinen@mrf.fi>
+
+	* aclocal/rtems-cpu-subdirs.m4: Add Lattice Mico32 support.
 
 2008-11-13	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
 	* libchip/serial/ns16550.c: Transmit the character in the polled write
 	function within a critical section for printk() compatibility.
 
-2008-09-10 	Ralf Corsépius <ralf.corsepius@rtems.org>
+2008-10-02	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
-	* aclocal/prog-cc.m4: Remove pre-production testing CFLAGS.
+	* libchip/i2c/spi-sd-card.c: Update for status-checks.h changes.
 
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	* aclocal/canonical-target-name.m4, aclocal/rtems-cpu-subdirs.m4:
-	Remove TI C4x and NIOS2 ports from 4.9 branch.
+	* aclocal/rtems-cpu-subdirs.m4: Add new M32C port.
+
+2008-09-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-bootcard-options.m4: Generalize and correct comment.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-bootcard-options.m4: Fix quoting.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-bootcard-options.m4: New file.
+	* aclocal/bsp-bootcards-handles-ram-allocation.m4: Removed.
+
+2008-09-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/serial/ns16550.c: Enable interrupt code only for PowerPC or
+	BSPs that support this feature.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/serial/ns16550.c: Fix typo.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/serial/ns16550.c: Fix typo.
+
+2008-09-22	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* libchip/serial/ns16550.c: Add not supported on arm even though it is
+	not simple vectored.
+
+2008-09-22	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* libchip/serial/ns16550.c: Not currently supported on architectures
+	with simple vectored interrupt model.
+
+2008-09-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/version.m4: Bump RTEMS_API to 4.10.
+	Bump _RTEMS_VERSION to 4.9.99.0.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* libchip/rtc/icm7170.c, libchip/rtc/m48t08.c,
+	c/src/libchip/rtc/rtc.h:  Include required header files.  Some internal
+	functions have now static linkage type.  Added constant qualifier to
+	operations table and read-only function parameters.
+
+	* libchip/serial/ns16550.c, libchip/serial/ns16550_p.h,
+	c/src/libchip/serial/serial.h:  Include required header files.  Removed
+	support for old PowerPC exception handling.  Various fixes for
+	interrupt related routines.  Added support for BSPs with IRQ extension
+	API.
+
+2008-09-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/dec21140.c, libchip/network/elnk.c: Detect when there
+	is no PCI bus based upon the BSP not having a base address defined.
+	This means this driver cannot be supported on that board.
+
+2008-09-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* libchip/network/dec21140.c, libchip/network/elnk.c,
+	libchip/network/if_dc.c: Eliminate vestiges of mpc603e define.
+
+2008-09-17	Miao Yan <yanmiaobest@gmail.com>
+
+	* optman/Makefile.am, optman/preinstall.am: Merge GSOC project code to
+	add simple device only filesystem (devfs), optionally completely drop
+	out filesystem, and to clean up disabling newlib reentrancy support.
+	This dropped 17K from the minimum.exe for sparc/sis and arm/rtl22xx_t
+	now has a 15K code space.
+	* optman/no-console.c, optman/no-filesystem.c, optman/no-libio.c:
+	Removed.
 
 2008-09-08 	Ralf Corsépius <ralf.corsepius@rtems.org>
 

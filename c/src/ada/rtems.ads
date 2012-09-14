@@ -18,7 +18,7 @@
 --  the file LICENSE in this distribution or at
 --  http://www.rtems.com/license/LICENSE.
 --
---  $Id: rtems.ads,v 1.36.2.2 2008/12/03 16:38:00 joel Exp $
+--  $Id: rtems.ads,v 1.38 2008/12/03 16:37:49 joel Exp $
 --
 
 with System;

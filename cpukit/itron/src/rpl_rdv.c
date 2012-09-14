@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rpl_rdv.c,v 1.1 2007/04/17 20:32:13 joel Exp $
+ *  $Id: rpl_rdv.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,9 +22,9 @@
  */
 
 ER rpl_rdv(
-  RNO  rdvno,
-  VP   msg,
-  INT rmsgsz
+  RNO  rdvno __attribute__((unused)),
+  VP   msg __attribute__((unused)),
+  INT rmsgsz __attribute__((unused))
 )
 {
   return E_OK;

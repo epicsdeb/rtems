@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: chroot.c,v 1.8 2008/02/28 16:07:57 joel Exp $
+ *  $Id: chroot.c,v 1.9 2009/06/12 01:53:32 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -44,7 +44,7 @@ int chroot(
   }
 
   /* clone the new root location */
-  if (rtems_filesystem_evaluate_path(".", 0, &loc, 0)) {
+  if (rtems_filesystem_evaluate_path(".", 1, 0, &loc, 0)) {
     /* our cwd has changed, though - but there is no easy way of return :-( */
     rtems_set_errno_and_return_minus_one( errno );
   }

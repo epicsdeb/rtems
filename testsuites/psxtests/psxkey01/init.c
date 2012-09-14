@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.1 2008/02/04 19:39:43 jennifer Exp $
+ *  $Id: init.c,v 1.5 2009/11/30 03:33:23 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -16,6 +16,7 @@
 #include <rtems/score/wkspace.h>
 #include <rtems/score/heap.h>
 
+#include "test_support.h"
 
 void Key_destructor(
    void *key_data
@@ -29,11 +30,6 @@ void *POSIX_Init(
 )
 {
   int                    status;
-  unsigned int           remaining;
-  uint32_t               *key_data;
-  Heap_Information_block info;
-  void                   *temp;
-  int                    i;
 
   puts( "\n\n*** POSIX KEY 01 TEST ***" );
 
@@ -44,15 +40,15 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   Allocate_majority_of_workspace(84);
-  
+
   puts("Init: pthread_key_create - ENOMEM (Workspace not available)");
   empty_line();
   status = pthread_key_create( &Key_id[0], Key_destructor );
   fatal_directive_check_status_only( status, ENOMEM, "no workspace available" );
-   
+
   puts( "*** END OF POSIX KEY 01 TEST ***" );
   rtems_test_exit( 0 );
 

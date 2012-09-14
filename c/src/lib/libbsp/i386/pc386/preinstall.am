@@ -28,6 +28,11 @@ $(PROJECT_INCLUDE)/$(dirstamp):
 	@: > $(PROJECT_INCLUDE)/$(dirstamp)
 PREINSTALL_DIRS += $(PROJECT_INCLUDE)/$(dirstamp)
 
+$(PROJECT_INCLUDE)/bsp/$(dirstamp):
+	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
+	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+
 $(PROJECT_LIB)/bsp_specs: bsp_specs $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/bsp_specs
 PREINSTALL_FILES += $(PROJECT_LIB)/bsp_specs
@@ -44,10 +49,9 @@ $(PROJECT_INCLUDE)/bspopts.h: include/bspopts.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bspopts.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bspopts.h
 
-$(PROJECT_INCLUDE)/bsp/$(dirstamp):
-	@$(MKDIR_P) $(PROJECT_INCLUDE)/bsp
-	@: > $(PROJECT_INCLUDE)/bsp/$(dirstamp)
-PREINSTALL_DIRS += $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+$(PROJECT_INCLUDE)/bsp/bootcard.h: ../../shared/include/bootcard.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/bootcard.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/bootcard.h
 
 $(PROJECT_INCLUDE)/bsp/irq.h: ../../i386/shared/irq/irq.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq.h
@@ -56,6 +60,18 @@ PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq.h
 $(PROJECT_INCLUDE)/bsp/irq_asm.h: ../../i386/shared/irq/irq_asm.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq_asm.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq_asm.h
+
+$(PROJECT_INCLUDE)/bsp/tty_drv.h: ../../i386/shared/comm/tty_drv.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/tty_drv.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/tty_drv.h
+
+$(PROJECT_INCLUDE)/bsp/irq-generic.h: ../../shared/include/irq-generic.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq-generic.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq-generic.h
+
+$(PROJECT_INCLUDE)/bsp/irq-info.h: ../../shared/include/irq-info.h $(PROJECT_INCLUDE)/bsp/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/bsp/irq-info.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/bsp/irq-info.h
 
 $(PROJECT_INCLUDE)/crt.h: include/crt.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/crt.h
@@ -97,10 +113,6 @@ PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/serial_mouse.h
 $(PROJECT_INCLUDE)/rtems/ps2_drv.h: console/ps2_drv.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/ps2_drv.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/ps2_drv.h
-
-$(PROJECT_INCLUDE)/rtems/fb_vga.h: console/fb_vga.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/fb_vga.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/fb_vga.h
 
 $(PROJECT_INCLUDE)/i386_io.h: ../../i386/shared/comm/i386_io.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/i386_io.h

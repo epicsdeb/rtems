@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semaphore.h,v 1.24 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: semaphore.h,v 1.27 2009/07/22 15:39:09 joel Exp $
  */
 
 #ifndef _RTEMS_POSIX_SEMAPHORE_H
@@ -27,8 +27,6 @@ extern "C" {
 #include <semaphore.h>
 #include <rtems/score/coresem.h>
 
-#define SEM_FAILED (sem_t *) -1
-
 /*
  *  Data Structure used to manage a POSIX semaphore
  */
@@ -40,6 +38,14 @@ typedef struct {
    bool                    linked;
    uint32_t                open_count;
    CORE_semaphore_Control  Semaphore;
+   /*
+    *  sem_t is 32-bit.  If Object_Id is 16-bit, then they are not
+    *  interchangeable.  We have to be able to return a pointer to
+    *  a 32-bit form of the 16-bit Id.
+    */
+   #if defined(RTEMS_USE_16_BIT_OBJECT)
+     sem_t                 Semaphore_id;
+   #endif
 }  POSIX_Semaphore_Control;
 
 /*
@@ -57,9 +63,7 @@ POSIX_EXTERN Objects_Information  _POSIX_Semaphore_Information;
  *  This routine performs the initialization necessary for this manager.
  */
 
-void _POSIX_Semaphore_Manager_initialization(
-  uint32_t   maximum_semaphorees
-);
+void _POSIX_Semaphore_Manager_initialization(void);
 
 /*
  *  _POSIX_Semaphore_Allocate

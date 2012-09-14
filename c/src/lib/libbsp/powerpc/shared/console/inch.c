@@ -16,10 +16,11 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: inch.c,v 1.11.2.1 2008/10/23 13:45:55 ericn Exp $
+ * $Id: inch.c,v 1.12 2008/09/22 21:50:31 joel Exp $
  */
 
 #include <bsp.h>
+#include <bsp/bootcard.h>
 #ifdef BSP_KBD_IOBASE
 #include <bsp/irq.h>
 

@@ -4,7 +4,7 @@
  *  Suite.  Each measured time period is demarcated by calls to
  *  benchmark_timer_initialize() and benchmark_timer_read().  benchmark_timer_read() usually returns
  *  the number of microseconds since benchmark_timer_initialize() exitted.
- *  
+ *
  *  Copyright (c) 2006 by Atos Automacao Industrial Ltda.
  *             written by Alain Schaefer <alain.schaefer@easc.ch>
  *                    and Antonio Giovanini <antonio@atos.com.br>
@@ -13,9 +13,9 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.c,v 1.4 2008/09/05 11:53:29 ralf Exp $
+ *  $Id: timer.c,v 1.5.2.1 2011/05/25 11:23:30 ralf Exp $
  */
- 
+
 
 #include <rtems.h>
 #include <bsp.h>
@@ -26,21 +26,21 @@ bool benchmark_timer_find_average_overhead;
 
 /*
  * benchmark_timer_initialize
- * 
+ *
  * Blackfin processor has a counter for clock cycles.
  */
 void benchmark_timer_initialize( void )
 {
 
   /*reset counters*/
-  asm ("R2 = 0;");
-  asm ("CYCLES = R2;");
-  asm ("CYCLES2 = R2;");
+  __asm__ ("R2 = 0;");
+  __asm__ ("CYCLES = R2;");
+  __asm__ ("CYCLES2 = R2;");
   /*start counters*/
-  asm ("R2 = SYSCFG;");
-  asm ("BITSET(R2,1);");
-  asm ("SYSCFG = R2");
- 
+  __asm__ ("R2 = SYSCFG;");
+  __asm__ ("BITSET(R2,1);");
+  __asm__ ("SYSCFG = R2");
+
 }
 
 /*
@@ -62,19 +62,19 @@ int benchmark_timer_read( void )
 {
   uint32_t          clicks;
   uint32_t          total;
-  register uint32_t cycles asm ("R2");
+  register uint32_t cycles __asm__ ("R2");
 
-  /* stop counter */ 
-  asm("R2 = SYSCFG;");
-  asm("BITCLR(R2,1);");
-  asm("SYSCFG = R2;");
-  asm("R2 = CYCLES;");
+  /* stop counter */
+  __asm__ ("R2 = SYSCFG;");
+  __asm__ ("BITCLR(R2,1);");
+  __asm__ ("SYSCFG = R2;");
+  __asm__ ("R2 = CYCLES;");
 
 
   clicks = cycles; /* Clock cycles */
 
   /* converting to microseconds */
-  total = clicks / (CCLK/1000000); 
+  total = clicks / (CCLK/1000000);
 
   if ( benchmark_timer_find_average_overhead == 1 )
     return total;          /* in XXX microsecond units */

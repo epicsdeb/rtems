@@ -3,7 +3,7 @@
  *
  *  Application interface to MSDOS filesystem.
  */
- 
+
 /*
  *  Copyright (C) 2001 OKTET Ltd., St.-Petersburg, Russia
  *  Author: Eugeny S. Mints <Eugeny.Mints@oktet.ru>
@@ -12,9 +12,9 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  @(#) $Id: dosfs.h,v 1.6 2008/09/04 08:33:05 ralf Exp $
+ *  @(#) $Id: dosfs.h,v 1.9 2010/05/31 13:56:36 ccj Exp $
  */
- 
+
 #ifndef _RTEMS_DOSFS_H
 #define _RTEMS_DOSFS_H
 
@@ -25,12 +25,18 @@
 extern "C" {
 #endif
 
-extern rtems_filesystem_operations_table  msdos_ops;
+int rtems_dosfs_initialize(rtems_filesystem_mount_table_entry_t *mt_entry,
+                           const void                           *data);
 
 #define MSDOS_FMT_FATANY 0
 #define MSDOS_FMT_FAT12  1
 #define MSDOS_FMT_FAT16  2
 #define MSDOS_FMT_FAT32  3
+
+#define MSDOS_FMT_INFO_LEVEL_NONE   (0)
+#define MSDOS_FMT_INFO_LEVEL_INFO   (1)
+#define MSDOS_FMT_INFO_LEVEL_DETAIL (2)
+#define MSDOS_FMT_INFO_LEVEL_DEBUG  (3)
 
 /*
  * data to be filled out for formatter: parameters for format call
@@ -51,6 +57,7 @@ typedef struct {
                                   /*   value. This can optimize clusters   */
                                   /*   to be located at start of track     */
                                   /*   or start of flash block             */
+  int       info_level;           /* The amount of info to output          */
 } msdos_format_request_param_t;
 
 /*=========================================================================*\

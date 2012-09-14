@@ -162,7 +162,7 @@ bool mscan_set_bit_rate( mscan *m, unsigned can_bit_rate)
   if (prescale_val > 64) {
     /* Leave initialization mode */
     mscan_initialization_mode_leave( m, &context);
-    
+
     return false;
   }
 
@@ -442,9 +442,9 @@ bool mscan_set_filter_number( mscan *m, unsigned number)
  *
  * @warning The index @a i is not checked if it is in range.
  */
-uint8_t *mscan_id_acceptance_register( mscan *m, unsigned i)
+volatile uint8_t *mscan_id_acceptance_register( mscan *m, unsigned i)
 {
-  uint8_t *idar [8] = {
+  volatile uint8_t *const idar [8] = {
     &m->idar0,
     &m->idar1,
     &m->idar2,
@@ -454,7 +454,7 @@ uint8_t *mscan_id_acceptance_register( mscan *m, unsigned i)
     &m->idar6,
     &m->idar7
   };
-  
+
   return idar [i];
 }
 
@@ -464,9 +464,9 @@ uint8_t *mscan_id_acceptance_register( mscan *m, unsigned i)
  *
  * @warning The index @a i is not checked if it is in range.
  */
-uint8_t *mscan_id_mask_register( mscan *m, unsigned i)
+volatile uint8_t *mscan_id_mask_register( mscan *m, unsigned i)
 {
-  uint8_t *idmr [8] = {
+  volatile uint8_t *const idmr [8] = {
     &m->idmr0,
     &m->idmr1,
     &m->idmr2,
@@ -476,7 +476,7 @@ uint8_t *mscan_id_mask_register( mscan *m, unsigned i)
     &m->idmr6,
     &m->idmr7
   };
-  
+
   return idmr [i];
 }
 

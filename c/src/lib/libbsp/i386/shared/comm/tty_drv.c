@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/shared/comm/tty_drv.c,v 1.12 2008/05/23 15:48:39 joel Exp $
+ * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/shared/comm/tty_drv.c,v 1.13 2009/09/30 03:22:43 ralf Exp $
  *
  * MODULE DESCRIPTION:
  * This module implements the RTEMS drivers for the PC serial ports
@@ -261,7 +261,7 @@ conSetAttr(int port, int minor, const struct termios *t)
 {
   unsigned long baud, databits, parity, stopbits;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 

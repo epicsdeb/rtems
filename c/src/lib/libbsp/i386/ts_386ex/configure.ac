@@ -1,18 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.21 2006/12/02 05:52:54 ralf Exp $
+##
+## $Id: configure.ac,v 1.27.2.1 2011/02/02 15:14:46 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-i386-ts_386ex],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-#RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
-RTEMS_PROG_CC_FOR_TARGET([-fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -39,6 +38,8 @@ RTEMS_BSPOPTS_HELP([BSP_DEBUG],
 RTEMS_BSPOPTS_SET([UARTDEBUG],[*],[])
 RTEMS_BSPOPTS_HELP([UARTDEBUG],
 [Enables some debugging in the BSP's uart.])
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

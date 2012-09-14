@@ -2,14 +2,14 @@
  *  RTEMS Task Manager
  *
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskinitusers.c,v 1.7 2007/05/21 23:19:20 joel Exp $
+ *  $Id: taskinitusers.c,v 1.10 2009/07/04 19:45:18 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,6 +22,7 @@
 #include <rtems/rtems/support.h>
 #include <rtems/rtems/modes.h>
 #include <rtems/score/object.h>
+#include <rtems/rtems/rtemsapi.h>
 #include <rtems/score/stack.h>
 #include <rtems/score/states.h>
 #include <rtems/rtems/tasks.h>
@@ -52,21 +53,22 @@ void _RTEMS_tasks_Initialize_user_tasks_body( void )
   rtems_id                          id;
   rtems_status_code                 return_value;
   rtems_initialization_tasks_table *user_tasks;
-  rtems_api_configuration_table    *api_configuration;
-
-
-  api_configuration = _Configuration_Table->RTEMS_api_configuration;
 
   /*
-   *  NOTE:  This is slightly different from the Ada implementation.
+   *  Move information into local variables
    */
+  user_tasks = Configuration_RTEMS_API.User_initialization_tasks_table;
+  maximum    = Configuration_RTEMS_API.number_of_initialization_tasks;
 
-  user_tasks = api_configuration->User_initialization_tasks_table;
-  maximum    = api_configuration->number_of_initialization_tasks;
-
-  if ( !user_tasks || maximum == 0 )
+  /*
+   *  Verify that we have a set of user tasks to iterate
+   */
+  if ( !user_tasks )
     return;
 
+  /*
+   *  Now iterate over the initialization tasks and create/start them.
+   */
   for ( index=0 ; index < maximum ; index++ ) {
     return_value = rtems_task_create(
       user_tasks[ index ].name,
@@ -76,17 +78,15 @@ void _RTEMS_tasks_Initialize_user_tasks_body( void )
       user_tasks[ index ].attribute_set,
       &id
     );
-
     if ( !rtems_is_status_successful( return_value ) )
-      _Internal_error_Occurred( INTERNAL_ERROR_RTEMS_API, TRUE, return_value );
+      _Internal_error_Occurred( INTERNAL_ERROR_RTEMS_API, true, return_value );
 
     return_value = rtems_task_start(
       id,
       user_tasks[ index ].entry_point,
       user_tasks[ index ].argument
     );
-
     if ( !rtems_is_status_successful( return_value ) )
-      _Internal_error_Occurred( INTERNAL_ERROR_RTEMS_API, TRUE, return_value );
+      _Internal_error_Occurred( INTERNAL_ERROR_RTEMS_API, true, return_value );
   }
 }

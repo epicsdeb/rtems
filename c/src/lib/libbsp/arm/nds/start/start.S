@@ -201,10 +201,7 @@ _start:
 	ldr	r3, =initSystem
 	blx	r3			@ jump to user code
 
-	mov	r1, #0		@ argv
-	mov	r0, #0		@ argc
-
-
+	mov	r0, #0		@ command line
 	ldr	r3, =boot_card
 	blx	r3			@ jump to user code
 

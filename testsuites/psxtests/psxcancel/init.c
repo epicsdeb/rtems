@@ -1,57 +1,34 @@
 /*
- * Thread Test Program
- *
- *  - test of POSIX's pthread_init() function from rtemstask Init()
- *
- *     ott@linux.thai.net
- *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.9 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.14 2009/11/30 03:33:23 ralf Exp $
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
-
-#ifdef __rtems__
-#include <rtems.h>
-/* configuration information */
-
-#define CONFIGURE_INIT
-
 #include <unistd.h>
 #include <errno.h>
 #include <sched.h>
 
-#include <bsp.h> /* for device driver prototypes */
-#include <pmacros.h>
+#if defined(__rtems__)
+  #include <rtems.h>
+  #include <bsp.h>
+  #include <pmacros.h>
+#endif
 
-rtems_task Init( rtems_task_argument argument);
+volatile bool countTask_handler;
 
-/* configuration information */
+void countTask_cancel_handler(void *ignored)
+{
+  countTask_handler = true;
+}
 
-#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
-#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
-
-#define CONFIGURE_MAXIMUM_TASKS             3
-#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
-#define CONFIGURE_EXTRA_TASK_STACKS         (3 * RTEMS_MINIMUM_STACK_SIZE)
-
-#define CONFIGURE_MAXIMUM_POSIX_THREADS 5
-#define CONFIGURE_MAXIMUM_POSIX_MUTEXES 5
-#define CONFIGURE_MAXIMUM_POSIX_CONDITION_VARIABLES 5
-
-#include <rtems/console.h>
-#include <rtems/confdefs.h>
-
-#endif /* __rtems__ */
-
-void countTaskDeferred() {
+void *countTaskDeferred(void *ignored)
+{
   int i=0;
   int type,state;
 
@@ -61,66 +38,111 @@ void countTaskDeferred() {
     printf("countTaskDeferred: elapsed time (second): %2d\n", i++ );
     sleep(1);
     pthread_testcancel();
-    }
+  }
 }
 
-void countTaskAsync() {
+void *countTaskAsync(void *ignored)
+{
   int i=0;
   int type,state;
 
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &type);
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &state);
+  pthread_cleanup_push(countTask_cancel_handler, NULL);
   while (1) {
     printf("countTaskAsync: elapsed time (second): %2d\n", i++ );
     sleep(1);
-    }
+  }
+  countTask_handler = false;
+  pthread_cleanup_pop(1);
+  if ( countTask_handler == false ){
+    puts("countTask_cancel_handler not executed");
+    rtems_test_exit(0);
+  }
 }
 
-#ifdef __linux__
-int main(){
+#if defined(__rtems__)
+  void *POSIX_Init(void *ignored)
 #else
-  rtems_task Init( rtems_task_argument ignored ) {
+  int main(int argc, char **argv)
 #endif
-
-  pthread_t count;
-  int taskparameter = 0;
+{
+  pthread_t task;
+  int       taskparameter = 0;
+  int       sc;
+  int       old;
 
   puts( "\n\n*** POSIX CANCEL TEST ***" );
 
+  /* generate some error conditions */
+  puts( "Init - pthread_setcancelstate - NULL oldstate - EINVAL" );
+  sc = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+  fatal_posix_service_status( sc, EINVAL, "cancel state EINVAL" );
+
+  puts( "Init - pthread_setcancelstate - bad state - EINVAL" );
+  sc = pthread_setcancelstate(12, &old);
+  fatal_posix_service_status( sc, EINVAL, "cancel state EINVAL" );
+
+  puts( "Init - pthread_setcanceltype - NULL oldtype - EINVAL" );
+  sc = pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+  fatal_posix_service_status( sc, EINVAL, "cancel type EINVAL" );
+
+  puts( "Init - pthread_setcanceltype - bad type - EINVAL" );
+  sc = pthread_setcanceltype(12, &old);
+  fatal_posix_service_status( sc, EINVAL, "cancel type EINVAL" );
+
+  puts( "Init - pthread_cancel - bad ID - EINVAL" );
+  sc = pthread_cancel(0x100);
+  fatal_posix_service_status( sc, EINVAL, "cancel bad Id" );
+
   /* Start countTask deferred */
   {
-    int task_ret;
-    task_ret = pthread_create(&count, NULL, (void *) countTaskDeferred, (void *) &taskparameter);
-    if (task_ret) {
+    sc = pthread_create(&task, NULL, countTaskDeferred, &taskparameter);
+    if (sc) {
       perror("pthread_create: countTask");
       rtems_test_exit(EXIT_FAILURE);
     }
     /* sleep for 5 seconds, then cancel it */
     sleep(5);
-    pthread_cancel(count);
-    pthread_join(count,NULL);
+    pthread_cancel(task);
+    pthread_join(task, NULL);
   }
 
   /* Start countTask asynchronous */
   {
-    int task_ret;
-    task_ret = pthread_create(&count, NULL, (void *) countTaskAsync, (void *) &taskparameter);
-    if (task_ret) {
+    sc = pthread_create(&task, NULL, countTaskAsync, &taskparameter);
+    if (sc) {
       perror("pthread_create: countTask");
       rtems_test_exit(EXIT_FAILURE);
     }
     /* sleep for 5 seconds, then cancel it */
     sleep(5);
-    pthread_cancel(count);
-    pthread_join(count,NULL);
+    pthread_cancel(task);
+    pthread_join(task, NULL);
   }
 
 
   puts( "*** END OF POSIX CANCEL TEST ***" );
 
-#ifdef __linux__
-  return 0;
-#else
-  rtems_test_exit(EXIT_SUCCESS);
-#endif
+  #if defined(__rtems__)
+    rtems_test_exit(EXIT_SUCCESS);
+    return NULL;
+  #else
+    return 0;
+  #endif
 }
+
+/* configuration information */
+#if defined(__rtems__)
+
+#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+
+#define CONFIGURE_MAXIMUM_POSIX_THREADS 2
+#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+
+#define CONFIGURE_INIT
+#include <rtems/confdefs.h>
+
+#endif /* __rtems__ */
+

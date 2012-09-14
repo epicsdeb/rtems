@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: timer.t,v 1.9.2.1 2008/09/30 16:27:30 joel Exp $
+@c  $Id: timer.t,v 1.10 2008/09/30 16:26:55 joel Exp $
 @c
 
 @chapter Timer Driver

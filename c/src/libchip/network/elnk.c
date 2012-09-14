@@ -72,17 +72,23 @@
 
 #if defined(__i386__)
 #define ELNK_SUPPORTED
+  #define PCI_DRAM_OFFSET 0
 #endif
 
-#if defined(__PPC__) && (defined(mpc604) || defined(mpc750) || defined(mpc603e))
+#if defined(__PPC__)
 #define ELNK_SUPPORTED
+#endif
+
+#include <bsp.h>
+
+#if !defined(PCI_DRAM_OFFSET)
+  #undef ELNK_SUPPORTED
 #endif
 
 /* #undef ELNK_SUPPORTED */
 
 
 #if defined(ELNK_SUPPORTED)
-#include <bsp.h>
 #include <rtems/pci.h>
 
 #if defined(__PPC__)
@@ -1243,7 +1249,7 @@ xl_mii_writereg(
 static int
 xl_miibus_readreg(
    struct elnk_softc	*sc,
-   int			phy, 
+   int			phy,
    int			reg )
 {
    struct xl_mii_frame	frame;
@@ -1273,8 +1279,8 @@ xl_miibus_readreg(
 static int
 xl_miibus_writereg(
    struct elnk_softc		*sc,
-   int			phy, 
-   int			reg, 
+   int			phy,
+   int			reg,
    int			data )
 {
    struct xl_mii_frame	frame;
@@ -2652,7 +2658,7 @@ elnk_init (void *arg)
          xl_miibus_writereg(sc, 0x18, MII_ANAR, ANAR_10 | ANAR_TX | ANAR_10_FD | ANAR_TX_FD );  /*  ANAR_T4 */
          xl_miibus_writereg(sc, 0x18, MII_BMCR, BMCR_STARTNEG | BMCR_AUTOEN );
 
-         for (i=0; ((sr = xl_miibus_readreg(sc, 0x18, MII_BMSR)) & BMSR_ACOMP) == 0 && i < 20; i++) 
+         for (i=0; ((sr = xl_miibus_readreg(sc, 0x18, MII_BMSR)) & BMSR_ACOMP) == 0 && i < 20; i++)
             DELAY(10000);
       }
 
@@ -2950,7 +2956,7 @@ elnk_stats (struct elnk_softc *sc)
           sc->xl_stats.miistatus,
           sc->xl_stats.miicmd);
 
-   printf("         internalcfg:%08x            macctl:%04x      dmactl:%08x\n",
+   printf("         internalcfg:%08" PRIx32 "            macctl:%04x      dmactl:%08" PRIx32 "\n",
           sc->xl_stats.internalconfig,
           sc->xl_stats.mac_control,
           sc->xl_stats.dmactl);
@@ -2978,7 +2984,7 @@ elnk_stats (struct elnk_softc *sc)
          }
       }
 
-      printf("          interrupts:%-9d       txcmp_ints:%-5d  avg_chain_len:%-4d\n",
+      printf("          interrupts:%-9" PRIu32 "       txcmp_ints:%-5" PRIu32 "  avg_chain_len:%-4d\n",
              sc->xl_stats.device_interrupts,
              sc->xl_stats.txcomplete_ints,
              numLengths ? (totalLengths / numLengths) : -1 );
@@ -3000,11 +3006,11 @@ elnk_stats (struct elnk_softc *sc)
           sc->xl_stats.xl_tx_deferred,
           sc->xl_stats.xl_badssd);
 
-   printf("        rx_frames_ok:%-9d     tx_frames_ok:%-9d\n",
+   printf("        rx_frames_ok:%-9" PRIu32 "     tx_frames_ok:%-9" PRIu32 "\n",
           sc->xl_stats.xl_rx_frames_ok,
           sc->xl_stats.xl_tx_frames_ok);
 
-   printf("         rx_bytes_ok:%-9d      tx_bytes_ok:%-9d\n",
+   printf("         rx_bytes_ok:%-9" PRIu32 "      tx_bytes_ok:%-9" PRIu32 "\n",
           sc->xl_stats.xl_rx_bytes_ok,
           sc->xl_stats.xl_tx_bytes_ok );
 }
@@ -3286,8 +3292,7 @@ rtems_elnk_driver_attach (struct rtems_bsdnet_ifconfig *config, int attach)
    /* update stats 1 times/second if things aren't incrementing fast
     * enough to trigger stats interrupts
     */
-   rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, &sc->stats_update_ticks );
-
+   sc->stats_update_ticks = rtems_clock_get_ticks_per_second();
 
    /*
    ** Get this unit's rx/tx event

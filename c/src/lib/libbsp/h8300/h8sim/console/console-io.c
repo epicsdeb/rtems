@@ -2,14 +2,14 @@
  *  This file contains the hardware specific portions of the TTY driver
  *  for the serial ports on the erc32.
  *
- *  COPYRIGHT (c) 1989-1997.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console-io.c,v 1.8 2004/04/21 10:42:43 ralf Exp $
+ *  $Id: console-io.c,v 1.10 2008/09/25 13:34:18 joel Exp $
  */
 
 #include <bsp.h>
@@ -34,14 +34,13 @@ void console_initialize_hardware(void)
  *
  *  This routine transmits a character using polling.
  */
-
+ssize_t _sys_write(int fd, const void *buf, size_t count);
 void console_outbyte_polled(
   int  port,
   char ch
 )
 {
-  asm volatile( "mov.b #0,r1l ;  mov.b %0l,r2l ; jsr @@0xc4"
-       :  : "r" (ch)  : "r1", "r2");
+  _sys_write( 1, &ch, 1 );
 }
 
 /*

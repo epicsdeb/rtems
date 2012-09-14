@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Thread Close
  *
- *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadclose.c,v 1.12 2008/05/22 20:38:03 joel Exp $
+ *  $Id: threadclose.c,v 1.12.4.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H

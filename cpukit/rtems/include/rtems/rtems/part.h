@@ -22,14 +22,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: part.h,v 1.20 2008/06/06 18:03:45 joel Exp $
+ *  $Id: part.h,v 1.25 2009/12/15 18:26:41 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_PART_H
 #define _RTEMS_RTEMS_PART_H
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -50,7 +50,9 @@ extern "C" {
 #include <rtems/rtems/types.h>
 
 /**
- *  @defgroup ClassicPart Classic API Partition
+ *  @defgroup ClassicPart Partitions
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality related to the
  *  Classic API Partition Manager.
@@ -66,7 +68,7 @@ typedef struct {
   /** This field is the physical starting address of the Partition. */
   void               *starting_address;
   /** This field is the size of the Partition in bytes. */
-  uint32_t            length;
+  intptr_t            length;
   /** This field is the size of each buffer in bytes */
   uint32_t            buffer_size;
   /** This field is the attribute set provided at create time. */
@@ -88,9 +90,7 @@ RTEMS_PART_EXTERN Objects_Information _Partition_Information;
  *
  *  This routine performs the initialization necessary for this manager.
  */
-void _Partition_Manager_initialization(
-  uint32_t   maximum_partitions
-);
+void _Partition_Manager_initialization(void);
 
 /**
  *  @brief rtems_partition_create
@@ -104,12 +104,12 @@ void _Partition_Manager_initialization(
  *  created partition in ID.
  */
 rtems_status_code rtems_partition_create(
-  rtems_name          name,
-  void               *starting_address,
-  uint32_t            length,
-  uint32_t            buffer_size,
+  rtems_name       name,
+  void            *starting_address,
+  uint32_t         length,
+  uint32_t         buffer_size,
   rtems_attribute  attribute_set,
-  Objects_Id         *id
+  rtems_id        *id
 );
 
 /**
@@ -124,9 +124,9 @@ rtems_status_code rtems_partition_create(
  *  encompass all nodes.
  */
 rtems_status_code rtems_partition_ident(
-  rtems_name    name,
-  uint32_t      node,
-  Objects_Id   *id
+  rtems_name  name,
+  uint32_t    node,
+  rtems_id   *id
 );
 
 /**
@@ -136,7 +136,7 @@ rtems_status_code rtems_partition_ident(
  *  partition indicated by ID is deleted.
  */
 rtems_status_code rtems_partition_delete(
-  Objects_Id id
+  rtems_id id
 );
 
 /**
@@ -147,8 +147,8 @@ rtems_status_code rtems_partition_delete(
  *  If a buffer is allocated, its address is returned in buffer.
  */
 rtems_status_code rtems_partition_get_buffer(
-  Objects_Id  id,
-  void       **buffer
+  rtems_id   id,
+  void     **buffer
 );
 
 /**
@@ -159,8 +159,8 @@ rtems_status_code rtems_partition_get_buffer(
  *  have been previously allocated from the same partition.
  */
 rtems_status_code rtems_partition_return_buffer(
-  Objects_Id  id,
-  void       *buffer
+  rtems_id  id,
+  void     *buffer
 );
 
 #ifndef __RTEMS_APPLICATION__

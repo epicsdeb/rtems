@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: close.c,v 1.10 2003/09/04 18:54:13 joel Exp $
+ *  $Id: close.c,v 1.12 2009/09/30 06:11:49 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -44,12 +44,12 @@ int close(
  *  This is the Newlib dependent reentrant version of close().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__CLOSE_R)
 
 #include <reent.h>
 
 int _close_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   int            fd
 )
 {

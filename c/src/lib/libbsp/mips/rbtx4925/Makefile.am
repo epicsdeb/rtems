@@ -1,53 +1,58 @@
 ##
-## $Id: Makefile.am,v 1.6.2.1 2008/09/29 13:27:21 ralf Exp $
+## $Id: Makefile.am,v 1.17 2010/05/13 20:51:34 joel Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
 include_HEADERS = include/bsp.h
-include_HEADERS += include/tm27.h
+include_HEADERS += ../../shared/include/tm27.h
+include_bsp_HEADERS = ../shared/liblnk/regs.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
 nodist_include_HEADERS += ../../shared/include/coverhd.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-startup_SOURCES = ../../shared/bspclean.c ../../shared/bsppredriverhook.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsppredriverhook.c \
+    ../../shared/bsppretaskinghook.c ../../shared/bspgetworkarea.c \
     ../../shared/bsplibc.c ../../shared/bsppost.c startup/bspstart.c \
     ../../shared/bootcard.c ../../shared/sbrk.c \
     ../../shared/gnatinstallhandler.c ../../shared/setvec.c \
-    startup/inittlb.c \
-    startup/idtmem.S startup/idttlb.S startup/exception.S
+    startup/inittlb.c ../shared/startup/idttlb.S \
+    ../shared/startup/idtmem.S ../shared/irq/exception.S
 
-# FIXME: clockdrv.c and clockdrv_shell.c are structurally flawed
-clock_CPPFLAGS = -I$(srcdir)/../../shared
-EXTRA_DIST += ../../mips/shared/clockdrv_shell.c
+# clock
 noinst_PROGRAMS += clock.rel
-clock_rel_SOURCES = clock/clockdrv.c
-clock_rel_CPPFLAGS = $(AM_CPPFLAGS) $(clock_CPPFLAGS)
+clock_rel_SOURCES = clock/clockdrv.c ../../../shared/clockdrv_shell.h
+clock_rel_CPPFLAGS = $(AM_CPPFLAGS)
 clock_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-console_SOURCES = console/console-io.c
+# console
+libbsp_a_SOURCES += console/console-io.c
 
-liblnk_SOURCES = liblnk/lnklib.S liblnk/pmon.S liblnk/regs.h
+# liblnk
+libbsp_a_SOURCES += ../shared/liblnk/lnklib.S ../shared/liblnk/pmon.S \
+    ../shared/liblnk/regs.h
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(console_SOURCES) $(liblnk_SOURCES)
 libbsp_a_LIBADD = \
     clock.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \

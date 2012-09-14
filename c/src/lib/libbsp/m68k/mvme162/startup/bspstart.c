@@ -18,38 +18,21 @@
  *  for the RTEMS executive. Its licensing policies are those of the
  *  RTEMS above.
  *
- *  $Id: bspstart.c,v 1.34 2008/05/12 18:43:34 joel Exp $
+ *  $Id: bspstart.c,v 1.35 2008/09/16 19:03:40 joel Exp $
  */
-
-#include <string.h>
 
 #include <bsp.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <page_table.h>
-
-/*
- *  Use the shared implementations of the following routines
- */
-
-void bsp_libc_init( void *, uint32_t, int );
-void bsp_pretasking_hook(void);               /* m68k version */
 
 /*
  *  bsp_start
  *
  *  This routine does the bulk of the system initialization.
  */
-
 void bsp_start( void )
 {
   m68k_isr_entry       *monitors_vector_table;
   int                   index;
-  extern void          *_WorkspaceBase;
-  extern void          *_RamSize;
-  extern unsigned long  _M68k_Ramsize;
-
-  _M68k_Ramsize = (unsigned long)&_RamSize;  /* RAM size set in linker script */
 
   /*
    *  162Bug Vectors are at 0xFFE00000
@@ -84,6 +67,4 @@ void bsp_start( void )
   lcsr->vector_base = (VBR0 << 28) | (VBR1 << 24);
 
   page_table_init();
-
-  Configuration.work_space_start = (void *) &_WorkspaceBase;
 }

@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.11 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.13 2009/07/09 20:25:18 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -48,7 +48,6 @@ rtems_task Init(
   directive_failed( status, "rtems_task_start of TA1" );
 
   Region_name[ 1 ] = rtems_build_name('R', 'N', '0', '1');
-
 
   status = rtems_region_create(
     Region_name[ 1 ],

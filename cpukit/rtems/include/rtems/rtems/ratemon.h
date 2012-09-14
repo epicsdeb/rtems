@@ -22,14 +22,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemon.h,v 1.31.2.3 2009/11/10 23:27:01 joel Exp $
+ *  $Id: ratemon.h,v 1.42 2009/12/15 18:26:41 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_RATEMON_H
 #define _RTEMS_RTEMS_RATEMON_H
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -41,10 +41,17 @@
 #include <rtems/bspIo.h>
 
 /**
- *  @defgroup ClassicRateMon Classic API Rate Monotonic
+ *  @defgroup ClassicRateMon Rate Monotonic Scheduler
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality related to the
  *  Classic API Rate Monotonic Manager.
+ *
+ *  Statistics are kept for each period and can be obtained or printed via
+ *  API calls.  The statistics kept include minimum, maximum and average times
+ *  for both cpu usage and wall time.  The statistics indicate the execution time
+ *  used by the owning thread between successive calls to rtems_rate_monotonic_period.
  */
 /**@{*/
 
@@ -52,28 +59,28 @@
 extern "C" {
 #endif
 
-/*
- *  The user can define this at configure time and go back to ticks
- *  resolution.
- */
-#if !defined(__RTEMS_USE_TICKS_RATE_MONOTONIC_STATISTICS__)
-  /**
-   *  Enable the nanosecond accurate statistics
-   *
-   *  When not defined, the older style tick accurate granularity
-   *  is used.
-   */
-  #define RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
-#endif
-
 /**
- *  This is the type used to manage the rate monotonic timing
+ *  This is the public type used for the rate monotonic timing
  *  statistics.
  */
-#if defined(RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS)
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+  #include <rtems/score/timespec.h>
+
   typedef struct timespec rtems_rate_monotonic_period_time_t;
 #else
   typedef uint32_t rtems_rate_monotonic_period_time_t;
+#endif
+
+/**
+ *  This is the internal type used for the rate monotonic timing
+ *  statistics.
+ */
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+  #include <rtems/score/timestamp.h>
+
+  typedef Timestamp_Control Rate_monotonic_Period_time_t;
+#else
+  typedef uint32_t Rate_monotonic_Period_time_t;
 #endif
 
 #include <rtems/score/object.h>
@@ -91,32 +98,32 @@ extern "C" {
  */
 typedef enum {
   /**
-   * This value indicates the period is off the watchdog chain, 
+   * This value indicates the period is off the watchdog chain,
    * and has never been initialized.
    */
   RATE_MONOTONIC_INACTIVE,
 
   /**
-   * This value indicates the period is on the watchdog chain, and 
+   * This value indicates the period is on the watchdog chain, and
    * the owner is blocked waiting on it.
    */
   RATE_MONOTONIC_OWNER_IS_BLOCKING,
 
   /**
-   * This value indicates the period is on the watchdog chain, and 
+   * This value indicates the period is on the watchdog chain, and
    * running.  The owner should be executed or blocked waiting on
    * another object.
    */
   RATE_MONOTONIC_ACTIVE,
 
   /**
-   * This value indicates the period is on the watchdog chain, and 
+   * This value indicates the period is on the watchdog chain, and
    * has expired.  The owner should be blocked waiting for the next period.
    */
   RATE_MONOTONIC_EXPIRED_WHILE_BLOCKING,
 
   /**
-   * This value indicates the period is off the watchdog chain, and 
+   * This value indicates the period is off the watchdog chain, and
    * has expired.  The owner is still executing and has taken too much
    * all time to complete this iteration of the period.
    */
@@ -130,7 +137,11 @@ typedef enum {
 #define RTEMS_PERIOD_STATUS       WATCHDOG_NO_TIMEOUT
 
 /**
- *  The following defines the statistics kept on each period instance.
+ *  The following defines the PUBLIC data structure that has the
+ *  statistics kept on each period instance.
+ *
+ *  @note The public structure uses struct timespec while the
+ *        internal one uses Timestamp_Control.
  */
 typedef struct {
   /** This field contains the number of periods executed. */
@@ -154,11 +165,36 @@ typedef struct {
 }  rtems_rate_monotonic_period_statistics;
 
 /**
+ *  The following defines the INTERNAL data structure that has the
+ *  statistics kept on each period instance.
+ */
+typedef struct {
+  /** This field contains the number of periods executed. */
+  uint32_t     count;
+  /** This field contains the number of periods missed. */
+  uint32_t     missed_count;
+
+  /** This field contains the least amount of CPU time used in a period. */
+  Thread_CPU_usage_t                   min_cpu_time;
+  /** This field contains the highest amount of CPU time used in a period. */
+  Thread_CPU_usage_t                   max_cpu_time;
+  /** This field contains the total amount of wall time used in a period. */
+  Thread_CPU_usage_t                   total_cpu_time;
+
+  /** This field contains the least amount of wall time used in a period. */
+  Rate_monotonic_Period_time_t         min_wall_time;
+  /** This field contains the highest amount of wall time used in a period. */
+  Rate_monotonic_Period_time_t         max_wall_time;
+  /** This field contains the total amount of CPU time used in a period. */
+  Rate_monotonic_Period_time_t         total_wall_time;
+}  Rate_monotonic_Statistics;
+
+/**
  *  The following defines the period status structure.
  */
 typedef struct {
   /** This is the Id of the thread using this period. */
-  Objects_Id                           owner;
+  rtems_id                             owner;
 
   /** This is the current state of this period. */
   rtems_rate_monotonic_period_states   state;
@@ -193,18 +229,6 @@ typedef struct {
   rtems_rate_monotonic_period_states      state;
 
   /**
-   * This field contains the total CPU usage used while executing
-   * the body of the loop that is executed each period.
-   */
-  rtems_thread_cpu_usage_t                owner_executed_at_period;
-
-  /**
-   * This field contains the total wall timer that passed while
-   * executing the body of the loop that is executed each period.
-   */
-  rtems_rate_monotonic_period_time_t      time_at_period;
-
-  /**
    * This field contains the length of the next period to be
    * executed.
    */
@@ -217,12 +241,24 @@ typedef struct {
   Thread_Control                         *owner;
 
   /**
-   * This field contains the statistics which are maintained
-   * on each period.
+   * This field contains the cpu usage value of the owning thread when
+   * the period was initiated.  It is used to compute the period's
+   * statistics.
    */
-  rtems_rate_monotonic_period_statistics  Statistics;
+  Thread_CPU_usage_t                      cpu_usage_period_initiated;
+
+  /**
+   * This field contains the wall time value when the period
+   * was initiated.  It is used to compute the period's statistics.
+   */
+  Rate_monotonic_Period_time_t            time_period_initiated;
+
+  /**
+   * This field contains the statistics maintained for the period.
+   */
+  Rate_monotonic_Statistics               Statistics;
 }   Rate_monotonic_Control;
- 
+
 /**
  *  @brief Rate Monotonic Period Class Management Structure
  *
@@ -236,9 +272,7 @@ RTEMS_RATEMON_EXTERN Objects_Information _Rate_monotonic_Information;
  *
  *  This routine performs the initialization necessary for this manager.
  */
-void _Rate_monotonic_Manager_initialization(
-  uint32_t   maximum_periods
-);
+void _Rate_monotonic_Manager_initialization(void);
 
 /**
  *  @brief rtems_rate_monotonic_create
@@ -249,20 +283,19 @@ void _Rate_monotonic_Manager_initialization(
  */
 rtems_status_code rtems_rate_monotonic_create(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 );
 
 /**
  *  @brief rtems_rate_monotonic_ident
  *
  *  This routine implements the rtems_rate_monotonic_ident directive.
- *  This directive returns the period ID associated with name.
- *  If more than one period is named name, then the period
- *  to which the ID belongs is arbitrary.
+ *  It returns the period ID associated with name.  If more than one period
+ *  is named name, then the period to which the ID belongs is arbitrary.
  */
 rtems_status_code rtems_rate_monotonic_ident(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 );
 
 /**
@@ -273,7 +306,7 @@ rtems_status_code rtems_rate_monotonic_ident(
  *  run.
  */
 rtems_status_code rtems_rate_monotonic_cancel(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -283,7 +316,7 @@ rtems_status_code rtems_rate_monotonic_cancel(
  *  period indicated by ID is deleted.
  */
 rtems_status_code rtems_rate_monotonic_delete(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -294,7 +327,7 @@ rtems_status_code rtems_rate_monotonic_delete(
  *
  */
 rtems_status_code rtems_rate_monotonic_get_status(
-  Objects_Id                           id,
+  rtems_id                             id,
   rtems_rate_monotonic_period_status  *status
 );
 
@@ -305,24 +338,24 @@ rtems_status_code rtems_rate_monotonic_get_status(
  *  Statistics gathered from the use of this period are returned.
  */
 rtems_status_code rtems_rate_monotonic_get_statistics(
-  Objects_Id                              id,
+  rtems_id                                id,
   rtems_rate_monotonic_period_statistics *statistics
 );
 
 /**
  *  @brief rtems_rate_monotonic_reset_statistics
  *
- *  This directive allows a thread to reset the statistics information
+ *  This routine allows a thread to reset the statistics information
  *  on a specific period instance.
  */
 rtems_status_code rtems_rate_monotonic_reset_statistics(
-  Objects_Id                               id
+  rtems_id                                 id
 );
 
 /**
  *  @brief rtems_rate_monotonic_reset_all_statistics
  *
- *  This directive allows a thread to reset the statistics information
+ *  This routine allows a thread to reset the statistics information
  *  on ALL period instances.
  */
 void rtems_rate_monotonic_reset_all_statistics( void );
@@ -330,7 +363,7 @@ void rtems_rate_monotonic_reset_all_statistics( void );
 /**
  *  @brief rtems_rate_monotonic_report_statistics
  *
- *  This directive allows a thread to print the statistics information
+ *  This routine allows a thread to print the statistics information
  *  on ALL period instances which have non-zero counts using printk.
  */
 void rtems_rate_monotonic_report_statistics_with_plugin(
@@ -341,7 +374,7 @@ void rtems_rate_monotonic_report_statistics_with_plugin(
 /**
  *  @brief rtems_rate_monotonic_report_statistics
  *
- *  This directive allows a thread to print the statistics information
+ *  This routine allows a thread to print the statistics information
  *  on ALL period instances which have non-zero counts using printk.
  */
 void rtems_rate_monotonic_report_statistics( void );
@@ -355,7 +388,7 @@ void rtems_rate_monotonic_report_statistics( void );
  *  result is set to indicate the current state of the period.
  */
 rtems_status_code rtems_rate_monotonic_period(
-  Objects_Id      id,
+  rtems_id        id,
   rtems_interval  length
 );
 
@@ -370,21 +403,29 @@ rtems_status_code rtems_rate_monotonic_period(
  *  state and not restarted.
  */
 void _Rate_monotonic_Timeout(
-  Objects_Id  id,
+  rtems_id    id,
   void       *ignored
 );
 
 /**
- *  @brief _Rate_monotonic_Initiate_per_period_statistics(
+ *  @brief _Rate_monotonic_Get_status(
  *
- *  This routine is invoked when a period is initiated via an explicit
- *  call to rtems_rate_monotonic_period for the period's first iteration
- *  or from _Rate_monotonic_Timeout for period iterations 2-n.
+ *  This routine is invoked to compute the elapsed wall time and cpu
+ *  time for a period.
  *
  *  @param[in] the_period points to the period being operated upon.
+ *  @param[out] wall_since_last_period is set to the wall time elapsed
+ *              since the period was initiated.
+ *  @param[out] cpu_since_last_period is set to the cpu time used by the
+ *              owning thread since the period was initiated.
+ *
+ *  @return This routine returns true if the status can be determined
+ *          and false otherwise.
  */
-void _Rate_monotonic_Initiate_per_period_statistics(
-  Rate_monotonic_Control    *the_period
+bool _Rate_monotonic_Get_status(
+  Rate_monotonic_Control        *the_period,
+  Rate_monotonic_Period_time_t  *wall_since_last_period,
+  Thread_CPU_usage_t            *cpu_since_last_period
 );
 
 /**
@@ -405,12 +446,15 @@ void _Rate_monotonic_Initiate_statistics(
  *
  *  This method resets the statistics information for a period instance.
  */
-#ifdef RTEMS_ENABLE_NANOSECOND_RATE_MONOTONIC_STATISTICS
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
   #define _Rate_monotonic_Reset_wall_time_statistics( _the_period ) \
      do { \
         /* set the minimums to a large value */ \
-        (_the_period)->Statistics.min_wall_time.tv_sec = 0x7fffffff; \
-        (_the_period)->Statistics.min_wall_time.tv_nsec = 0x7fffffff; \
+        _Timestamp_Set( \
+          &(_the_period)->Statistics.min_wall_time, \
+          0x7fffffff, \
+          0x7fffffff \
+        ); \
      } while (0)
 #else
   #define _Rate_monotonic_Reset_wall_time_statistics( _the_period ) \
@@ -425,12 +469,15 @@ void _Rate_monotonic_Initiate_statistics(
  *
  *  This helper method resets the period CPU usage statistics structure.
  */
-#ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
   #define _Rate_monotonic_Reset_cpu_use_statistics( _the_period ) \
      do { \
         /* set the minimums to a large value */ \
-        (_the_period)->Statistics.min_cpu_time.tv_sec = 0x7fffffff; \
-        (_the_period)->Statistics.min_cpu_time.tv_nsec = 0x7fffffff; \
+        _Timestamp_Set( \
+          &(_the_period)->Statistics.min_cpu_time, \
+          0x7fffffff, \
+          0x7fffffff \
+        ); \
      } while (0)
 #else
   #define _Rate_monotonic_Reset_cpu_use_statistics( _the_period ) \

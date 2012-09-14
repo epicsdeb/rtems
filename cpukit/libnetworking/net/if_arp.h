@@ -31,11 +31,13 @@
  */
 
 /*
- * $Id: if_arp.h,v 1.7 2005/05/12 12:36:52 ralf Exp $
+ * $Id: if_arp.h,v 1.8 2008/12/11 17:28:33 ralf Exp $
  */
 
 #ifndef _NET_IF_ARP_H_
 #define	_NET_IF_ARP_H_
+
+#include <sys/socket.h> /* struct sockaddr */
 
 /*
  * Address Resolution Protocol.

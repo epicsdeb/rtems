@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: corebarrierrelease.c,v 1.2 2008/09/05 21:54:20 joel Exp $
+ *  $Id: corebarrierrelease.c,v 1.3 2008/12/31 03:21:34 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -45,8 +45,13 @@
 
 uint32_t _CORE_barrier_Release(
   CORE_barrier_Control                *the_barrier,
+#if defined(RTEMS_MULTIPROCESSING)
   Objects_Id                           id,
   CORE_barrier_API_mp_support_callout  api_barrier_mp_support
+#else
+  Objects_Id                           id __attribute__((unused)),
+  CORE_barrier_API_mp_support_callout  api_barrier_mp_support __attribute__((unused))
+#endif
 )
 {
   Thread_Control *the_thread;

@@ -1,5 +1,5 @@
 dnl
-dnl $Id: prog-cc.m4,v 1.13.2.2 2008/12/08 13:14:38 ralf Exp $
+dnl $Id: prog-cc.m4,v 1.16.2.1 2010/09/29 14:20:05 ralf Exp $
 dnl 
 dnl Check for target gcc
 dnl
@@ -19,23 +19,23 @@ AC_PROG_CPP
 
 AC_DEFUN([RTEMS_PROG_CC_FOR_TARGET],
 [
+# Was CFLAGS set?
+rtems_cv_CFLAGS_set="${CFLAGS+set}"
 dnl check target cc
 RTEMS_PROG_CC
 dnl check if the target compiler may use --pipe
 RTEMS_GCC_PIPE
 test "$rtems_cv_gcc_pipe" = "yes" && CC="$CC --pipe"
 
-AS_IF([test "$GCC" = yes],[
-RTEMS_CFLAGS="$RTEMS_CFLAGS -Wall"
-m4_if([$1],,[],[RTEMS_CFLAGS="$RTEMS_CFLAGS $1"])
-])
-AC_SUBST(RTEMS_CFLAGS)
+# Append warning flags if CFLAGS wasn't set.
+AS_IF([test "$GCC" = yes && test "$rtems_cv_CFLAGS_set" != set],
+[CFLAGS="$CFLAGS -Wall"])
 
 RTEMS_CPPFLAGS="-I\$(top_builddir) -I\$(PROJECT_INCLUDE)"
 AC_SUBST(RTEMS_CPPFLAGS)
 
 AS_IF([test "$GCC" = yes],[
-  RTEMS_RELLDFLAGS="-qnolinkcmds -nostdlib -Wl,-r"
+  RTEMS_RELLDFLAGS="-qnolinkcmds -nostdlib -r"
 ])
 AC_SUBST(RTEMS_RELLDFLAGS)
 ])

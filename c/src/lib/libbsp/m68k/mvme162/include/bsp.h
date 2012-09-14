@@ -16,7 +16,7 @@
  *  for the RTEMS executive. Its licensing policies are those of the
  *  RTEMS above.
  *
- *  $Id: bsp.h,v 1.26 2008/09/05 08:37:50 ralf Exp $
+ *  $Id: bsp.h,v 1.28 2008/09/18 17:39:14 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -163,25 +163,9 @@ typedef volatile struct {
 #define EXTERN extern
 #endif
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
-
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

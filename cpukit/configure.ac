@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
 ## 
-## $Id: configure.ac,v 1.146.2.1 2008/09/10 15:43:54 joel Exp $
+## $Id: configure.ac,v 1.181.2.4 2011/02/02 15:17:51 ralf Exp $
 
-AC_PREREQ(2.61)
+AC_PREREQ([2.68])
 AC_INIT([rtems-cpukit],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([score])
 RTEMS_TOP([..],[])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define nostdinc subdir-objects foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc subdir-objects foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENABLE_MULTILIB
@@ -18,6 +18,8 @@ RTEMS_ENABLE_POSIX
 RTEMS_ENABLE_ITRON
 RTEMS_ENABLE_RTEMS_DEBUG
 RTEMS_ENABLE_NETWORKING
+RTEMS_ENABLE_HTTPD
+RTEMS_ENABLE_SHTTPD
 
 RTEMS_ENV_RTEMSCPU
 RTEMS_CHECK_RTEMS_DEBUG
@@ -30,19 +32,13 @@ else
   AC_MSG_ERROR(no)
 fi
 
-RTEMS_PROG_CC_FOR_TARGET([-fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_PROG_CCAS
 RTEMS_CANONICALIZE_TOOLS
 AM_PROG_CC_C_O
 AC_PROG_RANLIB
 
 RTEMS_CHECK_NEWLIB
-
-# HACK: We should use a feature-based configuration.
-AS_IF([test x"${RTEMS_CPU}" = x"unix"],[
-# HACK: silently accept --enable-unixlib
-  test -n "${enable_unixlib}" || enable_unixlib="yes"
-])
 
 # BSD-isms, used throughout the sources
 # Not really used by this configure script
@@ -52,22 +48,47 @@ AC_CHECK_FUNCS([strdup strndup strncasecmp])
 AC_CHECK_FUNCS([bcopy bcmp])
 AC_CHECK_FUNCS([isascii fileno])
 
+# <FIXME>
+#   Check for functions supplied by newlib >= 1.17.0
+# Newlib's posix/ directory
+AC_CHECK_FUNCS([sleep usleep \
+  opendir closedir readdir readdir_r \
+  rewinddir scandir seekdir telldir isatty])
+AC_CHECK_FUNCS([creat])
+AC_CHECK_FUNCS([__assert])
+AC_CHECK_FUNCS([execl execlp execle execv execvp execve])
+AC_CHECK_FUNCS([regcomp regexec regerror regfree])
+# Mandated by POSIX but not present in newlib
+AC_CHECK_DECLS([flockfile],[AC_CHECK_FUNCS([flockfile])],,[#include <stdio.h>])
+AC_CHECK_DECLS([funlockfile],[AC_CHECK_FUNCS([funlockfile])],,[#include <stdio.h>])
+AC_CHECK_DECLS([ftrylockfile],[AC_CHECK_FUNCS([ftrylockfile])],,[#include <stdio.h>])
+
+# Newlib's unix/ directory
+AC_CHECK_FUNCS([ttyname getcwd])
+# </FIXME>
+
 ## Check if the installed toolchain has these headers
-AC_CHECK_HEADER([tar.h])
+AC_CHECK_HEADERS([tar.h errno.h sched.h])
 
-## BSD-ism, should not be used in RTEMS, 
-## nevertheless it still is.
-AC_CHECK_HEADER([sys/errno.h],[],
-  [AC_MSG_ERROR([Missing required header sys/errno.h])])
+## error out if libc doesn't provide stdint.h
+AS_IF([test x"${ac_cv_header_stdint_h}" != xyes],
+[AC_MSG_ERROR([Required header stdint.h not found])])
 
-## if libc provides stdint.h, use it.
-AS_IF([test x"${ac_cv_header_stdint_h}" = xyes],
-[RTEMS_USES_STDINT_H=yes],
-[RTEMS_USES_STDINT_H=no])
-
-## error out if libc doesn't at least provide inttypes.h
+## error out if libc doesn't provide inttypes.h
 AS_IF([test x"${ac_cv_header_inttypes_h}" != xyes],
 [AC_MSG_ERROR([Required header inttypes.h not found])])
+
+## error out if libc doesn't provide errno.h
+AS_IF([test x"${ac_cv_header_errno_h}" != xyes],
+[AC_MSG_ERROR([Required header errno.h not found])])
+
+## error out if libc doesn't provide sched.h
+AS_IF([test x"${ac_cv_header_sched_h}" != xyes],
+[AC_MSG_ERROR([Required header sched.h not found])])
+
+## error out if libc doesn't provide tar.h
+AS_IF([test x"${ac_cv_header_tar_h}" != xyes],
+[AC_MSG_ERROR([Required header tar.h not found])])
 
 AC_HEADER_STDBOOL
 AS_IF([test x"${ac_cv_header_stdbool_h}" != xyes],
@@ -80,26 +101,8 @@ AC_CHECK_TYPES([uint64_t, int64_t])
 AC_CHECK_TYPES([uintmax_t, intmax_t])
 AC_CHECK_TYPES([uintptr_t, intptr_t])
 
-AC_CACHE_CHECK([if PRIxPTR works],
-[rtems_cv_PRIxPTR],[
-  AS_IF([test x"$GCC" = xyes],[
-    save_CFLAGS=$CFLAGS
-    CFLAGS=-Werror])
-
-  AC_COMPILE_IFELSE([
-    AC_LANG_PROGRAM([
-      #include <inttypes.h>
-      #include <stdio.h>
-    ],[
-      void *ptr;
-      printf("%" PRIxPTR "\n", (intptr_t) ptr);
-    ])],
-    [rtems_cv_PRIxPTR=yes],
-    [rtems_cv_PRIxPTR=no])
-
-  AS_IF([test x"$GCC" = xyes],[
-    CFLAGS=$save_CFLAGS])
-])
+# Some toolchain sanity checks and diagnostics
+RTEMS_CHECK_GCC_SANITY
 
 # These are conditionally defined by the toolchain
 # FIXME: we should either conditionally compile those parts in
@@ -114,27 +117,6 @@ RTEMS_CHECK_MULTIPROCESSING
 RTEMS_CHECK_POSIX_API
 RTEMS_CHECK_ITRON_API
 RTEMS_CHECK_NETWORKING
-
-AS_IF([test x"${RTEMS_USE_NEWLIB}" = xyes],
-[RTEMS_USES_TAR_H=yes],
-[RTEMS_USES_TAR_H=$ac_cv_header_tar_h])
-
-AS_IF([test x"${RTEMS_CPU}" = x"unix"],[
-## FIXME: This check is doubtful
-AS_IF([test "$HAS_MP" = "yes"],
-  [RTEMS_CHECK_SYSV_UNIX])
-
-## The code fragment below had been used in tools/cpu/unix/gensize.c.
-AC_CHECK_SIZEOF([CPU_CONTEXT],[],[
-#include <stdio.h>
-#include <setjmp.h>
-
-typedef struct {
-  jmp_buf     regs;
-  int         isr_level;
-} CPU_CONTEXT;
-])
-])
 
 rtems_major=`echo _RTEMS_VERSION | sed "s/\..*//"`
 rtems_minor=`echo _RTEMS_VERSION | sed "s/[[0-9]][[0-9]]*\.//;s/\..*//"`
@@ -172,35 +154,15 @@ RTEMS_CPUOPT([RTEMS_NETWORKING],
   [1],
   [if networking is enabled])
 
-RTEMS_CPUOPT([RTEMS_UNIX],
-  [test x"$RTEMS_CPU" = xunix],
-  [1],
-  [to indicate RTEMS unix])
-
-RTEMS_CPUOPT([RTEMS_UNIXLIB],
-  [test x"${enable_unixlib}" = xyes],
-  [1],
-  [to indicate RTEMS using RTEMS's unixlib])
-
-RTEMS_CPUOPT([RTEMS_USES_STDINT_H],
-  [test x"${RTEMS_USES_STDINT_H}" = x"yes"],
-  [1],
-  [if RTEMS uses stdint.h])
-
-RTEMS_CPUOPT([RTEMS_USES_TAR_H],
-  [test x"${RTEMS_USES_TAR_H}" = x"yes"],
-  [1],
-  [if RTEMS uses tar.h])
-
 RTEMS_CPUOPT([RTEMS_VERSION],
   [true],
   ["]_RTEMS_VERSION["],
   [RTEMS version string])
 
-RTEMS_CPUOPT([SIZEOF_CPU_CONTEXT],
-  [test x"$RTEMS_CPU" = x"unix"],
-  [$ac_cv_sizeof_CPU_CONTEXT],
-  [The size of a 'CPU_CONTEXT', as computed by sizeof])
+RTEMS_CPUOPT([__RTEMS_USE_TICKS_FOR_STATISTICS__],
+  [test x"${USE_TICKS_FOR_STATISTICS}" = x"1"],
+  [1],
+  [disable nanosecond granularity for statistics])
 
 RTEMS_CPUOPT([__RTEMS_USE_TICKS_CPU_USAGE_STATISTICS__],
   [test x"${USE_TICKS_FOR_CPU_USAGE_STATISTICS}" = x"1"],
@@ -223,6 +185,12 @@ RTEMS_CPUOPT([__RTEMS_DO_NOT_INLINE_CORE_MUTEX_SEIZE__],
   [test x"${RTEMS_DO_NOT_INLINE_CORE_MUTEX_SEIZE}" = x"1"],
   [1],
   [disable inlining _Thread_Enable_dispatch])
+
+## This improves both the size and coverage analysis.
+RTEMS_CPUOPT([__RTEMS_DO_NOT_UNROLL_THREADQ_ENQUEUE_PRIORITY__],
+  [test x"${RTEMS_DO_NOT_UNROLL_THREADQ_ENQUEUE_PRIORITY}" = x"1"],
+  [1],
+  [disable inlining _Thread_queue_Enqueue_priority])
 
 ## This gives the same behavior as 4.8 and older
 RTEMS_CPUOPT([__RTEMS_STRICT_ORDER_MUTEX__],
@@ -276,6 +244,16 @@ AC_CHECK_HEADERS([sys/queue.h],[NEED_SYS_QUEUE_H=no],[NEED_SYS_QUEUE_H=yes])
 AC_CHECK_DECLS([_POSIX_LOGIN_NAME_MAX],,,[#include <limits.h>])
 AC_CHECK_DECLS([CHAR_BIT],,,[#include <limits.h>])
 
+# FIXME: We should get rid of this.
+# So far, only used in libfs/src/nfsclient/src/dirutils.c
+AC_CHECK_SIZEOF([mode_t])
+AC_CHECK_SIZEOF([off_t])
+
+# FIXME: Mandatory in SUSv4, optional in SUSv3. 
+#   Not implemented in GCC/newlib, so far.
+AC_CHECK_DECLS([WORD_BIT],,,[#include <limits.h>])
+AC_CHECK_DECLS([LONG_BIT],,,[#include <limits.h>])
+
 ## BSD-ism, excluded from POSIX, but available on most platforms
 AC_CHECK_DECLS([sbrk],,,[#include <unistd.h>])
 
@@ -285,15 +263,17 @@ AC_CHECK_FUNCS(strlcpy strlcat)
 
 # ... far too many conditionals ...
 AM_CONDITIONAL(LIBRPC,[test x"$rtems_cv_HAS_NETWORKING" = x"yes"])
-AM_CONDITIONAL(UNIX,[test x"${RTEMS_CPU}" = x"unix"])
 AM_CONDITIONAL(NEWLIB,test x"$RTEMS_USE_NEWLIB" = x"yes")
 
 AM_CONDITIONAL(HAS_MP,test x"$enable_multiprocessing" = x"yes" )
 
 AM_CONDITIONAL(HAS_PTHREADS,test x"$rtems_cv_HAS_POSIX_API" = x"yes")
-AM_CONDITIONAL(LIBPOSIX,test x"${RTEMS_CPU}" != x"unix")
 AM_CONDITIONAL(LIBITRON,test x"$rtems_cv_HAS_ITRON_API" = x"yes")
 AM_CONDITIONAL(LIBNETWORKING,test x"$rtems_cv_HAS_NETWORKING" = x"yes")
+AM_CONDITIONAL([LIBHTTPD],[test x"$rtems_cv_HAS_NETWORKING" = xyes \
+&& test x"$enable_httpd" = xyes])
+AM_CONDITIONAL([LIBSHTTPD],[test x"$rtems_cv_HAS_NETWORKING" = xyes \
+&& test x"$enable_shttpd" = xyes])
 
 AM_CONDITIONAL([NEED_SYS_CDEFS_H],[test x"$NEED_SYS_CDEFS_H" = x"yes"])
 AM_CONDITIONAL([NEED_SYS_QUEUE_H],[test x"$NEED_SYS_QUEUE_H" = x"yes"])
@@ -304,8 +284,7 @@ AM_CONDITIONAL([LIBGNAT],[test x"$rtems_cv_HAS_POSIX_API" = x"yes" \
 && test x"$enable_ada" = x"yes"])
 
 AM_CONDITIONAL([LIBDOSFS],[dnl
-test x"${RTEMS_CPU}" != x"unix" \
-&& test x"$ac_cv_type_uint8_t" = xyes \
+test x"$ac_cv_type_uint8_t" = xyes \
 && test x"$ac_cv_type_uint16_t" = xyes])
 
 AC_CONFIG_HEADER(config.h)
@@ -320,6 +299,7 @@ RTEMS_AMPOLISH3
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([
+Doxyfile
 Makefile
 rtems/Makefile
 sapi/Makefile
@@ -330,12 +310,14 @@ score/cpu/bfin/Makefile
 score/cpu/avr/Makefile
 score/cpu/h8300/Makefile
 score/cpu/i386/Makefile
+score/cpu/lm32/Makefile
 score/cpu/m68k/Makefile
+score/cpu/m32c/Makefile
+score/cpu/m32r/Makefile
 score/cpu/mips/Makefile
 score/cpu/powerpc/Makefile
 score/cpu/sh/Makefile
 score/cpu/sparc/Makefile
-score/cpu/unix/Makefile
 score/cpu/no_cpu/Makefile
 posix/Makefile
 itron/Makefile
@@ -355,6 +337,7 @@ ftpd/Makefile
 telnetd/Makefile
 pppd/Makefile
 shttpd/Makefile
+mghttpd/Makefile
 wrapup/Makefile])
 
 AC_CONFIG_COMMANDS([preinstall-stamp],

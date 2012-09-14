@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: support.t,v 1.6 2008/08/22 16:38:00 joel Exp $
+@c  $Id: support.t,v 1.7 2009/10/14 13:08:39 ralf Exp $
 @c
 
 @chapter Miscellaneous Support Files
@@ -93,9 +93,6 @@ on the BSP.  Examples of this include:
 @item @code{m68k/mvme162} includes a utility to download across the
 VMEbus into target memory if the host is a VMEbus board in the same
 chasis.
-
-@item @code{unix/posix} includes scripts to run the tests automatically 
-on this BSP.
 
 @end itemize
 

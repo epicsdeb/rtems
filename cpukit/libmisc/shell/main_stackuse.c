@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_stackuse.c,v 1.5 2008/03/05 02:49:35 joel Exp $
+ *  $Id: main_stackuse.c,v 1.6 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,8 +23,8 @@
 #include "internal.h"
 
 int rtems_shell_main_stackuse(
-  int   argc,
-  char *argv[]
+  int   argc __attribute__((unused)),
+  char *argv[] __attribute__((unused))
 )
 {
   rtems_stack_checker_report_usage_with_plugin(

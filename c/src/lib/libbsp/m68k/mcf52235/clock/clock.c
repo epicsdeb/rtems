@@ -1,7 +1,7 @@
 /*
  * Use the last periodic interval timer (PIT2) as the system clock.
  *
- *  $Id: clock.c,v 1.3 2008/08/19 11:14:43 ralf Exp $
+ *  $Id: clock.c,v 1.4 2008/09/30 05:10:00 ralf Exp $
  */
 
 #include <rtems.h>
@@ -95,4 +95,4 @@ static void Clock_driver_support_initialize_hardware(void)
   s_pcntrAtTick = MCF_PIT1_PCNTR;
 }
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

@@ -2,10 +2,10 @@
  *  Copyright (c) 2004,2005 Ralf Corsepius, Ulm, Germany.
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: concat.h,v 1.3 2005/10/27 07:23:53 ralf Exp $
+ *  $Id: concat.h,v 1.3.8.1 2011/05/25 14:17:51 ralf Exp $
  */
 
 #ifndef _RTEMS_CONCAT_H

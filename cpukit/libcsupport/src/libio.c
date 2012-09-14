@@ -10,25 +10,26 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio.c,v 1.45.2.1 2009/01/29 17:18:50 joel Exp $
+ *  $Id: libio.c,v 1.49 2010/04/30 08:55:41 sh Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems/libio_.h>               /* libio_.h pulls in rtems */
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include <rtems.h>
-#include <rtems/assoc.h>                /* assoc.h not included by rtems.h */
+#include <rtems/libio_.h>
+#include <rtems/assoc.h>
 
-#include <stdio.h>                      /* O_RDONLY, et.al. */
-#include <fcntl.h>                      /* O_RDONLY, et.al. */
-#include <assert.h>
-#include <errno.h>
-
-/* define this to alias O_NDELAY to  O_NONBLOCK, i.e., 
+/* define this to alias O_NDELAY to  O_NONBLOCK, i.e.,
  * O_NDELAY is accepted on input but fcntl(F_GETFL) returns
- * O_NONBLOCK. This is because rtems has no distinction 
+ * O_NONBLOCK. This is because rtems has no distinction
  * between the two (but some systems have).
  * Note that accepting this alias creates a problem:
  * an application trying to clear the non-blocking flag
@@ -39,22 +40,6 @@
  * does (silently) ignore the operation.
  */
 #undef ACCEPT_O_NDELAY_ALIAS
-
-#include <errno.h>
-#include <string.h>                     /* strcmp */
-#include <unistd.h>
-#include <stdlib.h>                     /* calloc() */
-
-#include <rtems/libio.h>                /* libio.h not pulled in by rtems */
-
-/*
- *  File descriptor Table Information
- */
-
-extern uint32_t       rtems_libio_number_iops;
-extern rtems_id       rtems_libio_semaphore;
-extern rtems_libio_t *rtems_libio_iops;
-extern rtems_libio_t *rtems_libio_iop_freelist;
 
 /*
  *  rtems_libio_fcntl_flags
@@ -151,21 +136,21 @@ rtems_libio_t *rtems_libio_allocate( void )
   rtems_status_code rc;
   rtems_id sema;
 
-  rtems_semaphore_obtain( rtems_libio_semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+  rtems_libio_lock();
 
   if (rtems_libio_iop_freelist) {
     rc = rtems_semaphore_create(
       RTEMS_LIBIO_IOP_SEM(rtems_libio_iop_freelist - rtems_libio_iops),
       1,
       RTEMS_BINARY_SEMAPHORE | RTEMS_INHERIT_PRIORITY | RTEMS_PRIORITY,
-      RTEMS_NO_PRIORITY,
+      0,
       &sema
     );
     if (rc != RTEMS_SUCCESSFUL)
       goto failed;
     iop = rtems_libio_iop_freelist;
     next = iop->data1;
-    (void) memset( iop, 0, sizeof(rtems_libio_t) ); 
+    (void) memset( iop, 0, sizeof(rtems_libio_t) );
     iop->flags = LIBIO_FLAGS_OPEN;
     iop->sem = sema;
     rtems_libio_iop_freelist = next;
@@ -176,7 +161,7 @@ failed:
   iop = 0;
 
 done:
-  rtems_semaphore_release( rtems_libio_semaphore );
+  rtems_libio_unlock();
   return iop;
 }
 
@@ -191,7 +176,7 @@ void rtems_libio_free(
   rtems_libio_t *iop
 )
 {
-  rtems_semaphore_obtain( rtems_libio_semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+  rtems_libio_lock();
 
     if (iop->sem)
       rtems_semaphore_delete(iop->sem);
@@ -200,7 +185,7 @@ void rtems_libio_free(
     iop->data1 = rtems_libio_iop_freelist;
     rtems_libio_iop_freelist = iop;
 
-  rtems_semaphore_release(rtems_libio_semaphore);
+  rtems_libio_unlock();
 }
 
 /*
@@ -220,9 +205,9 @@ int rtems_libio_is_open_files_in_fs(
 {
   rtems_libio_t     *iop;
   int                result = 0;
-  int                i;
+  uint32_t           i;
 
-  rtems_semaphore_obtain( rtems_libio_semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+  rtems_libio_lock();
 
   /*
    *  Look for any active file descriptor entry.
@@ -244,7 +229,7 @@ int rtems_libio_is_open_files_in_fs(
     }
   }
 
-  rtems_semaphore_release( rtems_libio_semaphore );
+  rtems_libio_unlock();
 
   return result;
 }
@@ -264,9 +249,9 @@ int rtems_libio_is_file_open(
 {
   rtems_libio_t     *iop;
   int                result=0;
-  int                i;
+  uint32_t           i;
 
-  rtems_semaphore_obtain( rtems_libio_semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+  rtems_libio_lock();
 
   /*
    *  Look for any active file descriptor entry.
@@ -287,7 +272,7 @@ int rtems_libio_is_file_open(
     }
   }
 
-  rtems_semaphore_release( rtems_libio_semaphore );
+  rtems_libio_unlock();
 
   return result;
 }

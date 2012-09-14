@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: preface.texi,v 1.10 2002/06/28 19:14:44 joel Exp $
+@c  $Id: preface.texi,v 1.11 2009/02/27 18:04:44 joel Exp $
 @c
 
 @ifinfo
@@ -33,4 +33,8 @@ Newlib for more information on the functionality it supplies.
 
 This manual is still under construction and improvements
 are welcomed from users.
+
+@unnumberedsec Acknowledgements
+
+@include common/opengroup_preface_acknowledgement.texi
 

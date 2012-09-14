@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task.c,v 1.7 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: task.c,v 1.10 2009/12/08 17:52:53 joel Exp $
  */
 
 #include "system.h"
@@ -28,7 +28,7 @@ void diff_timespec(
   struct timespec *result
 )
 {
-   int nsecs_per_sec = 1000000000;
+   const long nsecs_per_sec = 1000000000;
 
    result->tv_sec = stop->tv_sec - start->tv_sec;
    if ( stop->tv_nsec < start->tv_nsec ) {
@@ -50,10 +50,10 @@ void *Task_1(
   struct timespec delay;
 
   status = clock_gettime( CLOCK_REALTIME, &start );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sched_rr_get_interval( getpid(), &delay );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* double the rr interval for confidence */
 
@@ -69,7 +69,7 @@ void *Task_1(
   for ( ; ; ) {
 
     status = clock_gettime( CLOCK_REALTIME, &current );
-    assert( !status );
+    rtems_test_assert(  !status );
 
     diff_timespec( &start, &current, &difference );
 

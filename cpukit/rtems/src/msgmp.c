@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: msgmp.c,v 1.26 2008/09/05 21:39:16 joel Exp $
+ *  $Id: msgmp.c,v 1.27 2009/01/06 05:05:03 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -276,7 +276,7 @@ void _Message_queue_MP_Process_packet (
                   &_Message_queue_Information,
                   the_packet->name,
                   the_packet->Prefix.id,
-                  TRUE
+                  true
                 );
 
       _MPCI_Return_packet( the_packet_prefix );

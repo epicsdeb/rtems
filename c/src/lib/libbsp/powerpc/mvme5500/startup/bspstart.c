@@ -19,9 +19,9 @@
  *
  *  Modified to support the MVME5500 board.
  *  Also, the settings of L1, L2, and L3 caches is not necessary here.
- *  (C) by Brookhaven National Lab., S. Kate Feng <feng1@bnl.gov>, 2003-2007
- *  
- *  $Id: bspstart.c,v 1.23.2.1 2009/05/08 18:22:51 joel Exp $
+ *  (C) by Brookhaven National Lab., S. Kate Feng <feng1@bnl.gov>, 2003-2009
+ *
+ *  $Id: bspstart.c,v 1.34.2.1 2011/06/17 13:22:25 joel Exp $
  */
 
 #include <string.h>
@@ -29,8 +29,6 @@
 #include <ctype.h>
 
 #include <rtems/system.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <rtems/powerpc/powerpc.h>
 
 #include <libcpu/spr.h>   /* registers.h is included here */
@@ -46,36 +44,31 @@
 #include <rtems/bspIo.h>
 #include <rtems/sptables.h>
 
-#ifdef __RTEMS_APPLICATION__
-#undef __RTEMS_APPLICATION__
-#endif
-
-
-/*#define SHOW_MORE_INIT_SETTINGS
-#define CONF_VPD
+/*
+#define SHOW_MORE_INIT_SETTINGS
 #define SHOW_LCR1_REGISTER
 #define SHOW_LCR2_REGISTER
 #define SHOW_LCR3_REGISTER
+#define CONF_VPD
 */
 
 /* there is no public Workspace_Free() variant :-( */
 #include <rtems/score/wkspace.h>
 
+extern uint32_t probeMemoryEnd(void); /* from shared/startup/probeMemoryEnd.c */
 BSP_output_char_function_type BSP_output_char = BSP_output_char_via_serial;
 
 extern void _return_to_ppcbug(void);
 extern unsigned long __rtems_end[];
 extern unsigned get_L1CR(void), get_L2CR(void), get_L3CR(void);
-extern void bsp_cleanup(void);
-extern Triv121PgTbl BSP_pgtbl_setup(unsigned long);
+extern Triv121PgTbl BSP_pgtbl_setup(unsigned int *);
 extern void BSP_pgtbl_activate(Triv121PgTbl);
 extern int I2Cread_eeprom(unsigned char I2cBusAddr, uint32_t devA2A1A0, uint32_t AddrBytes, unsigned char *pBuff, uint32_t numBytes);
 extern void BSP_vme_config(void);
-extern uint32_t probeMemoryEnd();
+
+extern unsigned char ReadConfVPD_buff(int offset);
 
 uint32_t bsp_clicks_per_usec;
-
-SPR_RW(SPRG1)
 
 typedef struct CmdLineRec_ {
     unsigned long  size;
@@ -105,11 +98,6 @@ unsigned int BSP_mem_size;
 /*
  * PCI Bus Frequency
  */
-/*
- * Start of the heap
- */
-unsigned int BSP_heap_start;
-
 unsigned int BSP_bus_frequency;
 /*
  * processor clock frequency
@@ -119,57 +107,23 @@ unsigned int BSP_processor_frequency;
  * Time base divisior (how many tick for 1 second).
  */
 unsigned int BSP_time_base_divisor;
-unsigned char ConfVPD_buff[200];
+static unsigned char ConfVPD_buff[200];
 
 #define CMDLINE_BUF_SIZE  2048
 
 static char cmdline_buf[CMDLINE_BUF_SIZE];
 char *BSP_commandline_string = cmdline_buf;
 
-/*
- * system init stack
- */
-#define INIT_STACK_SIZE 0x1000
-
 void BSP_panic(char *s)
 {
   printk("%s PANIC %s\n",_RTEMS_version, s);
-  __asm__ __volatile ("sc"); 
+  __asm__ __volatile ("sc");
 }
 
 void _BSP_Fatal_error(unsigned int v)
 {
   printk("%s PANIC ERROR %x\n",_RTEMS_version, v);
-  __asm__ __volatile ("sc"); 
-}
- 
-/*
- *  Use the shared implementations of the following routines
- */
- 
-extern void bsp_libc_init( void *, uint32_t, int );
-
-void zero_bss()
-{
-  /* prevent these from being accessed in the short data areas */
-  extern unsigned long __bss_start[], __SBSS_START__[], __SBSS_END__[];
-  extern unsigned long __SBSS2_START__[], __SBSS2_END__[];
-
-  memset(
-    __SBSS_START__,
-    0,
-    ((unsigned) __SBSS_END__) - ((unsigned)__SBSS_START__)
-  );
-  memset(
-    __SBSS2_START__,
-    0,
-    ((unsigned) __SBSS2_END__) - ((unsigned)__SBSS2_START__)
-  );
-  memset(
-    __bss_start,
-    0,
-    ((unsigned) __rtems_end) - ((unsigned)__bss_start)
-  );
+  __asm__ __volatile ("sc");
 }
 
 /* NOTE: we cannot simply malloc the commandline string;
@@ -204,10 +158,10 @@ void zero_bss()
  * the data to the environment / malloced areas...
  */
 
-/* this routine is called early at shared/start/start.S 
+/* this routine is called early at shared/start/start.S
  * and must be safe with a not properly aligned stack
  */
-void
+char *
 save_boot_params(
   void *r3,
   void *r4,
@@ -225,6 +179,7 @@ save_boot_params(
 
   memmove(cmdline_buf, cmdline_start, i);
   cmdline_buf[i]=0;
+  return cmdline_buf;
 }
 
 /*
@@ -235,11 +190,10 @@ save_boot_params(
 
 void bsp_start( void )
 {
+  rtems_status_code sc = RTEMS_SUCCESSFUL;
 #ifdef CONF_VPD
   int i;
 #endif
-  unsigned char *stack;
-  unsigned long   *r1sp;
 #ifdef SHOW_LCR1_REGISTER
   unsigned l1cr;
 #endif
@@ -249,9 +203,8 @@ void bsp_start( void )
 #ifdef SHOW_LCR3_REGISTER
   unsigned l3cr;
 #endif
-  uint32_t intrStackStart;
-  uint32_t intrStackSize;
-  unsigned char *work_space_start;
+  uintptr_t intrStackStart;
+  uintptr_t intrStackSize;
   ppc_cpu_id_t myCpu;
   ppc_cpu_revision_t myCpuRevision;
   Triv121PgTbl  pt=0;
@@ -261,15 +214,18 @@ void bsp_start( void )
    * (otherwise we silently die)
    */
   /*
-   * Kate Feng : PCI 0 domain memory space, want to leave room for the VME window 
+   * Kate Feng : PCI 0 domain memory space, want to leave room for the VME window
    */
   setdbat(2, PCI0_MEM_BASE, PCI0_MEM_BASE, 0x10000000, IO_PAGE);
 
   /* Till Straumann: 2004
-   * map the PCI 0, 1 Domain I/O space, GT64260B registers,
-   * Flash Bank 0 and Flash Bank 2.
+   * map the PCI 0, 1 Domain I/O space, GT64260B registers
+   * and the reserved area so that the size is the power of 2.
+   * 2009 : map the entire 256 M space
+   *
    */
   setdbat(3,PCI0_IO_BASE, PCI0_IO_BASE, 0x10000000, IO_PAGE);
+
 
   /*
    * Get CPU identification dynamically. Note that the get_ppc_cpu_type() function
@@ -280,40 +236,26 @@ void bsp_start( void )
 
 #ifdef SHOW_LCR1_REGISTER
   l1cr = get_L1CR();
-  printk("Initial L1CR value = %x\n", l1cr); 
+  printk("Initial L1CR value = %x\n", l1cr);
 #endif
-
-  /*
-   * the initial stack  has aready been set to this value in start.S
-   * so there is no need to set it in r1 again... It is just for info
-   * so that it can be printed without accessing R1.
-   */
-  stack = ((unsigned char*) __rtems_end) +
-          INIT_STACK_SIZE - PPC_MINIMUM_STACK_FRAME_SIZE;
-
-  /* tag the bottom (T. Straumann 6/36/2001 <strauman@slac.stanford.edu>) */
-  *((uint32_t *)stack) = 0;
-
-  /* fill stack with pattern for debugging */
-  __asm__ __volatile__("mr %0, %%r1":"=r"(r1sp));
-  while (--r1sp >= (unsigned long*)__rtems_end)
-    *r1sp=0xeeeeeeee;
 
   /*
    * Initialize the interrupt related settings.
    */
-  intrStackStart = (uint32_t) __rtems_end + INIT_STACK_SIZE;
+  intrStackStart = (uintptr_t) __rtems_end;
   intrStackSize = rtems_configuration_get_interrupt_stack_size();
-  BSP_heap_start = intrStackStart + intrStackSize;
 
   /*
    * Initialize default raw exception handlers.
    */
-  ppc_exc_initialize(
+  sc = ppc_exc_initialize(
     PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
     intrStackStart,
     intrStackSize
   );
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot initialize exceptions");
+  }
 
   /*
    * Init MMU block address translation to enable hardware
@@ -325,6 +267,7 @@ void bsp_start( void )
   printk("-----------------------------------------\n");
 
   BSP_mem_size         =  probeMemoryEnd();
+
   /* TODO: calculate the BSP_bus_frequency using the REF_CLK bit
    *       of System Status  register
    */
@@ -333,7 +276,6 @@ void bsp_start( void )
   BSP_processor_frequency    = 1000000000;
   /* P94 : 7455 clocks the TB/DECR at 1/4 of the system bus clock frequency */
   BSP_time_base_divisor      = 4000;
-
 
   /* Maybe not setup yet becuase of the warning message */
   /* Allocate and set up the page table mappings
@@ -347,27 +289,11 @@ void bsp_start( void )
   if (!pt)
      printk("WARNING: unable to setup page tables.\n");
 
-  printk("Now BSP_mem_size = 0x%x\n",BSP_mem_size); 
+  printk("Now BSP_mem_size = 0x%x\n",BSP_mem_size);
 
   /* P94 : 7455 TB/DECR is clocked by the system bus clock frequency */
 
   bsp_clicks_per_usec    = BSP_bus_frequency/(BSP_time_base_divisor * 1000);
-
-  printk(
-    "rtems_configuration_get_work_space_size() = %x\n",
-     rtems_configuration_get_work_space_size()
-  ); 
-
-  work_space_start = 
-    (unsigned char *)BSP_mem_size - rtems_configuration_get_work_space_size();
-
-  if ( work_space_start <= ((unsigned char *)__rtems_end) + INIT_STACK_SIZE + 
-        rtems_configuration_get_interrupt_stack_size()) {
-    printk( "bspstart: Not enough RAM!!!\n" );
-    bsp_cleanup();
-  }
-
-  Configuration.work_space_start = work_space_start;
 
   /*
    * Initalize RTEMS IRQ system
@@ -377,19 +303,19 @@ void bsp_start( void )
 #ifdef SHOW_LCR2_REGISTER
   l2cr = get_L2CR();
   printk("Initial L2CR value = %x\n", l2cr);
-#endif  
+#endif
 
 #ifdef SHOW_LCR3_REGISTER
   /* L3CR needs DEC int. handler installed for bsp_delay()*/
   l3cr = get_L3CR();
   printk("Initial L3CR value = %x\n", l3cr);
-#endif  
+#endif
 
 
   /* Activate the page table mappings only after
    * initializing interrupts because the irq_mng_init()
    * routine needs to modify the text
-   */           
+   */
   if (pt) {
 #ifdef SHOW_MORE_INIT_SETTINGS
     printk("Page table setup finished; will activate it NOW...\n");
@@ -403,7 +329,7 @@ void bsp_start( void )
 #ifdef CONF_VPD
     printk("\n");
     for (i=0; i<150; i++) {
-      printk("%2x ", ConfVPD_buff[i]);  
+      printk("%2x ", ConfVPD_buff[i]);
       if ((i % 20)==0 ) printk("\n");
     }
     printk("\n");
@@ -414,11 +340,11 @@ void bsp_start( void )
    * PCI 1 domain memory space
    */
   setdbat(1, PCI1_MEM_BASE, PCI1_MEM_BASE, 0x10000000, IO_PAGE);
- 
+
 
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Going to start PCI buses scanning and initialization\n");
-#endif  
+#endif
   pci_initialize();
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Number of PCI buses found is : %d\n", pci_bus_count());

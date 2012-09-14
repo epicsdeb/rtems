@@ -1,13 +1,336 @@
+2010-05-28	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* umon/tfsDriver.c:
+	Use size_t instead of int for pathnamelen.
+
+2010-05-21	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/utility.h: Macros use now first and last bit values instead
+	of shift and length parameters.
+
+2010-05-20	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/utility.h: Removed superfluous macros.
+
+2010-05-20	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/uart-output-char.h, src/uart-output-char.c: New files.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-config.h: Removed file.
+	* include/irq.h: New file (renamed from 'include/irq-config.h').
+	* include/irq-generic.h, src/irq-info.c: Include <bsp/irq.h> instead
+	of <bsp/irq-config.h>.
+	* src/irq-server.c: Use events instead of semaphore.  Added error
+	counter for multiple chain appends.  Added error counter to detect
+	erroneous interrupt events.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/bootcard.h: Documentation.
+
+2010-04-28	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* gdbstub/rtems-stub-glue.c: Remove warnings.
+
+2010-04-09	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* umon/umonrtemsglue.c: change type to avoid warning
+
+2010-03-25	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* src/irq-generic.c: fix warning
+
+2009-12-04	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* umon/README, umon/tfs.h: Missing parts of previous commit.
+
+2009-11-30	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* umon/cli.h, umon/monlib.c, umon/monlib.h, umon/tfs.h,
+	umon/tfsDriver.c, umon/umon.h, umon/umonrtemsglue.c: Update to match
+	development version.
+
+2009-11-23	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* clockdrv_shell.h: Clean up.
+
+2009-10-21	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-generic.h, src/irq-generic.c, src/irq-legacy.c,
+	src/irq-server.c: Update for interrupt handler type change.
+
+2009-10-09	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* bootcard.c: Update for heap API changes.
+
+2009-09-08	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-config.h, include/irq-generic.h, include/irq-info.h,
+	src/irq-generic.c, src/irq-info.c, src/irq-legacy.c, src/irq-shell.c:
+	Format, cleanup and documentation.
+	* src/irq-server.c: New file.
+	* include/bootcard.h, include/stackalloc.h, src/stackalloc.c,
+	bsplibc.c: Update for heap API changes. Documentation.
+
+2009-08-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* bootcard.c, bsplibc.c, clockdrv_shell.h, console-polled.c: Fix
+	formatting.
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* src/irq-legacy.c: Spacing, tabs, and proper format for license
+	notice.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console.c: Fix tabs and allow the BSP to override the default baud
+	rate.
+
+2009-07-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* src/irq-generic.c: Priority inheritance on simple binary semaphores
+	makes no sense and has recently been added as an error condition.
+
+2009-05-27	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/stackalloc.h, src/stackalloc.c: New files.
+
+2009-07-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* setvec.c: Add CVS Id.
+
+2009-06-18	Fernando Nicodemos <fgnicodemos@terra.com.br>
+
+	* umon/umonrtemsglue.c: Add console device that uses MicroMonitor to do
+	actual input and output. This driver should work on any board that
+	uses MicroMonitor.
+	* umon/umoncons.c: New file.
+
+2009-06-17	Till Straumann <strauman@slac.stanford.edu>
+
+	* vmeUniverse/vmeUniverse.c, vmeUniverse/vmeTsi148.c:
+	include <rtems/pci.h> instead of <bsp/pci.h>.
+
+2009-06-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* umon/umonrtemsglue.c: Add flag to ensure that it umon connection is
+	initialized twice, it is safe.
+
+2009-06-15	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* umon/monlib.h: Add umon.h to be installed as <rtems/umon.h> so umon
+	.h files are modified as little as possible.
+	* umon/umon.h: New file.
+
+2009-06-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* umon/README, umon/cli.h, umon/monlib.c, umon/monlib.h, umon/tfs.h,
+	umon/tfsDriver.c, umon/umonrtemsglue.c: New files.
+
+2009-05-27	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* tod.h, tod.c: Update for new RTC driver interface.
+
+2009-05-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* bsppost.c: Fix typo.
+
+2009-05-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-generic.h, src/irq-generic.c: Documentation.
+
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c, bspgetworkarea.c, include/bootcard.h: Switch from ssize_t
+	to uintptr_t for bsp_get_work_area() since the work area is larger
+	than a single allocatable object.
+
+2009-05-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bspinit.c: Fix warning by adding include file.
+
 2009-05-06	Michael Walle <michael@walle.cc>
 
 	PR 1409/bsps
 	* gdbstub/rtems-stub-glue.c: Print object names correctly.
+
+2009-05-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c: Add info to not enough memory message.
+
+2009-05-03	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* tod.c: Remove warnings and clean up.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* bootcard.c, include/bootcard.h: Remove argc/argv/envp and
+	replace with a single BSP boot command line a BSP can optionally
+	support.
+
+2009-03-10	Eric Norum <norume@aps.anl.gov>
+
+	* bootcard.c: Swap order of RTEMS Workspace and Malloc Heap. This
+	allows the potential for sbrk() to extend the heap area. This
+	actually is done on PowerPC BSPs with more than 32MB which use
+	dynamic loading.
 
 2009-03-05	Till Straumann <strauman@slac.stanford.edu>
 
 	* bootcard.c: use aligned heap_start (instead of
 	original heap_start) when calculating default heap
 	size (to take into account loss due to alignment).
+
+2009-03-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* vmeUniverse/vmeTsi148.h, vmeUniverse/vmeTsi148.c:
+	fixed function declarations to silence compiler
+	warnings.
+
+2009-02-27	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* bspgetworkarea.c: Add check to determine if current stack pointer is
+	in work area.
+
+2009-02-27	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/utility.h: Added define.
+	* include/irq-generic.h: Added missing prototypes.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* tod.c: Use rtems_clock_get_tod().
+
+2009-01-05	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* src/irq-generic.c: #include <stdlib.h>.
+
+2008-12-19	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-info.h, src/irq-info.c, src/irq-shell.c: New files.
+	* include/irq-generic.h, src/irq-generic.c: Improved interrupt handler
+	dispatch function.
+
+2008-12-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c: Eliminate pointers to API configuration tables in the
+	main configuration table. Reference the main configuration table and
+	the API configuration tables directly using the confdefs.h version
+	rather than obtaining a pointer to it. This eliminated some
+	variables, a potential fatal error, some unnecessary default
+	configuration structures. Overall, about a 4.5% reduction in the code
+	size for minimum and hello on the SPARC.
+
+2008-12-11	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* clock_driver_stub.c: Remove (unused).
+
+2008-10-13	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock_driver_simidle.c: Ensure ISR nest level and Thread Dispatch
+	disable level are in the same state they would be in a true ISR. This
+	ensures that all of the clock tick handling is as similar as possible
+	in this limited environment.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/tm27.h: Use shared tm27.h stub.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c, bspgetworkarea.c, bsppretaskinghook.c,
+	include/bootcard.h: Change size_t to ssize_t on bsp_get_work_area().
+	On 16-bit architectures, size_t can be 16-bits which would limit the
+	work area to 64K.
+
+2008-09-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/utility.h: Renamed various macros.
+
+2008-09-30	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* clockdrv_shell.c: Empty file. Add warning to not use this file.
+	* clock_driver_simidle.c: include clockdrv_shell.h.
+
+2008-09-30	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* clockdrv_shell.h: New (Copied from clockdrv_shell.c).
+
+2008-09-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock_driver_simidle.c: New file.
+	This implementation is for BSPs for simulators without a clock tick
+	ISR.  It provides a special IDLE task that calls rtems_clock_tick()
+	repeatedly when the application ends up in the IDLE task.  This
+	simulates time advancing.  It is enough to run many tests but 
+	will not result in the correct behavior when you want timeslicing.
+	This is because timeslicing assumes that a tick ISR determines
+	that the currently executing thread must be switched out.  Without
+	a clock tick ISR, this will not occur.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c, include/bootcard.h: Make letting boot_card() handle work
+	area allocation mandatory. Rename
+	RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to BSP_BOOTCARD_OPTIONS.
+
+2008-09-23	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/utility.h: New file.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bspclean.c, include/bootcard.h: Use standardized bsp_cleanup() which
+	can optionally print a message, poll for user to press key, and call
+	bsp_reset(). Using this eliminates the various bsp_cleanup()
+	implementations which had their own implementation and variety of
+	string constants.
+	* bspreset.c, bspreset_fatal.c, bspreset_loop.c: New files.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* clockdrv_shell.c: Install_clock has now static linkage.  Initialize
+	rtems_clock_major with unsigned integer literal.
+
+2008-09-21	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bspgetworkarea.c: Fix typo. Add debug printk statements.
+
+2008-09-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bspgetworkarea.c: Augment to optionally know U-Boot.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c: Perform bsp_start() before bsp_get_work_area().
+
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bootcard.c: Add support for optionally having a unified work area. In
+	other words, the RTEMS Workspace and C Program Heap are the same pool
+	of memory.
+
+2008-09-17	Miao Yan <yanmiaobest@gmail.com>
+
+	* bsplibc.c, bsppost.c: Merge GSOC project code to add simple device
+	only filesystem (devfs), optionally completely drop out filesystem,
+	and to clean up disabling newlib reentrancy support. This dropped 17K
+	from the minimum.exe for sparc/sis and arm/rtl22xx_t now has a 15K
+	code space.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bspgetworkarea.c: New file.  This implementation should be useable
+	by most BSPs if they provide the proper support in their linker script.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clockdrv_shell.c: Remove unnecessary includes of rtems/libcsupport.h
+	and rtems/libio.h.
+	* bspstart.c: New file.
 
 2008-09-05	Joel Sherrill <joel.sherrill@OARcorp.com>
 

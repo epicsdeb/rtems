@@ -19,7 +19,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.24 2007/12/11 15:48:12 joel Exp $
+ *  $Id: bsp.h,v 1.27 2010/04/29 21:46:04 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -34,6 +34,8 @@ extern "C" {
 #include <rtems/console.h>
 
 #include <bspopts.h>
+
+#define BSP_SMALL_MEMORY 1
 
 /* EDIT: To activate the sci driver, change the define below */
 #if 1
@@ -60,17 +62,8 @@ extern "C" {
  * Defined in the linker script 'linkcmds'
  */
 
-extern uint32_t         HeapStart ;
-extern uint32_t         HeapEnd ;
-extern uint32_t         WorkSpaceStart ;
-extern uint32_t         WorkSpaceEnd ;
-
 extern void *CPU_Interrupt_stack_low ;
 extern void *CPU_Interrupt_stack_high ;
-
-/* miscellaneous stuff assumed to exist */
-
-extern void bsp_cleanup( void );
 
 /*
  *  Device Driver Table Entries

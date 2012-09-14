@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.20 2006/01/12 10:12:31 ralf Exp $
+## $Id: Makefile.am,v 1.21 2008/09/26 13:40:04 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../aclocal
@@ -9,7 +9,7 @@ include $(top_srcdir)/../../../automake/compile.am
 noinst_PROGRAMS =
 
 include_libcpudir = $(includedir)/libcpu
-include_libcpu_HEADERS = $(top_srcdir)/../shared/include/cache.h
+include_libcpu_HEADERS = ../shared/include/cache.h
 
 noinst_PROGRAMS += cache.rel
 cache_rel_SOURCES = cache/cache.c cache/cache_.h \

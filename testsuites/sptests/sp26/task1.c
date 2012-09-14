@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.5 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: task1.c,v 1.8 2009/08/12 20:50:43 joel Exp $
  */
 
 #include <stdio.h>
@@ -85,7 +85,7 @@ createTask (char c, rtems_id *tid)
   rtems_status_code sc;
 
   sc = rtems_task_create (rtems_build_name('S','u','b',c),
-    100,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE * 4,
     RTEMS_PREEMPT|RTEMS_NO_TIMESLICE|RTEMS_NO_ASR|RTEMS_INTERRUPT_LEVEL(0),
     RTEMS_NO_FLOATING_POINT|RTEMS_LOCAL,
@@ -111,7 +111,7 @@ startTask (rtems_id tid, rtems_task_entry entry_point)
 void
 task1 (void)
 {
-  rtems_clock_get (RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticksPerSecond);
+  ticksPerSecond = rtems_clock_get_ticks_per_second();
   createTask ('1', &taskId1);
   createTask ('2', &taskId2);
   startTask (taskId1, subTask1);

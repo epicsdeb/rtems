@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: workspace.c,v 1.2.2.1 2009/05/13 16:48:22 joel Exp $
+ *  $Id: workspace.c,v 1.5 2009/05/13 16:48:08 joel Exp $
  */
 
 #if HAVE_CONFIG_H

@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/wkspace.h
  *
  *  This include file contains information related to the
@@ -7,14 +7,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: wkspace.h,v 1.25 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: wkspace.h,v 1.30 2009/11/28 05:58:54 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_WKSPACE_H
@@ -37,7 +37,7 @@ extern "C" {
 
 /** @brief Executive Workspace Control
  *
- *  The is the heap control structure that used to manage the 
+ *  The is the heap control structure that used to manage the
  *  RTEMS Executive Workspace.
  */
 SCORE_EXTERN Heap_Control _Workspace_Area;  /* executive heap header */
@@ -45,15 +45,8 @@ SCORE_EXTERN Heap_Control _Workspace_Area;  /* executive heap header */
 /** @brief Workspace Handler Initialization
  *
  *  This routine performs the initialization necessary for this handler.
- *
- *  @param[in] starting_address is the base address of the RTEMS Executive
- *         Workspace
- *  @param[in] size is the number of bytes in the RTEMS Executive Workspace
  */
-void _Workspace_Handler_initialization(
-  void       *starting_address,
-  size_t      size
-);
+void _Workspace_Handler_initialization(void);
 
 /** @brief Allocate Memory from Workspace
  *
@@ -73,11 +66,11 @@ void *_Workspace_Allocate(
  *
  *  This function frees the specified block of memory.  If the block
  *  belongs to the Workspace and can be successfully freed, then
- *  TRUE is returned.  Otherwise FALSE is returned.
+ *  true is returned.  Otherwise false is returned.
  *
  *  @param block is the memory to free
  *
- *  @return TRUE if the free was successful.
+ *  @return true if the free was successful.
  */
 
 bool _Workspace_Free(

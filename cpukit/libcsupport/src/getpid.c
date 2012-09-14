@@ -1,5 +1,5 @@
 /*
- *  $Id: getpid.c,v 1.2 2004/04/15 13:24:45 ralf Exp $
+ *  $Id: getpid.c,v 1.4 2009/09/30 08:20:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -31,12 +31,12 @@ pid_t getpid( void )
  *  This is the Newlib dependent reentrant version of getpid().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__GETPID_R)
 
 #include <reent.h>
 
 pid_t _getpid_r(
-  struct _reent *ptr
+  struct _reent *ptr __attribute__((unused))
 )
 {
   return getpid();

@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.29 2008/05/14 20:25:59 joel Exp $
+## $Id: Makefile.am,v 1.35 2008/09/30 10:38:36 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,44 +14,47 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 noinst_PROGRAMS =
 
 include_HEADERS += include/coverhd.h
 
-EXTRA_DIST = ../../m68k/shared/start.S
-start.$(OBJEXT): ../../m68k/shared/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = ../../m68k/shared/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-startup_SOURCES = ../../shared/bspclean.c ../../shared/bsplibc.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsplibc.c \
     ../../shared/bsppost.c ../../shared/bsppredriverhook.c \
     startup/bspstart.c ../../shared/bootcard.c \
-    ../../m68k/shared/m68kpretaskinghook.c \
-    ../../shared/sbrk.c ../../m68k/shared/setvec.c \
-    ../../shared/gnatinstallhandler.c
-clock_SOURCES = ../mvme147/clock/ckinit.c
-console_SOURCES = ../mvme147/console/console.c \
+    ../../shared/bsppretaskinghook.c ../../m68k/shared/setvec.c \
+    ../../shared/bspgetworkarea.c ../../m68k/shared/setvec.c \
+    ../../shared/sbrk.c ../../shared/gnatinstallhandler.c
+# clock
+libbsp_a_SOURCES += ../mvme147/clock/ckinit.c
+# console
+libbsp_a_SOURCES += ../mvme147/console/console.c \
     ../../shared/dummy_printk_support.c
-timer_SOURCES = ../mvme147/timer/timer.c ../mvme147/timer/timerisr.S
+# timer
+libbsp_a_SOURCES += ../mvme147/timer/timer.c ../mvme147/timer/timerisr.S
 
 if HAS_MP
-shmsupp_SOURCES = shmsupp/addrconv.c shmsupp/getcfg.c shmsupp/lock.c \
+# shmsupp
+libbsp_a_SOURCES += shmsupp/addrconv.c shmsupp/getcfg.c shmsupp/lock.c \
     shmsupp/mpisr.c
 endif
-
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
-    $(timer_SOURCES) $(shmsupp_SOURCES)
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/misc.rel
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.11 2007/12/11 15:46:51 joel Exp $
+ *  $Id: bsp.h,v 1.15 2010/06/02 03:34:37 ralf Exp $
  */
 
 #ifndef _BSP_H
@@ -75,35 +75,10 @@ typedef struct cpld_ {
 
 extern volatile cpld_t cpld;              /* defined in linkcmds */
 
-/* miscellaneous stuff assumed to exist */
+/* clock/p_clock.c */
+extern int BSP_disconnect_clock_handler (void);
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/*
- * How many libio files we want
- */
-
-#define BSP_LIBIO_MAX_FDS       20
-
-/* functions */
-
-void bsp_cleanup( void );
-
-rtems_isr_entry set_vector(                    /* returns old vector */
-  rtems_isr_entry     handler,                  /* isr routine        */
-  rtems_vector_number vector,                   /* vector number      */
-  int                 type                      /* RTEMS or RAW intr  */
-);
+extern int BSP_connect_clock_handler (rtems_irq_hdl hdl);
 
 #ifdef __cplusplus
 }

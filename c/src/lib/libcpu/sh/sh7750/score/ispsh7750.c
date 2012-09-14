@@ -34,7 +34,7 @@
  *	developmental purposes without any warranty nor representation
  *	by the authors or by TGA Technologies.
  *
- *  $Id: ispsh7750.c,v 1.9 2004/04/16 21:29:43 ralf Exp $
+ *  $Id: ispsh7750.c,v 1.10 2008/09/30 16:23:46 joel Exp $
  */
 
 #include <rtems/system.h>
@@ -55,32 +55,6 @@
 /* VBR register contents saved on startup -- used to hook exception by debug
  * agent */
 void *_VBR_Saved;
-
-/*PAGE
- *
- *  _CPU_ISR_install_vector
- *
- *  This kernel routine installs the RTEMS handler for the
- *  specified vector.
- *
- *  Input parameters:
- *    vector      - interrupt vector number
- *    old_handler - former ISR for this vector number
- *    new_handler - replacement ISR for this vector number
- *
- *  Output parameters:  NONE
- *
- */
-void _CPU_ISR_install_vector(
-  uint32_t    vector,
-  proc_ptr    new_handler,
-  proc_ptr   *old_handler
-)
-{
-   *old_handler = _ISR_Vector_table[vector];
-   _ISR_Vector_table[vector] = new_handler;
-}
-
 
 #define __STRINGIFY1__(x) #x
 #define __STRINGIFY__(x) __STRINGIFY1__(x)

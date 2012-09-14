@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/isr.h
  *
  *  This include file contains all the constants and structures associated
@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: isr.h,v 1.28 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: isr.h,v 1.31 2009/11/28 05:58:54 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_ISR_H
@@ -76,7 +76,7 @@ typedef ISR_Handler ( *ISR_Handler_entry )(
 #define ISR_INTERRUPT_MAXIMUM_VECTOR_NUMBER  CPU_INTERRUPT_MAXIMUM_VECTOR_NUMBER
 
 /**
- *  The following is TRUE if signals have been sent to the currently
+ *  The following is true if signals have been sent to the currently
  *  executing thread by an ISR handler.
  */
 SCORE_EXTERN bool       _ISR_Signals_to_thread_executing;
@@ -196,8 +196,19 @@ void _ISR_Handler( void );
 void _ISR_Dispatch( void );
 
 /**
- *  This function returns TRUE if the processor is currently servicing
- *  and interrupt and FALSE otherwise.   A return value of TRUE indicates
+ *  Invokes the thread dispatcher or signal extension if necessary.
+ *
+ *  It should be called at the end of interrupt processing.  The interrupt nest
+ *  level must be zero before calling this routine.
+ *
+ *  This is a high level replacement of _ISR_Dispatch().  It must be invoked
+ *  within an environment such that a call to _Thread_Dispatch() is allowed.
+ */
+void _ISR_Thread_dispatch( void );
+
+/**
+ *  This function returns true if the processor is currently servicing
+ *  and interrupt and false otherwise.   A return value of true indicates
  *  that the caller is an interrupt service routine, NOT a thread.  The
  */
 #if (CPU_PROVIDES_ISR_IS_IN_PROGRESS == TRUE)

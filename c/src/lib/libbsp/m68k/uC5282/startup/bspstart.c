@@ -14,24 +14,32 @@
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
- * 
- *  $Id: bspstart.c,v 1.49.2.4 2009/09/09 14:17:10 strauman Exp $
+ *
+ *  $Id: bspstart.c,v 1.59.2.2 2011/03/15 21:34:56 joel Exp $
  */
 
 #include <bsp.h>
-#include <rtems/libio.h>
 #include <rtems/error.h>
-#include <rtems/libcsupport.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
- 
+#include <stdio.h>
+#include <mcf5282/mcf5282.h>
+
 /*
  * Location of 'VME' access
  */
 #define VME_ONE_BASE    0x30000000
 #define VME_TWO_BASE    0x31000000
 
+/*
+ * Linker Script Defined Variables
+ */
+extern char RamSize[];
+extern char RamBase[];
+extern char _CPUClockSpeed[];
+extern char _PLLRefClockSpeed[];
+
+uint32_t BSP_sys_clk_speed = (uint32_t)_CPUClockSpeed;
+uint32_t BSP_pll_ref_clock = (uint32_t)_PLLRefClockSpeed;
 /*
  * CPU-space access
  * The NOP after writing the CACR is there to address the following issue as
@@ -51,7 +59,7 @@
  * If a write to the CACR is performed to clear the cache (CINV = BIT 24 set)
  * and only a partial clear will be done (INVI = BIT 21 or INVD = BIT 20 set),
  * then cache corruption may  occur.
- * 
+ *
  * 6.2 Workaround
  * All loads of the CACR that perform a cache clear operation (CINV = BIT 24)
  * should be followed immediately by a NOP instruction.  This avoids the cache
@@ -61,16 +69,16 @@
  *
  * Buffered writes must be disabled as described in "MCF5282 Chip Errata",
  * MCF5282DE, Rev. 6, 5/2009:
- *   SECF124: Buffered Write May Be Executed Twice 
- *   Errata type: Silicon 
- *   Affected component: Cache 
+ *   SECF124: Buffered Write May Be Executed Twice
+ *   Errata type: Silicon
+ *   Affected component: Cache
  *   Description: If buffered writes are enabled using the CACR or ACR
  *                registers, the imprecise write transaction generated
- *                by a buffered write may be executed twice. 
- *   Workaround: Do not enable buffered writes in the CACR or ACR registers: 
- *               CACR[8] = DBWE (default buffered write enable) must be 0 
- *               ACRn[5] = BUFW (buffered write enable) must be 0 
- *   Fix plan: Currently, there are no plans to fix this. 
+ *                by a buffered write may be executed twice.
+ *   Workaround: Do not enable buffered writes in the CACR or ACR registers:
+ *               CACR[8] = DBWE (default buffered write enable) must be 0
+ *               ACRn[5] = BUFW (buffered write enable) must be 0
+ *   Fix plan: Currently, there are no plans to fix this.
  */
 #define m68k_set_cacr_nop(_cacr) asm volatile ("movec %0,%%cacr\n\tnop" : : "d" (_cacr))
 #define m68k_set_cacr(_cacr) asm volatile ("movec %0,%%cacr" : : "d" (_cacr))
@@ -182,13 +190,7 @@ void _CPU_cache_invalidate_1_data_line(const void *addr)
 #endif
 }
 
-/*
- *  Use the shared implementations of the following routines
- */
-void bsp_libc_init( void *, uint32_t, int );
-void bsp_pretasking_hook(void);         /* m68k version */
-
-extern void bsp_fake_syscall();
+extern void bsp_fake_syscall(int);
 
 /*
  * The Arcturus boot ROM prints exception information improperly
@@ -199,10 +201,9 @@ static void handler(int pc)
 {
     int level;
     static volatile int reent;
-    extern char _RamSize[];
 
     rtems_interrupt_disable(level);
-    if (reent++) bsp_reset(0);
+    if (reent++) bsp_sysReset(0);
     {
     int *p = &pc;
     int info = p[-1];
@@ -222,8 +223,8 @@ static void handler(int pc)
     for(;;) {
         int *nfp = (int *)*fp;
         if ((nfp <= fp)
-         || ((char *)nfp >= _RamSize)
-         || ((char *)(nfp[1]) >= _RamSize))
+         || ((char *)nfp >= RamSize)
+         || ((char *)(nfp[1]) >= RamSize))
             break;
         printk("FP:%x -> %x    PC:%x\n", fp, nfp, nfp[1]);
         fp = nfp;
@@ -240,42 +241,24 @@ static void handler(int pc)
  */
 void bsp_start( void )
 {
-  int i;
-  extern char _WorkspaceBase[];
-  extern char _RamBase[], _RamSize[];
-  extern unsigned long  _M68k_Ramsize;
-
-  _M68k_Ramsize = (unsigned long)_RamSize;      /* RAM size set in linker script */
+  int   i;
+  const char *clk_speed_str;
+  uint32_t clk_speed, mfd, rfd;
+  uint8_t  byte;
 
   /*
-   *  Allocate the memory for the RTEMS Work Space.  This can come from
-   *  a variety of places: hard coded address, malloc'ed from outside
-   *  RTEMS world (e.g. simulator or primitive memory manager), or (as
-   *  typically done by stock BSPs) by subtracting the required amount
-   *  of work space from the last physical address on the CPU board.
+   * Make sure UART TX is running - necessary for
+   * early printk to work. The firmware monitor
+   * usually enables this anyways but qemu doesn't!
    */
-
-    /*
-     * Set up default exception handler
-     */
-    for (i = 2 ; i < 256 ; i++)
-        if (i != (32+2)) /* Catch all but bootrom system calls */
-            *((void (**)(int))(i * 4)) = handler;
-
-	/*
-	 * Qemu has no trap handler; install our fake syscall
-	 * implementation if there is no existing handler.
-	 */
-	if ( 0 == *((void (**)(int))((32+2) * 4)) )
-		*((void (**)(int))((32+2) * 4)) = bsp_fake_syscall;
+  MCF5282_UART_UCR(CONSOLE_PORT) = MCF5282_UART_UCR_TX_ENABLED;
 
   /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
+   * Set up default exception handler
    */
-
-  Configuration.work_space_start = (void *)_WorkspaceBase;
+  for (i = 2 ; i < 256 ; i++)
+      if (i != (32+2)) /* Catch all but bootrom system calls */
+          *((void (**)(int))(i * 4)) = handler;
 
   /*
    * Invalidate the cache and disable it
@@ -291,12 +274,19 @@ void bsp_start( void )
    * but that's not really a big problem and benchmarking tests have
    * shown that buffered writes do gain some performance.
    */
-  mcf5282_acr0_mode = MCF5XXX_ACR_AB((uint32_t)_RamBase)     |
-                      MCF5XXX_ACR_AM((uint32_t)_RamSize-1)   |
-                      MCF5XXX_ACR_EN                         |
-                      MCF5XXX_ACR_SM_IGNORE                  |
+  mcf5282_acr0_mode = MCF5XXX_ACR_AB((uint32_t)RamBase)     |
+                      MCF5XXX_ACR_AM((uint32_t)RamSize-1)   |
+                      MCF5XXX_ACR_EN                        |
+                      MCF5XXX_ACR_SM_IGNORE                 |
                       MCF5XXX_ACR_BWE;
   m68k_set_acr0(mcf5282_acr0_mode);
+
+  /*
+   * Qemu has no trap handler; install our fake syscall
+   * implementation if there is no existing handler.
+   */
+  if ( 0 == *((void (**)(int))((32+2) * 4)) )
+    *((void (**)(int))((32+2) * 4)) = bsp_fake_syscall;
 
   /*
    * Enable the cache
@@ -308,7 +298,7 @@ void bsp_start( void )
    *   Two A24/D16 spaces, supervisor data acces
    */
   MCF5282_CS1_CSAR = MCF5282_CS_CSAR_BA(VME_ONE_BASE);
-  MCF5282_CS1_CSMR = MCF5282_CS_CSMR_BAM_16M | 
+  MCF5282_CS1_CSMR = MCF5282_CS_CSMR_BAM_16M |
                      MCF5282_CS_CSMR_CI |
                      MCF5282_CS_CSMR_SC |
                      MCF5282_CS_CSMR_UC |
@@ -316,7 +306,7 @@ void bsp_start( void )
                      MCF5282_CS_CSMR_V;
   MCF5282_CS1_CSCR = MCF5282_CS_CSCR_PS_16;
   MCF5282_CS2_CSAR = MCF5282_CS_CSAR_BA(VME_TWO_BASE);
-  MCF5282_CS2_CSMR = MCF5282_CS_CSMR_BAM_16M | 
+  MCF5282_CS2_CSMR = MCF5282_CS_CSMR_BAM_16M |
                      MCF5282_CS_CSMR_CI |
                      MCF5282_CS_CSMR_SC |
                      MCF5282_CS_CSMR_UC |
@@ -324,12 +314,76 @@ void bsp_start( void )
                      MCF5282_CS_CSMR_V;
   MCF5282_CS2_CSCR = MCF5282_CS_CSCR_PS_16;
   MCF5282_GPIO_PJPAR |= 0x06;
+
+  /*
+   * Hopefully, the UART clock is still correctly set up
+   * so they can see the printk() output...
+   */
+  clk_speed = 0;
+  printk("Trying to figure out the system clock\n");
+  printk("Checking ENV variable SYS_CLOCK_SPEED:\n");
+  if ( (clk_speed_str = bsp_getbenv("SYS_CLOCK_SPEED")) ) {
+    printk("Found: %s\n", clk_speed_str);
+	for ( clk_speed = 0, i=0;
+	      clk_speed_str[i] >= '0' && clk_speed_str[i] <= '9';
+	      i++ ) {
+		clk_speed = 10*clk_speed + clk_speed_str[i] - '0';
+	}
+	if ( 0 != clk_speed_str[i] ) {
+		printk("Not a decimal number; I'm not using this setting\n");
+		clk_speed = 0;
+	}
+  } else {
+    printk("Not set.\n");
+  }
+
+  if ( 0 == clk_speed )
+	clk_speed = BSP_sys_clk_speed;
+
+  if ( 0 == clk_speed ) {
+	printk("Using some heuristics to determine clock speed...\n");
+	byte = MCF5282_CLOCK_SYNSR;
+	if ( 0 == byte ) {
+		printk("SYNSR == 0; assuming QEMU at 66MHz\n");
+		BSP_pll_ref_clock = 8250000;
+		mfd = ( 0 << 8 ) | ( 2 << 12 );
+	} else {
+		if ( 0xf8 != byte ) {
+			printk("FATAL ERROR: Unexpected SYNSR contents (0x%02x), can't proceed\n", byte);
+			bsp_sysReset(0);
+		}
+		mfd = MCF5282_CLOCK_SYNCR;
+	}
+	printk("Assuming %uHz PLL ref. clock\n", BSP_pll_ref_clock);
+	rfd = (mfd >>  8) & 7;
+	mfd = (mfd >> 12) & 7;
+	/* Check against 'known' cases */
+	if ( 0 != rfd || (2 != mfd && 3 != mfd) ) {
+	  printk("WARNING: Pll divisor/multiplier has unknown value; \n");
+	  printk("         either your board is not 64MHz or 80Mhz or\n");
+	  printk("         it uses a PLL reference other than 8MHz.\n");
+	  printk("         I'll proceed anyways but you might have to\n");
+	  printk("         reset the board and set uCbootloader ENV\n");
+	  printk("         variable \"SYS_CLOCK_SPEED\".\n");
+	}
+	mfd = 2 * (mfd + 2);
+	/* sysclk = pll_ref * 2 * (MFD + 2) / 2^(rfd) */
+	printk("PLL multiplier: %u, output divisor: %u\n", mfd, rfd);
+	clk_speed = (BSP_pll_ref_clock * mfd) >> rfd;
+  }
+
+  if ( 0 == clk_speed ) {
+	printk("FATAL ERROR: Unable to determine system clock speed\n");
+	bsp_sysReset(0);
+  } else {
+  	BSP_sys_clk_speed = clk_speed;
+	printk("System clock speed: %uHz\n", bsp_get_CPU_clock_speed());
+  }
 }
 
 uint32_t bsp_get_CPU_clock_speed(void)
 {
-  extern char _CPUClockSpeed[];
-  return( (uint32_t)_CPUClockSpeed);
+  return( BSP_sys_clk_speed );
 }
 
 /*
@@ -413,14 +467,14 @@ type bsp_##name(d1type d1, d2type d2, d3type d3)            \
    syscall_return(type,ret);                                \
 }
 
-#define SysCode_reset              0 /* reset */
+#define SysCode_sysReset           0 /* system reset */
 #define SysCode_program            5 /* program flash memory */
 #define SysCode_gethwaddr         12 /* get hardware address */
 #define SysCode_getbenv           14 /* get bootloader environment variable */
 #define SysCode_setbenv           15 /* set bootloader environment variable */
 #define SysCode_flash_erase_range 19 /* erase a section of flash */
 #define SysCode_flash_write_range 20 /* write a section of flash */
-syscall_1(int, reset, int, flags)
+syscall_1(int, sysReset, int, flags)
 syscall_1(unsigned const char *, gethwaddr, int, a)
 syscall_1(const char *, getbenv, const char *, a)
 syscall_1(int, setbenv, const char *, a)
@@ -536,7 +590,7 @@ fpga_trampoline (rtems_vector_number v)
 static rtems_isr
 trampoline (rtems_vector_number v)
 {
-    if (handlerTab[v].func) 
+    if (handlerTab[v].func)
         (*handlerTab[v].func)(handlerTab[v].arg, (unsigned long)v);
 }
 
@@ -630,7 +684,7 @@ rtems_interrupt_level level;
                     if (source < 8)
                         MCF5282_EPORT_EPIER |= 1 << source;
                     else
-                        *(&MCF5282_INTC0_ICR1 + (source - 1)) = 
+                        *(&MCF5282_INTC0_ICR1 + (source - 1)) =
                                                        MCF5282_INTC_ICR_IL(l) |
                                                        MCF5282_INTC_ICR_IP(p);
           enable_irq(source);
@@ -716,7 +770,7 @@ rtems_bsp_reset_cause(char *buf, size_t capacity)
   int bit, rsr;
   size_t i;
   const char *cp;
-    
+
   if (buf == NULL)
     return;
   if (capacity)
@@ -734,13 +788,13 @@ rtems_bsp_reset_cause(char *buf, size_t capacity)
         case MCF5282_RESET_RSR_LOL:  cp = "Loss of lock";       break;
         default:                     cp = "??";                 break;
       }
-      i += snprintf(buf+i, capacity-i, cp); 
+      i += snprintf(buf+i, capacity-i, cp);
       if (i >= capacity)
         break;
       rsr &= ~bit;
       if (rsr == 0)
         break;
-      i += snprintf(buf+i, capacity-i, ", "); 
+      i += snprintf(buf+i, capacity-i, ", ");
       if (i >= capacity)
         break;
     }

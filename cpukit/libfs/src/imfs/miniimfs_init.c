@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: miniimfs_init.c,v 1.12 2008/05/27 10:34:14 thomas Exp $
+ *  $Id: miniimfs_init.c,v 1.14 2010/05/31 13:56:36 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -49,7 +49,9 @@ const rtems_filesystem_operations_table  miniIMFS_ops = {
   NULL, /* XXX IMFS_utime, */
   NULL, /* XXX IMFS_evaluate_link, */
   NULL, /* XXX IMFS_symlink, */
-  NULL  /* XXX IMFS_readlink */
+  NULL, /* XXX IMFS_readlink */
+  NULL, /* XXX IMFS_rename */
+  NULL  /* XXX IMFS_statvfs */
 };
 
 /*
@@ -57,7 +59,8 @@ const rtems_filesystem_operations_table  miniIMFS_ops = {
  */
 
 int miniIMFS_initialize(
-  rtems_filesystem_mount_table_entry_t *temp_mt_entry
+  rtems_filesystem_mount_table_entry_t *temp_mt_entry,
+  const void                           *data
 )
 {
     return IMFS_initialize_support(

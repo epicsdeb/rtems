@@ -27,7 +27,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: z85c30.c,v 1.28 2008/09/07 03:44:14 ralf Exp $
+ *  $Id: z85c30.c,v 1.31 2010/04/26 00:58:39 joel Exp $
  */
 
 #include <rtems.h>
@@ -92,8 +92,8 @@ Z85C30_STATIC void z85c30_initialize_port(
   int minor
 )
 {
-  uint32_t        ulCtrlPort;
-  uint32_t        ulBaudDivisor;
+  uintptr_t       ulCtrlPort;
+  uintptr_t       ulBaudDivisor;
   setRegister_f   setReg;
 
   ulCtrlPort = Console_Port_Tbl[minor].ulCtrlPort1;
@@ -138,7 +138,7 @@ Z85C30_STATIC void z85c30_initialize_port(
 
   ulBaudDivisor = Z85C30_Baud(
     (uint32_t) Console_Port_Tbl[minor].ulClock,
-    (uint32_t) Console_Port_Tbl[minor].pDeviceParams
+    (uint32_t) ((uintptr_t)Console_Port_Tbl[minor].pDeviceParams)
   );
 
   /*
@@ -253,7 +253,7 @@ Z85C30_STATIC int z85c30_close(
 
 Z85C30_STATIC void z85c30_init(int minor)
 {
-  uint32_t         ulCtrlPort;
+  uintptr_t        ulCtrlPort;
   uint8_t          dummy;
   z85c30_context  *pz85c30Context;
   setRegister_f    setReg;
@@ -430,7 +430,7 @@ Z85C30_STATIC int z85c30_set_attributes(
   const struct termios *t
 )
 {
-  uint32_t               ulCtrlPort;
+  uintptr_t              ulCtrlPort;
   uint32_t               ulBaudDivisor;
   uint32_t               wr3;
   uint32_t               wr4;
@@ -452,7 +452,7 @@ Z85C30_STATIC int z85c30_set_attributes(
 
   ulBaudDivisor = Z85C30_Baud(
     (uint32_t) Console_Port_Tbl[minor].ulClock,
-    (uint32_t) termios_baud_to_number( baud_requested )
+    (uint32_t) rtems_termios_baud_to_number( baud_requested )
   );
 
   wr3 = SCC_WR3_RX_EN;
@@ -743,10 +743,10 @@ Z85C30_STATIC void z85c30_initialize_interrupts(
  *
  */
 
-Z85C30_STATIC int z85c30_write_support_int(
+Z85C30_STATIC ssize_t z85c30_write_support_int(
   int   minor,
   const char *buf,
-  int   len)
+  size_t len)
 {
   uint32_t       Irql;
   uint32_t       ulCtrlPort;
@@ -778,7 +778,7 @@ Z85C30_STATIC int z85c30_write_support_int(
     (*setReg)(ulCtrlPort, SCC_WR0_SEL_WR8, *buf);
   rtems_interrupt_enable(Irql);
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -820,10 +820,10 @@ Z85C30_STATIC int z85c30_inbyte_nonblocking_polled(
  *
  */
 
-Z85C30_STATIC int z85c30_write_support_polled(
+Z85C30_STATIC ssize_t z85c30_write_support_polled(
   int   minor,
   const char *buf,
-  int   len)
+  size_t len)
 {
   int nwrite=0;
 

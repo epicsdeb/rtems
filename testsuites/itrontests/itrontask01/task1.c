@@ -8,19 +8,19 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.7 2004/04/16 09:20:52 ralf Exp $
+ *  $Id: task1.c,v 1.10 2009/10/30 11:06:18 ralf Exp $
  */
 
 #include "system.h"
 
-void Task_2_through_4()
+void Task_2_through_4(void)
 {
   ID                tid;
   int               tid_index;
@@ -36,8 +36,8 @@ void Task_2_through_4()
   sprintf(name, "TA%d", tid_index);
 
   while( FOREVER ) {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     if ( time.second >= 35 ) {
       puts( "*** END OF ITRON TASK TEST 1 ***" );
@@ -45,9 +45,10 @@ void Task_2_through_4()
     }
 
     printf(name);
-    print_time( " - rtems_clock_get - ", &time, "\n" );
+    print_time( " - rtems_clock_get_tod - ", &time, "\n" );
 
-    status = rtems_task_wake_after( tid_index * 5 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after(
+      tid_index * 5 * rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
   }
 }

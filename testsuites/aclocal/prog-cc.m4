@@ -1,5 +1,5 @@
 dnl
-dnl $Id: prog-cc.m4,v 1.8 2005/11/09 09:38:03 ralf Exp $
+dnl $Id: prog-cc.m4,v 1.9 2009/04/03 12:43:40 ralf Exp $
 dnl 
 dnl Check for target gcc
 dnl
@@ -9,6 +9,10 @@ AC_DEFUN([RTEMS_PROG_CC],
 AC_BEFORE([$0], [AC_PROG_CPP])dnl
 AC_BEFORE([$0], [AC_PROG_CC])dnl
 AC_BEFORE([$0], [RTEMS_CANONICALIZE_TOOLS])dnl
+
+case "$host" in
+*-*-rtems*) ac_cv_exeext=.exe;;
+esac
 
 RTEMS_CHECK_TOOL(CC,gcc)
 test -z "$CC" && \

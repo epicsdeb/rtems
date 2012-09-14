@@ -1,18 +1,27 @@
 /*
  *  Classic API Signal to Task from ISR
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.6 2008/09/06 03:28:07 ralf Exp $
+ *  $Id: init.c,v 1.10 2009/11/30 03:33:24 ralf Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
+
+rtems_timer_service_routine test_event_from_isr(
+  rtems_id  timer,
+  void     *arg
+);
+rtems_timer_service_routine test_event_with_timeout_from_isr(
+  rtems_id  timer,
+  void     *arg
+);
 
 volatile bool case_hit;
 
@@ -70,7 +79,7 @@ rtems_task Init(
   rtems_event_set       out;
   int                   i;
   int                   max;
-  int                   iterations = 0;
+  uint32_t              iterations = 0;
 
   puts( "\n\n*** TEST 39 ***" );
 
@@ -83,12 +92,12 @@ rtems_task Init(
   directive_failed( status, "rtems_timer_create" );
 
   status = rtems_task_create(
-     0xa5a5a5a5,
-     1,
-     RTEMS_MINIMUM_STACK_SIZE,
-     RTEMS_DEFAULT_MODES,
-     RTEMS_DEFAULT_ATTRIBUTES,
-     &other_task
+    0xa5a5a5a5,
+    1,
+    RTEMS_MINIMUM_STACK_SIZE,
+    RTEMS_DEFAULT_MODES,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    &other_task
   );
   directive_failed( status, "rtems_task_create" );
 
@@ -116,14 +125,14 @@ rtems_task Init(
     max += 2;
 
     /* with our clock tick, this is about 30 seconds */
-    if ( ++iterations >= 4 * 1000 * 30)
+    if ( ++iterations >= 4L * 1000L * 30L)
       break;
   }
 
-   printf(
-     "Event sent from ISR hitting synchronization point has %soccurred\n",
-     (( case_hit == TRUE ) ? "" : "NOT ")
-  ); 
+  printf(
+    "Event sent from ISR hitting synchronization point has %soccurred\n",
+    (( case_hit == TRUE ) ? "" : "NOT ")
+  );
 
   /*
    * Test Event send successful from ISR -- receive has timeout
@@ -150,43 +159,15 @@ rtems_task Init(
     max += 2;
 
     /* with our clock tick, this is about 30 seconds */
-    if ( ++iterations >= 4 * 1000 * 30)
+    if ( ++iterations >= 4L * 1000L * 30L)
       break;
   }
 
-   printf(
-     "Event sent from ISR (with timeout) hitting synchronization "
-       "point has %soccurred\n",
-     (( case_hit == TRUE ) ? "" : "NOT ")
-  ); 
-
-  /*
-   *  Now try for a timeout case
-   */
-  iterations = 0;
-  case_hit = FALSE;
-  max = 1;
-
-  puts(
-    "Run multiple times in attempt to hit event timeout synchronization point"
-  ); 
-  while (1) {
-
-    for (i=0 ; i<max ; i++ )
-      if ( _Event_Sync_state == THREAD_BLOCKING_OPERATION_SATISFIED )
-        break;
-
-    status = rtems_event_receive( 0x01, RTEMS_DEFAULT_OPTIONS, 1, &out );
-    fatal_directive_status( status, RTEMS_TIMEOUT, "event_receive timeout" );
-
-    if ( ++max > 10240 )
-      max = 0;
-
-    /* with our clock tick, this is about 30 seconds */
-    if ( ++iterations >= 4 * 1000 * 30)
-      break;
-
-  }
+  printf(
+    "Event sent from ISR (with timeout) hitting synchronization "
+      "point has %soccurred\n",
+    (( case_hit == TRUE ) ? "" : "NOT ")
+  );
 
   puts( "*** END OF TEST 39 ***" );
   rtems_test_exit( 0 );

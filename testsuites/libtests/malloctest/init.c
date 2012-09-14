@@ -11,14 +11,16 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
+ *
+ *  Copyright (c) 2009 embedded brains GmbH.
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.19 2008/09/06 03:37:42 ralf Exp $
+ *  $Id: init.c,v 1.36 2009/11/30 03:33:22 ralf Exp $
  */
 
 #define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
@@ -26,16 +28,22 @@
 #include "system.h"
 
 #include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
 #include <errno.h>
 #include <rtems/score/protectedheap.h>
+
+/* HACK: Blatant visibility violations */
+extern int malloc_info(Heap_Information_block *the_info);
+extern void malloc_walk(size_t source, size_t printf_enabled);
 
 /*
  *  A simple test of realloc
  */
-void test_realloc(void)
+static void test_realloc(void)
 {
   void *p1, *p2, *p3, *p4;
-  int i;
+  size_t i;
   int sc;
 
   /* Test growing reallocation "in place" */
@@ -44,7 +52,7 @@ void test_realloc(void)
     p2 = realloc(p1, i);
     if (p2 != p1)
       printf( "realloc - failed grow in place: "
-              "%p != realloc(%p,%d)\n", p1, p2, i );
+              "%p != realloc(%p,%zu)\n", p1, p2, i);
     p1 = p2;
   }
   free(p1);
@@ -55,20 +63,20 @@ void test_realloc(void)
     p2 = realloc(p1, i);
     if (p2 != p1)
       printf( "realloc - failed shrink in place: "
-              "%p != realloc(%p,%d)\n", p1, p2, i );
+              "%p != realloc(%p,%zu)\n", p1, p2, i);
     p1 = p2;
   }
   free(p1);
 
   /* Test realloc that should fail "in place", i.e.,
-   * fallback to free()--malloc()
+   * fallback to free()-- malloc()
    */
   p1 = malloc(32);
   p2 = malloc(32);
   p3 = realloc(p1, 64);
   if (p3 == p1 || p3 == NULL)
     printf(
-      "realloc - failed non-in place: realloc(%p,%d) = %p\n", p1, 64, p3 );
+      "realloc - failed non-in place: realloc(%p,%d) = %p\n", p1, 64, p3);
   free(p3);
   free(p2);
 
@@ -106,60 +114,824 @@ void test_realloc(void)
   p4 = realloc( test_realloc, 32 );
 }
 
-#define TEST_HEAP_SIZE 1024
+#define TEST_HEAP_SIZE 2048
+
 uint8_t TestHeapMemory[TEST_HEAP_SIZE];
+
 Heap_Control TestHeap;
 
-void test_heap_init()
+static void test_heap_default_init(void)
 {
+  memset( &TestHeapMemory, 0x7f, TEST_HEAP_SIZE );
   _Heap_Initialize( &TestHeap, TestHeapMemory, TEST_HEAP_SIZE, 0 );
 }
 
-void test_heap_cases_1()
+static void test_free( void *addr )
 {
-  void     *p1, *p2, *p3, *p4;
-  uint32_t  u1, u2;
+  rtems_test_assert( _Heap_Free( &TestHeap, addr ) );
+}
+
+static void test_heap_cases_1(void)
+{
+  void     *p1, *p2, *p3;
+  uintptr_t  u1, u2;
   Heap_Resize_status rsc;
 
   /*
    * Another odd case.  What we are trying to do from Sergei
-   * 
+   *
    * 32-bit CPU when CPU_ALIGNMENT = 4 (most targets have 8) with the
    * code like this:
    */
-  test_heap_init();
+  test_heap_default_init();
   p1 = _Heap_Allocate( &TestHeap, 12 );
   p2 = _Heap_Allocate( &TestHeap, 32 );
   p3 = _Heap_Allocate( &TestHeap, 32 );
-  _Heap_Free( &TestHeap, p2 );
+  test_free( p2 );
   p2 = _Heap_Allocate_aligned( &TestHeap, 8, 28 );
-  _Heap_Free( &TestHeap, p1 );
-  _Heap_Free( &TestHeap, p2 );
-  _Heap_Free( &TestHeap, p3 );
+  test_free( p1 );
+  test_free( p2 );
+  test_free( p3 );
 
   /*
    *  Odd case in resizing a block.  Again test case outline per Sergei
    */
-  test_heap_init();
+  test_heap_default_init();
   p1 = _Heap_Allocate( &TestHeap, 32 );
   p2 = _Heap_Allocate( &TestHeap, 8 );
   p3 = _Heap_Allocate( &TestHeap, 32 );
-  _Heap_Free( &TestHeap, p2 );
+  test_free( p2 );
   rsc = _Heap_Resize_block( &TestHeap, p1, 41, &u1, &u2 );
   /* XXX what should we expect */
-  _Heap_Free( &TestHeap, p3 );
-  _Heap_Free( &TestHeap, p4 );
+  test_free( p3 );
+  test_free( p1 );
+
+  /*
+   *  To tackle a special case of resizing a block in order to cover the
+   *  code in heapresizeblock.c
+   *
+   *  Re-initialise the heap, so that the blocks created from now on
+   *  are contiguous.
+   */
+  test_heap_default_init();
+  puts( "Heap Initialized" );
+  p1 = _Heap_Allocate( &TestHeap, 400 );
+  rtems_test_assert( p1 != NULL );
+  p2 = _Heap_Allocate( &TestHeap, 496 );
+  rtems_test_assert( p2 != NULL );
+  rsc = _Heap_Resize_block( &TestHeap, p1, 256, &u1, &u2 );
+  rtems_test_assert( rsc == HEAP_RESIZE_SUCCESSFUL );
+  test_free( p1 );
+  test_free( p2 );
 }
 
-void test_heap_extend()
+#define TEST_DEFAULT_PAGE_SIZE 128
+
+static void test_heap_init(uintptr_t page_size )
 {
-  void     *p1, *p2, *p3, *p4;
-  uint32_t  u1, u2;
+  uintptr_t rv = 0;
+
+  memset( &TestHeapMemory, 0x7f, TEST_HEAP_SIZE );
+
+  rv = _Heap_Initialize( &TestHeap, TestHeapMemory, TEST_HEAP_SIZE, page_size );
+  rtems_test_assert( rv > 0 );
+}
+
+static void test_check_alloc(
+  void *alloc_begin_ptr,
+  void *expected_alloc_begin_ptr,
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary
+)
+{
+  uintptr_t const min_block_size = TestHeap.min_block_size;
+  uintptr_t const page_size = TestHeap.page_size;
+
+  rtems_test_assert( alloc_begin_ptr == expected_alloc_begin_ptr );
+
+  if( expected_alloc_begin_ptr != NULL ) {
+    uintptr_t const alloc_begin = (uintptr_t ) alloc_begin_ptr;
+    uintptr_t const alloc_end = alloc_begin + alloc_size;
+
+    uintptr_t const alloc_area_begin = _Heap_Align_down( alloc_begin, page_size );
+    uintptr_t const alloc_area_offset = alloc_begin - alloc_area_begin;
+#if UNUSED
+    uintptr_t const alloc_area_size = alloc_area_offset + alloc_size;
+#endif
+    Heap_Block *block = _Heap_Block_of_alloc_area( alloc_area_begin, page_size );
+    uintptr_t const block_begin = (uintptr_t ) block;
+    uintptr_t const block_size = _Heap_Block_size( block );
+    uintptr_t const block_end = block_begin + block_size;
+
+    rtems_test_assert( block_size >= min_block_size );
+    rtems_test_assert( block_begin < block_end );
+    rtems_test_assert(
+      _Heap_Is_aligned( block_begin + HEAP_BLOCK_HEADER_SIZE, page_size )
+    );
+    rtems_test_assert(
+      _Heap_Is_aligned( block_size, page_size )
+    );
+
+    rtems_test_assert( alloc_end <= block_end + HEAP_BLOCK_SIZE_OFFSET );
+    rtems_test_assert( alloc_area_begin > block_begin );
+    rtems_test_assert( alloc_area_offset < page_size );
+
+    rtems_test_assert( _Heap_Is_aligned( alloc_area_begin, page_size ) );
+    if ( alignment == 0 ) {
+      rtems_test_assert( alloc_begin == alloc_area_begin );
+    } else {
+      rtems_test_assert( _Heap_Is_aligned( alloc_begin, alignment ) );
+    }
+
+    if ( boundary != 0 ) {
+      uintptr_t boundary_line = _Heap_Align_down( alloc_end, boundary );
+
+      rtems_test_assert( alloc_size <= boundary );
+      rtems_test_assert(
+        boundary_line <= alloc_begin
+          || alloc_end <= boundary_line
+      );
+    }
+  }
+
+  rtems_test_assert(
+    page_size < CPU_ALIGNMENT
+      || _Heap_Walk( &TestHeap, 0, false )
+  );
+}
+
+static void test_check_alloc_simple(
+  void *alloc_begin_ptr,
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary
+)
+{
+  test_check_alloc(
+    alloc_begin_ptr,
+    alloc_begin_ptr,
+    alloc_size,
+    alignment,
+    boundary
+  );
+}
+
+static void *test_alloc(
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary,
+  void *expected_alloc_begin_ptr
+)
+{
+  void *alloc_begin_ptr = _Heap_Allocate_aligned_with_boundary(
+    &TestHeap,
+    alloc_size,
+    alignment,
+    boundary
+  );
+
+  test_check_alloc(
+    alloc_begin_ptr,
+    expected_alloc_begin_ptr,
+    alloc_size,
+    alignment,
+    boundary
+  );
+
+  return alloc_begin_ptr;
+}
+
+static void *test_alloc_simple(
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary
+)
+{
+  void *alloc_begin_ptr = _Heap_Allocate_aligned_with_boundary(
+    &TestHeap,
+    alloc_size,
+    alignment,
+    boundary
+  );
+
+  test_check_alloc_simple(
+    alloc_begin_ptr,
+    alloc_size,
+    alignment,
+    boundary
+  );
+
+  rtems_test_assert( alloc_begin_ptr != NULL );
+
+  return alloc_begin_ptr;
+}
+
+static void *test_init_and_alloc(
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary,
+  void *expected_alloc_begin_ptr
+)
+{
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+
+  return test_alloc(
+    alloc_size,
+    alignment,
+    boundary,
+    expected_alloc_begin_ptr
+  );
+}
+
+static void *test_init_and_alloc_simple(
+  uintptr_t alloc_size,
+  uintptr_t alignment,
+  uintptr_t boundary
+)
+{
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+
+  return test_alloc_simple(
+    alloc_size,
+    alignment,
+    boundary
+  );
+}
+
+static uintptr_t test_page_size(void)
+{
+  return TestHeap.page_size;
+}
+
+static void test_heap_do_initialize(
+  uintptr_t area_size,
+  uintptr_t page_size,
+  uintptr_t success_expected
+)
+{
+  uintptr_t rv =
+    _Heap_Initialize( &TestHeap, TestHeapMemory, area_size, page_size );
+
+  if ( success_expected ) {
+    rtems_test_assert( rv > 0 && _Heap_Walk( &TestHeap, 0, false ) );
+  } else {
+    rtems_test_assert( rv == 0 );
+  }
+}
+
+static void test_heap_initialize(void)
+{
+  puts( "run tests for _Heap_Initialize()" );
+
+  test_heap_do_initialize( TEST_HEAP_SIZE, 0, true );
+
+  test_heap_do_initialize( TEST_HEAP_SIZE, TEST_DEFAULT_PAGE_SIZE, true );
+
+  test_heap_do_initialize( 0, 0, false );
+
+  test_heap_do_initialize( (uintptr_t) -1, 0, false );
+
+  test_heap_do_initialize( TEST_HEAP_SIZE, (uintptr_t) -1, false );
+
+  test_heap_do_initialize(
+    TEST_HEAP_SIZE,
+    (uintptr_t) (-2 * CPU_ALIGNMENT),
+    false
+  );
+}
+
+static void test_heap_allocate(void)
+{
+  void *p1 = NULL;
+  void *p2 = NULL;
+  void *p3 = NULL;
+  uintptr_t alloc_size = 0;
+  uintptr_t alignment = 0;
+  uintptr_t boundary = 0;
+  uintptr_t page_size = 0;
+  uintptr_t first_page_begin = 0;
+  uintptr_t previous_last_block_begin = 0;
+  uintptr_t previous_last_page_begin = 0;
+
+  uintptr_t first_block_begin = 0;
+
+  uintptr_t last_block_begin = 0;
+  uintptr_t last_alloc_begin = 0;
+
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+
+  first_block_begin = (uintptr_t) TestHeap.first_block;
+
+  last_block_begin = (uintptr_t) TestHeap.last_block;
+  last_alloc_begin = _Heap_Alloc_area_of_block( TestHeap.last_block );
+
+  puts( "run tests for _Heap_Allocate_aligned_with_boundary()");
+
+  puts( "\tcheck if NULL will be returned if size causes integer overflow" );
+
+  alloc_size = (uintptr_t ) -1;
+  alignment = 0;
+  boundary = 0;
+  test_init_and_alloc( alloc_size, alignment, boundary, NULL );
+
+  puts( "\ttry to allocate more space than the one which fits in the boundary" );
+
+  alloc_size = 2;
+  alignment = 0;
+  boundary = alloc_size - 1;
+  test_init_and_alloc( alloc_size, alignment, boundary, NULL );
+
+  puts( "\tcheck if alignment will be set to page size if only a boundary is given" );
+
+  alloc_size = 1;
+  boundary = 1;
+
+  alignment = 0;
+  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
+
+  alignment = test_page_size();
+  test_init_and_alloc( alloc_size, alignment, boundary, p1 );
+
+  puts( "\tcreate a block which is bigger then the first free space" );
+
+  alignment = 0;
+  boundary = 0;
+
+  alloc_size = test_page_size();
+  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
+  p2 = test_alloc_simple( alloc_size, alignment, boundary );
+  test_free( p1 );
+
+  alloc_size = 2 * alloc_size;
+  p3 = test_alloc_simple( alloc_size, alignment, boundary );
+  rtems_test_assert( p1 != p3 );
+
+  puts( "\tset boundary before allocation begin" );
+
+  alloc_size = 1;
+  alignment = 0;
+  boundary = last_alloc_begin - test_page_size();
+  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
+  rtems_test_assert( (uintptr_t ) p1 >= boundary );
+
+  puts( "\tset boundary between allocation begin and end" );
+  alloc_size = test_page_size();
+  alignment = 0;
+  boundary = last_alloc_begin - alloc_size / 2;
+  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
+  rtems_test_assert( (uintptr_t ) p1 + alloc_size <= boundary );
+
+  puts( "\tset boundary after allocation end" );
+  alloc_size = 1;
+  alignment = 0;
+  boundary = last_alloc_begin;
+  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
+  rtems_test_assert( (uintptr_t ) p1 + alloc_size < boundary );
+
+  puts( "\tset boundary on allocation end" );
+  alloc_size = TEST_DEFAULT_PAGE_SIZE - HEAP_BLOCK_HEADER_SIZE;
+  alignment = 0;
+  boundary = last_block_begin;
+  p1 = (void *) (last_alloc_begin - TEST_DEFAULT_PAGE_SIZE);
+  test_init_and_alloc( alloc_size, alignment, boundary, p1);
+
+  puts( "\talign the allocation to different positions in the block header" );
+
+  page_size = sizeof(uintptr_t);
+  alloc_size = 1;
+  boundary = 0;
+
+  test_heap_init( page_size );
+
+  /* Force the page size to a small enough value */
+  TestHeap.page_size = page_size;
+
+  alignment = first_page_begin - sizeof(uintptr_t);
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
+
+  first_page_begin = ((uintptr_t) TestHeap.first_block ) + HEAP_BLOCK_HEADER_SIZE;
+  alignment = first_page_begin + sizeof(uintptr_t);
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
+
+  first_page_begin = ((uintptr_t) TestHeap.first_block )
+	  + HEAP_BLOCK_HEADER_SIZE;
+  alignment = first_page_begin;
+  p1 = test_alloc_simple( alloc_size, alignment, boundary );
+
+  puts( "\tallocate last block with different boundarys" );
+  page_size = TEST_DEFAULT_PAGE_SIZE;
+  test_heap_init( page_size );
+  previous_last_block_begin = ((uintptr_t) TestHeap.last_block )
+	  - TestHeap.min_block_size;
+  previous_last_page_begin = previous_last_block_begin
+	  + HEAP_BLOCK_HEADER_SIZE;
+  alloc_size = TestHeap.page_size - HEAP_BLOCK_HEADER_SIZE;
+  alignment = sizeof(uintptr_t);
+  boundary = 0;
+  p1 = test_alloc( alloc_size, alignment, boundary, (void *) (previous_last_page_begin + sizeof(uintptr_t)));
+
+  test_heap_init( page_size );
+  boundary = ((uintptr_t) TestHeap.last_block );
+  p1 = test_alloc( alloc_size, alignment, boundary, (void *) previous_last_page_begin );
+
+  puts( "\tbreak the boundaries and aligns more than one time" );
+
+  page_size = CPU_ALIGNMENT * 20;
+  alloc_size = page_size / 4;
+  alignment = page_size / 5;
+  boundary = page_size / 4;
+  test_heap_init( page_size );
+  p1 = (void *) (_Heap_Alloc_area_of_block( TestHeap.last_block ) - page_size );
+  test_alloc( alloc_size, alignment, boundary, p1);
+
+  puts( "\tdifferent combinations, so that there is no valid block at the end" );
+
+  page_size = sizeof(uintptr_t);
+
+  test_heap_init( 0 );
+
+  /* Force the page size to a small enough value */
+  TestHeap.page_size = page_size;
+
+  alloc_size = 1;
+  alignment = (uintptr_t) TestHeap.last_block;
+  boundary = 0;
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
+
+  boundary = (uintptr_t) TestHeap.last_block;
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
+
+  alloc_size = 0;
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
+
+  alloc_size = 1;
+  alignment = sizeof(uintptr_t);
+  boundary = 0;
+  p1 = test_alloc_simple( alloc_size, alignment, boundary );
+
+  puts( "\ttry to create a block, which is not possible because of the alignment and boundary" );
+
+  alloc_size = 2;
+  boundary = _Heap_Alloc_area_of_block( TestHeap.first_block )
+	  + _Heap_Block_size( TestHeap.first_block ) / 2;
+  alignment = boundary - 1;
+  p1 = test_init_and_alloc( alloc_size, alignment, boundary, NULL );
+
+  alloc_size = 2;
+  alignment = _Heap_Alloc_area_of_block( TestHeap.first_block );
+  boundary = alignment + 1;
+  p1 = test_init_and_alloc( alloc_size, alignment, boundary, NULL );
+}
+
+static void *test_create_used_block( void )
+{
+  uintptr_t const alloc_size = 3 * TEST_DEFAULT_PAGE_SIZE;
+  uintptr_t const alignment = 0;
+  uintptr_t const boundary = 0;
+
+  return test_alloc_simple( alloc_size, alignment, boundary );
+}
+
+static void test_block_alloc(
+  int free_variant,
+  int alloc_variant,
+  uintptr_t alloc_begin,
+  uintptr_t alloc_size
+)
+{
+  void *p1 = NULL;
+  void *p2 = NULL;
+  void *p3 = NULL;
+
+  uintptr_t size_fresh_heap = 0;
+  uintptr_t pages_per_default_block = 0;
+  uint32_t exp_free_pages = 0;
+  uint32_t exp_free_blocks = 0;
+  uint32_t exp_used_blocks = 0;
+
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+
+  size_fresh_heap = _Heap_Get_size( &TestHeap );
+  exp_free_pages = size_fresh_heap / TestHeap.page_size;
+
+  p1 = test_create_used_block();
+  p2 = test_create_used_block();
+  p3 = test_create_used_block();
+
+  pages_per_default_block = _Heap_Block_size(
+    _Heap_Block_of_alloc_area( (uintptr_t) p1, TestHeap.page_size )
+  ) / TestHeap.page_size;
+
+  if (free_variant == 1) {
+    test_free( p1 );
+  } else if (free_variant == 2) {
+    test_free( p3 );
+  } else if (free_variant == 3) {
+    test_free( p2 );
+    test_free( p3 );
+  }
+
+  _Heap_Block_allocate(
+    &TestHeap,
+    _Heap_Block_of_alloc_area( (uintptr_t) p2, test_page_size()),
+    alloc_begin,
+    alloc_size
+  );
+
+  test_check_alloc_simple( (void *) alloc_begin, alloc_size, 0, 0 );
+
+  /* check statistics */
+  switch( free_variant ) {
+    case 1:
+      exp_free_pages = exp_free_pages - 2 * pages_per_default_block;
+      exp_used_blocks = 2;
+
+      switch( alloc_variant ) {
+	case 1:
+	  /* allocate block full space */
+	  exp_free_blocks = 2;
+	  break;
+	case 2:
+	  /* allocate block in the middle */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  exp_free_blocks = 3;
+	  break;
+	case 3:
+	  /* allocate block at the end */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 2;
+	  exp_free_blocks = 2;
+	  break;
+	default:
+	  /* allocate block at the beginning */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  exp_free_blocks = 3;
+	  break;
+      }
+      break;
+    case 2:
+      exp_free_pages = exp_free_pages - 2 * pages_per_default_block;
+      exp_used_blocks = 2;
+
+      switch( alloc_variant ) {
+	case 1:
+	  /* allocate block full space */
+	  exp_free_blocks = 1;
+	  break;
+	case 2:
+	  /* allocate block in the middle */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  exp_free_blocks = 2;
+	  break;
+	case 3:
+	  /* allocate block at the end */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  exp_free_blocks = 2;
+	  break;
+	default:
+	  /* allocate block at the beginning */
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  exp_free_blocks = 1;
+	  break;
+      }
+      break;
+    case 3:
+      exp_free_pages = exp_free_pages - pages_per_default_block;
+      exp_used_blocks = 2;
+
+      switch( alloc_variant ) {
+	case 1:
+	  /* allocate block full space */
+	  exp_free_pages = exp_free_pages - pages_per_default_block;
+	  exp_free_blocks = 1;
+	  break;
+	case 2:
+	  /* allocate block in the middle */
+	  exp_free_pages = exp_free_pages - 1;
+	  exp_free_blocks = 2;
+	  break;
+	case 3:
+	  /* allocate block at the end */
+	  exp_free_pages = exp_free_pages - 2;
+	  exp_free_blocks = 2;
+	  break;
+	default:
+	  /* allocate block at the beginning */
+	  exp_free_pages = exp_free_pages - 1;
+	  exp_free_blocks = 1;
+	  break;
+      }
+      break;
+    default:
+      exp_free_pages = exp_free_pages - 3 * pages_per_default_block;
+      exp_used_blocks = 3;
+
+      switch( alloc_variant ) {
+	case 1:
+	  /* allocate block full space */
+	  exp_free_blocks = 1;
+	  break;
+	case 2:
+	  /* allocate block in the middle */
+	  exp_free_blocks = 3;
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  break;
+	case 3:
+	  /* allocate block at the end */
+	  exp_free_blocks = 2;
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+	  break;
+	default:
+	  /* allocate block at the beginning */
+	  exp_free_blocks = 2;
+	  exp_free_pages = exp_free_pages + pages_per_default_block - 1;
+      }
+  }
+
+  rtems_test_assert( TestHeap.stats.free_size == exp_free_pages * TestHeap.page_size );
+  rtems_test_assert( TestHeap.stats.free_blocks == exp_free_blocks );
+  rtems_test_assert( TestHeap.stats.used_blocks == exp_used_blocks );
+}
+
+static void test_heap_do_block_allocate( int variant, void *p2 )
+{
+  Heap_Block *const block =
+    _Heap_Block_of_alloc_area( (uintptr_t) p2, test_page_size());
+  uintptr_t const alloc_box_begin = _Heap_Alloc_area_of_block( block );
+  uintptr_t const alloc_box_size = _Heap_Block_size( block );
+  uintptr_t const alloc_box_end = alloc_box_begin + alloc_box_size;
+  uintptr_t alloc_begin = 0;
+  uintptr_t alloc_size = 0;
+
+  puts( "\tallocate block at the beginning");
+  alloc_begin = alloc_box_begin;
+  alloc_size = 0;
+  test_block_alloc( variant, 0, alloc_begin, alloc_size );
+
+  puts( "\tallocate block full space");
+  alloc_begin = alloc_box_begin;
+  alloc_size = alloc_box_size + HEAP_BLOCK_SIZE_OFFSET
+    - HEAP_BLOCK_HEADER_SIZE;
+  test_block_alloc( variant, 1, alloc_begin, alloc_size );
+
+  puts( "\tallocate block in the middle");
+  alloc_begin = alloc_box_begin + TEST_DEFAULT_PAGE_SIZE;
+  alloc_size = 0;
+  test_block_alloc( variant, 2, alloc_begin, alloc_size );
+
+  puts( "\tallocate block at the end");
+  alloc_begin = alloc_box_end - TEST_DEFAULT_PAGE_SIZE;
+  alloc_size = TEST_DEFAULT_PAGE_SIZE + HEAP_BLOCK_SIZE_OFFSET
+    - HEAP_BLOCK_HEADER_SIZE;
+  test_block_alloc( variant, 3, alloc_begin, alloc_size );
+}
+
+static void test_heap_block_allocate( void )
+{
+  void *p2 = NULL;
+
+  puts( "run tests for _Heap_Block_allocate()" );
+
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+
+  test_create_used_block();
+  p2 = test_create_used_block();
+
+  test_heap_do_block_allocate( 0, p2 );
+  test_heap_do_block_allocate( 1, p2 );
+  test_heap_do_block_allocate( 2, p2 );
+  test_heap_do_block_allocate( 3, p2 );
+}
+
+static void *test_alloc_one_page(void)
+{
+  void *alloc_begin_ptr = _Heap_Allocate_aligned_with_boundary(
+    &TestHeap,
+    1,
+    0,
+    0
+  );
+
+  test_check_alloc_simple(
+    alloc_begin_ptr,
+    1,
+    0,
+    0
+  );
+
+  rtems_test_assert( alloc_begin_ptr != NULL );
+
+  return alloc_begin_ptr;
+}
+
+static void *test_alloc_two_pages(void)
+{
+  void *alloc_begin_ptr = _Heap_Allocate_aligned_with_boundary(
+    &TestHeap,
+    3 * TestHeap.page_size / 2,
+    0,
+    0
+  );
+
+  test_check_alloc_simple(
+    alloc_begin_ptr,
+    3 * TestHeap.page_size / 2,
+    0,
+    0
+  );
+
+  rtems_test_assert( alloc_begin_ptr != NULL );
+
+  return alloc_begin_ptr;
+}
+
+static void test_simple_resize_block(
+  void *alloc_pointer,
+  uintptr_t new_alloc_size,
+  Heap_Resize_status expected_status
+)
+{
+  uintptr_t old_size = 0;
+  uintptr_t new_size = 0;
+
+  Heap_Resize_status status = _Heap_Resize_block(
+    &TestHeap,
+    alloc_pointer,
+    new_alloc_size,
+    &old_size,
+    &new_size
+  );
+
+  rtems_test_assert( status == expected_status );
+}
+
+static void test_heap_resize_block(void)
+{
+  void *p1, *p2, *p3;
+  uintptr_t new_alloc_size = 0;
+  Heap_Block *block = NULL;
+
+  puts( "run tests for _Heap_Resize_Block()" );
+
+  puts( "\tgive a block outside the heap to the function" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = TestHeap.first_block - TEST_DEFAULT_PAGE_SIZE;
+  new_alloc_size = 1;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_FATAL_ERROR );
+
+  puts( "\tincrease size");
+
+  puts( "\t\tlet the next block be used alredy and try to get a size bigger than the actual block" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_one_page();
+  p2 = test_alloc_one_page();
+  new_alloc_size = 3 * TEST_DEFAULT_PAGE_SIZE / 2;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_UNSATISFIED );
+
+  puts( "\t\tnext block not used and try to set the new allocation size between the page-alignments" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_one_page();
+  new_alloc_size = 3 * TEST_DEFAULT_PAGE_SIZE / 2;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_SUCCESSFUL );
+
+  puts( "\t\tlet the block after the next be used and try to allocate more then one pagesize more" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_one_page();
+  p2 = test_alloc_one_page();
+  p3 = test_alloc_one_page();
+  _Heap_Free( &TestHeap, p2 );
+  new_alloc_size = 5 * TEST_DEFAULT_PAGE_SIZE / 2;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_UNSATISFIED );
+
+  puts( "\ttry to resize to the same size" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_one_page();
+  block = _Heap_Block_of_alloc_area( (uintptr_t) p1, TestHeap.page_size );
+  new_alloc_size = _Heap_Block_size( block );
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_SUCCESSFUL );
+
+  puts( "\tdecrease size");
+
+  puts( "\t\tdecrease a block with two pages to one page" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_two_pages();
+  new_alloc_size = 1;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_SUCCESSFUL );
+
+  puts( "\t\tresize the block to the size 0" );
+  test_heap_init( TEST_DEFAULT_PAGE_SIZE );
+  p1 = test_alloc_one_page();
+  new_alloc_size = 0;
+  test_simple_resize_block( p1, new_alloc_size, HEAP_RESIZE_SUCCESSFUL );
+}
+
+static void test_heap_extend(void)
+{
   bool      ret;
 
   /*
    * Easier to hit extend with a dedicated heap.
-   * 
+   *
    */
   _Heap_Initialize( &TestHeap, TestHeapMemory, 512, 0 );
 
@@ -172,7 +944,7 @@ void test_heap_extend()
   rtems_test_assert( ret == true );
 }
 
-void test_heap_info(void)
+static void test_heap_info(void)
 {
   size_t                  s1, s2;
   void                   *p1;
@@ -182,7 +954,7 @@ void test_heap_info(void)
   s1 = malloc_free_space();
   p1 = malloc( 512 );
   s2 = malloc_free_space();
-  puts( "malloc_free_space - check malloc space drops after malloc" ); 
+  puts( "malloc_free_space - check malloc space drops after malloc" );
   rtems_test_assert( s1 );
   rtems_test_assert( s2 );
   rtems_test_assert( s2 <= s1 );
@@ -216,17 +988,32 @@ void test_heap_info(void)
   sc = malloc_info( &the_info );
   rtems_test_assert( sc == 0 );
   rtems_test_assert( s1 == the_info.Free.largest );
+}
 
+static void test_protected_heap_info(void)
+{
+  Heap_Control           heap;
+  Heap_Information_block info;
+  bool                   rc;
+
+  puts( "_Protected_heap_Get_information - NULL heap" );
+  rc = _Protected_heap_Get_information( NULL, &info );
+  rtems_test_assert( rc == false );
+
+  puts( "_Protected_heap_Get_information - NULL info" );
+  rc = _Protected_heap_Get_information( &heap, NULL );
+  rtems_test_assert( rc == false );
 }
 
 /*
  *  A simple test of posix_memalign
  */
-void test_posix_memalign(void)
+static void test_posix_memalign(void)
 {
-  void *p1, *p2;
+  void *p1;
   int i;
   int sc;
+  int maximumShift;
 
   puts( "posix_memalign - NULL return pointer -- EINVAL" );
   sc = posix_memalign( NULL, 32, 8 );
@@ -240,8 +1027,17 @@ void test_posix_memalign(void)
   sc = posix_memalign( &p1, 2, 8 );
   fatal_posix_service_status( sc, EINVAL, "posix_memalign alignment of 2" );
 
-  for ( i=2 ; i<32 ; i++ ) {
-    printf( "posix_memalign - alignment of %d -- OK\n", 1 << i );
+  if ( sizeof(int) == 4 )
+    maximumShift = 31;
+  else if ( sizeof(int) == 2 )
+    maximumShift = 15;
+  else {
+    printf( "Unsupported int size == %zu\n", sizeof(int) );
+    rtems_test_exit(0);
+  }
+  for ( i=2 ; i<maximumShift ; i++ ) {
+    printf( "posix_memalign - alignment of %" PRId32 " -- OK\n",
+      (int32_t) 1 << i );
     sc = posix_memalign( &p1, 1 << i, 8 );
     if ( sc == ENOMEM ) {
       printf( "posix_memalign - ran out of memory trying %d\n", 1<<i );
@@ -250,6 +1046,10 @@ void test_posix_memalign(void)
     posix_service_failed( sc, "posix_memalign alignment OK" );
 
     free( p1 );
+  }
+  for ( ; i<maximumShift ; i++ ) {
+    printf( "posix_memalign - alignment of %" PRId32 " -- SKIPPED\n",
+      (int32_t) 1 << i );
   }
 
 }
@@ -267,10 +1067,15 @@ rtems_task Init(
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
 
+  test_heap_initialize();
+  test_heap_block_allocate();
+  test_heap_allocate();
+  test_heap_resize_block();
   test_realloc();
   test_heap_cases_1();
   test_heap_extend();
   test_heap_info();
+  test_protected_heap_info();
 
   test_posix_memalign();
 

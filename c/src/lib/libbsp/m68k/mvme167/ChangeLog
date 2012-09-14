@@ -1,3 +1,66 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-28	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* timer/timer.c: Remove warnings.
+
+2010-04-28	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* startup/bspclean.c, startup/bspstart.c: Remove warnings.
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* console/console.c: adapted to new prototype for *_write
+	function
+
+2009-12-08	Eric Norum <wenorum@lbl.gov>
+
+	PR 1479/bsps
+	* fatal/bspfatal.c: Complete strcat conversion.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mvme167.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/mvme167.cfg: New (relocated from /make/custom).
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+2009-08-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Eliminate BSPs defining NUMBER_OF_TERMIOS_PORTS.
+	Should be automatically handled by confdefs.h or the application.
+
+2009-08-13	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* console/console.c, timer/timer.c: Fix warnings and typos.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console/console.c: Convert calls to legacy routine rtems_clock_get(
+	RTEMS_CLOCK_GET_xxx, ..) to rtems_clock_get_xxx().
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
 2009-02-17	Till Straumann <strauman@slac.stanford.edu>
 
 	PR 1371/bsps
@@ -9,9 +72,63 @@
 	* console/console.c: mvme167 console driver BSP_output_char fails to
 	convert \n -> \n\r
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-10-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1303/bsps
+	* fatal/bspfatal.c: strcat() is safe to use even in worst case, so do
+	not have BSP specific mystrcat().
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unnecessary boilerplate comments.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/linkcmds: Use top level shared
+	bsp_get_work_area() implementation.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, clock/ckinit.c, startup/bspstart.c: Add
+	use of bsp_get_work_area() in its own file and rely on BSP Framework
+	to perform more initialization. Remove unnecessary includes of
+	rtems/libio.h and rtems/libcsupport.h.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Review of all bsp_cleanup() implementations. In this
+	phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-09-05	Joel Sherrill <joel.sherrill@OARcorp.com>
 

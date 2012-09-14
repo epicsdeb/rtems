@@ -1,16 +1,21 @@
 /*
- * Atmel AT91RM9200 Register definitions
+ * Atmel AT91RM9200 Register definitions, used in KIT637_V6 (CSB637)
  *
  * Copyright (c) 2003 by Cogent Computer Systems
  * Written by Mike Kelly <mike@cogcomp.com>
- *	
+ *
+ * Modified by Fernando Nicodemos <fgnicodemos@terra.com.br>
+ * from NCB - Sistemas Embarcados Ltda. (Brazil)
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: at91rm9200.h,v 1.3 2007/03/12 11:17:07 joel Exp $
- */
+ *  $Id: at91rm9200.h,v 1.6 2009/11/30 22:13:03 joel Exp $
+*/
+
+
 #ifndef __AT91RM9200_H__
 #define __AT91RM9200_H__
 
@@ -27,7 +32,7 @@ typedef volatile unsigned long vulong;
 #define AIC_SVR_REG(_x_)        *(vulong *)(AIC_SVR_BASE + (_x_ & 0x7c))
 
 /* Control Register - 32 of them */
-#define AIC_CTL_BASE            0xFFFFF100      
+#define AIC_CTL_BASE            0xFFFFF100
 #define AIC_CTL_REG(_x_)        *(vulong *)(AIC_CTL_BASE + (_x_ & 0x7f))
 
 /* Register Offsets */
@@ -98,12 +103,12 @@ typedef volatile unsigned long vulong;
 /* AIC_SMR */
 #define AIC_SMR_PRIOR(_x_)      ((_x_ & 0x07) << 0)
 #define AIC_SMR_SRC_LVL_LOW     (0 << 5)        /* Are these right? docs don't say which is high/low     */
-#define AIC_SMR_SRC_EDGE_LOW    (1 << 5)        
-#define AIC_SMR_SRC_LVL_HI      (2 << 5)        
-#define AIC_SMR_SRC_EDGE_HI     (3 << 5)        
+#define AIC_SMR_SRC_EDGE_LOW    (1 << 5)
+#define AIC_SMR_SRC_LVL_HI      (2 << 5)
+#define AIC_SMR_SRC_EDGE_HI     (3 << 5)
 
 /**************************************************************************/
-/* Debug Unit                                                             */
+/* Debug Unit		                                                  */
 /**************************************************************************/
 #define DBGU_BASE               0xFFFFF200
 #define DBGU_REG(_x_)   *(vulong *)(DBGU_BASE + _x_)
@@ -121,6 +126,19 @@ typedef volatile unsigned long vulong;
 #define DBGU_C1R                0x40    /* Chip ID1 Register */
 #define DBGU_C2R                0x44    /* Chip ID2 Register */
 #define DBGU_FNTR               0x48    /* Force NTRST Register */
+
+/**************************************************************************/
+/* USART 0-3  							          */
+/**************************************************************************/
+#define USART0_BASE             0xFFFC0000
+#define USART1_BASE             0xFFFC4000
+#define USART2_BASE             0xFFFC8000
+#define USART3_BASE             0xFFFCC000
+/*
+ *  WARNING: The USART3_BASE at the AT91RM9200 Manual is wrong!!!
+ *  Manual revision: Rev. 1768H-ATARM–16-Jun-09
+ *  USART3_BASE is NOT 0xFFECC000
+ */
 
 /****************/
 /* System Timer */
@@ -176,7 +194,7 @@ typedef volatile unsigned long vulong;
  * Note that each of the following peripherals has it's own
  * set of these registers starting at offset 0x100 from it's
  * base address: DBGU, SPI, USART and SSC
- * To access the DMA for a peripheral, use the macro for that 
+ * To access the DMA for a peripheral, use the macro for that
  * peripheral but with these register offsets
  **************************************************************************/
 /* Register Offsets */

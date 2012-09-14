@@ -14,7 +14,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: test1.c,v 1.3 2008/09/06 03:31:20 ralf Exp $
+ *  $Id: test1.c,v 1.9 2010/03/29 11:30:48 thomas Exp $
  */
 
 #include "system.h"
@@ -24,6 +24,7 @@
 #include <rtems.h>
 #include <rtems/monitor.h>
 
+#if !BSP_SMALL_MEMORY
 static volatile int capture_CT1a_deleted;
 static volatile int capture_CT1b_deleted;
 static volatile int capture_CT1c_deleted;
@@ -31,7 +32,7 @@ static volatile int capture_CT1c_deleted;
 static void
 capture_wait (uint32_t period)
 {
-  rtems_task_wake_after (TOD_MICROSECONDS_TO_TICKS (period * 1000));  
+  rtems_task_wake_after (RTEMS_MICROSECONDS_TO_TICKS (period * 1000));
 }
 
 /*
@@ -52,7 +53,7 @@ capture_CT1a (rtems_task_argument arg)
 
   sc = rtems_semaphore_obtain (mutex, RTEMS_WAIT, 0);
 
-  if (sc != RTEMS_SUCCESSFUL) 
+  if (sc != RTEMS_SUCCESSFUL)
     fprintf (stdout, "error: CT1a: mutex obtain: %s\n",
              rtems_status_text (sc));
 
@@ -60,12 +61,12 @@ capture_CT1a (rtems_task_argument arg)
 
   sc = rtems_semaphore_release (mutex);
 
-  if (sc != RTEMS_SUCCESSFUL) 
+  if (sc != RTEMS_SUCCESSFUL)
     fprintf (stdout, "error: CT1a: mutex release: %s\n",
              rtems_status_text (sc));
 
   capture_CT1a_deleted = 1;
-  
+
   rtems_task_delete (RTEMS_SELF);
 }
 
@@ -76,7 +77,7 @@ capture_CT1b (rtems_task_argument arg)
 
   while (!capture_CT1c_deleted)
     i++;
-  
+
   capture_CT1b_deleted = 1;
 
   rtems_task_delete (RTEMS_SELF);
@@ -90,7 +91,7 @@ capture_CT1c (rtems_task_argument arg)
 
   sc = rtems_semaphore_obtain (mutex, RTEMS_WAIT, 0);
 
-  if (sc != RTEMS_SUCCESSFUL) 
+  if (sc != RTEMS_SUCCESSFUL)
     fprintf (stdout, "error: CT1c: mutex obtain: %s\n",
              rtems_status_text (sc));
 
@@ -98,20 +99,20 @@ capture_CT1c (rtems_task_argument arg)
 
   sc = rtems_semaphore_release (mutex);
 
-  if (sc != RTEMS_SUCCESSFUL) 
+  if (sc != RTEMS_SUCCESSFUL)
     fprintf (stdout, "error: CT1c: mutex release: %s\n",
              rtems_status_text (sc));
 
   capture_CT1c_deleted = 1;
-  
+
   rtems_task_delete (RTEMS_SELF);
 }
 
 static void
-capture_test_1 (int                          argc,
-                char**                       argv,
-                rtems_monitor_command_arg_t* command_arg,
-                bool                         verbose)
+capture_test_1 (int                                argc,
+                char**                             argv,
+                const rtems_monitor_command_arg_t* command_arg,
+                bool                               verbose)
 {
   rtems_status_code sc;
   rtems_name        name;
@@ -122,15 +123,15 @@ capture_test_1 (int                          argc,
   capture_CT1a_deleted = 0;
   capture_CT1b_deleted = 0;
   capture_CT1c_deleted = 0;
-  
+
   name = rtems_build_name('C', 'T', 'm', '1');
 
   sc = rtems_semaphore_create (name, 1,
-                               RTEMS_PRIORITY | RTEMS_BINARY_SEMAPHORE | 
+                               RTEMS_PRIORITY | RTEMS_BINARY_SEMAPHORE |
                                RTEMS_INHERIT_PRIORITY,
                                0, &mutex);
-  
-  if (sc != RTEMS_SUCCESSFUL) 
+
+  if (sc != RTEMS_SUCCESSFUL)
   {
     fprintf (stdout, "error: Test 1: cannot mutex: %s\n",
              rtems_status_text (sc));
@@ -138,13 +139,13 @@ capture_test_1 (int                          argc,
   }
 
   name = rtems_build_name('C', 'T', '1', 'a');
-  
+
   sc = rtems_task_create (name, 102, 2 * 1024,
                           RTEMS_NO_FLOATING_POINT | RTEMS_LOCAL,
                           RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
                           &id[0]);
-  
-  if (sc != RTEMS_SUCCESSFUL) 
+
+  if (sc != RTEMS_SUCCESSFUL)
   {
     fprintf (stdout, "error: Test 1: cannot create CT1a: %s\n",
              rtems_status_text (sc));
@@ -166,13 +167,13 @@ capture_test_1 (int                          argc,
   capture_wait (1000);
 
   name = rtems_build_name('C', 'T', '1', 'b');
-  
+
   sc = rtems_task_create (name, 101, 2 * 1024,
                           RTEMS_NO_FLOATING_POINT | RTEMS_LOCAL,
                           RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
                           &id[1]);
-  
-  if (sc != RTEMS_SUCCESSFUL) 
+
+  if (sc != RTEMS_SUCCESSFUL)
   {
     fprintf (stdout, "error: Test 1: cannot create CT1b: %s\n",
              rtems_status_text (sc));
@@ -196,13 +197,13 @@ capture_test_1 (int                          argc,
   capture_wait (1000);
 
   name = rtems_build_name('C', 'T', '1', 'c');
-  
+
   sc = rtems_task_create (name, 100, 2 * 1024,
                           RTEMS_NO_FLOATING_POINT | RTEMS_LOCAL,
                           RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
                           &id[2]);
-  
-  if (sc != RTEMS_SUCCESSFUL) 
+
+  if (sc != RTEMS_SUCCESSFUL)
   {
     fprintf (stdout, "error: Test 1: cannot create CT1c: %s\n",
              rtems_status_text (sc));
@@ -241,7 +242,7 @@ capture_test_1 (int                          argc,
     rtems_task_delete (id[1]);
     rtems_task_delete (id[0]);
   }
-  
+
   sc = rtems_semaphore_delete (mutex);
   if (sc != RTEMS_SUCCESSFUL)
     fprintf (stdout, "error: Test 1: deleting the mutex: %s\n",
@@ -260,11 +261,12 @@ static rtems_monitor_command_entry_t capture_cmds[] =
   }
 };
 
-void setup_tasks_to_watch ()
+void setup_tasks_to_watch (void)
 {
-  int cmd;
+  size_t cmd;
   for (cmd = 0;
        cmd < sizeof (capture_cmds) / sizeof (rtems_monitor_command_entry_t);
        cmd++)
       rtems_monitor_insert_cmd (&capture_cmds[cmd]);
 }
+#endif /* BSP_SMALL_MEMORY */

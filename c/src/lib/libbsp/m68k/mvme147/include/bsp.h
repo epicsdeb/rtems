@@ -13,7 +13,7 @@
  *  by Dominique LE CAMPION (Dominique.LECAMPION@enst-bretagne.fr)
  *  May 1996
  *
- *  $Id: bsp.h,v 1.21 2007/12/11 15:49:24 joel Exp $
+ *  $Id: bsp.h,v 1.23 2008/09/18 17:38:39 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -104,35 +104,9 @@ struct pcc_map {
 #define CONSOLE_DATA     0xfffe3001
 #endif
 
-#define FOREVER       1                  /* infinite loop */
-
-#ifdef M147_INIT
-#undef EXTERN
-#define EXTERN
-#else
-#undef EXTERN
-#define EXTERN extern
-#endif
-
-/* miscellaneous stuff assumed to exist */
-
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

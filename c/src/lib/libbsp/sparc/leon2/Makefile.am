@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.13 2008/05/15 15:53:19 joel Exp $
+## $Id: Makefile.am,v 1.24 2010/05/11 07:41:00 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -31,6 +32,7 @@ include_HEADERS += ../../sparc/shared/include/debug_defs.h
 include_HEADERS += ../../sparc/shared/include/pci.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
@@ -40,52 +42,59 @@ noinst_PROGRAMS =
 SUBDIRS = . tools
 
 include_HEADERS += include/leon.h
-include_HEADERS += include/coverhd.h
+include_HEADERS += ../../shared/include/coverhd.h
 
-EXTRA_DIST = ../../sparc/shared/start.S
-start.$(OBJEXT): ../../sparc/shared/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
-
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = ../../sparc/shared/start.S
 project_lib_DATA = start.$(OBJEXT)
 
-dist_project_lib_DATA += startup/linkcmds
+dist_project_lib_DATA += startup/linkcmds ../shared/startup/linkcmds.base
 
-startup_SOURCES = ../../sparc/shared/bspclean.c ../../shared/bsplibc.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsplibc.c \
     ../../shared/bsppost.c ../../shared/bsppredriverhook.c \
-    ../../sparc/shared/bspstart.c ../../shared/bootcard.c \
-    ../../shared/sbrk.c startup/setvec.c startup/spurious.c
-gnatsupp_SOURCES = gnatsupp/gnatsupp.c ../../sparc/shared/gnatcommon.c
-console_SOURCES = console/console.c console/debugputs.c
-clock_SOURCES = clock/ckinit.c
+    startup/bspstart.c ../../sparc/shared/bsppretaskinghook.c \
+    ../../sparc/shared/bspgetworkarea.c ../../shared/bootcard.c \
+    ../../shared/sbrk.c startup/setvec.c startup/spurious.c startup/bspidle.c
+# gnatsupp
+libbsp_a_SOURCES += gnatsupp/gnatsupp.c ../../sparc/shared/gnatcommon.c
+# console
+libbsp_a_SOURCES += console/console.c console/debugputs.c
+# clock
+libbsp_a_SOURCES += clock/ckinit.c ../../../shared/clockdrv_shell.h
 # AMBA PnP Scanning
-amba_SOURCES = ../../sparc/shared/amba/ambapp.c
+libbsp_a_SOURCES += ../../sparc/shared/amba/ambapp.c
 # PCI
-pci_SOURCES = pci/pci.c ../../sparc/shared/pci/pcifinddevice.c
+libbsp_a_SOURCES += pci/pci.c ../../sparc/shared/pci/pcifinddevice.c
 # RASTA Kit
-rasta_SOURCES = rasta/rasta.c
+libbsp_a_SOURCES += rasta/rasta.c
 # Companion Chip Kit
-cchip_SOURCES = cchip/cchip.c
+libbsp_a_SOURCES += cchip/cchip.c
 # B1553BRM
-brm_SOURCES = ../../sparc/shared/1553/b1553brm.c \
+libbsp_a_SOURCES += ../../sparc/shared/1553/b1553brm.c \
     ../../sparc/shared/1553/b1553brm_pci.c \
     ../../sparc/shared/1553/b1553brm_rasta.c
 # CAN
-can_SOURCES = ../../sparc/shared/can/occan.c \
+libbsp_a_SOURCES += ../../sparc/shared/can/occan.c \
     ../../sparc/shared/can/occan_pci.c \
     ../../sparc/shared/can/grcan.c \
     ../../sparc/shared/can/grcan_rasta.c
 # SpaceWire
-spw_SOURCES = ../../sparc/shared/spw/grspw.c \
+libbsp_a_SOURCES += ../../sparc/shared/spw/grspw.c \
     ../../sparc/shared/spw/grspw_pci.c ../../sparc/shared/spw/grspw_rasta.c
 # UART (RAW)
-uart_SOURCES = ../../sparc/shared/uart/apbuart.c \
+libbsp_a_SOURCES += ../../sparc/shared/uart/apbuart.c \
     ../../sparc/shared/uart/apbuart_pci.c \
     ../../sparc/shared/uart/apbuart_rasta.c
 # I2CMST
 include_HEADERS += ../../sparc/shared/include/i2cmst.h
-i2cmst_SOURCES = ../../sparc/shared/i2c/i2cmst.c
+libbsp_a_SOURCES += ../../sparc/shared/i2c/i2cmst.c
 
-timer_SOURCES = timer/timer.c
+# timer
+libbsp_a_SOURCES += timer/timer.c
 
 if HAS_NETWORKING
 noinst_PROGRAMS += leon_smc91111.rel
@@ -103,12 +112,6 @@ leon_open_eth_rel_CPPFLAGS +=  -D__INSIDE_RTEMS_BSD_TCPIP_STACK__
 leon_open_eth_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(gnatsupp_SOURCES) $(console_SOURCES) \
-    $(clock_SOURCES) $(amba_SOURCES) $(pci_SOURCES) $(rasta_SOURCES) \
-    $(cchip_SOURCES) $(brm_SOURCES) $(can_SOURCES) $(spw_SOURCES) \
-    $(uart_SOURCES) $(i2cmst_SOURCES) $(timer_SOURCES)
-
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/reg_win.rel \
@@ -119,7 +122,7 @@ libbsp_a_LIBADD += leon_open_eth.rel
 libbsp_a_LIBADD += leon_smc91111.rel
 endif
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

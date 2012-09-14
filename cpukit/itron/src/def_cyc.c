@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: def_cyc.c,v 1.2 2008/08/18 19:18:52 joel Exp $
+ *  $Id: def_cyc.c,v 1.3 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,7 +25,7 @@
  */
 
 ER def_cyc(
-  HNO     cycno,
+  HNO     cycno __attribute__((unused)),
   T_DCYC *pk_dcyc
 )
 {

@@ -11,24 +11,24 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pridrv.c,v 1.10 2004/03/30 11:15:16 ralf Exp $
+ *  $Id: pridrv.c,v 1.13 2009/10/26 13:58:42 ralf Exp $
  */
 
 #include "system.h"
 
 void Priority_test_driver(
-  uint32_t   priority_base
+  rtems_task_priority priority_base
 )
 {
   rtems_task_priority previous_priority;
-  uint32_t      index;
+  uint32_t            index;
   rtems_status_code   status;
 
   for ( index = 1 ; index <= 5 ; index++ ) {
@@ -73,17 +73,17 @@ void Priority_test_driver(
       );
       directive_failed( status, "rtems_task_start loop" );
 
-      status = rtems_task_wake_after( TICKS_PER_SECOND );
+      status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
       directive_failed( status, "rtems_task_wake_after loop" );
 
-      if ( priority_base == 64 ) {
+      if ( priority_base == PRIORITY_INHERIT_BASE_PRIORITY ) {
         if ( index == 4 ) {
           status = rtems_task_set_priority(
             Priority_task_id[ 5 ],
             priority_base + 4,
             &previous_priority
           );
-          printf( "PDRV - change priority of PRI5 from %d to %d\n",
+          printf( "PDRV - change priority of PRI5 from %" PRIdrtems_task_priority " to %" PRIdrtems_task_priority "\n",
              previous_priority,
              priority_base + 4
           );
@@ -95,12 +95,12 @@ void Priority_test_driver(
           &previous_priority
         );
         directive_failed( status, "PDRV rtems_task_set_priority CURRENT" );
-        printf( "PDRV - priority of PRI5 is %d\n", previous_priority );
+        printf( "PDRV - priority of PRI5 is %" PRIdrtems_task_priority "\n", previous_priority );
       }
     }
   }
 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after after loop" );
 
   if ( priority_base == 0 ) {
@@ -110,18 +110,17 @@ void Priority_test_driver(
     }
   }
 
-  if ( priority_base == 64 ) {
+  if ( priority_base == PRIORITY_INHERIT_BASE_PRIORITY ) {
     puts( "PDRV - rtems_task_resume - PRI5" );
     status = rtems_task_resume( Priority_task_id[ 5 ] );
     directive_failed( status, "rtems_task_resume" );
 
-    status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after so PRI5 can run" );
 
     status = rtems_task_delete( Priority_task_id[ 5 ] );
     directive_failed( status, "rtems_task_delete of PRI5" );
-  }
-  else {
+  } else {
     for ( index = 1 ; index <= 5 ; index++ ) {
       status = rtems_task_delete( Priority_task_id[ index ] );
       directive_failed( status, "rtems_task_delete loop" );

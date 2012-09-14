@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.12 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.15 2009/12/08 17:52:52 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -15,6 +15,7 @@
 
 volatile int Signal_occurred;
 volatile int Signal_count;
+void Signal_handler( int signo );
 
 void Signal_handler(
   int signo
@@ -50,12 +51,12 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   /* install a signal handler */
 
   status = sigemptyset( &act.sa_mask );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   act.sa_handler = Signal_handler;
   act.sa_flags   = 0;
@@ -68,43 +69,43 @@ void *POSIX_Init(
   Signal_occurred = 0;
 
   status = pthread_kill( Init_id, SIGUSR1 );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   Signal_occurred = 0;
 
   /* now block the signal, send it, see if it is pending, and unblock it */
 
   status = sigemptyset( &mask );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigaddset( &mask, SIGUSR1 );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   printf( "Init: Block SIGUSR1\n" );
   status = sigprocmask( SIG_BLOCK, &mask, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigpending( &pending_set );
-  assert( !status );
+  rtems_test_assert(  !status );
   printf( "Init: Signals pending 0x%08x\n", (unsigned int) pending_set );
 
 
   printf( "Init: send SIGUSR1 to self\n" );
   status = pthread_kill( Init_id, SIGUSR1 );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = sigpending( &pending_set );
-  assert( !status );
+  rtems_test_assert(  !status );
   printf( "Init: Signals pending 0x%08x\n", (unsigned int) pending_set );
 
   printf( "Init: Unblock SIGUSR1\n" );
   status = sigprocmask( SIG_UNBLOCK, &mask, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create a thread */
 
   status = pthread_create( &Task_id, NULL, Task_1_through_3, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /*
    *  Loop for 5 seconds seeing how many signals we catch
@@ -121,10 +122,10 @@ void *POSIX_Init(
     status = nanosleep ( &tv, &tr );
 
     if ( status == -1 ) {
-      assert( errno == EINTR );
-      assert( tr.tv_nsec || tr.tv_sec );
+      rtems_test_assert(  errno == EINTR );
+      rtems_test_assert(  tr.tv_nsec || tr.tv_sec );
     } else if ( !status ) {
-      assert( !tr.tv_nsec && !tr.tv_sec );
+      rtems_test_assert(  !tr.tv_nsec && !tr.tv_sec );
     }
 
     printf(

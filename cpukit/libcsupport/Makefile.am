@@ -1,18 +1,17 @@
 ##
-##  $Id: Makefile.am,v 1.92.2.1 2009/09/15 06:01:12 ralf Exp $
+##  $Id: Makefile.am,v 1.118.2.3 2010/07/01 14:39:31 sh Exp $
 ##
 
 include $(top_srcdir)/automake/multilib.am
 include $(top_srcdir)/automake/compile.am
 
-project_lib_LIBRARIES = libcsupport.a
 noinst_LIBRARIES = libcsupport.a
 libcsupport_a_CPPFLAGS = $(AM_CPPFLAGS)
 
 include_rtemsdir = $(includedir)/rtems
 include_rtems_HEADERS = include/console.h include/clockdrv.h \
-    include/iosupp.h include/ringbuf.h include/rtc.h include/spurious.h \
-    include/timerdrv.h include/vmeintr.h
+    include/rtems/framebuffer.h include/iosupp.h include/ringbuf.h \
+    include/rtc.h include/spurious.h include/timerdrv.h include/vmeintr.h
 
 ## motorola
 
@@ -45,9 +44,9 @@ ASSOCIATION_C_FILES = src/assoclocalbyname.c \
     src/assocremotebylocal.c src/assocremotebyname.c
 
 BASE_FS_C_FILES = src/base_fs.c src/mount.c src/unmount.c src/libio.c \
-    src/libio_init.c \
+    src/mount-mgr.c src/mount-mktgt.c src/libio_init.c \
     src/libio_sockets.c src/eval.c src/fs_null_handlers.c src/privateenv.c \
-    src/open_dev_console.c
+    src/open_dev_console.c src/__usrenv.c src/rtems_mkdir.c
 
 TERMIOS_C_FILES = src/cfgetispeed.c src/cfgetospeed.c src/cfsetispeed.c \
     src/cfsetospeed.c src/tcgetattr.c src/tcsetattr.c src/tcdrain.c \
@@ -63,17 +62,22 @@ SYSTEM_CALL_C_FILES = src/open.c src/close.c src/read.c src/write.c \
     src/link.c src/unlink.c src/umask.c src/ftruncate.c src/utime.c src/fstat.c \
     src/fcntl.c src/fpathconf.c src/getdents.c src/fsync.c src/fdatasync.c \
     src/pipe.c src/dup.c src/dup2.c src/symlink.c src/readlink.c src/creat.c \
-    src/chroot.c src/sync.c src/_rename_r.c
+    src/chroot.c src/sync.c src/_rename_r.c src/statvfs.c
 
 ## Until sys/uio.h is moved to libcsupport, we have to have networking
 ## enabled to compile these.  Hopefully this is a temporary situation.
-if LIBNETWORKING
+if NEWLIB
 SYSTEM_CALL_C_FILES += src/readv.c src/writev.c
 endif
 
-DIRECTORY_SCAN_C_FILES = src/opendir.c src/closedir.c src/readdir.c \
-    src/readdir_r.c src/rewinddir.c src/scandir.c src/seekdir.c \
-    src/telldir.c src/getcwd.c
+DIRECTORY_SCAN_C_FILES =
+## 20 Nov 2008: Now using these from newlib's posix directory
+DIRECTORY_SCAN_C_FILES += src/opendir.c src/closedir.c src/readdir.c \
+     src/rewinddir.c src/scandir.c src/seekdir.c src/telldir.c
+## Newlib SHOULD have provided this one
+DIRECTORY_SCAN_C_FILES += src/readdir_r.c
+## Comment out when using these from newlib's unix directory
+DIRECTORY_SCAN_C_FILES += src/getcwd.c
 
 ID_C_FILES = src/getegid.c src/geteuid.c src/getgid.c src/getgroups.c \
     src/getlogin.c src/getpgrp.c src/getpid.c src/getppid.c src/getuid.c \
@@ -86,33 +90,39 @@ MALLOC_C_FILES = src/malloc_initialize.c src/calloc.c src/malloc.c \
     src/malloc_report_statistics.c src/malloc_report_statistics_plugin.c \
     src/malloc_statistics_helpers.c src/malloc_boundary.c \
     src/posix_memalign.c src/rtems_memalign.c src/malloc_deferred.c \
-    src/malloc_sbrk_helpers.c src/malloc_dirtier.c
+    src/malloc_sbrk_helpers.c src/malloc_dirtier.c src/malloc_p.h \
+    src/rtems_malloc.c
 
 PASSWORD_GROUP_C_FILES = src/getpwent.c
 
-TERMINAL_IDENTIFICATION_C_FILES = src/ctermid.c src/isatty.c src/ttyname.c
+TERMINAL_IDENTIFICATION_C_FILES = src/ctermid.c
+## 20 Nov 2008: Now using these from newlib's posix directory
+TERMINAL_IDENTIFICATION_C_FILES += src/isatty.c src/isatty_r.c
+## Comment out when using these from newlib's unix directory
+TERMINAL_IDENTIFICATION_C_FILES += src/ttyname.c
 
 LIBC_GLUE_C_FILES = src/__getpid.c src/__gettod.c src/__times.c \
     src/truncate.c src/access.c src/stat.c src/lstat.c src/pathconf.c \
-    src/newlibc.c src/newlibc_init.c src/newlibc_exit.c src/no_posix.c \
-    src/no_libc.c src/utsname.c
+    src/newlibc_reent.c src/newlibc_init.c src/newlibc_exit.c \
+    src/kill_noposix.c src/sleep_noposix.c src/utsname.c
 
-BSD_LIBC_C_FILES = src/strlcpy.c src/strlcat.c
+BSD_LIBC_C_FILES = src/strlcpy.c src/strlcat.c src/issetugid.c
 
-libcsupport_a_SOURCES = src/gxx_wrappers.c src/printk.c src/printk_plugin.c \
+libcsupport_a_SOURCES = src/gxx_wrappers.c src/getchark.c src/printk.c \
+    src/printk_plugin.c src/putk.c src/vprintk.c \
+    src/sup_fs_is_separator.c src/sup_fs_get_start_loc.c \
+    src/sup_fs_get_sym_start_loc.c \
     $(BSD_LIBC_C_FILES) $(BASE_FS_C_FILES) $(MALLOC_C_FILES) \
     $(ERROR_C_FILES) $(ASSOCIATION_C_FILES)
 
-if UNIX
-libcsupport_a_SOURCES += src/unixlibc.c src/unixlibc_io.c src/hosterr.c
-else
 libcsupport_a_SOURCES += $(LIBC_GLUE_C_FILES) $(PASSWORD_GROUP_C_FILES) \
     $(TERMINAL_IDENTIFICATION_C_FILES) $(SYSTEM_CALL_C_FILES) \
     $(DIRECTORY_SCAN_C_FILES) $(ID_C_FILES) src/envlock.c \
-    $(TERMIOS_C_FILES) src/getpagesize.c
-endif
+    $(TERMIOS_C_FILES) src/getpagesize.c src/getrusage.c
 
-EXTRA_DIST = src/TODO src/CASES src/README src/malloc_p.h
+libcsupport_a_SOURCES += src/flockfile.c src/funlockfile.c src/ftrylockfile.c
+
+EXTRA_DIST = src/TODO src/CASES src/README
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/automake/local.am

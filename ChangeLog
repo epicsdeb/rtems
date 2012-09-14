@@ -1,22 +1,184 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-12-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* SUPPORT: Update address.
+
+2010-09-27	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* README.configure: Cleanup.
+
+2010-06-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: autoconf >= 2.65, automake >= 1.11.
+
+2010-06-14	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1553/filesystem
+	Coverity Id 37
+	* libblock/src/flashdisk.c: Fix two paths which should have returned an
+	error but did not have the return statement.
+
+2010-05-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: Change quoting to work-round
+	http://www.freebsd.org/cgi/query-pr.cgi?pr=146378.
+
+2009-10-23	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-custom-bsp.m4: Be less verbose.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: Fix quoting bug.
+
+2009-10-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-custom-bsp.m4:
+	Remove "${srcdir}/${RTEMS_TOPdir}/make/custom/$1".
+	* aclocal/check-bsps.m4: Remove "blacklist".
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: Remove bare BSP (Abandoned).
+
+2009-10-16	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* README.configure: added COBRA5475 reference
+
+2009-10-16	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4: Pickup bsps from
+	c/src/lib/libbsp/<cpu>/<bsp_family>/make/custom*.cfg.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-bsps.m4: Pickup bsps from
+	c/src/lib/libbsp/<cpu>/<bsp_family>/make/custom*.cfg.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-custom-bsp.m4: Let _RTEMS_CHECK_CUSTOM_BSP look for
+	*.cfg into c/src/lib/libbsp/<cpu>/<bsp_family>/make/custom.
+
+2009-10-14	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* aclocal/canonical-target-name.m4, aclocal/enable-posix.m4:
+	Remove posix/unix simulator.
+
+2009-10-04	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Renamed LPC24XX BSP
+	variants.
+
+2009-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-alias.m4: Add BSP for GDB ARM simulator so we can easily
+	experiment with and debug different ARM architectural variations.
+
+2009-09-14	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-bsps.m4: Add csb337 bsp family.
+
+2009-07-23	Ralf Corsepius <ralf.corsepius@rtems.org>
+
+	* aclocal/enable-itron.m4: Default to not building itron.
+
+2009-05-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* aclocal/bsp-alias.m4: Add csb637 as variant of csb337.
+
+2009-02-27	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Added defines for
+	LPC2478 BSP variants.
+
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-alias.m4: Add simsh2e.
+
+2009-02-06	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.maint: rtems_api=4.10.
+	* Makefile.maint: Dump stuff hanging around for much too long.
+
+2009-02-06	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/canonical-target-name.m4:
+	Remove comment referring to HPUX9.
+
+2009-02-05	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Remove pck6 BSP.
+
+2008-12-31	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* config-ml.in: Comment out arm/thumb exception (Add arm/thumb
+	multilib).
+
+2008-12-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/check-bsps.m4: remove stray ")" from rtl22xx_t alias.
+
+2008-12-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* aclocal/canonical-target-name.m4: Remove tic4x.
+
+2008-12-04	Jukka Pietarinen <jukka.pietarinen@mrf.fi>
+
+	* README.configure: Add Lattice Mico32 support.
+
+2008-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Add h8sxsim as variant
+	of h8sim.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* README.configure: Add new M32R port. It is just a beginning but the
+	BSP is functional enough to initialize and shutdown RTEMS.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* README.configure, aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Add
+	M32C port and m32csim BSP.
+
+2008-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* VERSION: Bump version to 4.9.99.0
+
 2008-10-01	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	PR 1324/bsps
-        * aclocal/check-bsps.m4: Adopt icecube changes from CVS-HEAD.
+        * aclocal/check-bsps.m4: Revert Joel's icecube patch.
 
-2008-09-24	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* Makefile.maint: Bump rtems_api to 4.9.
+	* MAINTAINERS: Remove myself from avr.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* README.configure, aclocal/bsp-alias.m4, aclocal/check-bsps.m4:
+	Recognize the the GDB SuperH simulator is just an architectural
+	simulator and does not include devices. Rename existing simulator BSP
+	configurations to simsh1 and simsh2 and add simsh4.
 
 2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	PR 1324/bsps
 	* aclocal/check-bsps.m4: Add missing icecube.
 
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-09-22	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* MAINTAINERS, README.configure, aclocal/bsp-alias.m4,
-	aclocal/canonical-target-name.m4, aclocal/check-bsps.m4: Remove TI
-	C4x and NIOS2 ports from 4.9 branch.
+	* aclocal/version.m4: Bump RTEMS_API to 4.10.
+	Bump _RTEMS_VERSION to 4.9.99.0.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* aclocal/bsp-alias.m4, aclocal/check-bsps.m4: Added defines for
+	LPC2478 BSP.
 
 2008-09-09	Joel Sherrill <joel.sherrill@oarcorp.com>
 
@@ -1330,7 +1492,7 @@
 
 2001-11-13	Joel Sherrill <joel@OARcorp.com>
 
-	* COPYING: Test of $Id: ChangeLog,v 1.344.2.4 2008/10/01 01:16:55 ralf Exp $ -> $RTEMS$.
+	* COPYING: Test of $Id: ChangeLog,v 1.378.2.5 2011/02/02 15:13:25 ralf Exp $ -> $RTEMS$.
 
 2001-11-08	Dennis Ehlin (ECS) <Dennis.Ehlin@ecs.ericsson.se>
 

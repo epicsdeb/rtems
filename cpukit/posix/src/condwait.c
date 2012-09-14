@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: condwait.c,v 1.4 2007/12/17 16:19:13 joel Exp $
+ *  $Id: condwait.c,v 1.5 2009/02/03 10:10:46 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -38,6 +38,6 @@ int pthread_cond_wait(
     cond,
     mutex,
     THREAD_QUEUE_WAIT_FOREVER,
-    FALSE
+    false
   );
 }

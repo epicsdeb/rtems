@@ -1,7 +1,91 @@
-2009-05-18	Joel Sherrill <joel.sherrill@OARcorp.com>
+2011-04-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
 
-	* shared/irq/irq.c, shared/irq/irq.h, shared/irq/irq_asm.S: Add shared
-	interrupt support to i386.
+	PR 1768/bsps
+	* shared/irq/irq_asm.S: The nbench benchmark highlighted the fact that
+	we do not perform a cld before calling C code in the ISR. This was
+	historically not a problem but gcc 4.3 changed the behavior. From
+	http://gcc.gnu.org/gcc-4.3/changes.html
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/irq/irq-config.h: Removed file.
+	* shared/irq/irq.h: Moved defines from 'shared/irq/irq-config.h'.
+
+2010-04-12	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/comm/uart.c, shared/comm/uart.h: Reflect termios API
+	changes.
+
+2009-12-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1483/cpukit
+	* shared/pci/pcibios.c: Rename pci_config into rtems_pci_config_t.
+
+2009-12-10	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/comm/uart.c, shared/comm/uart.h: Adjust prototypes.
+
+2009-11-10	Till Straumann <strauman@slac.stanford.edu>
+
+	* pc386/make/custom/pc586-sse.cfg, pc386/start/start.S,
+	shared/irq/irq_asm.S: Added experimental SSE support.
+
+2009-10-29	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/irq/irq_asm.S: Make sure stack is aligned to CPU_STACK_ALIGNMENT
+	for *all* C-routines (including _Thread_Dispatch() and
+	_ThreadProcessSignalsFromIrq()) not only C_dispatch_isr().
+
+	* shared/irq/irq.c: Added IRQ statistics counters.
+
+2009-10-29	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/irq/irq_asm.S: Beautification; ajusted margins and
+	spaces to make the whole thing more readable.
+
+2009-10-29	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/irq/irq_asm.S, shared/irq/irq.c: removed
+	(fake) exception frame argument to _ThreadProcessSignalsFromIrq().
+	This has never been used and removing it simplifies the assembly
+	code.
+
+2009-10-28	Till Straumann <strauman@slac.stanford.edu>
+
+	* shared/irq/irq_asm.S: Make sure stack is aligned to
+	CPU_STACK_ALIGNMENT before invoking C-code.
+
+2009-10-17	Chris Johns <chrisj@rtems.org>
+
+	* shared/irq/idt.c: Check is the irq handlers are present before
+	calling.
+	* shared/comm/i386-stub-glue.c: Revert the change of 2009-05-06 as
+	the handlers need to be present. Fixed the warnings.
+
+2009-10-01	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	PR 1445/BSPs
+	* shared/pci/pcibios.c: Rename indirect_pci_* into BSP_pci_*.
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* shared/comm/tty_drv.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-07-01	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shared/irq/irq.h, shared/irq/irq.c, shared/irq/irq_init.c: Converted
+	to use generic interrupt support.
+	* shared/irq/irq-config.h: New file.
+
+2009-05-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/comm/i386-stub-glue.c, shared/comm/uart.c, shared/irq/irq.c,
+	shared/pci/pcibios.c: Fixed warnings.
 
 2009-03-12	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -11,6 +95,15 @@
 	dispatching code accesses two boolean variables for scheduling
 	purposes and the assembly implementations of this code did not get
 	updated.
+
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/irq/irq.c, shared/irq/irq.h, shared/irq/irq_asm.S: Add shared
+	interrupt support to i386.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/irq/irq.h: Fix spelling error.
 
 2008-09-07	Ralf Corsépius <ralf.corsepius@rtems.org>
 

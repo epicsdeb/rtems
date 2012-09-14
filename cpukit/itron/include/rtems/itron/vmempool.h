@@ -3,14 +3,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: vmempool.h,v 1.7 2005/01/28 11:07:14 ralf Exp $
+ *  $Id: vmempool.h,v 1.8 2008/12/17 22:12:23 joel Exp $
  */
 
 #ifndef _RTEMS_ITRON_VMEMPOOL_H
@@ -47,9 +47,7 @@ ITRON_EXTERN Objects_Information  _ITRON_Variable_memory_pool_Information;
  *  This routine performs the initialization necessary for this manager.
  */
 
-void _ITRON_Variable_memory_pool_Manager_initialization(
-  uint32_t   maximum_variable_memory_pools
-);
+void _ITRON_Variable_memory_pool_Manager_initialization(void);
 
 /*
  *  XXX insert private stuff here

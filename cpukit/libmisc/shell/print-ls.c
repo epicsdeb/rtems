@@ -47,6 +47,8 @@ __RCSID("$NetBSD: print.c,v 1.40 2004/11/17 17:00:00 mycroft Exp $");
 #endif /* not lint */
 #endif
 
+#include <inttypes.h>
+
 #include <rtems.h>
 #include <rtems/libio.h>
 
@@ -67,6 +69,10 @@ __RCSID("$NetBSD: print.c,v 1.40 2004/11/17 17:00:00 mycroft Exp $");
 //#include <util.h>
 
 #include "extern-ls.h"
+
+#define DAYSPERNYEAR ((time_t)365)
+#define SECSPERDAY   ((time_t)60 * (time_t)60 * (time_t)24)
+
 
 #if RTEMS_REMOVED
 extern int termwidth;
@@ -128,8 +134,7 @@ printlong(rtems_shell_ls_globals* globals, DISPLAY *dp)
 			continue;
 		sp = p->fts_statp;
 		if (f_inode)
-			(void)printf("%*lu ", dp->s_inode,
-			    (unsigned long)sp->st_ino);
+			(void)printf("%*lu ", dp->s_inode, sp->st_ino);
 		if (f_size && !f_humanize) {
 			(void)printf("%*llu ", dp->s_block,
 			    (long long)howmany(sp->st_blocks, blocksize));
@@ -144,7 +149,7 @@ printlong(rtems_shell_ls_globals* globals, DISPLAY *dp)
 		if (f_flags)
 			(void)printf("%-*s ", dp->s_flags, np->flags);
 		if (S_ISCHR(sp->st_mode) || S_ISBLK(sp->st_mode))
-			(void)printf("%*lu, %*lu ",
+			(void)printf("%*"PRIu32", %*"PRIu32" ",
 			    dp->s_major, major(sp->st_rdev), dp->s_minor,
 			    minor(sp->st_rdev));
 		else
@@ -157,11 +162,14 @@ printlong(rtems_shell_ls_globals* globals, DISPLAY *dp)
 				(void)printf("%*s ", dp->s_size, szbuf);
 			} else {
 #endif
-				(void)printf("%*llu ", dp->s_size,
-				    (long long)sp->st_size);
-#if RTEMS_REMOVED
+      {
+        unsigned long long size;
+        if (sp->st_size < 0)
+          size = sp->st_size * -1;
+        else
+          size = sp->st_size;
+				(void)printf("%*llu ", dp->s_size, size);
   		}
-#endif
 		if (f_accesstime)
 			printtime(globals, sp->st_atime);
 		else if (f_statustime)
@@ -339,7 +347,7 @@ printstream(rtems_shell_ls_globals* globals, DISPLAY *dp)
 	if (f_size) {
 		if (f_humanize)
 			extwidth += dp->s_size + 1;
-		else 
+		else
 			extwidth += dp->s_block + 1;
 	}
 	if (f_type)
@@ -376,7 +384,7 @@ printaname(rtems_shell_ls_globals* globals,
 	sp = p->fts_statp;
 	chcnt = 0;
 	if (f_inode)
-		chcnt += printf("%*lu ", inodefield, (unsigned long)sp->st_ino);
+		chcnt += printf("%*lu ", inodefield, sp->st_ino);
 	if (f_size) {
 #if RTEMS_REMOVED
 		if (f_humanize) {

@@ -1,12 +1,12 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.27 2007/08/02 14:59:41 joel Exp $
+##
+## $Id: configure.ac,v 1.30.2.1 2011/02/02 15:17:40 ralf Exp $
 
-## 
+##
 ## This script configures the configuration files below make/
-## 
+##
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-make],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp.cfg.in])
 RTEMS_TOP(../../..)
@@ -14,7 +14,7 @@ AC_SUBST(RTEMS_TOPdir,../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign 1.10])
+AM_INIT_AUTOMAKE([no-define foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENABLE_MULTIPROCESSING
@@ -22,7 +22,6 @@ RTEMS_ENABLE_POSIX
 RTEMS_ENABLE_ITRON
 RTEMS_ENABLE_NETWORKING
 RTEMS_ENABLE_CXX
-RTEMS_ENABLE_BARE
 
 RTEMS_ENV_RTEMSBSP
 
@@ -69,8 +68,6 @@ RTEMS_CHECK_ITRON_API(RTEMS_BSP)
 
 AC_SUBST(rtems_cv_prog_cc_cross)
 AC_SUBST(RTEMS_HAS_CPLUSPLUS)
-AC_SUBST(BARE_CPU_CFLAGS)
-AC_SUBST(BARE_CPU_MODEL)
 AC_SUBST(program_prefix)
 AC_SUBST(CC_CFLAGS_DEFAULT)
 AC_SUBST(CC_CFLAGS_DEBUG_V)

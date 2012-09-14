@@ -1,5 +1,5 @@
 /*
- *  $Id: rtems_syscall.c,v 1.25 2007/06/21 18:31:34 joel Exp $
+ *  $Id: rtems_syscall.c,v 1.27 2008/12/23 05:00:57 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,7 +17,7 @@
 #include <rtems/error.h>
 #include <rtems/rtems_bsdnet.h>
 
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/mbuf.h>
@@ -778,4 +778,5 @@ static const rtems_filesystem_file_handlers_r socket_handlers = {
 	NULL,			/* fsync */
 	NULL,			/* fdatasync */
 	rtems_bsdnet_fcntl,	/* fcntl */
+	0			/* rmnod */
 };

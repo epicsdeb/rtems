@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/thread.h
  *
  *  This include file contains all constants and structures associated
@@ -6,14 +6,14 @@
  */
 
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: thread.h,v 1.76 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: thread.h,v 1.90 2009/12/02 18:15:16 humph Exp $
  */
 
 #ifndef _RTEMS_SCORE_THREAD_H
@@ -27,6 +27,18 @@
  */
 /**@{*/
 
+#if defined(RTEMS_POSIX_API) || defined(RTEMS_ITRON_API)
+  #define RTEMS_SCORE_THREAD_ENABLE_EXHAUST_TIMESLICE
+#endif
+
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_THREAD_ENABLE_SCHEDULER_CALLOUT
+#endif
+
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_THREAD_ENABLE_USER_PROVIDED_STACK_VIA_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,19 +47,12 @@ extern "C" {
  *  The user can define this at configure time and go back to ticks
  *  resolution.
  */
-#ifndef __RTEMS_USE_TICKS_CPU_USAGE_STATISTICS__
-  /**
-   *  This macro enables the nanosecond accurate statistics
-   *
-   *  When not defined, the older style tick accurate granularity
-   *  is used.
-   */
-  #define RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+  #include <rtems/score/timestamp.h>
 
-  typedef struct timespec rtems_thread_cpu_usage_t;
-
+  typedef Timestamp_Control Thread_CPU_usage_t;
 #else
-  typedef uint32_t rtems_thread_cpu_usage_t;
+  typedef uint32_t Thread_CPU_usage_t;
 #endif
 
 #include <rtems/score/context.h>
@@ -63,10 +68,6 @@ extern "C" {
 #include <rtems/score/tqdata.h>
 #include <rtems/score/watchdog.h>
 
-#ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-  /* XXX include something for timespec */
-#endif
-
 /**
  *  The following defines the "return type" of a thread.
  *
@@ -79,7 +80,7 @@ typedef void *Thread;
 
 /**
  *  @brief Type of the numeric argument of a thread entry function with at
- *  least one numeric argument. 
+ *  least one numeric argument.
  *
  *  This numeric argument type designates an unsigned integer type with the
  *  property that any valid pointer to void can be converted to this type and
@@ -98,8 +99,10 @@ typedef uintptr_t Thread_Entry_numeric_type;
 typedef enum {
   THREAD_START_NUMERIC,
   THREAD_START_POINTER,
-  THREAD_START_BOTH_POINTER_FIRST,
-  THREAD_START_BOTH_NUMERIC_FIRST
+  #if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+    THREAD_START_BOTH_POINTER_FIRST,
+    THREAD_START_BOTH_NUMERIC_FIRST
+  #endif
 } Thread_Start_types;
 
 /** This type corresponds to a very simple style thread entry point. */
@@ -136,8 +139,12 @@ typedef Thread ( *Thread_Entry_both_numeric_first )( Thread_Entry_numeric_type, 
 typedef enum {
   THREAD_CPU_BUDGET_ALGORITHM_NONE,
   THREAD_CPU_BUDGET_ALGORITHM_RESET_TIMESLICE,
-  THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE,
-  THREAD_CPU_BUDGET_ALGORITHM_CALLOUT
+  #if defined(RTEMS_SCORE_THREAD_ENABLE_EXHAUST_TIMESLICE)
+    THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE,
+  #endif
+  #if defined(RTEMS_SCORE_THREAD_ENABLE_SCHEDULER_CALLOUT)
+    THREAD_CPU_BUDGET_ALGORITHM_CALLOUT
+  #endif
 }  Thread_CPU_budget_algorithms;
 
 /** This type defines the Thread Control Block structure.
@@ -202,14 +209,16 @@ typedef struct {
   uint32_t                             isr_level;
   /** This field is the initial priority. */
   Priority_Control                     initial_priority;
-  /** This field indicates whether the SuperCore allocated the stack. */
-  bool                                 core_allocated_stack;
+  #if defined(RTEMS_SCORE_THREAD_ENABLE_USER_PROVIDED_STACK_VIA_API)
+    /** This field indicates whether the SuperCore allocated the stack. */
+    bool                                 core_allocated_stack;
+  #endif
   /** This field is the stack information. */
   Stack_Control                        Initial_stack;
-#if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
-  /** This field is the initial FP context area address. */
-  Context_Control_fp                  *fp_context;
-#endif
+  #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
+    /** This field is the initial FP context area address. */
+    Context_Control_fp                  *fp_context;
+  #endif
   /** This field is the initial stack area address. */
   void                                *stack;
 } Thread_Start_information;
@@ -253,13 +262,13 @@ typedef struct {
   /** This field contains any options in effect on this blocking operation. */
   uint32_t              option;
   /** This field will contain the return status from a blocking operation.
-   * 
+   *
    *  @note The following assumes that all API return codes can be
    *        treated as an uint32_t.
    */
   uint32_t              return_code;
 
-  /** This field is the chain header for the second through Nth tasks 
+  /** This field is the chain header for the second through Nth tasks
    *  of the same priority blocked waiting on the same object.
    */
   Chain_Control         Block2n;
@@ -344,15 +353,19 @@ struct Thread_Control_struct {
   MP_packet_Prefix        *receive_packet;
 #endif
 #ifdef __RTEMS_STRICT_ORDER_MUTEX__
-  /**This field is the head of queue of priority inheritance mutex holed by the thread*/
+  /** This field is the head of queue of priority inheritance mutex
+   *  held by the thread.
+   */
   Chain_Control            lock_mutex;
 #endif
      /*================= end of common block =================*/
   /** This field is the number of nested suspend calls. */
   uint32_t                              suspend_count;
+#if defined(RTEMS_MULTIPROCESSING)
   /** This field is true if the thread is offered globally */
   bool                                  is_global;
-  /** This field is is true if the post task context switch should be 
+#endif
+  /** This field is is true if the post task context switch should be
    *  executed for this thread at the next context switch.
    */
   bool                                  do_post_task_switch_extension;
@@ -374,11 +387,10 @@ struct Thread_Control_struct {
   Thread_CPU_budget_algorithms          budget_algorithm;
   /** This field is the method invoked with the budgeted time is consumed. */
   Thread_CPU_budget_algorithm_callout   budget_callout;
-
   /** This field is the amount of CPU time consumed by this thread
    *  since it was created.
    */
-  rtems_thread_cpu_usage_t              cpu_time_used;
+  Thread_CPU_usage_t                    cpu_time_used;
   /** This field points to the Ready FIFO for this priority. */
   Chain_Control                        *ready;
   /** This field contains precalculated priority map indices. */
@@ -492,7 +504,7 @@ SCORE_EXTERN Thread_Control *_Thread_Allocated_fp;
  */
 SCORE_EXTERN struct _reent **_Thread_libc_reent;
 
-#ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
 
   /**
    * This contains the time since boot when the last context switch occurred.
@@ -500,27 +512,20 @@ SCORE_EXTERN struct _reent **_Thread_libc_reent;
    * system initialization and does not need to be known outside this
    * file.
    */
-  SCORE_EXTERN struct timespec _Thread_Time_of_last_context_switch;
+  SCORE_EXTERN Timestamp_Control _Thread_Time_of_last_context_switch;
 #endif
 
 /**
  *  This routine performs the initialization necessary for this handler.
  */
-void _Thread_Handler_initialization (
-  uint32_t     ticks_per_timeslice,
-  uint32_t     maximum_extensions
-#if defined(RTEMS_MULTIPROCESSING)
-  ,
-  uint32_t     maximum_proxies
-#endif
-);
+void _Thread_Handler_initialization(void);
 
 /**
  *  This routine creates the idle thread.
  *
  *  @warning No thread should be created before this one.
  */
-void _Thread_Create_idle( void );
+void _Thread_Create_idle(void);
 
 /**
  *  This routine initiates multitasking.  It is invoked only as
@@ -758,7 +763,7 @@ void _Thread_Suspend(
 /**
  *  This routine updates the related suspend fields in the_thread
  *  control block to indicate the current nested level.  A force
- *  parameter of TRUE will force a resume and clear the suspend count.
+ *  parameter of true will force a resume and clear the suspend count.
  */
 void _Thread_Resume(
   Thread_Control   *the_thread,
@@ -776,9 +781,11 @@ bool _Thread_Evaluate_mode( void );
 #if (CPU_PROVIDES_IDLE_THREAD_BODY == FALSE)
 /**
  *  This routine is the body of the system idle thread.
+ *
+ *  NOTE: This routine is actually instantiated by confdefs.h when needed.
  */
-Thread _Thread_Idle_body(
-  uint32_t   ignored
+void *_Thread_Idle_body(
+  uintptr_t  ignored
 );
 #endif
 

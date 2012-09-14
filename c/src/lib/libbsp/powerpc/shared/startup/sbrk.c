@@ -1,4 +1,4 @@
-/* $Id: sbrk.c,v 1.5.4.1 2008/11/03 19:58:43 strauman Exp $ */
+/* $Id: sbrk.c,v 1.9.2.1 2011/05/18 05:08:35 strauman Exp $ */
 
 /*
  *  sbrk.c
@@ -8,13 +8,13 @@
  * This software was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2002,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * This software was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -23,18 +23,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -43,9 +43,9 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
 
 /*
  *  Hack around the 32bit powerpc 32M problem:
@@ -70,8 +70,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static uint32_t         remaining_start=0;
-static uint32_t         remaining_size=0;
+static void *           remaining_start=(void*)-1LL;
+static uintptr_t        remaining_size=0;
 
 /* App. may provide a value by defining the BSP_sbrk_policy
  * variable.
@@ -81,14 +81,17 @@ static uint32_t         remaining_size=0;
  *    0  -> limit memory effectively to 32M.
  *
  */
-extern uint32_t         BSP_sbrk_policy __attribute__((weak));
+extern uintptr_t        BSP_sbrk_policy __attribute__((weak));
 
-#define LIMIT_32M  0x02000000
+#define LIMIT_32M  ((void*)0x02000000)
 
-uint32_t
-_bsp_sbrk_init(uint32_t         heap_start, uint32_t         *heap_size_p)
+uintptr_t bsp_sbrk_init(
+  void              *heap_start,
+  uintptr_t         *heap_size_p
+)
 {
-  uint32_t         rval=0;
+  uintptr_t         rval=0;
+  uintptr_t         policy;
 
   remaining_start =  heap_start;
   remaining_size  = *heap_size_p;
@@ -102,29 +105,22 @@ _bsp_sbrk_init(uint32_t         heap_start, uint32_t         *heap_size_p)
 	remaining_size  = rval;
   }
 
-  if ( 0 != &BSP_sbrk_policy ) {
-  	switch ( BSP_sbrk_policy ) {
-		case (uint32_t)(-1):
+  policy = (0 == &BSP_sbrk_policy ? (uintptr_t)(-1) : BSP_sbrk_policy);
+  switch ( policy ) {
+		case (uintptr_t)(-1):
+			*heap_size_p    += rval;
 			remaining_start  = heap_start + *heap_size_p;
 			remaining_size   = 0;
-			/* return a nonzero sbrk_amount because the libsupport code
-			 * at some point divides by this number prior to trying an
-			 * sbrk() which will fail.
-			 */
-			rval = 1;
 		break;
 
 		case 0:
 			remaining_size = 0;
-			/* see above for why we return 1 */
-			rval = 1;
 		break;
 
 		default:
-			if ( rval > BSP_sbrk_policy )
-				rval = BSP_sbrk_policy;
+			if ( rval > policy )
+				rval = policy;
 		break;
-	}
   }
 
   return rval;
@@ -135,9 +131,9 @@ void * sbrk(ptrdiff_t incr)
   void *rval=(void*)-1;
 
   /* FIXME: BEWARE if size >2G */
-  if (incr <= remaining_size) {
+  if ( remaining_start != (void*)-1LL && incr <= remaining_size) {
     remaining_size-=incr;
-    rval = (void*)remaining_start;
+    rval = remaining_start;
     remaining_start += incr;
   } else {
     errno = ENOMEM;

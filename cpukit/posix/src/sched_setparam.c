@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: sched_setparam.c,v 1.1 2007/12/13 16:52:21 joel Exp $
+ *  $Id: sched_setparam.c,v 1.2 2009/01/02 10:04:24 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -26,8 +26,8 @@
 #include <rtems/posix/time.h>
 
 int sched_setparam(
-  pid_t                     pid,
-  const struct sched_param *param
+  pid_t                     pid __attribute__((unused)),
+  const struct sched_param *param __attribute__((unused))
 )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );

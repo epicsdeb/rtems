@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.3 2008/09/06 03:28:08 ralf Exp $
+ *  $Id: init.c,v 1.6 2009/11/30 03:33:25 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -28,6 +28,7 @@ rtems_task Init(
   rtems_task_argument argument
 )
 {
+  printk( "\n\n\n*** TEST FATAL " FATAL_ERROR_TEST_NAME " ***\n" );
   force_error();
   printk( "Fatal error (%s) NOT hit\n", FATAL_ERROR_DESCRIPTION );
   rtems_test_exit(0);
@@ -117,7 +118,7 @@ void Put_Source( uint32_t source )
 }
 
 
-rtems_extension Fatal_extension(
+void Fatal_extension(
   uint32_t   source,
   bool       is_internal,
   uint32_t   error
@@ -140,7 +141,7 @@ rtems_extension Fatal_extension(
     else
       printk( "ERROR==> Fatal Extension is internal set to FALSE expected TRUE\n" );
   }
-  
+
   if ( error !=  FATAL_ERROR_EXPECTED_ERROR ) {
     printk( "ERROR==> Fatal Error Expected (");
     Put_Error( source, FATAL_ERROR_EXPECTED_ERROR );

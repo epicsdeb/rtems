@@ -2,14 +2,14 @@
  *  Region Manager
  *
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: region.c,v 1.25 2007/05/11 20:07:47 joel Exp $
+ *  $Id: region.c,v 1.27 2009/01/06 05:02:25 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,6 +17,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/support.h>
 #include <rtems/score/object.h>
@@ -32,27 +33,25 @@
  *
  *  This routine initializes all region manager related data structures.
  *
- *  Input parameters:
- *    maximum_regions - number of regions to initialize
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _Region_Manager_initialization(
-  uint32_t   maximum_regions
-)
+void _Region_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_Region_Information,      /* object information table */
     OBJECTS_CLASSIC_API,       /* object API */
     OBJECTS_RTEMS_REGIONS,     /* object class */
-    maximum_regions,           /* maximum objects of this class */
+    Configuration_RTEMS_API.maximum_regions,
+                               /* maximum objects of this class */
     sizeof( Region_Control ),  /* size of this object's control block */
-    FALSE,                     /* TRUE if the name is a string */
+    false,                     /* true if the name is a string */
     RTEMS_MAXIMUM_NAME_LENGTH  /* maximum length of an object name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                     /* TRUE if this is a global object class */
+    false,                     /* true if this is a global object class */
     NULL                       /* Proxy extraction support callout */
 #endif
   );

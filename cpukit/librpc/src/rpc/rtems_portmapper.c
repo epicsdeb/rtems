@@ -27,6 +27,10 @@
  * Mountain View, California  94043
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <stdio.h>
@@ -360,8 +364,10 @@ xdr_rmtcall_result(
 static bool_t
 xdr_opaque_parms(
 	XDR *xdrs,
-	struct rmtcallargs *cap )
+	void *args,
+	... )
 {
+        struct rmtcallargs *cap = (struct rmtcallargs *) args;
 
 	return (xdr_opaque(xdrs, cap->rmt_args.args, cap->rmt_args.arglen));
 }
@@ -372,9 +378,11 @@ xdr_opaque_parms(
  */
 static bool_t
 xdr_len_opaque_parms(
-	register XDR *xdrs,
-	struct rmtcallargs *cap )
+	XDR *xdrs,
+	void *args, 
+	... )
 {
+        struct rmtcallargs *cap = (struct rmtcallargs *) args;
 	register u_int beginpos, lowpos, highpos, currpos, pos;
 
 	beginpos = lowpos = pos = xdr_getpos(xdrs);

@@ -14,14 +14,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.16 2008/09/05 22:05:11 joel Exp $
+ *  $Id: ckinit.c,v 1.17 2008/09/16 19:03:13 joel Exp $
  */
 
 #include <stdlib.h>			/* for atexit() */
 
 #include <bsp.h>
-#include <rtems/libio.h>
-
 #include <rtems/m68k/m68302.h>
 
 #define CLOCK_VECTOR 137

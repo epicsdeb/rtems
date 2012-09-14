@@ -12,11 +12,14 @@
  *
  *  Other POSIX facilities such as timers, condition, .. is also used
  *
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psxtimer.c,v 1.3 2008/08/19 14:46:51 joel Exp $
+ *  $Id: psxtimer.c,v 1.13 2009/11/30 03:33:23 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -29,6 +32,10 @@
 #include <stdio.h>    /* console facilities */
 #include <rtems/score/timespec.h>
 
+void StopTimer(
+  timer_t  timer_id,
+  struct   itimerspec *timerdata
+);
 
 /* temporal parameters of a task */
 
@@ -56,14 +63,25 @@ void StopTimer(
   struct   itimerspec *timerdata
 )
 {
-   timerdata->it_value.tv_sec  = 0;
-   timerdata->it_value.tv_nsec  = 0;
-   if (timer_settime(timer_id,POSIX_TIMER_RELATIVE,timerdata,NULL) == -1) {
-     perror ("Error in timer setting\n");
-     pthread_exit ((void *) -1);
-   }
+  static int         firstTime = 1;
+  struct itimerspec *pOld;
+  struct itimerspec  odata;
+
+  /*
+   *  We do not care about the old value.  But we need to exercise
+   *  getting and not getting the return value back.
+   */
+  pOld = (firstTime == 1) ? NULL : &odata;
+  firstTime = 0;
+
+  timerdata->it_value.tv_sec  = 0;
+  timerdata->it_value.tv_nsec  = 0;
+  if (timer_settime(timer_id,POSIX_TIMER_RELATIVE,timerdata,pOld) == -1) {
+    perror ("Error in timer setting\n");
+    rtems_test_exit(0);
+  }
 }
- 
+
 /* task A  */
 void * task_a (void *arg)
 {
@@ -86,7 +104,7 @@ void * task_a (void *arg)
    event.sigev_signo = my_sig;
    if (timer_create (CLOCK_REALTIME, &event, &timer_id) == -1) {
       perror ("Error in timer creation\n");
-      pthread_exit ((void *) -1);
+      rtems_test_exit(0);
     }
 
    /* block the timer signal */
@@ -100,14 +118,14 @@ void * task_a (void *arg)
    timerdata.it_value.tv_sec *= 2;
    if (timer_settime(timer_id,POSIX_TIMER_RELATIVE,&timerdata,&timergetdata) == -1) {
      perror ("Error in timer setting\n");
-     pthread_exit ((void *) -1);
+     rtems_test_exit(0);
    }
    printf(
-    "task A: timer_settime - value=%d:%d interval=%d:%d\n",
+    "task A: timer_settime - value=%" PRItime_t ":%ld interval=%" PRItime_t ":%ld\n",
     timergetdata.it_value.tv_sec, timergetdata.it_value.tv_nsec,
     timergetdata.it_interval.tv_sec, timergetdata.it_interval.tv_nsec
   );
-   
+
 
    /* periodic activity */
    while(1) {
@@ -116,7 +134,7 @@ void * task_a (void *arg)
      }
      if (timer_gettime(timer_id, &timerdata) == -1) {
        perror ("Error in timer_gettime\n");
-       pthread_exit ((void *) -1);
+       rtems_test_exit(0);
      }
      if (! _Timespec_Equal_to( &timerdata.it_value, &my_period )){
        perror ("Error in Task A timer_gettime\n");
@@ -135,6 +153,7 @@ void * task_a (void *arg)
 void * task_b (void *arg)
 {
    struct   timespec my_period;
+   struct   timespec now;
    int      my_sig, received_sig;
    struct   itimerspec timerdata;
    timer_t  timer_id;
@@ -153,7 +172,7 @@ void * task_b (void *arg)
    event.sigev_signo = my_sig;
    if (timer_create (CLOCK_REALTIME, &event, &timer_id) == -1) {
       perror ("Error in timer creation\n");
-      pthread_exit ((void *) -1);
+      rtems_test_exit(0);
     }
 
    /* block the timer signal */
@@ -162,33 +181,47 @@ void * task_b (void *arg)
    pthread_sigmask(SIG_BLOCK,&set,NULL);
 
    /* set the timer in periodic mode */
+   clock_gettime( CLOCK_REALTIME, &now );
    timerdata.it_interval = my_period;
-   timerdata.it_value = _TOD_Now;
-   _Timespec_Add_to( &timerdata.it_value, &my_period);
+   timerdata.it_value = now;
+   _Timespec_Add_to( &timerdata.it_value, &my_period );
    if (timer_settime(timer_id,TIMER_ABSTIME,&timerdata,NULL) == -1) {
      perror ("Error in timer setting\n");
-     pthread_exit ((void *) -1);
-   }     
+     rtems_test_exit(0);
+   }
 
    /* periodic activity */
    while(1) {
      if (sigwait(&set,&received_sig) == -1) {
        perror ("Error in sigwait\n");
-       pthread_exit ((void *) -1);
+       rtems_test_exit(0);
      }
- 
+
      if (timer_gettime(timer_id, &timerdata) == -1) {
        perror ("Error in timer_gettime\n");
-       pthread_exit ((void *) -1);
+       rtems_test_exit(0);
      }
-     if (! _Timespec_Equal_to( &timerdata.it_value, &my_period) ){
-       perror ("Error in Task B timer_gettime\n");
+
+#if 0
+     /*
+      *  It is not an error if they are not equal.  A clock tick could occur
+      *  and thus they are close but not equal.  Can we test for this?
+      */
+     if ( !_Timespec_Equal_to( &timerdata.it_value, &my_period) ){
+       printf( "NOT EQUAL %d:%d != %d:%d\n",
+          timerdata.it_value.tv_sec,
+          timerdata.it_value.tv_nsec,
+          my_period.tv_sec,
+          my_period.tv_nsec
+       );
+       rtems_test_exit(0);
      }
+#endif
 
      pthread_mutex_lock (&data.mutex);
      clock = time(NULL);
-     printf("Executing task B with count = %2i %s", 
-       params->count, ctime(&clock) 
+     printf("Executing task B with count = %2i %s",
+       params->count, ctime(&clock)
      );
      data.updated = TRUE;
      pthread_cond_signal  (&data.sync);
@@ -224,7 +257,7 @@ void * task_c (void *arg)
    event.sigev_signo = my_sig;
    if (timer_create (CLOCK_REALTIME, &event, &timer_id) == -1) {
       perror ("Error in timer creation\n");
-      pthread_exit ((void *) -1);
+      rtems_test_exit(0);
     }
 
    /* block the timer signal */
@@ -238,18 +271,18 @@ void * task_c (void *arg)
    timerdata.it_value.tv_sec *= 2;
    if (timer_settime(timer_id,POSIX_TIMER_RELATIVE,&timerdata,NULL) == -1) {
      perror ("Error in timer setting\n");
-     pthread_exit ((void *) -1);
+     rtems_test_exit(0);
    }
 
    /* periodic activity */
    for (count=0 ; ; count++) {
       if (sigwait(&set,&received_sig) == -1) {
        perror ("Error in sigwait\n");
-       pthread_exit ((void *) -1);
+       rtems_test_exit(0);
      }
      if (timer_gettime(timer_id, &timerdata) == -1) {
        perror ("Error in timer_gettime\n");
-       pthread_exit ((void *) -1);
+       rtems_test_exit(0);
      }
      if (! _Timespec_Equal_to( &timerdata.it_value, &my_period) ){
        perror ("Error in Task C timer_gettime\n");
@@ -259,8 +292,8 @@ void * task_c (void *arg)
        pthread_cond_wait (&data.sync,&data.mutex);
      }
      clock = time(NULL);
-     printf("Executing task C with count = %2i %s", 
-       params->count, ctime(&clock) 
+     printf("Executing task C with count = %2i %s",
+       params->count, ctime(&clock)
      );
 
      if ( count && (count % 5) == 0 ) {
@@ -268,13 +301,13 @@ void * task_c (void *arg)
        sleep(1);
        overruns = timer_getoverrun( timer_id );
        printf( "task C: timer_getoverrun - overruns=%d\n", overruns );
-      
+
        if (timer_gettime(timer_id, &timergetdata) == -1) {
 	 perror ("Error in timer setting\n");
-	 pthread_exit ((void *) -1);
+         rtems_test_exit(0);
        }
        printf(
-         "task C: timer_gettime - %d:%d remaining from %d:%d\n",
+         "task C: timer_gettime - %" PRItime_t ":%ld remaining from %" PRItime_t ":%ld\n",
          timergetdata.it_value.tv_sec, timergetdata.it_value.tv_nsec,
          timergetdata.it_interval.tv_sec, timergetdata.it_interval.tv_nsec
        );
@@ -298,11 +331,11 @@ void *POSIX_Init (
    pthread_mutexattr_t mutexattr;    /* mutex attributes */
    pthread_condattr_t  condattr;     /* condition attributes */
    pthread_attr_t attr;              /* task attributes */
-   pthread_t ta,tb,tc;               /* threads */
+   pthread_t ta,tb,tc, tc1;          /* threads */
    sigset_t  set;                    /* signals */
 
    struct sched_param sch_param;     /* schedule parameters */
-   struct periodic_params params_a, params_b, params_c;
+   struct periodic_params params_a, params_b, params_c, params_c1;
 
    puts( "\n\n*** POSIX Timers Test 01 ***" );
 
@@ -403,9 +436,21 @@ void *POSIX_Init (
      perror ("Error in thread create for task c\n");
    }
 
-
    /* execute 25 seconds and finish */
    sleep (25);
+
+   puts( "starting C again with 0.5 second periodicity" );
+   /* Temporal parameters (0.5 sec. periodicity) */
+   params_c1.period.tv_sec  = 0;         /* seconds */
+   params_c1.period.tv_nsec = 500000000; /* nanoseconds */
+   params_c1.count          = 6;
+   params_c1.signo = SIGALRM;
+   if (pthread_create (&tc1, &attr, task_c, &params_c1) != 0) {
+     perror ("Error in thread create for task c1\n");
+   }
+
+   sleep(5);
+
    puts( "*** END OF POSIX Timers Test 01 ***" );
    rtems_test_exit (0);
  }

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mallocfreespace.c,v 1.9 2007/12/17 22:36:45 joel Exp $
+ *  $Id: mallocfreespace.c,v 1.10 2008/09/17 18:37:55 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <string.h>
 
-extern Heap_Control  RTEMS_Malloc_Heap;
+#include "malloc_p.h"
 
 /*
  *  Find amount of free heap remaining
@@ -38,6 +38,6 @@ size_t malloc_free_space( void )
 {
   Heap_Information info;
 
-  _Protected_heap_Get_free_information( &RTEMS_Malloc_Heap, &info );
+  _Protected_heap_Get_free_information( RTEMS_Malloc_Heap, &info );
   return (size_t) info.largest;
 }

@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: sta_tsk.c,v 1.11 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: sta_tsk.c,v 1.12 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,7 @@
 
 ER sta_tsk(
   ID   tskid,
-  INT  stacd
+  INT  stacd __attribute__((unused))
 )
 {
   register Thread_Control *the_thread;

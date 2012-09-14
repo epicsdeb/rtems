@@ -29,7 +29,7 @@
 | *  http://www.rtems.com/license/LICENSE.
 | **************************************************************************
 |
-|  $Id: console.c,v 1.22 2008/05/23 15:48:34 joel Exp $
+|  $Id: console.c,v 1.25 2009/12/10 13:56:21 ralf Exp $
 +--------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -43,6 +43,7 @@
 #include <termios.h>
 #include <uart.h>
 #include <libcpu/cpuModel.h>
+#include <rtems/termiostypes.h>
 
 /*
  * Possible value for console input/output :
@@ -278,7 +279,7 @@ conSetAttr(int minor, const struct termios *t)
 {
   int baud;
 
-  baud = termios_baud_to_number(t->c_cflag & CBAUD);
+  baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
   if ( baud > 115200 )
     rtems_fatal_error_occurred (RTEMS_INTERNAL_ERROR);
 
@@ -291,11 +292,9 @@ conSetAttr(int minor, const struct termios *t)
  * BSP initialization
  */
 
-BSP_output_char_function_type BSP_output_char =
-                       (BSP_output_char_function_type)    BSP_output_char_via_serial;
+BSP_output_char_function_type BSP_output_char = BSP_output_char_via_serial;
 
-BSP_polling_getchar_function_type BSP_poll_char =
-                      (BSP_polling_getchar_function_type) BSP_poll_char_via_serial;
+BSP_polling_getchar_function_type BSP_poll_char = BSP_poll_char_via_serial;
 
 int BSP_poll_read(int ttyMinor){
 

@@ -1,5 +1,5 @@
 /*
- *  $Id: tftp.h,v 1.6 2007/12/17 00:12:01 ccj Exp $
+ *  $Id: tftp.h,v 1.7.2.1 2010/07/01 15:01:11 sh Exp $
  */
 
 /*
@@ -20,7 +20,8 @@
  * To open `/bootfiles/image' on `hostname' for reading:
  *         fd = open ("/TFTP/hostname/bootfiles/image", O_RDONLY);
  *
- * The `hostname' must be four dot-separated decimal values.
+ * The 'TFTP' is the mount path and the `hostname' must be four dot-separated
+ * decimal values.
  */
 
 #ifndef _RTEMS_TFTP_H
@@ -33,16 +34,9 @@ extern "C" {
 #include <rtems/libio.h>
 
 /*
- * Filesystem initialization routine
+ * Filesystem Mount table entry.
  */
-
-int rtems_bsdnet_initialize_tftp_filesystem( void );
-
-/*
- * TFTP file system operations table.
- */
-
-extern rtems_filesystem_operations_table  rtems_tftp_ops;
+int rtems_tftpfs_initialize(rtems_filesystem_mount_table_entry_t *temp_mt_entry);
 
 #ifdef __cplusplus
 }

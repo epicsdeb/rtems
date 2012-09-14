@@ -1,7 +1,7 @@
 /*
  * ide_ctrl_cfg.h
  *
- * LibChip library IDE controller header file - structures used for 
+ * LibChip library IDE controller header file - structures used for
  * configuration and plugin interface definition.
  *
  * Copyright (C) 2002 OKTET Ltd., St.-Petersburg, Russia
@@ -11,7 +11,7 @@
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.com/license/LICENSE.
  *
- * $Id: ide_ctrl_cfg.h,v 1.9 2008/09/07 03:35:29 ralf Exp $
+ * $Id: ide_ctrl_cfg.h,v 1.11 2009/11/30 03:42:53 ralf Exp $
  */
 #ifndef __IDE_CTRL_CFG_H__
 #define __IDE_CTRL_CFG_H__
@@ -73,10 +73,10 @@ typedef struct ide_ctrl_fns_s {
      * The function allows to escape overhead for read/write register
      * functions calls
      */
-    void  (*ctrl_read_block)(int minor, uint16_t   block_size,
+    void  (*ctrl_read_block)(int minor, uint32_t   block_size,
                              rtems_blkdev_sg_buffer *bufs, uint32_t   *cbuf,
                              uint32_t   *pos);
-    void  (*ctrl_write_block)(int minor, uint16_t   block_size,
+    void  (*ctrl_write_block)(int minor, uint32_t   block_size,
                               rtems_blkdev_sg_buffer *bufs, uint32_t   *cbuf,
                               uint32_t   *pos);
 

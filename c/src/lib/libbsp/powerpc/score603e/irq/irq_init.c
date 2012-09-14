@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_init.c,v 1.6.2.1 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: irq_init.c,v 1.10 2009/11/30 04:33:54 ralf Exp $
  */
 
 #include <libcpu/io.h>
@@ -24,12 +24,12 @@
 #include <bsp/residual.h>
 #include <bsp/irq.h>
 #include <bsp.h>
-#include <libcpu/raw_exception.h>
+#include <bsp/vectors.h>
 #include <rtems/bspIo.h>
 
 #define SHOW_ISA_PCI_BRIDGE_SETTINGS 1
 #define SCAN_PCI_PRINT               1
-#define TRACE_IRQ_INIT               0 
+#define TRACE_IRQ_INIT               0
 
 typedef struct {
   unsigned char bus;	/* few chance the PCI/ISA bridge is not on first bus but ... */

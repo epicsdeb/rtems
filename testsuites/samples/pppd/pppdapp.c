@@ -1,4 +1,8 @@
 
+#include <bsp.h>
+
+#if !BSP_SMALL_MEMORY
+
 #include <stdio.h>
 #include <rtems/rtemspppd.h>
 #include "system.h"
@@ -86,7 +90,7 @@ static rtems_task pppdapp(rtems_task_argument arg)
   rtems_event_set     out;
 
   /* initialize ticks per second */
-  rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &tickspersecond);
+  tickspersecond = rtems_clock_get_ticks_per_second();
   if ( tickspersecond == 0 ) {
     /* ensure value is greater than zero */
     tickspersecond = 100;
@@ -144,3 +148,5 @@ int pppdapp_initialize(void)
 
   return ( iReturn );
 }
+
+#endif

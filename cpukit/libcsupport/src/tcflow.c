@@ -8,25 +8,20 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tcflow.c,v 1.5 2003/09/04 18:54:13 joel Exp $
+ *  $Id: tcflow.c,v 1.8 2009/11/29 13:35:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems.h>
 #if defined(RTEMS_NEWLIB)
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
 #include <termios.h>
-/* #include <sys/ioctl.h> */
+#include <unistd.h>
 
-#include <rtems/libio.h>
-
-int tcflow (int fd, int action)
+int tcflow (
+  int fd __attribute__((unused)),
+  int action __attribute__((unused)))
 {
   return 0;
 }

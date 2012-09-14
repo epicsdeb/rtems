@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: intrcatch.c,v 1.4 2005/01/18 09:03:43 ralf Exp $
+ *  $Id: intrcatch.c,v 1.5 2009/08/05 15:36:49 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -20,6 +20,8 @@
 #include <rtems/rtems/status.h>
 #include <rtems/score/isr.h>
 #include <rtems/rtems/intr.h>
+
+#if (CPU_SIMPLE_VECTORED_INTERRUPTS == TRUE)
 
 /*  rtems_interrupt_catch
  *
@@ -56,3 +58,4 @@ rtems_status_code rtems_interrupt_catch(
 
   return RTEMS_SUCCESSFUL;
 }
+#endif

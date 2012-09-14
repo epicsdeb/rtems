@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.26 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.30 2009/11/01 04:10:20 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -55,6 +54,10 @@ uint32_t   thread_get_time;
 uint32_t   semaphore_get_time;
 uint32_t   thread_get_invalid_time;
 
+rtems_task null_task(
+  rtems_task_argument argument
+);
+
 rtems_task High_task(
   rtems_task_argument argument
 );
@@ -95,9 +98,10 @@ rtems_task Init(
 
   puts( "\n\n*** TIME TEST 26 ***" );
 
+#define FP1_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 3u)      /* 201, */
   status = rtems_task_create(
     rtems_build_name( 'F', 'P', '1', ' ' ),
-    201,
+    FP1_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_FLOATING_POINT,
@@ -108,9 +112,10 @@ rtems_task Init(
   status = rtems_task_start( task_id, Floating_point_task_1, 0 );
   directive_failed( status, "rtems_task_start of FP1" );
 
+#define FP2_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 2u)      /* 202, */
   status = rtems_task_create(
     rtems_build_name( 'F', 'P', '2', ' ' ),
-    202,
+    FP2_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_FLOATING_POINT,
@@ -121,9 +126,10 @@ rtems_task Init(
   status = rtems_task_start( task_id, Floating_point_task_2, 0 );
   directive_failed( status, "rtems_task_start of FP2" );
 
+#define LOW_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 4u)   /*  200, */
   status = rtems_task_create(
     rtems_build_name( 'L', 'O', 'W', ' ' ),
-    200,
+    LOW_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -134,9 +140,10 @@ rtems_task Init(
   status = rtems_task_start( task_id, Low_task, 0 );
   directive_failed( status, "rtems_task_start of LOW" );
 
+#define MIDDLE_PRIORITY (RTEMS_MAXIMUM_PRIORITY - 5u)   /*  128, */
   status = rtems_task_create(
     rtems_build_name( 'M', 'I', 'D', ' ' ),
-    128,
+    MIDDLE_PRIORITY,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -172,7 +179,7 @@ rtems_task Init(
   for ( index = 1 ; index <= OPERATION_COUNT ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'N', 'U', 'L', 'L' ),
-      254,
+      RTEMS_MAXIMUM_PRIORITY - 1u,      /* 254, */
       RTEMS_MINIMUM_STACK_SIZE,
       RTEMS_DEFAULT_MODES,
       RTEMS_DEFAULT_ATTRIBUTES,
@@ -218,7 +225,7 @@ rtems_task High_task(
     _Thread_Set_state( _Thread_Executing, STATES_SUSPENDED );
   thread_set_state_time = benchmark_timer_read();
 
-  _Context_Switch_necessary = TRUE;
+  _Context_Switch_necessary = true;
 
   benchmark_timer_initialize();
     _Thread_Dispatch();           /* dispatches Middle_task */
@@ -235,11 +242,11 @@ rtems_task Middle_task(
   Middle_tcb   = _Thread_Executing;
 
   _Thread_Executing =
-        (Thread_Control *) _Thread_Ready_chain[200].first;
+        (Thread_Control *) _Thread_Ready_chain[LOW_PRIORITY].first;
 
   /* do not force context switch */
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Disable_dispatch();
 
@@ -272,11 +279,11 @@ rtems_task Low_task(
   context_switch_another_task_time = benchmark_timer_read();
 
   _Thread_Executing =
-        (Thread_Control *) _Thread_Ready_chain[201].first;
+        (Thread_Control *) _Thread_Ready_chain[FP1_PRIORITY].first;
 
   /* do not force context switch */
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Disable_dispatch();
 
@@ -299,11 +306,11 @@ rtems_task Floating_point_task_1(
   executing = _Thread_Executing;
 
   _Thread_Executing =
-        (Thread_Control *) _Thread_Ready_chain[202].first;
+        (Thread_Control *) _Thread_Ready_chain[FP2_PRIORITY].first;
 
   /* do not force context switch */
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Disable_dispatch();
 
@@ -322,11 +329,11 @@ rtems_task Floating_point_task_1(
   executing = _Thread_Executing;
 
   _Thread_Executing =
-       (Thread_Control *) _Thread_Ready_chain[202].first;
+       (Thread_Control *) _Thread_Ready_chain[FP2_PRIORITY].first;
 
   /* do not force context switch */
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Disable_dispatch();
 
@@ -351,13 +358,13 @@ rtems_task Floating_point_task_2(
   executing = _Thread_Executing;
 
   _Thread_Executing =
-       (Thread_Control *) _Thread_Ready_chain[201].first;
+       (Thread_Control *) _Thread_Ready_chain[FP1_PRIORITY].first;
 
   FP_LOAD( 1.0 );
 
   /* do not force context switch */
 
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
 
   _Thread_Disable_dispatch();
 
@@ -380,7 +387,7 @@ void complete_test( void )
   rtems_id          task_id;
 
   benchmark_timer_initialize();
-    _Thread_Resume( Middle_tcb, TRUE );
+    _Thread_Resume( Middle_tcb, true );
   thread_resume_time = benchmark_timer_read();
 
   _Thread_Set_state( Middle_tcb, STATES_WAITING_FOR_MESSAGE );
@@ -423,7 +430,7 @@ void complete_test( void )
    */
 
   _Thread_Heir = _Thread_Executing;
-  _Context_Switch_necessary = FALSE;
+  _Context_Switch_necessary = false;
   _Thread_Dispatch_disable_level = 0;
 
   /*
@@ -479,7 +486,7 @@ void complete_test( void )
   );
 
   put_time(
-    "_Thread_Disptach (NO FP)",
+    "_Thread_Dispatch (NO FP)",
     thread_dispatch_no_fp_time,
     1,
     0,

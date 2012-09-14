@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: watchdogadjust.c,v 1.6 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: watchdogadjust.c,v 1.7 2008/11/25 22:29:58 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -68,11 +68,11 @@ void _Watchdog_Adjust(
             units -= _Watchdog_First( header )->delta_interval;
             _Watchdog_First( header )->delta_interval = 1;
 
-			_ISR_Enable( level );
+            _ISR_Enable( level );
 
             _Watchdog_Tickle( header );
 
-			_ISR_Disable( level );
+            _ISR_Disable( level );
 
             if ( _Chain_Is_empty( header ) )
               break;

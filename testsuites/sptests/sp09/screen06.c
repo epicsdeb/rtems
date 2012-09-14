@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen06.c,v 1.9 2007/10/18 19:49:46 humph Exp $
+ *  $Id: screen06.c,v 1.10 2009/08/12 20:50:43 joel Exp $
  */
 
 #include "system.h"
@@ -58,7 +58,7 @@ void Screen6()
   status = rtems_semaphore_obtain(
     Semaphore_id[ 1 ],
     RTEMS_DEFAULT_OPTIONS,
-    3 * TICKS_PER_SECOND
+    3 * rtems_clock_get_ticks_per_second()
   );
   fatal_directive_status(
     status,

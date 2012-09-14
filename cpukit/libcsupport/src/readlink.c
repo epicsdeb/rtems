@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: readlink.c,v 1.12 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: readlink.c,v 1.13 2009/06/12 01:53:32 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,8 @@ ssize_t readlink(
   if (!buf)
     rtems_set_errno_and_return_minus_one( EFAULT );
 
-  result = rtems_filesystem_evaluate_path( pathname, 0, &loc, false );
+  result = rtems_filesystem_evaluate_path( pathname, strlen( pathname ),
+                                           0, &loc, false );
   if ( result != 0 )
      return -1;
 

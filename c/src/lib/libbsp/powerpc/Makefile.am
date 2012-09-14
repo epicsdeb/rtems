@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.23 2007/12/11 07:49:00 strauman Exp $
+## $Id: Makefile.am,v 1.25 2009/11/28 06:24:47 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../aclocal
@@ -51,7 +51,7 @@ EXTRA_DIST += shared/residual/residual.c
 EXTRA_DIST += shared/openpic/openpic.c
 
 ## shared/irq
-EXTRA_DIST += shared/irq/i8259.c shared/irq/irq.c shared/irq/irq_init.c \
+EXTRA_DIST += shared/irq/i8259.c shared/irq/irq_init.c \
 	shared/irq/irq_asm.S shared/irq/openpic_i8259_irq.c
 
 ## shared/start
@@ -71,7 +71,7 @@ EXTRA_DIST += shared/vectors/vectors_init.c shared/vectors/vectors.S
 
 ## shared/vme
 EXTRA_DIST += shared/vme/vmeconfig.c shared/vme/VMEConfig.h
-	shared/vme/README shared/vme/vme_universe.c 
+	shared/vme/README shared/vme/vme_universe.c
 
 include $(top_srcdir)/../../../automake/subdirs.am
 include $(top_srcdir)/../../../automake/local.am

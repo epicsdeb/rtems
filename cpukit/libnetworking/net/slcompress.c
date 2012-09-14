@@ -39,9 +39,11 @@
  *
  */
 
-#if defined(__rtems__)
-#include <rtems/stdint.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
+
+#include <stdint.h>
 
 #include <sys/param.h>
 #include <sys/mbuf.h>

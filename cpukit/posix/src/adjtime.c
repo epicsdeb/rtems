@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: adjtime.c,v 1.4 2007/12/13 14:39:27 joel Exp $
+ *  $Id: adjtime.c,v 1.5 2008/12/16 17:35:58 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -26,6 +26,7 @@
 #include <errno.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/seterr.h>
 #include <rtems/score/tod.h>
 #include <rtems/posix/time.h>
@@ -65,7 +66,7 @@ int  adjtime(
   adjustment += delta->tv_usec;
 
   /* too small to account for */
-  if ( adjustment < _TOD_Microseconds_per_tick )
+  if ( adjustment < rtems_configuration_get_microseconds_per_tick() )
     return 0;
 
   /*

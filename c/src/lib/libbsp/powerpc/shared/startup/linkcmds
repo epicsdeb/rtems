@@ -105,8 +105,9 @@ _SDA2_BASE_ = __SDATA2_START__ + 0x8000;
                          * which may be important if run-time loading is used
                          */
                      . += 1;
+                     PROVIDE (__SBSS2_END__ = .);
                     } >CODE
-  .eh_frame	  : { *.(eh_frame)		} >CODE
+  .eh_frame	  : { *(.eh_frame)		} >CODE
 
   /* NOTE: if the BSP uses page tables, the correctness of
    *       '_etext' (and __DATA_START__) is CRUCIAL - otherwise,
@@ -211,6 +212,7 @@ _SDA_BASE_ = __SDATA_START__ + 0x8000;
      * which may be important if run-time loading is used
      */
     . += 1;
+    PROVIDE (__SBSS_END__ = .);
     PROVIDE (__sbss_end = .);
   } > CODE
   .plt   : { *(.plt) }	> CODE
@@ -224,6 +226,8 @@ _SDA_BASE_ = __SDATA_START__ + 0x8000;
    PROVIDE (__bss_end = .);
   } > CODE
   . = ALIGN(16);
+  . += 0x1000;
+  __stack = .;
   _end = . ;
   __rtems_end = . ;
   PROVIDE (end = .);

@@ -1,14 +1,14 @@
 /*
  *  fchmod() - POSIX 1003.1b 5.6.4 - Change File Modes
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fchmod.c,v 1.12 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: fchmod.c,v 1.12.8.1 2011/07/19 13:14:09 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -38,9 +38,6 @@ int fchmod(
   /*
    *  Now process the fchmod().
    */
-
-  rtems_libio_check_permissions( iop, LIBIO_FLAGS_WRITE );
-
   if ( !iop->handlers->fchmod_h )
     rtems_set_errno_and_return_minus_one( ENOTSUP );
 

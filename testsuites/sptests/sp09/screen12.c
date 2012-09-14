@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen12.c,v 1.15 2008/01/07 15:26:46 joel Exp $
+ *  $Id: screen12.c,v 1.21 2009/10/27 11:32:04 ralf Exp $
  */
 
 #include "system.h"
@@ -26,7 +26,7 @@ void Screen12()
   uint32_t                good_back_flag;
   uint32_t                good_front_flag;
   uint32_t                offset;
-  size_t                  segment_size;
+  uintptr_t               segment_size;
   rtems_status_code       status;
   Heap_Information_block  the_info;
 
@@ -127,6 +127,20 @@ void Screen12()
   directive_failed( status, "rtems_region_create" );
   puts( "TA1 - rtems_region_create - RTEMS_SUCCESSFUL" );
 
+  /* extend NULL address */
+  status = rtems_region_extend(
+    Region_id[ 1 ],
+    NULL,
+    REGION_LENGTH - 1
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_region_extend with NULL"
+  );
+  puts( "TA1 - rtems_region_extend - NULL address - RTEMS_INVALID_ADDRESS" );
+
+  /* extend within heap */
   status = rtems_region_extend(
     Region_id[ 1 ],
     &Region_good_area[ REGION_START_OFFSET ],
@@ -162,7 +176,7 @@ void Screen12()
   );
   puts( "TA1 - rtems_region_delete - unknown RTEMS_INVALID_ID" );
 
-  status = rtems_region_delete( 0x10100 );
+  status = rtems_region_delete( rtems_build_id( 1, 1, 1, 256 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,
@@ -212,6 +226,7 @@ void Screen12()
   );
   puts( "TA1 - rtems_region_get_free_information - unknown RTEMS_INVALID_ID" );
 
+  /* get segment illegal id */
   status = rtems_region_get_segment(
     100,
     0x40,
@@ -226,6 +241,37 @@ void Screen12()
   );
   puts( "TA1 - rtems_region_get_segment - RTEMS_INVALID_ID" );
 
+  /* get_segment with NULL param */
+  status = rtems_region_get_segment(
+     Region_id[ 1 ],
+     2,
+     RTEMS_DEFAULT_OPTIONS,
+     RTEMS_NO_TIMEOUT,
+     NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_region_get_segment with NULL param"
+  );
+  puts( "TA1 - rtems_region_get_segment - RTEMS_INVALID_ADDRESS" );
+
+  /* get_segment with illegal 0 size */
+  status = rtems_region_get_segment(
+     Region_id[ 1 ],
+     0,
+     RTEMS_DEFAULT_OPTIONS,
+     RTEMS_NO_TIMEOUT,
+     &segment_address_1
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_SIZE,
+    "rtems_region_get_segment with 0 size"
+  );
+  puts( "TA1 - rtems_region_get_segment - 0 size - RTEMS_INVALID_SIZE" );
+
+  /* get_segment with illegal big size */
   status = rtems_region_get_segment(
      Region_id[ 1 ],
      sizeof( Region_good_area ) * 2,
@@ -236,9 +282,9 @@ void Screen12()
   fatal_directive_status(
     status,
     RTEMS_INVALID_SIZE,
-    "rtems_region_get_segment with illegal size"
+    "rtems_region_get_segment with big size"
   );
-  puts( "TA1 - rtems_region_get_segment - RTEMS_INVALID_SIZE" );
+  puts( "TA1 - rtems_region_get_segment - too big - RTEMS_INVALID_SIZE" );
 
   status = rtems_region_get_segment(
      Region_id[ 1 ],
@@ -269,7 +315,7 @@ void Screen12()
     Region_id[ 1 ],
     128,
     RTEMS_DEFAULT_OPTIONS,
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     &segment_address_3
   );
   fatal_directive_status(

@@ -1,11 +1,11 @@
 ##
-## $Id: Makefile.am,v 1.23 2006/07/11 04:50:25 ralf Exp $
+## $Id: Makefile.am,v 1.24 2009/04/03 12:44:41 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = psx13.exe
-psx13_exe_SOURCES = main.c test.c ../include/pmacros.h
+rtems_tests_PROGRAMS = psx13
+psx13_SOURCES = main.c test.c ../include/pmacros.h
 
 dist_rtems_tests_DATA = psx13.scn
 
@@ -13,16 +13,16 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-psx13_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+psx13_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
 AM_CPPFLAGS += -I$(top_srcdir)/include
 AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(psx13_exe_OBJECTS) $(psx13_exe_LDADD)
-LINK_LIBS = $(psx13_exe_LDLIBS)
+LINK_OBJS = $(psx13_OBJECTS) $(psx13_LDADD)
+LINK_LIBS = $(psx13_LDLIBS)
 
-psx13.exe$(EXEEXT): $(psx13_exe_OBJECTS) $(psx13_exe_DEPENDENCIES)
-	@rm -f psx13.exe$(EXEEXT)
+psx13$(EXEEXT): $(psx13_OBJECTS) $(psx13_DEPENDENCIES)
+	@rm -f psx13$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

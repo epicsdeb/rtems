@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen02.c,v 1.10 2007/12/13 21:45:23 joel Exp $
+ *  $Id: screen02.c,v 1.15 2009/09/28 23:07:56 joel Exp $
  */
 
 #include "system.h"
@@ -25,49 +25,110 @@ void Screen2()
   struct timeval    tv;
   rtems_status_code status;
 
+  puts( "TA1 - rtems_clock_get_tod - RTEMS_INVALID_ADDRESS" );
+  status = rtems_clock_get_tod( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get_tod NULL param"
+  );
+
 /* errors before clock is set */
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_clock_get_tod( &time );
   if ( status == RTEMS_SUCCESSFUL ) {
     puts(
-     "TA1 - rtems_clock_get - RTEMS_NOT_DEFINED -- DID BSP SET THE TIME OF DAY?"
+     "TA1 - rtems_clock_get_tod - RTEMS_NOT_DEFINED -- "
+         "DID BSP SET THE TIME OF DAY?"
     );
   } else {
     fatal_directive_status(
       status,
       RTEMS_NOT_DEFINED,
-      "rtems_clock_get before clock is set #1"
+      "rtems_clock_get_tod before clock is set #1"
     );
-    puts( "TA1 - rtems_clock_get - TOD - RTEMS_NOT_DEFINED" );
+    puts( "TA1 - rtems_clock_get_tod - RTEMS_NOT_DEFINED" );
   }
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_SECONDS_SINCE_EPOCH, &interval );
+  puts( "TA1 - rtems_clock_get_seconds_since_epoch - RTEMS_INVALID_ADDRESS" );
+  status = rtems_clock_get_seconds_since_epoch( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get_seconds_since_epoch NULL param"
+  );
+
+  status = rtems_clock_get_seconds_since_epoch( &interval );
   if ( status == RTEMS_SUCCESSFUL ) {
     puts(
-     "TA1 - rtems_clock_get - RTEMS_NOT_DEFINED -- DID BSP SET THE TIME OF DAY?"
+     "TA1 - rtems_clock_get_seconds_since_epoch - RTEMS_NOT_DEFINED -- "
+         "DID BSP SET THE TIME OF DAY?"
     );
   } else {
     fatal_directive_status(
       status,
       RTEMS_NOT_DEFINED,
-      "rtems_clock_get before clock is set #2"
+      "rtems_clock_get_seconds_before_epoch"
     );
-    puts( "TA1 - rtems_clock_get - SECONDS SINCE EPOCH - RTEMS_NOT_DEFINED" );
+    puts( "TA1 - rtems_clock_get_seconds_since_epoch - RTEMS_NOT_DEFINED" );
   }
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TIME_VALUE, &tv );
+  puts( "TA1 - rtems_clock_get_uptime - RTEMS_INVALID_ADDRESS" );
+  status = rtems_clock_get_uptime( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get_uptime NULL param"
+  );
+
+  puts( "TA1 - rtems_clock_get_tod_timeval - RTEMS_INVALID_ADDRESS" );
+  status = rtems_clock_get_tod_timeval( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get_tod_timeval NULL param"
+  );
+
+  status = rtems_clock_get_tod_timeval( &tv );
   if ( status == RTEMS_SUCCESSFUL ) {
     puts(
-     "TA1 - rtems_clock_get - RTEMS_NOT_DEFINED -- DID BSP SET THE TIME OF DAY?"
+     "TA1 - rtems_clock_get_tod_timeval - RTEMS_NOT_DEFINED -- "
+         "DID BSP SET THE TIME OF DAY?"
     );
   } else {
     fatal_directive_status(
       status,
       RTEMS_NOT_DEFINED,
-      "rtems_clock_get before clock is set #3"
+      "rtems_clock_get_timeval"
     );
-    puts( "TA1 - rtems_clock_get - TIME VALUE - RTEMS_NOT_DEFINED" );
+    puts( "TA1 - rtems_clock_get_tod_timeval - RTEMS_NOT_DEFINED" );
   }
+
+  puts( "TA1 - rtems_clock_set_nanoseconds_extension - RTEMS_INVALID_ADDRESS" );
+  status = rtems_clock_set_nanoseconds_extension( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_set_nanoseconds_extension NULL param"
+  );
+
+  /* NULL parameter */
+  status = rtems_clock_set( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get sull pointer"
+  );
+  puts( "TA1 - rtems_clock_set - RTEMS_INVALID_ADDRESS" );
+
+  /* NULL parameter */
+  status = rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_clock_get null pointer"
+  );
+  puts( "TA1 - rtems_clock_get - RTEMS_INVALID_ADDRESS" );
 
   /* arbitrary bad value for switch */
   status = rtems_clock_get( 0x100, &tv );
@@ -78,10 +139,21 @@ void Screen2()
   );
   puts( "TA1 - rtems_clock_get - RTEMS_INVALID_NUMBER" );
 
+  /* wake when NULL param */
+  status = rtems_task_wake_when( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_NOT_DEFINED,
+    "rtems_task_wake_when NULL param"
+  );
+  puts( "TA1 - rtems_task_wake_when - RTEMS_INVALID_ADDRESS" );
+
+  /* wake when before set */
   status = rtems_task_wake_when( &time );
   if ( status == RTEMS_SUCCESSFUL ) {
     puts(
-"TA1 - rtems_task_wake_when - RTEMS_NOT_DEFINED -- DID BSP SET THE TIME OF DAY?"
+     "TA1 - rtems_clock_get - RTEMS_NOT_DEFINED -- "
+         "DID BSP SET THE TIME OF DAY?"
     );
   } else {
     fatal_directive_status(
@@ -92,6 +164,7 @@ void Screen2()
     puts( "TA1 - rtems_task_wake_when - RTEMS_NOT_DEFINED" );
   }
 
+  /* before time set */
   status = rtems_timer_fire_when( 0, &time, Delayed_routine, NULL );
   if ( status == RTEMS_SUCCESSFUL ) {
     puts(
@@ -166,7 +239,10 @@ void Screen2()
   );
   puts( " - RTEMS_INVALID_CLOCK" );
 
-  build_time( &time, 2, 5, 1988, 8, 30, 45, TICKS_PER_SECOND + 1 );
+  build_time(
+    &time, 2, 5, 1988, 8, 30, 45,
+    rtems_clock_get_ticks_per_second() + 1
+  );
   print_time( "TA1 - rtems_clock_set - ", &time, "" );
   status = rtems_clock_set( &time );
   fatal_directive_status(
@@ -184,10 +260,24 @@ void Screen2()
 
 /* rtems_task_wake_when */
 
-  build_time( &time, 2, 5, 1988, 8, 30, 48, TICKS_PER_SECOND + 1 );
+  build_time(
+    &time,
+    2, 5, 1988, 8, 30, 48,
+    rtems_clock_get_ticks_per_second() + 1
+  );
   time.second += 3;
   puts( "TA1 - rtems_task_wake_when - TICKINVALID - sleep about 3 seconds" );
 
+  /* NULL time */
+  status = rtems_task_wake_when( NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_task_wake_when with NULL"
+  );
+  puts( "TA1 - rtems_task_wake_when - RTEMS_INVALID_ADDRESS" );
+
+  /* invalid ticks */
   status = rtems_task_wake_when( &time );
   directive_failed(
     status,
@@ -215,7 +305,7 @@ void Screen2()
   );
   puts( " - RTEMS_INVALID_CLOCK" );
 
-  rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  rtems_clock_get_tod( &time );
   print_time( "TA1 - current time - ", &time, "\n" );
 
   time.month = 1;

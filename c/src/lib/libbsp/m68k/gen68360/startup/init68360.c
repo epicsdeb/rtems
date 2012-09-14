@@ -7,13 +7,16 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@skatter.usask.ca
  *
- *  $Id: init68360.c,v 1.25 2008/07/11 10:00:41 thomas Exp $
+ *  $Id: init68360.c,v 1.28 2010/04/28 19:16:22 joel Exp $
  */
 
 #include <rtems.h>
 #include <bsp.h>
 #include <rtems/m68k/m68360.h>
 
+extern void _CopyDataClearBSSAndStart (unsigned long ramSize);
+extern void *RamBase;
+extern void *_RomBase;	/* From linkcmds */
 
 /*
  * Declare the m360 structure here for the benefit of the debugger
@@ -44,9 +47,6 @@ void _Init68360 (void)
 	int i;
 	m68k_isr_entry *vbr;
 	unsigned long ramSize;
-	extern void _CopyDataClearBSSAndStart (unsigned long ramSize);
-	extern char _RamBase[];
-	extern void *_RomBase;	/* From linkcmds */
 
 #if (defined (__mc68040__))
 	/*
@@ -146,13 +146,13 @@ void _Init68360 (void)
 	m360.memc[1].or = M360_MEMC_OR_TCYC(0) |
 					M360_MEMC_OR_1MB |
 					M360_MEMC_OR_DRAM;
-	m360.memc[1].br = (unsigned long)&_RamBase |
+	m360.memc[1].br = (unsigned long)&RamBase |
 					M360_MEMC_BR_BACK40 |
 					M360_MEMC_BR_V;
 	for (i = 0; i < 50000; i++)
 		continue;
 	for (i = 0; i < 8; ++i)
-		*((volatile unsigned long *)(unsigned long)&_RamBase);
+		*((volatile unsigned long *)(unsigned long)&RamBase);
 
 	/*
 	 * Step 13: Copy  the exception vector table to system RAM
@@ -284,12 +284,12 @@ void _Init68360 (void)
 	/* first bank 1MByte DRAM */
 	m360.memc[1].or = M360_MEMC_OR_TCYC(2) | M360_MEMC_OR_1MB |
 					M360_MEMC_OR_PGME | M360_MEMC_OR_DRAM;
-	m360.memc[1].br = (unsigned long)&_RamBase | M360_MEMC_BR_V;
+	m360.memc[1].br = (unsigned long)&RamBase | M360_MEMC_BR_V;
 
 	/* second bank 1MByte DRAM */
 	m360.memc[2].or = M360_MEMC_OR_TCYC(2) | M360_MEMC_OR_1MB |
 					M360_MEMC_OR_PGME | M360_MEMC_OR_DRAM;
-	m360.memc[2].br = ((unsigned long)&_RamBase + 0x100000) |
+	m360.memc[2].br = ((unsigned long)&RamBase + 0x100000) |
 					M360_MEMC_BR_V;
 
 	/* flash rom socket U6 on CS5 */
@@ -305,7 +305,7 @@ void _Init68360 (void)
 	for (i = 0; i < 50000; i++)
 		continue;
 	for (i = 0; i < 8; ++i)
-		*((volatile unsigned long *)(unsigned long)&_RamBase);
+		*((volatile unsigned long *)(unsigned long)&RamBase);
 
 	/*
 	 * Step 13: Copy  the exception vector table to system RAM
@@ -445,7 +445,7 @@ void _Init68360 (void)
 	m360.memc[7].or = M360_MEMC_OR_TCYC(1)  | M360_MEMC_OR_16MB |
 			  M360_MEMC_OR_FCMC(0)  | /* M360_MEMC_OR_PGME | */
                           M360_MEMC_OR_32BIT    | M360_MEMC_OR_DRAM;
-	m360.memc[7].br = (unsigned long)&_RamBase | M360_MEMC_BR_V;
+	m360.memc[7].br = (unsigned long)&RamBase | M360_MEMC_BR_V;
 
 	/*
 	 * FIXME: here we should wait for 8 refresh cycles...
@@ -465,7 +465,7 @@ void _Init68360 (void)
 	  ram_end  = &ramtest_end;
 	  code_loc = (void *)ramtest_exec;
 	  if ((ram_base < ram_end) &&
-	    !((ram_base <= code_loc) && (code_loc < ram_end))) {	    
+	    !((ram_base <= code_loc) && (code_loc < ram_end))) {
 	    ramtest_exec(ram_base,ram_end);
 	  }
 	}
@@ -477,7 +477,7 @@ void _Init68360 (void)
 	for (i = 0; i < 256; ++i)
 		M68Kvec[i] = vbr[i];
 	m68k_set_vbr (M68Kvec);
-	
+
 	/*
 	 * Step 14: More system initialization
 	 * SDCR (Serial DMA configuration register)
@@ -594,10 +594,10 @@ void _Init68360 (void)
     * 0 wait states
     */
    ramSize = 4 * 1024 * 1024;
-   m360.memc[1].br = (unsigned long)&_RamBase | M360_MEMC_BR_V;
+   m360.memc[1].br = (unsigned long)&RamBase | M360_MEMC_BR_V;
    m360.memc[1].or = M360_MEMC_OR_WAITS(0) | M360_MEMC_OR_2MB |
                                                    M360_MEMC_OR_32BIT;
-   m360.memc[2].br = ((unsigned long)&_RamBase + 0x200000) | M360_MEMC_BR_V;
+   m360.memc[2].br = ((unsigned long)&RamBase + 0x200000) | M360_MEMC_BR_V;
    m360.memc[2].or = M360_MEMC_OR_WAITS(0) | M360_MEMC_OR_2MB |
                                                    M360_MEMC_OR_32BIT;
    /*
@@ -744,7 +744,7 @@ void _Init68360 (void)
 		m360.memc[1].or = M360_MEMC_OR_TCYC(0) |
 						M360_MEMC_OR_16MB |
 						M360_MEMC_OR_DRAM;
-		m360.memc[1].br = (unsigned long)&_RamBase | M360_MEMC_BR_V;
+		m360.memc[1].br = (unsigned long)&RamBase | M360_MEMC_BR_V;
 
 		/*
 		 * Wait for chips to power up
@@ -753,7 +753,7 @@ void _Init68360 (void)
 		for (i = 0; i < 50000; i++)
 			continue;
 		for (i = 0; i < 8; ++i)
-			*((volatile unsigned long *)(unsigned long)&_RamBase);
+			*((volatile unsigned long *)(unsigned long)&RamBase);
 
 		/*
 		 * Determine memory size (1, 4, or 16 Mbytes)
@@ -763,14 +763,14 @@ void _Init68360 (void)
 		 * A 1 Mbyte or 4 Mbyte DRAM will show up several times in
 		 * the memory map, but will work with the same bootstrap PROM.
 		 */
-		*(volatile char *)&_RamBase = 0;
-		*((volatile char *)&_RamBase+0x00C01800) = 1;
-		if (*(volatile char *)&_RamBase) {
+		*(volatile char *)&RamBase = 0;
+		*((volatile char *)&RamBase+0x00C01800) = 1;
+		if (*(volatile char *)&RamBase) {
 			m360.gmr = (m360.gmr & ~0x001C0000) | M360_GMR_PGS(1);
 		}
 		else {
-			*((volatile char *)&_RamBase+0x00801000) = 1;
-			if (*(volatile char *)&_RamBase) {
+			*((volatile char *)&RamBase+0x00801000) = 1;
+			if (*(volatile char *)&RamBase) {
 				m360.gmr = (m360.gmr & ~0x001C0000) | M360_GMR_PGS(3);
 			}
 		}

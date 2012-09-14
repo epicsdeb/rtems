@@ -1,6 +1,12 @@
-/*
- *  Heap Handler
+/**
+ * @file
  *
+ * @ingroup ScoreHeap
+ *
+ * @brief Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-1999.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -8,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: heapextend.c,v 1.10 2007/02/11 04:52:37 ralf Exp $
+ *  $Id: heapextend.c,v 1.16 2009/09/09 14:58:37 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -19,38 +25,20 @@
 #include <rtems/score/sysstate.h>
 #include <rtems/score/heap.h>
 
-/*PAGE
- *
- *  _Heap_Extend
- *
- *  This routine grows the_heap memory area using the size bytes which
- *  begin at starting_address.
- *
- *  Input parameters:
- *    the_heap          - pointer to heap header.
- *    starting_address  - pointer to the memory area.
- *    size              - size in bytes of the memory block to allocate.
- *
- *  Output parameters:
- *    *amount_extended  - amount of memory added to the_heap
- */
-
 Heap_Extend_status _Heap_Extend(
-  Heap_Control        *the_heap,
-  void                *starting_address,
-  size_t               size,
-  uint32_t            *amount_extended
+  Heap_Control *heap,
+  void *area_begin_ptr,
+  uintptr_t area_size,
+  uintptr_t *amount_extended
 )
 {
-  uint32_t         the_size;
-  Heap_Statistics *const stats = &the_heap->stats;
-
-  /*
-   *  The overhead was taken from the original heap memory.
-   */
-
-  Heap_Block  *old_final;
-  Heap_Block  *new_final;
+  Heap_Statistics *const stats = &heap->stats;
+  uintptr_t const area_begin = (uintptr_t) area_begin_ptr;
+  uintptr_t const heap_area_begin = heap->area_begin;
+  uintptr_t const heap_area_end = heap->area_end;
+  uintptr_t const new_heap_area_end = heap_area_end + area_size;
+  uintptr_t extend_size = 0;
+  Heap_Block *const last_block = heap->last_block;
 
   /*
    *  There are five possibilities for the location of starting
@@ -65,13 +53,11 @@ Heap_Extend_status _Heap_Extend(
    *  As noted, this code only supports (4).
    */
 
-  if ( starting_address >= the_heap->begin &&        /* case 3 */
-       starting_address < the_heap->end
-     )
-    return HEAP_EXTEND_ERROR;
-
-  if ( starting_address != the_heap->end )
-    return HEAP_EXTEND_NOT_IMPLEMENTED;         /* cases 1, 2, and 5 */
+  if ( area_begin >= heap_area_begin && area_begin < heap_area_end ) {
+    return HEAP_EXTEND_ERROR; /* case 3 */
+  } else if ( area_begin != heap_area_end ) {
+    return HEAP_EXTEND_NOT_IMPLEMENTED; /* cases 1, 2, and 5 */
+  }
 
   /*
    *  Currently only case 4 should make it to this point.
@@ -79,26 +65,32 @@ Heap_Extend_status _Heap_Extend(
    *  block and free it.
    */
 
-  old_final = the_heap->final;
-  the_heap->end = _Addresses_Add_offset( the_heap->end, size );
-  the_size = _Addresses_Subtract( the_heap->end, old_final ) - HEAP_OVERHEAD;
-  _Heap_Align_down( &the_size, the_heap->page_size );
+  heap->area_end = new_heap_area_end;
 
-  *amount_extended = size;
+  extend_size = new_heap_area_end
+    - (uintptr_t) last_block - HEAP_BLOCK_HEADER_SIZE;
+  extend_size = _Heap_Align_down( extend_size, heap->page_size );
 
-  if( the_size < the_heap->min_block_size )
-    return HEAP_EXTEND_SUCCESSFUL;
+  *amount_extended = extend_size;
 
-  old_final->size = the_size | (old_final->size & HEAP_PREV_USED);
-  new_final = _Heap_Block_at( old_final, the_size );
-  new_final->size = HEAP_PREV_USED;
-  the_heap->final = new_final;
+  if( extend_size >= heap->min_block_size ) {
+    Heap_Block *const new_last_block = _Heap_Block_at( last_block, extend_size );
 
-  stats->size += size;
-  stats->used_blocks += 1;
-  stats->frees -= 1;    /* Don't count subsequent call as actual free() */
+    _Heap_Block_set_size( last_block, extend_size );
 
-  _Heap_Free( the_heap, _Heap_User_area( old_final ) );
+    new_last_block->size_and_flag =
+      ((uintptr_t) heap->first_block - (uintptr_t) new_last_block)
+        | HEAP_PREV_BLOCK_USED;
+
+    heap->last_block = new_last_block;
+
+    /* Statistics */
+    stats->size += extend_size;
+    ++stats->used_blocks;
+    --stats->frees; /* Do not count subsequent call as actual free() */
+
+    _Heap_Free( heap, (void *) _Heap_Alloc_area_of_block( last_block ));
+  }
 
   return HEAP_EXTEND_SUCCESSFUL;
 }

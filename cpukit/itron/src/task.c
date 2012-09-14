@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task.c,v 1.16 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: task.c,v 1.19 2009/11/03 05:23:05 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -14,7 +14,7 @@
 #endif
 
 #include <rtems/itron.h>
-
+#include <rtems/config.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/userext.h>
 #include <rtems/score/wkspace.h>
@@ -112,8 +112,10 @@ void _ITRON_Task_Initialize_user_tasks( void )
 
 API_extensions_Control _ITRON_Task_API_extensions = {
   { NULL, NULL },
-  NULL,                                     /* predriver */
-  _ITRON_Task_Initialize_user_tasks,       /* postdriver */
+  #if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+    NULL,                                   /* predriver */
+  #endif
+  _ITRON_Task_Initialize_user_tasks,        /* postdriver */
   NULL                                      /* post switch */
 };
 
@@ -148,27 +150,21 @@ User_extensions_Control _ITRON_Task_User_extensions = {
  *  Output parameters:  NONE
  */
 
-void _ITRON_Task_Manager_initialization(
-  uint32_t                          maximum_tasks,
-  uint32_t                          number_of_initialization_tasks,
-  itron_initialization_tasks_table *user_tasks
-)
+void _ITRON_Task_Manager_initialization(void)
 {
-
-  _ITRON_Task_Number_of_initialization_tasks = number_of_initialization_tasks;
-  _ITRON_Task_User_initialization_tasks = user_tasks;
 
   _Objects_Initialize_information(
     &_ITRON_Task_Information,   /* object information table */
     OBJECTS_ITRON_API,          /* object API */
     OBJECTS_ITRON_TASKS,        /* object class */
-    maximum_tasks,              /* maximum objects of this class */
+    Configuration_ITRON_API.maximum_tasks,
+                                /* maximum objects of this class */
     sizeof( Thread_Control ),   /* size of this object's control block */
-    FALSE,                      /* TRUE if names for this object are strings */
+    false,                      /* true if names for this object are strings */
     ITRON_MAXIMUM_NAME_LENGTH   /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                      /* TRUE if this is a global object class */
+    false,                      /* true if this is a global object class */
     NULL                        /* Proxy extraction support callout */
 #endif
   );

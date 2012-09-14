@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.18.6.1 2008/09/15 13:56:19 ralf Exp $
+ *  $Id: system.h,v 1.20 2009/01/05 19:44:53 joel Exp $
  */
 
 #include <tmacros.h>
@@ -50,8 +50,8 @@ rtems_task Task_1(
 
 /* global variables */
 
-TEST_EXTERN rtems_id Task_id[ 7 ];     /* array of task ids */
-TEST_EXTERN rtems_id Task_name[ 7 ];   /* array of task names */
+TEST_EXTERN rtems_id   Task_id[ 7 ];     /* array of task ids */
+TEST_EXTERN rtems_name Task_name[ 7 ];   /* array of task names */
 
 TEST_EXTERN double FP_factors[ 10 ];  /* FP "uniqueness" factors */
 

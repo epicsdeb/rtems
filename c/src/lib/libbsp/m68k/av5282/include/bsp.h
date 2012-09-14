@@ -1,7 +1,7 @@
 /*
  *  av5282 BSP header file
  */
- 
+
 #ifndef __SBav5282_BSP_H
 #define __SBav5282_BSP_H
 
@@ -39,23 +39,9 @@ extern int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config, int at
 
 /* miscellaneous stuff assumed to exist */
 
-/*
- *  Device Driver Table Entries
- */
- 
-/*
- * NOTE: Use the standard Console driver entry
- */
- 
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-
 /* functions */
 
 uint32_t get_CPU_clock_speed(void);
-void bsp_cleanup(void);
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

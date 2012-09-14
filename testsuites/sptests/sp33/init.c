@@ -1,10 +1,12 @@
-/* spmonotonic -- sanity check the rate monotonic manager
+/*
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
  *
- * license and distribution terms for this file may be found in the file
- * LICENSE in this distribution or at
- * http://www.rtems.com/license/LICENSE .
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: init.c,v 1.5 2008/02/01 00:45:11 joel Exp $
+ * $Id: init.c,v 1.11 2009/11/30 03:33:24 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -22,6 +24,10 @@ rtems_task Init (rtems_task_argument ignored);
 
 #define CONFIGURE_INIT
 
+rtems_task Waiter(
+  rtems_task_argument number
+);
+
 rtems_id    Barrier;
 
 int SuccessfulCase;
@@ -33,10 +39,10 @@ rtems_task Waiter(
 {
   rtems_status_code status;
 
-  printf( "Waiter %d waiting on barrier\n", number );
+  printf( "Waiter %" PRIdrtems_task_argument " waiting on barrier\n", number );
   status = rtems_barrier_wait( Barrier, RTEMS_NO_TIMEOUT );
 
-  printf( "Waiter %d back from barrier\n", number );
+  printf( "Waiter %" PRIdrtems_task_argument " back from barrier\n", number );
 
   if ( SuccessfulCase == TRUE ) {
     directive_failed(status, "rtems_barrier_wait");
@@ -67,7 +73,7 @@ rtems_task Init(
   puts("\n\n*** TEST 33 ***");
 
   /* Check bad argument cases */
-  puts( "Delete barrier with bad id" );
+  puts( "rtems_barrier_delete - bad id - INVALID_ID" );
   status = rtems_barrier_delete( 100 );
   fatal_directive_status(
     status,
@@ -75,7 +81,7 @@ rtems_task Init(
     "rtems_barrier_delete did not return RTEMS_INVALID_ID"
   );
 
-  puts( "Release barrier with bad id" );
+  puts( "rtems_barrier_release - bad id - INVALID_ID" );
   status = rtems_barrier_release( 100, &released );
   fatal_directive_status(
     status,
@@ -83,7 +89,7 @@ rtems_task Init(
     "rtems_barrier_release did not return RTEMS_INVALID_ID"
   );
 
-  puts( "Wait on barrier with bad id" );
+  puts( "rtems_barrier_wait - bad id - INVALID_ID" );
   status = rtems_barrier_wait( 100, 10 );
   fatal_directive_status(
     status,
@@ -102,13 +108,32 @@ rtems_task Init(
     "rtems_barrier_create did not return RTEMS_INVALID_NUMBER"
   );
 
+  /* create barrier with bad name */
+  puts( "rtems_barrier_create - bad name - INVALID_NAME" );
+  status = rtems_barrier_create(
+    0, RTEMS_BARRIER_AUTOMATIC_RELEASE, 1, &Barrier);
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_NAME,
+    "rtems_barrier_create did not return RTEMS_INVALID_NAME"
+  );
+
+  /* create barrier with bad id return address */
+  puts( "rtems_barrier_create - NULL barrier ID - INVALID_ADDRESS" );
+  status = rtems_barrier_create(name, RTEMS_BARRIER_AUTOMATIC_RELEASE, 1, NULL);
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_barrier_create did not return RTEMS_INVALID_ADDRESS"
+  );
+
   /* Create barrier */
-  puts( "Create barrier" );
+  puts( "rtems_barrier_create - OK" );
   status = rtems_barrier_create( name, RTEMS_DEFAULT_ATTRIBUTES, 0, &Barrier );
   directive_failed(status, "rtems_barrier_create");
 
   /* Check for creating too many */
-  puts( "Create too many barriers" );
+  puts( "rtems_barrier_create - too many" );
   status = rtems_barrier_create( name, RTEMS_DEFAULT_ATTRIBUTES, 0, &Barrier );
   fatal_directive_status(
     status,
@@ -132,11 +157,20 @@ rtems_task Init(
     "rtems_barrier_wait did not timeout"
   );
 
+  /* Release with bad return pointer */
+  puts( "rtems_barrier_release - NULL return count - INVALID_ADDRESS" );
+  status = rtems_barrier_release( Barrier, NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_barrier_release bad return pointer"
+  );
+
   /* Release no tasks */
   status = rtems_barrier_release( Barrier, &released );
   directive_failed(status, "rtems_barrier_release");
   if ( released != 0 ) {
-    printf( "ERROR -- rtems_barrier_release -- released != 0, = %d", released);
+    printf( "ERROR -- rtems_barrier_release -- released != 0, = %" PRIu32, released);
     exit(0);
   }
 
@@ -159,8 +193,8 @@ rtems_task Init(
     directive_failed( status, "rtems_task_start of Waiter" );
   }
 
-  puts( "Delay to let Waiters block" ); 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  puts( "Delay to let Waiters block" );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed(status, "rtems_task_wake_after");
 
   /* Release tasks which were waiting */
@@ -168,13 +202,13 @@ rtems_task Init(
   status = rtems_barrier_release( Barrier, &released );
   directive_failed(status, "rtems_barrier_release");
   if ( released != (CONFIGURE_MAXIMUM_TASKS-1) ) {
-    printf( "ERROR -- rtems_barrier_release -- released != %d, = %d",
+    printf( "ERROR -- rtems_barrier_release -- released != %d, = %" PRIu32,
          (CONFIGURE_MAXIMUM_TASKS-1), released);
     exit(0);
   }
 
-  puts( "Delay to let Waiters print a message" ); 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  puts( "Delay to let Waiters print a message" );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed(status, "rtems_task_wake_after");
 
   /*  Create some tasks to wait for the barrier */
@@ -196,20 +230,20 @@ rtems_task Init(
     directive_failed( status, "rtems_task_start of Waiter" );
   }
 
-  puts( "Delay to let Waiters block" ); 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  puts( "Delay to let Waiters block" );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed(status, "rtems_task_wake_after");
 
-  puts( "Delete barrier" );
+  puts( "rtems_barrier_delete - OK" );
   status = rtems_barrier_delete( Barrier );
   directive_failed(status, "rtems_barrier_delete");
 
-  puts( "Delay to let Waiters print a message" ); 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  puts( "Delay to let Waiters print a message" );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed(status, "rtems_task_wake_after");
 
   /* Create barrier with automatic release */
-  puts( "Create barrier" );
+  puts( "rtems_barrier_create - OK" );
   status = rtems_barrier_create(
     name, RTEMS_BARRIER_AUTOMATIC_RELEASE, CONFIGURE_MAXIMUM_TASKS-1, &Barrier
   );
@@ -234,8 +268,8 @@ rtems_task Init(
     directive_failed( status, "rtems_task_start of Waiter" );
   }
 
-  puts( "Delay to let task wait on barrier" ); 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  puts( "Delay to let task wait on barrier" );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed(status, "rtems_task_wake_after");
 
   /* the end */

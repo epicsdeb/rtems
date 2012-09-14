@@ -9,18 +9,18 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: bsp_irq_asm.S,v 1.5 2007/11/06 22:54:21 joel Exp $
+ *  $Id: bsp_irq_asm.S,v 1.7 2009/11/30 04:59:43 ralf Exp $
  */
 #define __asm__
-	
-/* 
+
+/*
  * BSP specific interrupt handler for INT or FIQ. In here
  * you do determine which interrupt happened and call its
  * handler.
  * Called from ISR_Handler, It is better to write in C function
  */
-	.globl ExecuteITHandler
-ExecuteITHandler :
+	.globl bsp_interrupt_dispatch
+bsp_interrupt_dispatch :
 #ifdef __thumb__
     .code 16
 #endif
@@ -30,7 +30,7 @@ ExecuteITHandler :
  * From source, determine offset into expanded vector table
  * and load handler address into r0.
  */
- 
+
   ldr 	r0, =0xFFFFF030  /* Read the vector number */
     ldr	r0, [r0]
 #ifdef __thumb__

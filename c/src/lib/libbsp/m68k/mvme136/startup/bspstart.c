@@ -11,14 +11,10 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.35 2008/05/15 15:52:00 joel Exp $
+ *  $Id: bspstart.c,v 1.36 2008/09/16 19:03:34 joel Exp $
  */
 
-#include <string.h>
-
 #include <bsp.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <rtems/zilog/z8036.h>
 
 /*

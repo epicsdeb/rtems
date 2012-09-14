@@ -1,47 +1,49 @@
 ##
-## $Id: Makefile.am,v 1.16.2.1 2008/09/24 07:34:17 ralf Exp $
+## $Id: Makefile.am,v 1.30 2010/04/30 12:48:52 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
-include_HEADERS = include/bsp.h 
+include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
-include_bspdir = $(includedir)/bsp
-
-include_HEADERS += include/coverhd.h
+include_HEADERS += ../../shared/include/coverhd.h
 
 nodist_include_HEADERS += ../../shared/tod.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
-EXTRA_DIST += ../../powerpc/shared/start/rtems_crti.S
-rtems_crti.$(OBJEXT): ../../powerpc/shared/start/rtems_crti.S
-	$(CPPASCOMPILE) -o $@ -c $<
+libbspstart_a_SOURCES += ../../powerpc/shared/start/rtems_crti.S
 project_lib_DATA += rtems_crti.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds \
-                         startup/linkcmds.base \
-                         startup/linkcmds.mpc8313erdb \
-                         startup/linkcmds.mpc8349eamds \
-                         startup/linkcmds.hsc_cm01
+    startup/linkcmds.base \
+    startup/linkcmds.mpc8313erdb \
+    startup/linkcmds.mpc8349eamds \
+    startup/linkcmds.hsc_cm01
 
-mpc83xx_regs_SOURCES = startup/mpc83xx_regs.c
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
-startup_SOURCES = ../../shared/bsplibc.c \
+# mpc83xx_regs
+libbsp_a_SOURCES += startup/mpc83xx_regs.c
+
+# startup
+libbsp_a_SOURCES += ../../shared/bsplibc.c \
 	../../shared/bsppost.c \
 	../../shared/bootcard.c \
 	../../shared/bsppredriverhook.c \
@@ -50,47 +52,50 @@ startup_SOURCES = ../../shared/bsplibc.c \
 	../../shared/gnatinstallhandler.c \
 	../shared/src/tictac.c \
 	startup/cpuinit.c \
+	../shared/startup/bspidle.c \
 	startup/bspstart.c \
-	startup/bspclean.c \
+	../../shared/bspclean.c \
+	startup/bspreset.c \
+	../../shared/bspgetworkarea.c \
         startup/uboot_support.c \
         ../shared/uboot_getenv.c
 
-clock_SOURCES = ../shared/clock/clock.c
+# clock
+libbsp_a_SOURCES += ../shared/clock/clock.c
 
 include_bsp_HEADERS = include/irq.h \
-	include/irq-config.h \
 	../../shared/include/irq-generic.h \
+	../../shared/include/irq-info.h \
 	include/hwreg_vals.h \
 	../shared/include/u-boot.h \
 	../shared/include/tictac.h
 
-irq_SOURCES = include/irq.h \
-	include/irq-config.h \
-	irq/irq.c \
+# irq
+libbsp_a_SOURCES += irq/irq.c \
 	../../shared/src/irq-generic.c \
-	../../shared/src/irq-legacy.c
+	../../shared/src/irq-legacy.c \
+	../../shared/src/irq-info.c \
+	../../shared/src/irq-shell.c \
+	../../shared/src/irq-server.c
 
-console_SOURCES = console/console.c console/ns16550cfg.c 
-bsp_i2c_SOURCES   = i2c/i2c_init.c 
-bsp_spi_SOURCES   = spi/spi_init.c 
+# console
+libbsp_a_SOURCES += console/console.c console/ns16550cfg.c
+# bsp_i2c
+libbsp_a_SOURCES += i2c/i2c_init.c
+# bsp_spi
+libbsp_a_SOURCES += spi/spi_init.c
 
 if HAS_NETWORKING
 noinst_PROGRAMS += network.rel
-network_rel_SOURCES   = network/network.c 
+network_rel_SOURCES   = network/network.c
 network_rel_CPPFLAGS  = $(AM_CPPFLAGS)
 network_rel_CPPFLAGS += -D__INSIDE_RTEMS_BSD_TCPIP_STACK__  -D__BSD_VISIBLE
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
-    $(irq_SOURCES) $(mpc83xx_regs_SOURCES) \
-    $(bsp_i2c_SOURCES) $(bsp_spi_SOURCES)
-
 libbsp_a_LIBADD = ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
 	../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
 	../../../libcpu/@RTEMS_CPU@/@exceptions@/rtems-cpu.rel \
-	../../../libcpu/@RTEMS_CPU@/@exceptions@/raw_exception.rel \
 	../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel \
 	../../../libcpu/@RTEMS_CPU@/mpc6xx/mmu.rel   \
 	../../../libcpu/@RTEMS_CPU@/mpc6xx/timer.rel \
@@ -103,7 +108,7 @@ libbsp_a_LIBADD += network.rel
 libbsp_a_LIBADD += ../../../libcpu/@RTEMS_CPU@/mpc83xx/tsec.rel
 endif
 
-EXTRA_DIST += README.mpc8349eamds
+EXTRA_DIST = README.mpc8349eamds
 EXTRA_DIST += times.mpc8349eamds
 ### XXX
 

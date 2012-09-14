@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regiondelete.c,v 1.8 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regiondelete.c,v 1.12 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,12 +43,12 @@
  */
 
 rtems_status_code rtems_region_delete(
-  Objects_Id id
+  rtems_id id
 )
 {
-  Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
-  register Region_Control *the_region;
+  Objects_Locations   location;
+  rtems_status_code   return_status;
+  Region_Control     *the_region;
 
   _RTEMS_Lock_allocator();
 
@@ -72,6 +72,7 @@ rtems_status_code rtems_region_delete(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

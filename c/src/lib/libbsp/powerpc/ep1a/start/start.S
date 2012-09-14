@@ -68,7 +68,7 @@ __rtems_entry_point:
 	 */
 	li      r3,MSR_IR | MSR_DR | MSR_FP
 	mtmsr   r3
-        
+
         /* XXX - ADD BACK IN CACHING INSTRUCTIONS */
 
 	/* clear bss */
@@ -114,20 +114,13 @@ __rtems_entry_point:
 	lis	sp,__stack@h
 	ori	sp,sp,__stack@l
 
-        lis	r13,_SDA_BASE_@ha
-	la	r13,_SDA_BASE_@l(r13)  		/* Read-write small data */
-
-
 	/* set up initial stack frame */
 	addi	sp,sp,-4		/* make sure we don't overwrite debug mem */
 	lis	r0,0
 	stw	r0,0(sp)		/* clear back chain */
 	stwu	sp,-56(sp)		/* push another stack frame */
 
-        lis	r5,environ@ha
-        la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
+	li	r3, 0			/* command line */
 
 	/* Let her rip */
 	bl	FUNC_NAME(boot_card)
@@ -150,6 +143,6 @@ __rtems_entry_point:
 	mtlr	r3
 	blr
 .Lstart:
-	.size	_start,.Lstart-_start
+	.size	__rtems_entry_point,.Lstart-__rtems_entry_point
 
 	.comm	environ,4,4

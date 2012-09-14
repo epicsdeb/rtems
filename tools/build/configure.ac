@@ -1,15 +1,15 @@
 #
-# $Id: configure.ac,v 1.18 2006/12/02 06:06:23 ralf Exp $
+# $Id: configure.ac,v 1.18.6.1 2011/02/02 15:18:16 ralf Exp $
 #
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-tools-build],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([install-if-change.in])
 RTEMS_TOP(../..)
 
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE([no-define foreign 1.10])
+AM_INIT_AUTOMAKE([no-define foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC

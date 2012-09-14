@@ -1,17 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.26 2006/12/02 05:59:14 ralf Exp $
+##
+## $Id: configure.ac,v 1.32.2.1 2011/02/02 15:16:44 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-mpc8260ads],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -32,8 +32,8 @@ RTEMS_BSPOPTS_HELP([UARTS_USE_TERMIOS],
 
 RTEMS_BSPOPTS_SET([CONSOLE_MINOR],[*],[SCC2_MINOR])
 RTEMS_BSPOPTS_HELP([CONSOLE_MINOR],
-[(BSP--console driver) Must be defined to be one of SMC1_MINOR, 
- SMC2_MINOR, SCC2_MINOR, SCC3_MINOR, or SCC4_MINOR. 
+[(BSP--console driver) Must be defined to be one of SMC1_MINOR,
+ SMC2_MINOR, SCC2_MINOR, SCC3_MINOR, or SCC4_MINOR.
  Determines which device will be registered as /dev/console.])
 
 RTEMS_BSPOPTS_SET([UARTS_IO_MODE],[*],[0])
@@ -56,7 +56,7 @@ RTEMS_BSPOPTS_HELP([PRINTK_MINOR],
  Must be defined to be one of SMC1_MINOR, SMC2_MINOR, SCC2_MINOR,
  SCC3_MINOR, or SCC4_MINOR. Determines which device is used for output
  by printk(). If the port that printk() uses is also used for other
- I/O (e.g. if  PRINTK_MINOR == \$CONSOLE_MINOR), then both ports should 
+ I/O (e.g. if  PRINTK_MINOR == \$CONSOLE_MINOR), then both ports should
  use the same type of I/O, otherwise the drivers will likely conflict with
  each other.])
 
@@ -67,7 +67,9 @@ RTEMS_BSPOPTS_HELP([DISPATCH_HANDLER_STAT],
 RTEMS_CHECK_NETWORKING
 AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
 
-# Explicitly list a Makefile here 
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
+
+# Explicitly list a Makefile here
 AC_CONFIG_FILES([Makefile])
 
 RTEMS_PPC_EXCEPTIONS

@@ -12,7 +12,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console.c,v 1.2 2008/02/15 18:54:35 joel Exp $
+ *  $Id: console.c,v 1.6 2010/04/30 14:55:51 sh Exp $
  */
 
 #include <stdio.h>
@@ -24,12 +24,9 @@
 #include <rtems/libio.h>
 #include <rtems/termiostypes.h>
 #include <termios.h>
-#include <irq.h>
+#include <bsp/irq.h>
 #include <gba.h>
 #include <conio.h>
-
-extern void rtemsReboot(void);
-
 
 /**
  *  @brief gba_pollRead function read char
@@ -52,7 +49,7 @@ static int gba_pollRead(int minor)
  *  @return character code
  *
  */
-static int gba_write(int minor, const char *buf, int len)
+static ssize_t gba_write(int minor, const char *buf, size_t len)
 {
   int i;
 
@@ -77,7 +74,7 @@ static int gba_setAttributes(int minor, const struct termios *t)
 /** BSP_output_char for printk support */
 BSP_output_char_function_type     BSP_output_char = (BSP_output_char_function_type)     gba_putch;
 /** BSP_poll_char for printk support */
-BSP_polling_getchar_function_type BSP_poll_char   = (BSP_polling_getchar_function_type) gba_getch;
+BSP_polling_getchar_function_type BSP_poll_char   = gba_getch;
 
 /**
  *  @brief Console device driver INITIALIZE entry point

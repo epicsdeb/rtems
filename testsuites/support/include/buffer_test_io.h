@@ -1,7 +1,7 @@
 /*
  *  Support for running the test output through a buffer
  *
- *  $Id: buffer_test_io.h,v 1.7 2007/05/11 19:53:29 joel Exp $
+ *  $Id: buffer_test_io.h,v 1.8 2009/08/06 15:39:09 joel Exp $
  */
 
 #ifndef __BUFFER_TEST_IO_h
@@ -17,7 +17,9 @@ extern "C" {
  */
 
 /* #define TESTS_BUFFER_OUTPUT */
-/* #define TESTS_USE_PRINTK */
+#if defined(__AVR__)
+#define TESTS_USE_PRINTK
+#endif
 
 /*
  *  USE PRINTK TO MINIMIZE SIZE

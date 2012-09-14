@@ -22,14 +22,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: sem.h,v 1.29 2008/09/04 17:41:54 ralf Exp $
+ *  $Id: sem.h,v 1.32 2009/11/29 11:55:14 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_SEM_H
 #define _RTEMS_RTEMS_SEM_H
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -52,7 +52,9 @@ extern "C" {
 #include <rtems/score/coresem.h>
 
 /**
- *  @defgroup ClassicSem Classic API Semaphore
+ *  @defgroup ClassicSem Semaphores
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality related to the Classic API
  *  Semaphore Manager.
@@ -108,9 +110,7 @@ RTEMS_SEM_EXTERN Objects_Information  _Semaphore_Information;
  *
  *  This routine performs the initialization necessary for this manager.
  */
-void _Semaphore_Manager_initialization(
-  uint32_t   maximum_semaphores
-);
+void _Semaphore_Manager_initialization(void);
 
 /**
  *  @brief rtems_semaphore_create

@@ -1,7 +1,21 @@
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* ACKNOWLEDGEMENTS, TOOL_TARGETS: Remove TI C4x and NIOS2 ports from
-	4.9 branch.
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove reference to bare BSP.
+	Simplify RTEMS_BSP_LIST setup.
+
+2008-12-04	Jukka Pietarinen <jukka.pietarinen@mrf.fi>
+
+	* TOOL_TARGETS: Add Lattice Mico32 support.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* src/aclocal/rtems-cpu-subdirs.m4: Add new M32R port. It is just a
+	beginning but the BSP is functional enough to initialize and shutdown
+	RTEMS.
 
 2007-03-27	Ralf Corsépius <ralf.corsepius@rtems.org>
 

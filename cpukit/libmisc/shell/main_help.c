@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_help.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: main_help.c,v 1.6 2009/07/22 18:18:41 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -31,11 +31,11 @@ int rtems_shell_help_cmd(
   rtems_shell_cmd_t *shell_cmd
 )
 {
-  char * pc;
+  const char * pc;
   int    col,line;
 
-  printf("%-10.10s - ",shell_cmd->name);
-  col = 12;
+  printf("%-12.12s - ",shell_cmd->name);
+  col = 14;
   line = 1;
   if (shell_cmd->alias) {
     printf("is an <alias> for command '%s'",shell_cmd->alias->name);

@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: asr.h,v 1.16 2008/09/04 17:41:53 ralf Exp $
+ *  $Id: asr.h,v 1.17 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_ASR_H
@@ -26,7 +26,9 @@ extern "C" {
 #endif
 
 /**
- *  @defgroup ClassicASR Classic API ASR Support
+ *  @defgroup ClassicASR ASR Support
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */

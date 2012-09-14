@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler - Stack Allocate Helper
  *
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadstackallocate.c,v 1.11 2008/06/13 15:06:32 joel Exp $
+ *  $Id: threadstackallocate.c,v 1.12.2.1 2011/05/25 14:17:53 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -57,8 +56,8 @@ size_t _Thread_Stack_Allocate(
    * routine can call the correct deallocation routine.
    */
 
-  if ( _Configuration_Table->stack_allocate_hook ) {
-    stack_addr = (*_Configuration_Table->stack_allocate_hook)( the_stack_size );
+  if ( Configuration.stack_allocate_hook ) {
+    stack_addr = (*Configuration.stack_allocate_hook)( the_stack_size );
   } else {
 
     /*

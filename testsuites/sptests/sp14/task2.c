@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task2.c,v 1.9 2003/09/04 18:53:48 joel Exp $
+ *  $Id: task2.c,v 1.10 2009/09/25 13:26:35 joel Exp $
  */
 
 #include "system.h"
@@ -25,6 +25,9 @@ rtems_task Task_2(
 )
 {
   rtems_status_code status;
+
+  status = rtems_task_wake_after(rtems_clock_get_ticks_per_second());
+  directive_failed( status, "rtems_task_wake_after" );
 
   puts( "TA2 - rtems_signal_send - RTEMS_SIGNAL_17 to TA1" );
   status = rtems_signal_send( Task_id[ 1 ], RTEMS_SIGNAL_17 );
@@ -39,7 +42,11 @@ rtems_task Task_2(
   directive_failed( status, "rtems_signal_send" );
 
   puts( "TA2 - rtems_task_wake_after - yield processor" );
+  FLUSH_OUTPUT();
   status = rtems_task_wake_after( RTEMS_YIELD_PROCESSOR );
+  directive_failed( status, "rtems_task_wake_after" );
+
+  status = rtems_task_wake_after(2 * rtems_clock_get_ticks_per_second());
   directive_failed( status, "rtems_task_wake_after" );
 
   puts( "*** END OF TEST 14 ***" );

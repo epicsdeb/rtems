@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------+
-| bsp.h - ARM BSP 
+| bsp.h - ARM BSP
 +--------------------------------------------------------------------------+
 | This include file contains definitions related to the ARM BSP.
 +--------------------------------------------------------------------------+
@@ -10,8 +10,8 @@
 |  The license and distribution terms for this file may be
 |  found in found in the file LICENSE in this distribution or at
 |  http://www.rtems.com/license/LICENSE.
-| 
-|  $Id: bsp.h,v 1.10 2008/05/06 20:54:06 joel Exp $
+|
+|  $Id: bsp.h,v 1.13 2010/04/30 14:30:09 sh Exp $
 +--------------------------------------------------------------------------*/
 
 
@@ -29,6 +29,8 @@ extern "C" {
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
 #include <s3c24xx.h>
+
+#define BSP_FEATURE_IRQ_EXTENSION
 
 #define gp32_initButtons() {rPBCON=0x0;}
 #define gp32_getButtons() \
@@ -56,9 +58,6 @@ void gp32_setPalette( unsigned char pos, uint16_t color);
 #define Trc	0x3	/* 7 clk */
 #define Tchr	0x2 	/* 3 clk */
 
-
-/* How many serial ports? */
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 1
 
 /*
  *  This BSP provides its own IDLE task to override the RTEMS one.

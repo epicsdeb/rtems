@@ -1,4 +1,4 @@
-/*	$Id: bootp_subr.c,v 1.25 2008/09/01 06:59:32 ralf Exp $	*/
+/*	$Id: bootp_subr.c,v 1.29.2.2 2010/06/16 13:52:04 ralf Exp $	*/
 
 /*
  * Copyright (c) 1995 Gordon Ross, Adam Glass
@@ -43,6 +43,7 @@
  */
 
 #include <sys/param.h>
+#include <sys/ucred.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
 #include <sys/conf.h>
@@ -129,7 +130,7 @@ static int xdr_int_decode(struct mbuf **ptr,int *iptr);
 static void printip(char *prefix,struct in_addr addr);
 
 #ifdef BOOTP_DEBUG
-void bootpboot_p_sa(struct sockaddr *sa,struct sockaddr *ma);
+void bootpboot_p_sa(struct sockaddr *sa, struct sockaddr *ma);
 void bootpboot_p_ma(struct sockaddr *ma);
 void bootpboot_p_rtentry(struct rtentry *rt);
 void bootpboot_p_tree(struct radix_node *rn);
@@ -151,14 +152,12 @@ bootpc_adjust_interface(struct ifreq *ireq,struct socket *so,
 			struct sockaddr_in *gw,
 			struct proc *procp);
 
-void bootpc_init(int update_files);
-
 #ifdef BOOTP_DEBUG
-void bootpboot_p_sa(sa,ma)
-     struct sockaddr *sa;
-     struct sockaddr *ma;
+void
+bootpboot_p_sa(struct sockaddr *sa, struct sockaddr *ma)
 {
-  if (!sa) {
+
+  if (sa == NULL) {
     printf("(sockaddr *) <null>");
     return;
   }
@@ -186,37 +185,41 @@ void bootpboot_p_sa(sa,ma)
     }
   break;
   default:
-    printf("af%d",sa->sa_family);
+  printf("af%d",sa->sa_family);
   }
 }
 
-void bootpboot_p_ma(ma)
-     struct sockaddr *ma;
+void
+bootpboot_p_ma(struct sockaddr *ma)
 {
-  if (!ma) {
+
+  if (ma == NULL) {
     printf("<null>");
     return;
   }
-  printf("%x",*(int*)ma);
+  printf("%x", *(int*)ma);
 }
 
-void bootpboot_p_rtentry(rt)
-     struct rtentry *rt;
+void
+bootpboot_p_rtentry(struct rtentry *rt)
 {
-  bootpboot_p_sa(rt_key(rt),rt_mask(rt));
+
+  bootpboot_p_sa(rt_key(rt), rt_mask(rt));
   printf(" ");
   bootpboot_p_ma(rt->rt_genmask);
   printf(" ");
-  bootpboot_p_sa(rt->rt_gateway,NULL);
+  bootpboot_p_sa(rt->rt_gateway, NULL);
   printf(" ");
-  printf("flags %x",(unsigned short) rt->rt_flags);
-  printf(" %d",rt->rt_rmx.rmx_expire);
-  printf(" %s%d\n",rt->rt_ifp->if_name,rt->rt_ifp->if_unit);
+  printf("flags %x", (unsigned short) rt->rt_flags);
+  printf(" %d", rt->rt_rmx.rmx_expire);
+  printf(" %s%d\n", rt->rt_ifp->if_name,rt->rt_ifp->if_unit);
 }
-void  bootpboot_p_tree(rn)
-     struct radix_node *rn;
+
+void
+bootpboot_p_tree(struct radix_node *rn)
 {
-  while (rn) {
+
+  while (rn != NULL) {
     if (rn->rn_b < 0) {
       if (rn->rn_flags & RNF_ROOT) {
       } else {
@@ -232,13 +235,16 @@ void  bootpboot_p_tree(rn)
   }
 }
 
-void bootpboot_p_rtlist(void)
+void
+bootpboot_p_rtlist(void)
 {
+
   printf("Routing table:\n");
   bootpboot_p_tree(rt_tables[AF_INET]->rnh_treetop);
 }
 
-void bootpboot_p_iflist(void)
+void
+bootpboot_p_iflist(void)
 {
   struct ifnet *ifp;
   struct ifaddr *ifa;
@@ -455,11 +461,13 @@ bootpc_call(
 			goto gotreply;	/* break two levels */
 
 		} /* while secs */
-	} /* forever send/receive */
-
-        printf("BOOTP timeout for server 0x%x\n",
-               (int)ntohl(sin->sin_addr.s_addr));
-
+	} /* send/receive a number of times then return an error */
+	{
+		uint32_t addr = ntohl(sin->sin_addr.s_addr);
+        printf("BOOTP timeout for server %"PRIu32".%"PRIu32".%"PRIu32".%"PRIu32"\n",
+               (addr >> 24) & 0xff, (addr >> 16) & 0xff,
+               (addr >> 8) & 0xff, addr & 0xff);
+	}
 	error = ETIMEDOUT;
 	goto out;
 
@@ -510,7 +518,12 @@ bootpc_fakeup_interface(struct ifreq *ireq,struct socket *so,
   sin->sin_family = AF_INET;
   sin->sin_addr.s_addr = INADDR_ANY;
   error = ifioctl(so, SIOCSIFADDR, (caddr_t)ireq, procp);
-  if (error) {
+  /*
+   * Ignore a File already exists (EEXIST) error code. This means a
+   * route for the address is already present and is returned on
+   * a second pass to here.
+   */
+  if (error && (error != EEXIST)) {
     printf("bootpc_fakeup_interface: set if addr, error=%s\n", strerror(error));
     return error;
   }
@@ -541,7 +554,6 @@ bootpc_fakeup_interface(struct ifreq *ireq,struct socket *so,
     return error;
   }
   
-  
   /* Add default route to 0.0.0.0 so we can send data */
   
   bzero((caddr_t) &dst, sizeof(dst));
@@ -565,8 +577,10 @@ bootpc_fakeup_interface(struct ifreq *ireq,struct socket *so,
 		    (struct sockaddr *) &mask, 
 		    RTF_UP | RTF_STATIC
 		    , NULL);
-  if (error)
-    printf("bootpc_fakeup_interface: add default route, error=%d\n", error);
+  if (error && error != EEXIST)
+    printf("bootpc_fakeup_interface: add default route, error=%s\n",
+           strerror(error));
+  
   return error;
 }
 
@@ -701,27 +715,6 @@ getdec(char **ptr)
 	}
 	*ptr = p;
 	return(ret);
-}
-#endif
-
-#if !defined(__rtems__)
-static char *
-substr(char *a, char *b)
-{
-	char *loc1;
-	char *loc2;
-
-        while (*a != '\0') {
-                loc1 = a;
-                loc2 = b;
-                while (*loc1 == *loc2++) {
-                        if (*loc1 == '\0') return (0);
-                        loc1++;
-                        if (*loc2 == '\0') return (loc1);
-                }
-        a++;
-        }
-        return (0);
 }
 #endif
 
@@ -948,8 +941,8 @@ processOptions (unsigned char *optbuf, int optbufSize)
 
 #define EALEN 6
 
-void
-bootpc_init(int update_files)
+bool
+bootpc_init(bool update_files, bool forever)
 {
   struct bootp_packet call;
   struct bootp_packet reply;
@@ -970,7 +963,7 @@ bootpc_init(int update_files)
    * If already filled in, don't touch it here 
    */
   if (nfs_diskless_valid)
-    return;
+    return true;
 
   /*
    * If we are to update the files create the root
@@ -996,7 +989,7 @@ bootpc_init(int update_files)
 	break;
   if (ifp == NULL) {
     printf("bootpc_init: no suitable interface\n");
-    return;
+    return false;
   }
   bzero(&ireq,sizeof(ireq));
   sprintf(ireq.ifr_name, "%s%d", ifp->if_name,ifp->if_unit);
@@ -1005,28 +998,31 @@ bootpc_init(int update_files)
 
   if ((error = socreate(AF_INET, &so, SOCK_DGRAM, 0,procp)) != 0) {
     printf("bootpc_init: socreate, error=%d", error);
-    return;
+    return false;
   }
   if (bootpc_fakeup_interface(&ireq,so,procp) != 0) {
-    return;
+    soclose(so);
+    return false;
   }
 
   /* Get HW address */
 
   for (ifa = ifp->if_addrlist;ifa; ifa = ifa->ifa_next)
     if (ifa->ifa_addr->sa_family == AF_LINK &&
-	(sdl = ((struct sockaddr_dl *) ifa->ifa_addr)) &&
-	sdl->sdl_type == IFT_ETHER)
+        (sdl = ((struct sockaddr_dl *) ifa->ifa_addr)) &&
+        sdl->sdl_type == IFT_ETHER)
       break;
   
   if (!sdl) {
     printf("bootpc: Unable to find HW address\n");
-    return;
+    soclose(so);
+    return false;
   }
   if (sdl->sdl_alen != EALEN ) {
     printf("bootpc: HW address len is %d, expected value is %d\n",
 	   sdl->sdl_alen,EALEN);
-    return;
+    soclose(so);
+    return false;
   }
 
   printf("bootpc hw address is ");
@@ -1041,32 +1037,39 @@ bootpc_init(int update_files)
   bootpboot_p_iflist();
   bootpboot_p_rtlist();
 #endif
-  
-  bzero((caddr_t) &call, sizeof(call));
 
-  /* bootpc part */
-  call.op = 1; 			/* BOOTREQUEST */
-  call.htype= 1;		/* 10mb ethernet */
-  call.hlen=sdl->sdl_alen;	/* Hardware address length */
-  call.hops=0;	
-  xid++;
-  call.xid = txdr_unsigned(xid);
-  bcopy(LLADDR(sdl),&call.chaddr,sdl->sdl_alen);
+  while (true) {
+    bzero((caddr_t) &call, sizeof(call));
+
+    /* bootpc part */
+    call.op = 1; 			/* BOOTREQUEST */
+    call.htype= 1;		/* 10mb ethernet */
+    call.hlen=sdl->sdl_alen;	/* Hardware address length */
+    call.hops=0;	
+    xid++;
+    call.xid = txdr_unsigned(xid);
+    bcopy(LLADDR(sdl),&call.chaddr,sdl->sdl_alen);
   
-  call.vend[0]=99;
-  call.vend[1]=130;
-  call.vend[2]=83;
-  call.vend[3]=99;
-  call.vend[4]=255;
+    call.vend[0]=99;
+    call.vend[1]=130;
+    call.vend[2]=83;
+    call.vend[3]=99;
+    call.vend[4]=255;
   
-  call.secs = 0;
-  call.flags = htons(0x8000); /* We need an broadcast answer */
+    call.secs = 0;
+    call.flags = htons(0x8000); /* We need an broadcast answer */
   
-  error = bootpc_call(&call,&reply,procp);
+    error = bootpc_call(&call,&reply,procp);
   
-  if (error) {
+    if (!error)
+      break;
+    
     printf("BOOTP call failed -- error %d", error);
-    return;
+
+    if (!forever) {
+      soclose(so);
+      return false;
+    }
   }
   
   /*
@@ -1150,7 +1153,7 @@ bootpc_init(int update_files)
       dn = "mydomain";
     if (!hn)
       hn = "me";
-    rtems_rootfs_append_host_rec(*((unsigned long*) &myaddr.sin_addr), hn, dn);
+    rtems_rootfs_append_host_rec(myaddr.sin_addr.s_addr, hn, dn);
 
     /*
      * Should the given domainname be used here ?
@@ -1160,12 +1163,12 @@ bootpc_init(int update_files)
         hn = rtems_bsdnet_bootp_server_name;
       else
         hn = "bootps";
-      rtems_rootfs_append_host_rec(*((unsigned long *) &rtems_bsdnet_bootp_server_address),
+      rtems_rootfs_append_host_rec(rtems_bsdnet_bootp_server_address.s_addr,
                                    hn, dn);
     }
 
     if (dhcp_gotlogserver) {
-      rtems_rootfs_append_host_rec(*((unsigned long *) &rtems_bsdnet_log_host_address),
+      rtems_rootfs_append_host_rec(rtems_bsdnet_log_host_address.s_addr,
                                    "logs", dn);
     }
 
@@ -1205,4 +1208,6 @@ bootpc_init(int update_files)
   error = bootpc_adjust_interface(&ireq,so,
 				  &myaddr,&dhcp_netmask,&dhcp_gw,procp);
   soclose(so);
+
+  return true;
 }

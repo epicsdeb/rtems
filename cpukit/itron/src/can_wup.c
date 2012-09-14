@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: can_wup.c,v 1.10 2007/10/26 20:19:00 joel Exp $
+ *  $Id: can_wup.c,v 1.11 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,7 +28,7 @@
  */
 
 ER can_wup(
-  INT *p_wupcnt,
+  INT *p_wupcnt __attribute__((unused)),
   ID   tskid
 )
 {

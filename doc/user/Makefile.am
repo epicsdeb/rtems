@@ -3,11 +3,10 @@
 #  On-Line Applications Research Corporation (OAR).
 #  All rights reserved.
 #
-#  $Id: Makefile.am,v 1.23.2.1 2008/11/03 19:02:23 joel Exp $
+#  $Id: Makefile.am,v 1.26.2.2 2010/11/24 18:01:48 joel Exp $
 #
 
 PROJECT = c_user
-EDITION = 1
 
 include $(top_srcdir)/project.am
 include $(top_srcdir)/main.am
@@ -27,12 +26,15 @@ c_user_TEXINFOS = $(FILES) $(COMMON_FILES) $(GENERATED_FILES)
 
 TXT_FILES = rtemsarc.txt rtemspie.txt states.txt
 
-PNG_FILES = rtemsarc.png rtemspie.png states.png ObjectId-32Bits.png
+PNG_FILES = rtemsarc.png rtemspie.png states.png ObjectId-32Bits.png \
+    ObjectId-16Bits.png semaphore_attributes.png
 
-EPS_IMAGES = rtemspie.eps states.eps
+EPS_IMAGES = rtemspie.eps states.eps ObjectId-32Bits.eps \
+    ObjectId-32Bits.eps semaphore_attributes.eps
 $(PROJECT).dvi: $(EPS_IMAGES)
 
-PDF_IMAGES = rtemspie.pdf states.pdf
+PDF_IMAGES = rtemspie.pdf states.pdf ObjectId-16Bits.pdf \
+    ObjectId-32Bits.pdf semaphore_attributes.pdf
 CLEANFILES += $(PDF_IMAGES)
 
 if USE_HTML
@@ -184,9 +186,10 @@ chains.texi: chains.t
 	    -u "Top" \
 	    -n "Directive Status Codes" < $< > $@
 
-EXTRA_DIST = bsp.t clock.t chains.t concepts.t cpuuse.t datatypes.t conf.t dpmem.t \
-    event.t fatal.t init.t intr.t io.t mp.t msg.t overview.t part.t region.t \
-    rtmon.t sem.t schedule.t signal.t stackchk.t task.t timer.t userext.t \
-    $(TXT_FILES) $(PNG_FILES) $(EPS_IMAGES) $(noinst_DATA)
+EXTRA_DIST = bsp.t clock.t chains.t concepts.t cpuuse.t datatypes.t conf.t \
+    dpmem.t event.t fatal.t init.t intr.t io.t mp.t msg.t overview.t \
+    part.t region.t rtmon.t sem.t schedule.t signal.t stackchk.t \
+    task.t timer.t userext.t $(TXT_FILES) $(PNG_FILES) $(EPS_IMAGES) \
+    $(noinst_DATA)
 
 CLEANFILES += c_user.info c_user.info-? c_user.info-??

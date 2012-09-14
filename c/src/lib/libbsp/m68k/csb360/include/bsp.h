@@ -118,14 +118,6 @@ extern int rtems_enet_driver_attach (struct rtems_bsdnet_ifconfig *config);
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"eth0"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_enet_driver_attach
 
-/*
- *  confdefs.h overrides for this BSP:
- *   - termios serial ports (defaults to 1)
- *   - Interrupt stack space is not minimum if defined.
- */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
-
 /* System frequency */
 #define BSP_SYSTEM_FREQUENCY (66 * 1000 * 1000)
 
@@ -144,22 +136,6 @@ extern int rtems_enet_driver_attach (struct rtems_bsdnet_ifconfig *config);
                   : "=d" (_tmp), "=d" (_delay) \
                   : "0"  (_tmp), "1"  (_delay) ); \
   }
-
-/* Constants */
-
-/* Structures */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
- 
-/*
- * NOTE: Use the standard Clock driver entry
- */
 
 /*
  * Real-Time Clock Driver Table Entry
@@ -180,8 +156,6 @@ extern m68k_isr_entry M68Kvec[];   /* vector table address */
 extern rtems_isr (*rtems_clock_hook)(rtems_vector_number);
 
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

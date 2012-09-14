@@ -18,28 +18,28 @@
 
   This software with is provided ``as is'' and with NO WARRANTY.
 
-  $Id: mkrootfs.h,v 1.8 2008/08/01 05:07:41 ralf Exp $
+  $Id: mkrootfs.h,v 1.8.4.4 2010/07/01 14:29:09 sh Exp $
 */
 
 #ifndef _RTEMS_MKROOTFS_H
 #define _RTEMS_MKROOTFS_H
 
+#include <rtems.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <rtems.h>
-
-/*
- *  Builds the complete path, like "mkdir -p".
- */
-
-int
-rtems_rootfs_mkdir (const char *path, mode_t omode);
-
-/*
+/**
  *  Appends the lines to the a file. Create the file
  *  and builds the path if it does not exist.
+ *
+ *  @param file
+ *  @param omode
+ *  @param line_cnt
+ *  @param lines
+ * 
+ *  @return 0 on success, -1 on error
  */
 
 int
@@ -48,19 +48,27 @@ rtems_rootfs_file_append (const char *file,
                           const int  line_cnt,
                           const char **lines);
 
-/*
- *  Helper for bulding an /etc/hosts file.
+/**
+ *  @brief Helper for bulding an /etc/hosts file.
+ *
+ *  @param cip
+ *  @param cname
+ *  @param dname
+ *
+ *  @return 0 on success, -1 on error
  */
 
 int
-rtems_rootfs_append_host_rec (unsigned long cip,
+rtems_rootfs_append_host_rec (in_addr_t cip,
                               const char    *cname,
                               const char    *dname);
 
-/*
- * Create a few common directories, plus a :
+/**
+ * Create a few common directories, plus a:
  * /etc/passwd, /etc/group, /etc/host.conf, and
  * /etc/hosts file.
+ *
+ * @return 0 on success, -1 on error
  */
 
 int

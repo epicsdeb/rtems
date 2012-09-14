@@ -1,45 +1,65 @@
 ##
-## $Id: Makefile.am,v 1.27 2008/08/27 12:50:18 ralf Exp $
+## $Id: Makefile.am,v 1.40 2010/04/30 14:48:52 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
 include_HEADERS = include/bsp.h
-include_HEADERS += include/tm27.h
+include_HEADERS += ../../shared/include/tm27.h
+
+include_bsp_HEADERS =
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 noinst_PROGRAMS =
 
 include_HEADERS += include/ep7312.h
 nodist_include_HEADERS += ../../shared/include/coverhd.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-include_HEADERS += ../../arm/shared/comm/uart.h
-startup_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
-    ../../shared/bsppredriverhook.c \
-    startup/bspstart.c startup/bspclean.c ../../shared/bootcard.c \
-    ../../shared/sbrk.c ../../shared/gnatinstallhandler.c
-clock_SOURCES = clock/clockdrv.c
-console_SOURCES = console/uart.c ../../shared/console.c
-timer_SOURCES = timer/timer.c
-abort_SOURCES = ../shared/abort/abort.c
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
-include_HEADERS += irq/irq.h
-irq_SOURCES = irq/irq.c irq/bsp_irq_init.c \
-    ../../arm/shared/irq/irq_init.c irq/bsp_irq_asm.S \
-    ../../arm/shared/irq/irq_asm.S irq/irq.h
+include_HEADERS += ../../arm/shared/comm/uart.h
+# startup
+libbsp_a_SOURCES += ../../shared/bsppost.c ../../shared/bsplibc.c \
+    ../../shared/bspgetworkarea.c ../../shared/bsppretaskinghook.c \
+    ../../shared/bsppredriverhook.c startup/bspstart.c \
+    ../../shared/bspclean.c ../../shared/bootcard.c ../../shared/sbrk.c \
+    startup/bspreset.c ../../shared/gnatinstallhandler.c
+
+# clock
+libbsp_a_SOURCES += clock/clockdrv.c ../../../shared/clockdrv_shell.h
+# console
+libbsp_a_SOURCES += console/uart.c ../../shared/console.c
+# timer
+libbsp_a_SOURCES += timer/timer.c
+# abort
+libbsp_a_SOURCES += ../shared/abort/abort.c
+
+# irq
+include_bsp_HEADERS += ../../shared/include/irq-generic.h \
+	../../shared/include/irq-info.h \
+	irq/irq.h
+libbsp_a_SOURCES += ../../shared/src/irq-generic.c \
+	../../shared/src/irq-legacy.c \
+	../../shared/src/irq-info.c \
+	../../shared/src/irq-shell.c \
+	../../shared/src/irq-server.c \
+	irq/irq.c \
+	irq/bsp_irq_asm.S
 
 if HAS_NETWORKING
 network_CPPFLAGS = -D__INSIDE_RTEMS_BSD_TCPIP_STACK__
@@ -49,12 +69,8 @@ network_rel_CPPFLAGS = $(AM_CPPFLAGS) $(network_CPPFLAGS)
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
-    $(timer_SOURCES) $(abort_SOURCES) $(irq_SOURCES)
-
 # libcpu libraries could go here
-libbsp_a_LIBADD = 
+libbsp_a_LIBADD =
 if HAS_NETWORKING
 libbsp_a_LIBADD += network.rel
 endif

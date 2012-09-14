@@ -1,4 +1,92 @@
-2008-09-18	Ralf Corsépius <ralf.corsepius@rtems.org>
+2010-11-23	Gedare Bloom <giddyup44@yahoo.com>
+
+	PR 1719/cpukit
+	* arm_exc_abort.S: Avoid "bx" instruction to support ARMv4 and below.
+
+2010-05-10	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* rtems/score/arm.h: Make it a warning not error that the FPU multilib
+	is not supported yet.
+
+2010-04-08	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* arm_exc_abort.S, arm_exc_handler_high.c, arm_exc_handler_low.S,
+	arm_exc_interrupt.S, cpu.c, cpu_asm.S, rtems/asm.h, rtems/score/arm.h,
+	rtems/score/cpu.h, rtems/score/cpu_asm.h, rtems/score/types.h:
+	Documentation.
+
+2010-04-07	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* arm_exc_abort.S: Fix warnings about TRUE/FALSE not defined.
+
+2010-03-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* arm_exc_abort.S, arm_exc_handler_high.c, arm_exc_handler_low.S,
+	arm_exc_interrupt.S, cpu.c, cpu_asm.S: Add include of config.h
+
+2010-01-12	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* arm_exc_abort.S: New file.
+	* Makefile.am: Update for new file.
+	* arm_exc_interrupt.S, cpu.c, rtems/asm.h, rtems/score/cpu.h: Changed
+	macros which switch from and to THUMB mode.  Added a default prefetch
+	and data abort handler which reports the complete processor context.
+	Added PSR defines.
+
+2009-12-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* rtems/score/arm.h: Recognize ARMv5TEJ.
+	* arm_exc_interrupt.S: The previous implementation was broken.  In
+	case of a nested interrupt the link register of the INT mode was not
+	properly restored.  This lead to a major rewrite.  Interrupt
+	processing is now done in SVC mode.
+
+2009-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/arm.h: Recognize ARMv7A.
+
+2009-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/arm.h: Recognize ARMv6J as needed by arm1136 variants.
+
+2009-09-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* rtems/score/cpu.h: Fix for inline asm in _CPU_Fatal_halt().
+	* rtems/asm.h: Added macro to define ARM functions.
+	* cpu_asm.S, arm_exc_handler_low.S: Use macro from above.
+
+2009-08-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* rtems/score/cpu.h: Mark _CPU_Context_restore() as noreturn so the
+	compiler will not generate code thinking it returns.
+
+2009-07-15	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* arm_exc_handler_high.c, arm_exc_handler_low.S, arm_exc_interrupt.S:
+	New files.
+	* Makefile.am: Update.
+	* rtems/score/cpu.h:  Removed all generic comments.  Changed inline
+	assembler of interrupt support functions.  Removed operating system
+	support for fast interrupts (FIQ).  Overall cleanup.
+	* cpu.c: Changed type of arm_cpu_mode to uint32_t to match the type in
+	_CPU_Context_Initialize().  Moved exception handler code into
+	'arm_exc_handler_high.c'.  _CPU_ISR_install_vector() writes now only
+	if necessary.
+	* cpu_asm.S: Moved exception handler code into 'arm_exc_handler_low.S'.
+	* rtems/score/types.h: Removed superfluous defines.
+	* ChangeLog, thumb_isr.c: Removed files.
+
+2009-05-05	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* rtems/score/cpu.h: Remove warnings.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu.c, rtems/score/cpu.h: Eliminate _CPU_Thread_dispatch_pointer and
+	passing address of _Thread_Dispatch to _CPU_Initialize. Clean up
+	comments.
+
+2008-09-11	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* rtems/score/types.h: Do not define boolean, single_precision,
 	double_precision unless RTEMS_DEPRECATED_TYPES is given.

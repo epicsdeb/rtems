@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.16 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.20 2009/11/30 03:33:25 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -21,7 +20,7 @@ rtems_task test_task(
 rtems_task test_task1(
   rtems_task_argument argument
 );
-void test_init();
+void test_init(void);
 
 rtems_task Init(
   rtems_task_argument argument
@@ -39,13 +38,13 @@ rtems_task Init(
   directive_failed( status, "rtems_task_delete of RTEMS_SELF" );
 }
 
-void test_init()
+void test_init(void)
 {
   rtems_status_code status;
 
   status = rtems_task_create(
     1,
-    128,
+    (RTEMS_MAXIMUM_PRIORITY / 2u) + 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -58,7 +57,7 @@ void test_init()
 
   status = rtems_task_create(
     1,
-    254,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -105,7 +104,12 @@ rtems_task test_task(
 
   benchmark_timer_initialize();
     for ( index=1 ; index <= OPERATION_COUNT ; index++ )
-      (void) rtems_task_set_priority( Test_task_id, 253, &old_priority );
+      (void) rtems_task_set_priority(
+        Test_task_id,
+        RTEMS_MAXIMUM_PRIORITY - 2u,
+        &old_priority
+      );
+
   end_time = benchmark_timer_read();
 
   put_time(
@@ -221,11 +225,11 @@ rtems_task test_task(
 
   benchmark_timer_initialize();
     for ( index=1 ; index <= OPERATION_COUNT ; index++ )
-      (void) rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+      (void) rtems_clock_get_tod( &time );
   end_time = benchmark_timer_read();
 
   put_time(
-    "rtems_clock_get",
+    "rtems_clock_get_tod",
     end_time,
     OPERATION_COUNT,
     overhead,

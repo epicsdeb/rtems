@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task.c,v 1.6 2003/09/04 18:53:38 joel Exp $
+ *  $Id: task.c,v 1.6.8.1 2011/07/31 16:16:43 joel Exp $
  */
 
 #include "system.h"
@@ -26,6 +26,11 @@ void *Task_1(
   void *argument
 )
 {
+  /*
+   * Detach ourselves so we don't wait for a join that won't happen.
+   */
+  pthread_detach( pthread_self() );
+
   puts( "Task_1: exitting" );
   pthread_exit( NULL );
 

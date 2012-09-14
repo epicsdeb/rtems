@@ -14,7 +14,7 @@
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
  *
- *  $Id: start.S,v 1.7 2007/11/30 19:45:40 strauman Exp $
+ *  $Id: start.S,v 1.12 2009/12/02 01:46:45 strauman Exp $
  */
 
 #include <rtems/asm.h>
@@ -22,7 +22,6 @@
 #include <libcpu/io.h>
 #include "ppc-asm.h"
 
-	.file	"startsim.s"
 	.section ".got2","aw"
 	.align	2
 
@@ -98,23 +97,38 @@ _start:
 	mr	sp,r0			/* use user defined stack */
 
 .Lnostack:
+#ifdef __ALTIVEC__
+	/* enable altivec; this requires the ALTIVEC user
+	 * extension to be installed in the user extension
+	 * slot 0!
+	 */
+	mfmsr r0
+	oris  r0, r0, (1<<(31-16-6))
+	mtmsr r0
+	/*
+	 * set vscr and vrsave to known values
+	 */
+	li    r0, 0
+	mtvrsave r0
+	vxor   0,0,0
+	mtvscr 0
+#endif
 	/* set up initial stack frame */
 	addi	sp,sp,-4		/* make sure we don't overwrite debug mem */
+	/* align */
+	li  r3, CPU_STACK_ALIGNMENT-1
+	andc	sp, sp, r3
 	lis	r0,0
 	stw	r0,0(sp)		/* clear back chain */
-	stwu	sp,-56(sp)		/* push another stack frame */
+	stwu	sp,-CPU_STACK_ALIGNMENT(sp)		/* push another stack frame */
 	bl  FUNC_NAME(__eabi)
 
-        lis	r5,environ@ha
-        la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
-
 	/* Let her rip */
+	li	r3, 0			/* command line */
 	bl	FUNC_NAME(boot_card)
 
-	/* return value from boot_card is argument to exit */
-	bl	FUNC_NAME(exit)
-	trap
+	li  10,99			/* 0x63 */
+  	sc
+
 .Lstart:
 	.size	_start,.Lstart-_start

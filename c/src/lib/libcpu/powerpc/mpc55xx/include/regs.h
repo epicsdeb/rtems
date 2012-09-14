@@ -6,7 +6,11 @@
  * @brief Register definitions for the MPC55XX microcontroller family
  *
  * This file is based on the mpc5566.h header file provided by Freescale Semiconductor, INC.
+ * with some added fields/structures/definitions for MPC5510
  */
+
+/* to get the chip derivate... */
+#include <bspopts.h>
 
 /*
  * Copyright (c) 2008
@@ -344,7 +348,7 @@ extern "C" {
 /*                     MODULE : FMPLL                                       */
 /****************************************************************************/
     struct FMPLL_tag {
-        union {
+        union SYNCR_tag {
             uint32_t R;
             struct {
                 uint32_t:1;
@@ -362,7 +366,7 @@ extern "C" {
                 uint32_t DEPTH:2;
                 uint32_t EXP:10;
             } B;
-        } SYNCR;
+        } SYNCR; /* not present on MPC551x */
 
         union {
             uint32_t R;
@@ -381,6 +385,36 @@ extern "C" {
             } B;
         } SYNSR;
 
+        union ESYNCR1_tag {
+            uint32_t R;
+            struct  {
+                uint32_t:1;
+                uint32_t CLKCFG:3;
+                uint32_t:8;
+                uint32_t EPREDIV:4;
+                uint32_t :8;
+                uint32_t EMFD:8;
+            } B;
+        } ESYNCR1; /* present on MPC551x */
+
+        union ESYNCR2_tag{
+            uint32_t R;
+            struct {
+                uint32_t:8;
+                uint32_t LOCEN:1;
+                uint32_t LOLRE:1;
+                uint32_t LOCRE:1;
+                uint32_t LOLIRQ:1;
+                uint32_t LOCIRQ:1;
+                uint32_t:1;
+                uint32_t ERATE:2;
+                uint32_t:5;
+                uint32_t DEPTH:3;
+                uint32_t:2;
+                uint32_t ERFD:6;
+            } B;
+        } ESYNCR2; /* present on MPC551x */
+
     };
 /****************************************************************************/
 /*                     MODULE : External Bus Interface (EBI)                */
@@ -392,7 +426,8 @@ extern "C" {
                 uint32_t BA:17;
                   uint32_t:3;
                 uint32_t PS:1;
-                  uint32_t:4;
+                  uint32_t:3;
+	        uint32_t AD_MUX:1; /* only MPC551x */
                 uint32_t BL:1;
                 uint32_t WEBS:1;
                 uint32_t TBDIP:1;
@@ -459,7 +494,9 @@ extern "C" {
                 uint32_t EARP:2;
                   uint32_t:4;
                 uint32_t MDIS:1;
-                  uint32_t:5;
+                  uint32_t:3;
+	        uint32_t D16_32:1; /* only for MPC551x */
+                uint32_t ADMUX:1;  /* only for MPC551x */
                 uint32_t DBM:1;
             } B;
         } MCR;
@@ -666,7 +703,7 @@ extern "C" {
             } B;
         } SRCR;
 
-        union {                 /* External Interrupt Status Register */
+        union SIU_EISR_tag {    /* External Interrupt Status Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -689,7 +726,7 @@ extern "C" {
             } B;
         } EISR;
 
-        union {                 /* DMA/Interrupt Request Enable Register */
+        union SIU_DIRER_tag {   /* DMA/Interrupt Request Enable Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -712,7 +749,7 @@ extern "C" {
             } B;
         } DIRER;
 
-        union {                 /* DMA/Interrupt Select Register */
+        union SIU_DIRSR_tag {   /* DMA/Interrupt Select Register */
             uint32_t R;
             struct {
                 uint32_t:28;
@@ -723,7 +760,7 @@ extern "C" {
             } B;
         } DIRSR;
 
-        union {                 /* Overrun Status Register */
+        union SIU_OSR_tag {     /* Overrun Status Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -746,7 +783,7 @@ extern "C" {
             } B;
         } OSR;
 
-        union {                 /* Overrun Request Enable Register */
+        union SIU_ORER_tag {    /* Overrun Request Enable Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -769,7 +806,7 @@ extern "C" {
             } B;
         } ORER;
 
-        union {                 /* External IRQ Rising-Edge Event Enable Register */
+        union SIU_IREER_tag {   /* External IRQ Rising-Edge Event Enable Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -792,7 +829,7 @@ extern "C" {
             } B;
         } IREER;
 
-        union {                 /* External IRQ Falling-Edge Event Enable Register */
+        union SIU_IFEER_tag {   /* External IRQ Falling-Edge Event Enable Register */
             uint32_t R;
             struct {
                 uint32_t:16;
@@ -815,7 +852,7 @@ extern "C" {
             } B;
         } IFEER;
 
-        union {                 /* External IRQ Digital Filter Register */
+        union SIU_IDFR_tag {    /* External IRQ Digital Filter Register */
             uint32_t R;
             struct {
                 uint32_t:28;
@@ -963,7 +1000,7 @@ extern "C" {
 /*                          MODULE : EMIOS                                  */
 /****************************************************************************/
     struct EMIOS_tag {
-        union {
+        union EMIOS_MCR_tag {
             uint32_t R;
             struct {
                 uint32_t:1;
@@ -979,7 +1016,7 @@ extern "C" {
             } B;
         } MCR;                  /* Module Configuration Register */
 
-        union {
+        union EMIOS_GFR_tag {
             uint32_t R;
             struct {
                 uint32_t:8;
@@ -1010,7 +1047,7 @@ extern "C" {
             } B;
         } GFR;                  /* Global FLAG Register */
 
-        union {
+        union EMIOS_OUDR_tag {
             uint32_t R;
             struct {
                 uint32_t:8;
@@ -1043,7 +1080,7 @@ extern "C" {
 
         uint32_t emios_reserved[5];
 
-        struct {
+        struct EMIOS_CH_tag {
             union {
                 uint32_t R;    /* Channel A Data Register */
             } CADR;
@@ -1056,7 +1093,7 @@ extern "C" {
                 uint32_t R;    /* Channel Counter Register */
             } CCNTR;
 
-            union {
+            union EMIOS_CCR_tag {
                 uint32_t R;
                 struct {
                     uint32_t FREN:1;
@@ -1080,7 +1117,7 @@ extern "C" {
                 } B;
             } CCR;              /* Channel Control Register */
 
-            union {
+            union EMIOS_CSR_tag {
                 uint32_t R;
                 struct {
                     uint32_t OVR:1;
@@ -2165,19 +2202,19 @@ extern "C" {
 
         union {
             uint16_t R;
-        } SWTCR;                //Software Watchdog Timer Control
+        } SWTCR;                /* Software Watchdog Timer Control */
 
         uint8_t ecsm_reserved3[3];
 
         union {
             uint8_t R;
-        } SWTSR;                //SWT Service Register
+        } SWTSR;                /* SWT Service Register */
 
         uint8_t ecsm_reserved4[3];
 
         union {
             uint8_t R;
-        } SWTIR;                //SWT Interrupt Register
+        } SWTIR;                /* SWT Interrupt Register */
 
         uint32_t ecsm_reserved5a[1];
 
@@ -2210,7 +2247,7 @@ extern "C" {
                 uint8_t ERNCR:1;
                 uint8_t EFNCR:1;
             } B;
-        } ECR;                  //ECC Configuration Register
+        } ECR;                  /* ECC Configuration Register */
 
         uint8_t mcm_reserved8[3];
 
@@ -2221,7 +2258,7 @@ extern "C" {
                 uint8_t RNCE:1;
                 uint8_t FNCE:1;
             } B;
-        } ESR;                  //ECC Status Register
+        } ESR;                  /* ECC Status Register */
 
         uint16_t ecsm_reserved9;
 
@@ -2234,7 +2271,7 @@ extern "C" {
                   uint16_t:1;
                 uint16_t ERRBIT:7;
             } B;
-        } EEGR;                 //ECC Error Generation Register
+        } EEGR;                 /* ECC Error Generation Register */
 
         uint32_t ecsm_reserved10;
 
@@ -2243,7 +2280,7 @@ extern "C" {
             struct {
                 uint32_t FEAR:32;
             } B;
-        } FEAR;                 //Flash ECC Address Register
+        } FEAR;                 /* Flash ECC Address Register */
 
         uint16_t ecsm_reserved11;
 
@@ -2253,7 +2290,7 @@ extern "C" {
                 uint8_t:4;
                 uint8_t FEMR:4;
             } B;
-        } FEMR;                 //Flash ECC Master Register
+        } FEMR;                 /* Flash ECC Master Register */
 
         union {
             uint8_t R;
@@ -2265,28 +2302,28 @@ extern "C" {
                 uint8_t PROT2:1;
                 uint8_t PROT3:1;
             } B;
-        } FEAT;                 //Flash ECC Attributes Register
+        } FEAT;                 /* Flash ECC Attributes Register */
 
         union {
             uint32_t R;
             struct {
                 uint32_t FEDH:32;
             } B;
-        } FEDRH;                //Flash ECC Data High Register
+        } FEDRH;                /* Flash ECC Data High Register */
 
         union {
             uint32_t R;
             struct {
                 uint32_t FEDL:32;
             } B;
-        } FEDRL;                //Flash ECC Data Low Register
+        } FEDRL;                /* Flash ECC Data Low Register */
 
         union {
             uint32_t R;
             struct {
                 uint32_t REAR:32;
             } B;
-        } REAR;                 //RAM ECC Address
+        } REAR;                 /* RAM ECC Address */
 
         uint8_t ecsm_reserved12[2];
 
@@ -2296,7 +2333,7 @@ extern "C" {
                 uint8_t:4;
                 uint8_t REMR:4;
             } B;
-        } REMR;                 //RAM ECC Master
+        } REMR;                 /* RAM ECC Master */
 
         union {
             uint8_t R;
@@ -2308,21 +2345,21 @@ extern "C" {
                 uint8_t PROT2:1;
                 uint8_t PROT3:1;
             } B;
-        } REAT;                 // RAM ECC Attributes Register
+        } REAT;                 /*  RAM ECC Attributes Register */
 
         union {
             uint32_t R;
             struct {
                 uint32_t REDH:32;
             } B;
-        } REDRH;                //RAM ECC Data High Register
+        } REDRH;                /* RAM ECC Data High Register */
 
         union {
             uint32_t R;
             struct {
                 uint32_t REDL:32;
             } B;
-        } REDRL;                //RAMECC Data Low Register
+        } REDRL;                /* RAMECC Data Low Register */
 
     };
 /****************************************************************************/
@@ -2728,41 +2765,88 @@ extern "C" {
         struct tcd_t {
             uint32_t SADDR;    /* source address */
 
-            uint16_t SMOD:5;   /* source address modulo */
-            uint16_t SSIZE:3;  /* source transfer size */
-            uint16_t DMOD:5;   /* destination address modulo */
-            uint16_t DSIZE:3;  /* destination transfer size */
-            int16_t SOFF;      /* signed source address offset */
+            /* Source and destination fields */
+            union tcd_SDF_tag {
+                uint32_t R;
+                struct {
+                    uint16_t SMOD:5;   /* source address modulo */
+                    uint16_t SSIZE:3;  /* source transfer size */
+                    uint16_t DMOD:5;   /* destination address modulo */
+                    uint16_t DSIZE:3;  /* destination transfer size */
+                    int16_t SOFF;      /* signed source address offset */
+                } B;
+            } SDF;
 
             uint32_t NBYTES;   /* inner (minor) byte count */
 
             int32_t SLAST;     /* last destination address adjustment, or
-
                                    scatter/gather address (if e_sg = 1) */
+
             uint32_t DADDR;    /* destination address */
 
-            uint16_t CITERE_LINK:1;
-            uint16_t CITER:15;
-
-            int16_t DOFF;      /* signed destination address offset */
+            /* CITER and destination fields */
+            union tcd_CDF_tag {
+                uint32_t R;
+                struct {
+                    uint16_t CITERE_LINK:1;
+                    uint16_t CITER:15;
+                    int16_t DOFF;      /* signed destination address offset */
+                } B;
+                struct {
+		    uint16_t CITERE_LINK:1;
+		    uint16_t CITERLINKCH:6;
+		    uint16_t CITER:9;
+                    int16_t DOFF;
+                } B_ALT;
+            } CDF;
 
             int32_t DLAST_SGA;
 
-            uint16_t BITERE_LINK:1;    /* beginning ("major") iteration count */
-            uint16_t BITER:15;
-
-            uint16_t BWC:2;    /* bandwidth control */
-            uint16_t MAJORLINKCH:6;    /* enable channel-to-channel link */
-            uint16_t DONE:1;   /* channel done */
-            uint16_t ACTIVE:1; /* channel active */
-            uint16_t MAJORE_LINK:1;    /* enable channel-to-channel link */
-            uint16_t E_SG:1;   /* enable scatter/gather descriptor */
-            uint16_t D_REQ:1;  /* disable ipd_req when done */
-            uint16_t INT_HALF:1;       /* interrupt on citer = (biter >> 1) */
-            uint16_t INT_MAJ:1;        /* interrupt on major loop completion */
-            uint16_t START:1;  /* explicit channel start */
+            /* BITER and misc fields */
+            union tcd_BMF_tag {
+                uint32_t R;
+                struct {
+                    uint32_t BITERE_LINK:1;    /* beginning ("major") iteration count */
+                    uint32_t BITER:15;
+                    uint32_t BWC:2;    /* bandwidth control */
+                    uint32_t MAJORLINKCH:6;    /* enable channel-to-channel link */
+                    uint32_t DONE:1;   /* channel done */
+                    uint32_t ACTIVE:1; /* channel active */
+                    uint32_t MAJORE_LINK:1;    /* enable channel-to-channel link */
+                    uint32_t E_SG:1;   /* enable scatter/gather descriptor */
+                    uint32_t D_REQ:1;  /* disable ipd_req when done */
+                    uint32_t INT_HALF:1;       /* interrupt on citer = (biter >> 1) */
+                    uint32_t INT_MAJ:1;        /* interrupt on major loop completion */
+                    uint32_t START:1;  /* explicit channel start */
+                } B;
+                struct {
+                    uint32_t BITERE_LINK:1;
+                    uint32_t BITERLINKCH:6;
+                    uint32_t BITER:9;
+                    uint32_t BWC:2;
+                    uint32_t MAJORLINKCH:6;
+                    uint32_t DONE:1;
+                    uint32_t ACTIVE:1;
+                    uint32_t MAJORE_LINK:1;
+                    uint32_t E_SG:1;
+                    uint32_t D_REQ:1;
+                    uint32_t INT_HALF:1;
+                    uint32_t INT_MAJ:1;
+                    uint32_t START:1;
+                } B_ALT;
+            } BMF;
         } TCD[64];              /* transfer_control_descriptor */
+    };
 
+    static const struct tcd_t EDMA_TCD_DEFAULT = {
+        .SADDR = 0,
+        .SDF = { .R = 0 },
+        .NBYTES = 0,
+        .SLAST = 0,
+        .DADDR = 0,
+        .CDF = { .R = 0 },
+        .DLAST_SGA = 0,
+        .BMF = { .R = 0 }
     };
 
 #define EDMA_TCD_BITER_MASK 0x7fff
@@ -2775,50 +2859,8 @@ extern "C" {
 
 #define EDMA_TCD_LINK_AND_BITER( link, biter) (((link) << 9) + ((biter) & EDMA_TCD_BITER_LINKED_MASK))
 
-#define EDMA_TCD_BITER_LINK( channel) (EDMA.TCD [(channel)].BITER >> 9)
+#define EDMA_TCD_BITER_LINK( channel) (EDMA.TCD [(channel)].BMF.B.BITER >> 9)
 
-/* This is outside of the eDMA structure */
-/* There are 2 possible ways to use the citer bit field, this structure */
-/* uses the different format from the main structure.                   */
-    struct tcd_alt_t {
-        uint32_t SADDR;        /* source address */
-
-        uint16_t SMOD:5;       /* source address modulo */
-        uint16_t SSIZE:3;      /* source transfer size */
-        uint16_t DMOD:5;       /* destination address modulo */
-        uint16_t DSIZE:3;      /* destination transfer size */
-        int16_t SOFF;          /* signed source address offset */
-
-        uint32_t NBYTES;       /* inner (minor) byte count */
-
-        int32_t SLAST;         /* last destination address adjustment, or
-
-                                   scatter/gather address (if e_sg = 1) */
-        uint32_t DADDR;        /* destination address */
-
-        uint16_t CITERE_LINK:1;
-        uint16_t CITERLINKCH:6;
-        uint16_t CITER:9;
-
-        int16_t DOFF;          /* signed destination address offset */
-
-        int32_t DLAST_SGA;
-
-        uint16_t BITERE_LINK:1;        /* beginning (major) iteration count */
-        uint16_t BITERLINKCH:6;
-        uint16_t BITER:9;
-
-        uint16_t BWC:2;        /* bandwidth control */
-        uint16_t MAJORLINKCH:6;        /* enable channel-to-channel link */
-        uint16_t DONE:1;       /* channel done */
-        uint16_t ACTIVE:1;     /* channel active */
-        uint16_t MAJORE_LINK:1;        /* enable channel-to-channel link */
-        uint16_t E_SG:1;       /* enable scatter/gather descriptor */
-        uint16_t D_REQ:1;      /* disable ipd_req when done */
-        uint16_t INT_HALF:1;   /* interrupt on citer = (biter >> 1) */
-        uint16_t INT_MAJ:1;    /* interrupt on major loop completion */
-        uint16_t START:1;      /* explicit channel start */
-    };                          /* transfer_control_descriptor */
 /****************************************************************************/
 /*                          MODULE : INTC                                   */
 /****************************************************************************/
@@ -4249,11 +4291,159 @@ extern "C" {
 
     };
 
+/****************************************************************************/
+/*                          MMU                                             */
+/****************************************************************************/
+    struct MMU_tag {
+        union {
+            uint32_t R;
+            struct {
+                uint32_t : 2;
+                uint32_t TLBSEL : 2;
+                uint32_t : 7;
+                uint32_t ESEL : 5;
+                uint32_t : 11;
+                uint32_t NV : 5;
+            } B;
+        } MAS0;
+
+        union {
+            uint32_t R;
+            struct {
+                uint32_t VALID : 1;
+                uint32_t IPROT : 1;
+                uint32_t : 6;
+                uint32_t TID : 8;
+                uint32_t : 3;
+                uint32_t TS : 1;
+                uint32_t TSIZ : 4;
+                uint32_t : 8;
+            } B;
+        } MAS1;
+
+        union {
+            uint32_t R;
+            struct {
+                uint32_t EPN : 20;
+                uint32_t : 7;
+                uint32_t W : 1;
+                uint32_t I : 1;
+                uint32_t M : 1;
+                uint32_t G : 1;
+                uint32_t E : 1;
+            } B;
+        } MAS2;
+
+        union {
+            uint32_t R;
+            struct {
+                uint32_t RPN : 20;
+                uint32_t : 2;
+                uint32_t U0 : 1;
+                uint32_t U1 : 1;
+                uint32_t U2 : 1;
+                uint32_t U3 : 1;
+                uint32_t UX : 1;
+                uint32_t SX : 1;
+                uint32_t UW : 1;
+                uint32_t SW : 1;
+                uint32_t UR : 1;
+                uint32_t SR : 1;
+            } B;
+        } MAS3;
+
+        union {
+            uint32_t R;
+            struct {
+                uint32_t : 2;
+                uint32_t TLBSELD : 2;
+                uint32_t : 10;
+                uint32_t TIDSELD : 2;
+                uint32_t : 4;
+                uint32_t TSIZED : 4;
+                uint32_t : 3;
+                uint32_t WD : 1;
+                uint32_t ID : 1;
+                uint32_t MD : 1;
+                uint32_t GD : 1;
+                uint32_t ED : 1;
+            } B;
+        } MAS4;
+
+        union {
+            uint32_t R;
+            struct {
+                uint32_t : 8;
+                uint32_t SPID : 8;
+                uint32_t : 15;
+                uint32_t SAS : 1;
+            } B;
+        } MAS6;
+    };
+
+    static const struct MMU_tag MMU_DEFAULT = {
+        .MAS0 = { .R = 0x10000000 },
+        .MAS1 = { .R = 0 },
+        .MAS2 = { .R = 0 },
+        .MAS3 = { .R = 0 },
+        .MAS4 = { .R = 0 },
+        .MAS6 = { .R = 0 }
+    };
+
+#if ((MPC55XX_CHIP_TYPE >= 5510) && (MPC55XX_CHIP_TYPE <= 5517))
+/* Define memories */
+
+#define SRAM_START  0x40000000
+#define SRAM_SIZE      0x14000
+#define SRAM_END    (SRAM_START+SRAM_SIZE-1)
+
+#define FLASH_START 0x00000000
+#define FLASH_SIZE    0x180000
+#define FLASH_END   (FLASH_START+FLASH_SIZE-1)
+
+/* Define instances of modules */
+#define EDMA      (*(volatile struct EDMA_tag *)      0xFFF44000)
+#define INTC      (*(volatile struct INTC_tag *)      0xFFF48000)
+
+#define EQADC     (*(volatile struct EQADC_tag *)     0xFFF80000)
+#define SOFTMLB   (*(volatile struct SOFTMLB_tag *)   0xFFF84000)
+#define I2C_A     (*(volatile struct I2C_tag *)       0xFFF88000)
+
+#define DSPI_A    (*(volatile struct DSPI_tag *)      0xFFF90000)
+#define DSPI_B    (*(volatile struct DSPI_tag *)      0xFFF94000)
+#define DSPI_C    (*(volatile struct DSPI_tag *)      0xFFF98000)
+#define DSPI_D    (*(volatile struct DSPI_tag *)      0xFFF9C000)
+
+#define ESCI_A    (*(volatile struct ESCI_tag *)      0xFFFA0000)
+#define ESCI_B    (*(volatile struct ESCI_tag *)      0xFFFA4000)
+#define ESCI_C    (*(volatile struct ESCI_tag *)      0xFFFA8000)
+#define ESCI_D    (*(volatile struct ESCI_tag *)      0xFFFAC000)
+#define ESCI_E    (*(volatile struct ESCI_tag *)      0xFFFB0000)
+#define ESCI_F    (*(volatile struct ESCI_tag *)      0xFFFB4000)
+#define ESCI_G    (*(volatile struct ESCI_tag *)      0xFFFB8000)
+#define ESCI_H    (*(volatile struct ESCI_tag *)      0xFFFBC000)
+
+#define CAN_A     (*(volatile struct FLEXCAN2_tag *)  0xFFFC0000)
+#define CAN_B     (*(volatile struct FLEXCAN2_tag *)  0xFFFC4000)
+#define CAN_C     (*(volatile struct FLEXCAN2_tag *)  0xFFFC8000)
+#define CAN_D     (*(volatile struct FLEXCAN2_tag *)  0xFFFCC000)
+#define CAN_E     (*(volatile struct FLEXCAN2_tag *)  0xFFFD0000)
+#define CAN_F     (*(volatile struct FLEXCAN2_tag *)  0xFFFD4000)
+
+#define EMIOS     (*(volatile struct EMIOS_tag *)     0xFFFE4000)
+#define SIU       (*(volatile struct SIU_tag *)       0xFFFE8000)
+#define CRP       (*(volatile struct CRP_tag *)       0xFFFEC000)
+
+#define FMPLL     (*(volatile struct FMPLL_tag *)     0xFFFF0000)
+#define EBI       (*(volatile struct EBI_tag *)       0xFFFF4000)
+#define FLASH     (*(volatile struct FLASH_tag *)     0xFFFF8000)
+
+#else /* ((MPC55XX_CHIP_TYPE >= 5510) && (MPC55XX_CHIP_TYPE <= 5517)) */
 /* Define memories */
 
 #define SRAM_START  0x40000000
 #define SRAM_SIZE      0x20000
-#define SRAM_END    0x4001FFFF
+#define SRAM_END    (SRAM_START+SRAM_SIZE-1)
 
 #define FLASH_START         0x0
 #define FLASH_SIZE      0x300000
@@ -4296,6 +4486,7 @@ extern "C" {
 #define CAN_D     (*(volatile struct FLEXCAN2_tag *)  0xFFFCC000)
 
 #define FEC     (*(volatile struct FEC_tag *)  0xFFF4C000)
+#endif
 
 #define MPC55XX_ZERO_FLAGS { .R = 0 }
 
@@ -4308,7 +4499,7 @@ extern "C" {
 /*********************************************************************
  *
  * Copyright:
- *	Freescale Semiconductor, INC. All Rights Reserved.
+ *  Freescale Semiconductor, INC. All Rights Reserved.
  *  You are hereby granted a copyright license to use, modify, and
  *  distribute the SOFTWARE so long as this entire notice is
  *  retained without alteration in any modified and/or redistributed

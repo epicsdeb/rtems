@@ -1,19 +1,23 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.27 2008/07/16 20:22:00 joel Exp $
+##
+## $Id: configure.ac,v 1.33.2.2 2011/05/18 05:08:36 strauman Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-psim],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
+
+RTEMS_CHECK_NETWORKING
+
+AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
 
 RTEMS_CONFIG_BUILD_SUBDIRS(tools)
 
@@ -35,7 +39,17 @@ RTEMS_BSPOPTS_HELP([CLOCK_DRIVER_USE_FAST_IDLE],
  a clock ISR occurs while the IDLE thread is executing.  This can
  significantly reduce simulation times.])
 
-RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION
+RTEMS_BSPOPTS_SET([CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK], [*], [1])
+RTEMS_BSPOPTS_HELP([CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK],
+[If defined then the BSP may reduce the available memory size
+initially. This can be useful for debugging (reduce the core
+size) or dynamic loading (std gcc text offsets/jumps are < +/-32M).
+Note that the policy can still be defined by the application
+(see sbrk.c, BSP_sbrk_policy). By undefining
+CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK this feature is removed
+and a little memory is saved.])
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

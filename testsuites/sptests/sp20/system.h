@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.21 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: system.h,v 1.22 2009/10/05 15:01:59 joel Exp $
  */
 
 #include <tmacros.h>
@@ -37,6 +37,8 @@ void Get_all_counters( void );
 
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+
+#define CONFIGURE_MICROSECONDS_PER_TICK 100000
 
 #define CONFIGURE_MAXIMUM_TASKS               7
 #define CONFIGURE_MAXIMUM_PERIODS             10

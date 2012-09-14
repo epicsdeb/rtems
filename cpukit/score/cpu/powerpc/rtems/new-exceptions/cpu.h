@@ -30,7 +30,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.36 2008/09/05 01:59:11 ralf Exp $
+ *  $Id: cpu.h,v 1.38 2009/12/04 05:24:33 ralf Exp $
  */
 
 #ifndef _RTEMS_NEW_EXCEPTIONS_CPU_H
@@ -104,7 +104,7 @@ extern "C" {
 
 /*
  *  Does the RTEMS invoke the user's ISR with the vector number and
- *  a pointer to the saved interrupt frame (1) or just the vector 
+ *  a pointer to the saved interrupt frame (1) or just the vector
  *  number (0)?
  */
 
@@ -153,7 +153,7 @@ extern "C" {
  */
 
 #ifndef ASM
-  
+
 /*
  *  This variable is optional.  It is used on CPUs on which it is difficult
  *  to generate an "uninitialized" FP context.  It is filled in by
@@ -190,23 +190,11 @@ SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
 #define CPU_MODES_INTERRUPT_MASK   0x00000001 /* interrupt level in mode */
 
 /*
- *  With some compilation systems, it is difficult if not impossible to
- *  call a high-level language routine from assembly language.  This
- *  is especially true of commercial Ada compilers and name mangling
- *  C++ ones.  This variable can be optionally defined by the CPU porter
- *  and contains the address of the routine _Thread_Dispatch.  This
- *  can make it easier to invoke that routine at the end of the interrupt
- *  sequence (if a dispatch is necessary).
- */
-
-/* EXTERN void           (*_CPU_Thread_dispatch_pointer)(); */
-
-/*
  *  Nothing prevents the porter from declaring more CPU specific variables.
  */
 
 #ifndef ASM
-  
+
 SCORE_EXTERN struct {
   uint32_t      *Disable_level;
   void          *Stack;
@@ -271,7 +259,7 @@ SCORE_EXTERN struct {
  */
 
 #ifndef ASM
-  
+
 static inline uint32_t   _CPU_ISR_Get_level( void )
 {
   register unsigned int msr;
@@ -292,7 +280,7 @@ static inline void _CPU_ISR_Set_level( uint32_t   level )
   }
   _CPU_MSR_SET(msr);
 }
-  
+
 void BSP_panic(char *);
 
 /* Fatal Error manager macros */

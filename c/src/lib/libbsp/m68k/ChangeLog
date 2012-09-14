@@ -1,3 +1,26 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-05	Thomas Znidar <t.znidar@embed-it.com>
+
+	* acinclude.m4: Add mcf5225x BSP.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* shared/start/start.S: Update for boot_card command line change.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/m68kbspgetworkarea.c: Removed.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shared/m68kbspgetworkarea.c: Add use of bsp_get_work_area() in its
+	own file and rely on BSP Framework to perform more initialization.
+	Remove unnecessary includes of rtems/libio.h and rtems/libcsupport.h.
+	* shared/m68kpretaskinghook.c: Removed.
+
 2008-09-06	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* shared/gdbstub/m68k-stub.c: Convert to "bool".

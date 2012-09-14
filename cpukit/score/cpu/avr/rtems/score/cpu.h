@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.15 2008/08/21 04:12:26 ralf Exp $
+ *  $Id: cpu.h,v 1.25 2010/05/10 16:31:24 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_CPU_H
@@ -24,11 +24,16 @@ extern "C" {
 #endif
 
 #include <rtems/score/avr.h>            /* pick up machine definitions */
+#include <avr/common.h>
 #ifndef ASM
 #include <rtems/score/types.h>
 #endif
 
 /* conditional compilation parameters */
+
+#ifndef	RTEMS_USE_16_BIT_OBJECT
+#define RTEMS_USE_16_BIT_OBJECT
+#endif
 
 /*
  *  Should the calls to _Thread_Enable_dispatch be inlined?
@@ -75,7 +80,7 @@ extern "C" {
  *  XXX document implementation including references if appropriate
  */
 
-#define CPU_UNROLL_ENQUEUE_PRIORITY      TRUE
+#define CPU_UNROLL_ENQUEUE_PRIORITY      FALSE
 
 /*
  *  Does RTEMS manage a dedicated interrupt stack in software?
@@ -145,7 +150,7 @@ extern "C" {
 
 /*
  *  Does the RTEMS invoke the user's ISR with the vector number and
- *  a pointer to the saved interrupt frame (1) or just the vector 
+ *  a pointer to the saved interrupt frame (1) or just the vector
  *  number (0)?
  *
  *  AVR Specific Information:
@@ -184,7 +189,7 @@ extern "C" {
  *  an i387 and wish to leave floating point support out of RTEMS.
  *
  *  The CPU_SOFTWARE_FP is used to indicate whether or not there
- *  is software implemented floating point that must be context 
+ *  is software implemented floating point that must be context
  *  switched.  The determination of whether or not this applies
  *  is very tool specific and the state saved/restored is also
  *  compiler specific.
@@ -317,7 +322,7 @@ extern "C" {
  *  XXX document implementation including references if appropriate
  */
 
-#define CPU_STACK_GROWS_UP               TRUE
+#define CPU_STACK_GROWS_UP               FALSE
 
 /*
  *  The following is the variable attribute used to force alignment
@@ -419,13 +424,15 @@ extern "C" {
  */
 
 typedef struct {
-    uint32_t   some_integer_register;
-    uint32_t   some_system_register;
-    uint32_t   stack_pointer;
+    	uint16_t 	stack_pointer;
+   	uint8_t		status; //SREG
 } Context_Control;
 
 #define _CPU_Context_Get_SP( _context ) \
   (_context)->stack_pointer
+
+
+
 
 typedef struct {
     double      some_float_register;
@@ -467,22 +474,6 @@ SCORE_EXTERN Context_Control_fp  _CPU_Null_fp_context;
 
 SCORE_EXTERN void               *_CPU_Interrupt_stack_low;
 SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
-
-/*
- *  With some compilation systems, it is difficult if not impossible to
- *  call a high-level language routine from assembly language.  This
- *  is especially true of commercial Ada compilers and name mangling
- *  C++ ones.  This variable can be optionally defined by the CPU porter
- *  and contains the address of the routine _Thread_Dispatch.  This
- *  can make it easier to invoke that routine at the end of the interrupt
- *  sequence (if a dispatch is necessary).
- *
- *  AVR Specific Information:
- *
- *  XXX document implementation including references if appropriate
- */
-
-SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
 
 /*
  *  Nothing prevents the porter from declaring more CPU specific variables.
@@ -547,7 +538,12 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  *  XXX document implementation including references if appropriate
  */
 
-#define CPU_STACK_MINIMUM_SIZE          (1024*4)
+#define CPU_STACK_MINIMUM_SIZE          512
+
+/*
+ *  Maximum priority of a thread. Note based from 0 which is the idle task.
+ */
+#define CPU_PRIORITY_MAXIMUM             15
 
 /*
  *  CPU's worst alignment requirement for data types on a byte boundary.  This
@@ -558,7 +554,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  *  XXX document implementation including references if appropriate
  */
 
-#define CPU_ALIGNMENT              8
+#define CPU_ALIGNMENT              4
 
 /*
  *  This number corresponds to the byte alignment requirement for the
@@ -570,7 +566,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  *
  *  NOTE:  This does not have to be a power of 2 although it should be
  *         a multiple of 2 greater than or equal to 2.  The requirement
- *         to be a multiple of 2 is because the heap uses the least 
+ *         to be a multiple of 2 is because the heap uses the least
  *         significant field of the front and back flags to indicate
  *         that a block is in use or free.  So you do not want any odd
  *         length blocks really putting length data in that bit.
@@ -643,9 +639,10 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  */
 
 #define _CPU_ISR_Disable( _isr_cookie ) \
-  { \
-    (_isr_cookie) = 0;   /* do something to prevent warnings */ \
-  }
+  do { \
+    	(_isr_cookie) = SREG; \
+	asm volatile ("cli"::); \
+  } while (0)
 
 /*
  *  Enable interrupts to the previous level (returned by _CPU_ISR_Disable).
@@ -658,8 +655,10 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  */
 
 #define _CPU_ISR_Enable( _isr_cookie )  \
-  { \
-  }
+  do { \
+	SREG  = _isr_cookie; \
+	asm volatile ("sei"::); \
+  } while (0)
 
 /*
  *  This temporarily restores the interrupt to _level before immediately
@@ -673,8 +672,12 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  */
 
 #define _CPU_ISR_Flash( _isr_cookie ) \
-  { \
-  }
+  do { \
+	SREG=(_isr_cookie); \
+	asm volatile("sei"::); \
+	(_isr_cookie) = SREG; \
+	asm volatile("cli"::); \
+  } while (0)
 
 /*
  *  Map interrupt level in task mode onto the hardware that the CPU
@@ -727,12 +730,23 @@ uint32_t   _CPU_ISR_Get_level( void );
  *
  *  XXX document implementation including references if appropriate
  */
-
+/*
 #define _CPU_Context_Initialize( _the_context, _stack_base, _size, \
                                  _isr, _entry_point, _is_fp ) \
-  { \
-  }
+  \
+	do { \
+	uint16_t *_stack;\
+	_stack	= (uint16_t) (_stack_base) + (uint16_t)(_size);\
+    	(_the_context)->stack_pointer = _stack-1;	\
+	*(_stack) = *(_entry_point);	\
+	printk("the ret address is %x\n", *(uint16_t *)(_stack));\
+	printk("sp = 0x%x\nep = 0x%x\n",_stack, *(_entry_point)); \
+	printk("stack base = 0x%x\n size = 0x%x\n",_stack_base, _size);\
+	printk("struct starting address = 0x%x\n", _the_context);\
+	printk("struct stack pointer address = 0x%x\n",(_the_context)->stack_pointer);\
+	} while ( 0 )
 
+*/
 /*
  *  This routine is responsible for somehow restarting the currently
  *  executing task.  If you are lucky, then all that is necessary
@@ -748,7 +762,7 @@ uint32_t   _CPU_ISR_Get_level( void );
  */
 
 #define _CPU_Context_Restart_self( _the_context ) \
-   _CPU_Context_restore( (_the_context) );
+   _CPU_Context_restore( _the_context );
 
 /*
  *  The purpose of this macro is to allow the initial pointer into
@@ -926,6 +940,58 @@ uint32_t   _CPU_ISR_Get_level( void );
 
 /* functions */
 
+/*context_initialize asm function*/
+
+void context_initialize(unsigned short* context,
+		unsigned short stack_add,
+		unsigned short entry_point);
+
+/*PAGE
+ *
+ *  _CPU_Context_Initialize
+ *
+ *  This kernel routine initializes the basic non-FP context area associated
+ *  with each thread.
+ *
+ *  Input parameters:
+ *    the_context  - pointer to the context area
+ *    stack_base   - address of memory for the SPARC
+ *    size         - size in bytes of the stack area
+ *    new_level    - interrupt level for this context area
+ *    entry_point  - the starting execution point for this this context
+ *    is_fp        - TRUE if this context is associated with an FP thread
+ *
+ *  Output parameters: NONE
+ */
+
+void _CPU_Context_Initialize(
+  Context_Control  *the_context,
+  uint32_t         *stack_base,
+  uint32_t          size,
+  uint32_t          new_level,
+  void             *entry_point,
+  bool              is_fp
+);
+
+/*
+*
+*  _CPU_Push
+*
+*  this routine pushes 2 bytes onto the stack
+*
+*
+*
+*
+*
+*
+*
+*/
+
+void _CPU_Push(uint16_t _SP_, uint16_t entry_point);
+
+
+
+
 /*
  *  _CPU_Initialize
  *
@@ -936,21 +1002,19 @@ uint32_t   _CPU_ISR_Get_level( void );
  *  XXX document implementation including references if appropriate
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)
-);
+void _CPU_Initialize(void);
 
 /*
  *  _CPU_ISR_install_raw_handler
  *
- *  This routine installs a "raw" interrupt handler directly into the 
+ *  This routine installs a "raw" interrupt handler directly into the
  *  processor's vector table.
  *
  *  AVR Specific Information:
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -1001,7 +1065,7 @@ void _CPU_Install_interrupt_stack( void );
  *  XXX document implementation including references if appropriate
  */
 
-void *_CPU_Thread_Idle_body( uint32_t );
+void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 /*
  *  _CPU_Context_switch
@@ -1086,18 +1150,18 @@ void _CPU_Context_restore_fp(
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 static inline uint32_t CPU_swap_u32(
   uint32_t value
 )
 {
   uint32_t   byte1, byte2, byte3, byte4, swapped;
- 
+
   byte4 = (value >> 24) & 0xff;
   byte3 = (value >> 16) & 0xff;
   byte2 = (value >> 8)  & 0xff;
   byte1 =  value        & 0xff;
- 
+
   swapped = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
   return( swapped );
 }

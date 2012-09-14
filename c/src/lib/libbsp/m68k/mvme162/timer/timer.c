@@ -15,7 +15,7 @@
  *  for the RTEMS executive. Its licensing policies are those of the
  *  RTEMS above.
  *
- *  $Id: timer.c,v 1.15.2.1 2008/09/30 16:28:12 joel Exp $
+ *  $Id: timer.c,v 1.16 2008/09/30 16:26:03 joel Exp $
  */
 
 #include <rtems.h>

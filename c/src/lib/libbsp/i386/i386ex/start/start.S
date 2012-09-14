@@ -26,7 +26,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.11 2004/04/21 16:01:32 ralf Exp $
+ *  $Id: start.S,v 1.12 2009/04/28 06:19:45 ccj Exp $
 
 changes:
     SetExRegByte(ICW3S  , 0x02 ) # MUST be 0x02 according to intel
@@ -467,9 +467,7 @@ SYM (zero_bss):
 /*
  *  Transfer control to User's Board Support Package
  */
-        pushl   $0                       # environp
-        pushl   $0                       # argv
-        pushl   $0                       # argc
+        pushl   $0                       # command line
 
 	movw    $0xFFFB, SYM(i8259s_cache)	# ICU mask values reflect
 						# initial ICU state

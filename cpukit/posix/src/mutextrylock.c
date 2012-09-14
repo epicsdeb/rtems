@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mutextrylock.c,v 1.5 2007/12/17 16:19:14 joel Exp $
+ *  $Id: mutextrylock.c,v 1.6 2009/02/03 10:10:51 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -37,5 +37,5 @@ int pthread_mutex_trylock(
   pthread_mutex_t           *mutex
 )
 {
-  return _POSIX_Mutex_Lock_support( mutex, FALSE, THREAD_QUEUE_WAIT_FOREVER );
+  return _POSIX_Mutex_Lock_support( mutex, false, THREAD_QUEUE_WAIT_FOREVER );
 }

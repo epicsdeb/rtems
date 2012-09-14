@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: idlethread.t,v 1.6 2008/07/31 14:59:43 joel Exp $
+@c  $Id: idlethread.t,v 1.7 2009/02/12 15:56:16 joel Exp $
 @c
 
 @chapter IDLE Thread
@@ -79,7 +79,7 @@ CPU_PROVIDES_IDLE_THREAD_BODY macro should be defined to TRUE.  This
 routine is prototyped as follows:
 
 @example
-void *_CPU_Thread_Idle_body( uint32_t );
+void *_CPU_Thread_Idle_body( uintptr_t );
 @end example
 
 As mentioned above, RTEMS does not require that a CPU dependent IDLE
@@ -89,7 +89,7 @@ independent algorithm is used.  This algorithm consists of a "branch to
 self" which is implemented in a routine as follows.
 
 @example
-void *_Thread_Idle_body( uint32 ignored )
+void *_Thread_Idle_body( uintptr_t ignored )
 @{
   while( 1 ) ;
 @}
@@ -101,7 +101,7 @@ in an infinite loop as the CPU will have to reexecute this instruction
 each time the IDLE thread is dispatched.
 
 @example
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 @{
 
   for( ; ; )

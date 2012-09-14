@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timesys.h,v 1.6 2004/04/20 07:09:31 ralf Exp $
+ *  $Id: timesys.h,v 1.8 2009/10/30 13:37:42 ralf Exp $
  */
 
 #include <tmacros.h>
@@ -28,12 +28,12 @@
 #define put_time( _message, _total_time, \
                   _iterations, _loop_overhead, _overhead ) \
     printf( \
-      "%s %d\n", \
+      "%s %" PRId32 "\n", \
       (_message), \
       (((_total_time) - (_loop_overhead)) / (_iterations)) - (_overhead) \
     )
 
-#if  defined(STACK_CHECKER_ON) || defined(RTEMS_DEBUG)
+#if  defined(CONFIGURE_STACK_CHECKER_ENABLED) || defined(RTEMS_DEBUG)
 #define Print_Warning() \
   do { \
     puts( \

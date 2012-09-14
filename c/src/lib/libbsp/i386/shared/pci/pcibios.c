@@ -4,7 +4,7 @@
  * as far as this copyight notice is kept unchanged, but does not imply
  * an endorsement by T.sqware of the product in which it is included.
  *
- *  $Id: pcibios.c,v 1.16 2007/03/30 08:42:57 ralf Exp $
+ *  $Id: pcibios.c,v 1.20 2009/12/11 12:55:25 ralf Exp $
  */
 
 #include <rtems.h>
@@ -227,7 +227,7 @@ pcib_find_by_class(int classCode, int idx, int *sig)
 static uint8_t ucBusCount = 0xff;
 
 unsigned char
-pci_bus_count()
+pci_bus_count(void)
 {
   if ( ucBusCount == 0xff ) {
     unsigned char bus;
@@ -538,13 +538,13 @@ pcib_convert_err(int err)
 }
 
 static int
-indirect_pci_read_config_byte(
+BSP_pci_read_config_byte(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   unsigned char *val
-) 
+)
 {
   int sig;
 
@@ -554,13 +554,13 @@ indirect_pci_read_config_byte(
 }
 
 static int
-indirect_pci_read_config_word(
+BSP_pci_read_config_word(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   unsigned short *val
-) 
+)
 {
   int sig;
 
@@ -570,13 +570,13 @@ indirect_pci_read_config_word(
 }
 
 static int
-indirect_pci_read_config_dword(
+BSP_pci_read_config_dword(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   uint32_t     *val
-) 
+)
 {
   int sig;
 
@@ -586,13 +586,13 @@ indirect_pci_read_config_dword(
 }
 
 static int
-indirect_pci_write_config_byte(
+BSP_pci_write_config_byte(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   unsigned char val
-) 
+)
 {
   int sig;
 
@@ -602,13 +602,13 @@ indirect_pci_write_config_byte(
 }
 
 static int
-indirect_pci_write_config_word(
+BSP_pci_write_config_word(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   unsigned short val
-) 
+)
 {
   int sig;
 
@@ -618,13 +618,13 @@ indirect_pci_write_config_word(
 }
 
 static int
-indirect_pci_write_config_dword(
+BSP_pci_write_config_dword(
   unsigned char bus,
   unsigned char slot,
   unsigned char fun,
   unsigned char offset,
   uint32_t      val
-) 
+)
 {
   int sig;
 
@@ -634,15 +634,15 @@ indirect_pci_write_config_dword(
 }
 
 const pci_config_access_functions pci_indirect_functions = {
-  indirect_pci_read_config_byte,
-  indirect_pci_read_config_word,
-  indirect_pci_read_config_dword,
-  indirect_pci_write_config_byte,
-  indirect_pci_write_config_word,
-  indirect_pci_write_config_dword
+  BSP_pci_read_config_byte,
+  BSP_pci_read_config_word,
+  BSP_pci_read_config_dword,
+  BSP_pci_write_config_byte,
+  BSP_pci_write_config_word,
+  BSP_pci_write_config_dword
 };
 
-pci_config BSP_pci_configuration = {
+rtems_pci_config_t BSP_pci_configuration = {
   (volatile unsigned char*)0,
   (volatile unsigned char*)0,
   &pci_indirect_functions

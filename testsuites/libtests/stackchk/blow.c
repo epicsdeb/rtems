@@ -10,12 +10,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: blow.c,v 1.10 2004/03/30 11:12:47 ralf Exp $
+ *  $Id: blow.c,v 1.14 2009/10/26 05:44:07 ralf Exp $
  */
 
 #include <rtems.h>
 
-void b() {}
+void b(void) {}
 
 void blow_stack( void )
 {
@@ -30,7 +30,8 @@ b();
 
  area = (unsigned char *)_Thread_Executing->Start.Initial_stack.area;
 
- low  = (volatile uint32_t   *) (area + HEAP_OVERHEAD);
+ /* Look in the stack checker implementation for this magic offset */
+ low  = (volatile uint32_t   *) (area + sizeof(Heap_Block) - HEAP_BLOCK_HEADER_SIZE);
  high = (volatile uint32_t   *)
             (area + _Thread_Executing->Start.Initial_stack.size - 16);
 

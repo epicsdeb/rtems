@@ -31,8 +31,12 @@
  */
 
 /*
- *	$Id: raw_ip.c,v 1.5 2008/09/01 06:36:17 ralf Exp $
+ *	$Id: raw_ip.c,v 1.10 2010/05/29 04:33:42 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
  
 #include "opt_inet6.h"
 #include "opt_ipsec.h"
@@ -45,7 +49,7 @@
 #include <sys/socket.h>
 #include <sys/protosw.h>
 #include <sys/socketvar.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/systm.h>
 
 #include <net/if.h>
@@ -98,7 +102,7 @@ rip_init(void)
 	ripcbinfo.hashbase = hashinit(1, M_PCB, &ripcbinfo.hashmask);
 }
 
-static struct	sockaddr_in ripsrc = { sizeof(ripsrc), AF_INET };
+static struct	sockaddr_in ripsrc = { sizeof(ripsrc), AF_INET, 0, {0}, {0} };
 /*
  * Setup generic address and protocol structures
  * for raw_input routine, then pass them along with
@@ -332,7 +336,7 @@ rip_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 	int s;
 
 	if (req == PRU_CONTROL)
-		return (in_control(so, (u_long)m, (caddr_t)nam,
+		return (in_control(so, (uintptr_t)m, (caddr_t)nam,
 			(struct ifnet *)control));
 
 	switch (req) {
@@ -353,7 +357,7 @@ rip_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		if (error)
 			break;
 		inp = (struct inpcb *)so->so_pcb;
-		inp->inp_ip_p = (int)nam;
+		inp->inp_ip_p = (uintptr_t)nam;
 		break;
 
 	case PRU_DISCONNECT:

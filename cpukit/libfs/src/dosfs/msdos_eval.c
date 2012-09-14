@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  @(#) $Id: msdos_eval.c,v 1.8 2008/09/04 08:33:06 ralf Exp $
+ *  @(#) $Id: msdos_eval.c,v 1.12 2010/05/27 16:23:04 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -72,6 +72,7 @@ msdos_set_handlers(rtems_filesystem_location_info_t *loc)
 int
 msdos_eval_path(
     const char                        *pathname,
+    size_t                             pathnamelen,
     int                                flags,
     rtems_filesystem_location_info_t  *pathloc
     )
@@ -82,9 +83,9 @@ msdos_eval_path(
     fat_file_fd_t                    *fat_fd = NULL;
     rtems_filesystem_location_info_t  newloc;
     int                               i = 0;
-    int                               len = 0;
+    int                               token_len = 0;
     msdos_token_types_t               type = MSDOS_CURRENT_DIR;
-    char                              token[MSDOS_NAME_MAX + 1];
+    const char                       *token;
 
     sc = rtems_semaphore_obtain(fs_info->vol_sema, RTEMS_WAIT,
                                 MSDOS_VOLUME_SEMAPHORE_TIMEOUT);
@@ -106,8 +107,9 @@ msdos_eval_path(
 
     while ((type != MSDOS_NO_MORE_PATH) && (type != MSDOS_INVALID_TOKEN))
     {
-        type = msdos_get_token(&pathname[i], token, &len);
-        i += len;
+        type = msdos_get_token(&pathname[i], pathnamelen, &token, &token_len);
+        pathnamelen -= token_len;
+        i += token_len;
 
         fat_fd = pathloc->node_access;
 
@@ -149,13 +151,14 @@ msdos_eval_path(
                             goto err;
 
                         rtems_semaphore_release(fs_info->vol_sema);
-                        return (*pathloc->ops->evalpath_h)(&(pathname[i-len]),
+                        return (*pathloc->ops->evalpath_h)(&(pathname[i-token_len]),
+                                                           pathnamelen + token_len,
                                                            flags, pathloc);
                     }
                 }
                 else
                 {
-                    rc = msdos_find_name(pathloc, token);
+                  rc = msdos_find_name(pathloc, token, token_len);
                     if (rc != RC_OK)
                     {
                         if (rc == MSDOS_NAME_NOT_FOUND_ERR)
@@ -183,7 +186,7 @@ msdos_eval_path(
                  *  Otherwise find the token name in the present location and
                  * set the node access to the point we have found.
                  */
-                rc = msdos_find_name(pathloc, token);
+                rc = msdos_find_name(pathloc, token, token_len);
                 if (rc != RC_OK)
                 {
                     if (rc == MSDOS_NAME_NOT_FOUND_ERR)
@@ -264,8 +267,8 @@ msdos_eval4make(
     rtems_filesystem_location_info_t  newloc;
     msdos_token_types_t               type;
     int                               i = 0;
-    int                               len;
-    char                              token[ MSDOS_NAME_MAX + 1 ];
+    int                               token_len;
+    const char                       *token;
     bool                              done = false;
 
     sc = rtems_semaphore_obtain(fs_info->vol_sema, RTEMS_WAIT,
@@ -288,8 +291,8 @@ msdos_eval4make(
 
     while (!done)
     {
-        type = msdos_get_token(&path[i], token, &len);
-        i += len;
+        type = msdos_get_token(&path[i], strlen(&path[i]), &token, &token_len);
+        i += token_len;
         fat_fd = pathloc->node_access;
 
         switch (type)
@@ -330,13 +333,13 @@ msdos_eval4make(
                             goto err;
 
                         rtems_semaphore_release(fs_info->vol_sema);
-                        return (*pathloc->ops->evalformake_h)(&path[i-len],
+                        return (*pathloc->ops->evalformake_h)(&path[i-token_len],
                                                               pathloc, name);
                     }
                 }
                 else
                 {
-                    rc = msdos_find_name(pathloc, token);
+                    rc = msdos_find_name(pathloc, token, token_len);
                     if (rc != RC_OK)
                     {
                         if (rc == MSDOS_NAME_NOT_FOUND_ERR)
@@ -361,10 +364,10 @@ msdos_eval4make(
                 }
 
                 /*
-                 *  Otherwise find the token name in the present location and
+                 * Otherwise find the token name in the present location and
                  * set the node access to the point we have found.
                  */
-                rc = msdos_find_name(pathloc, token);
+                rc = msdos_find_name(pathloc, token, token_len);
                 if (rc)
                 {
                     if (rc != MSDOS_NAME_NOT_FOUND_ERR)
@@ -396,7 +399,7 @@ msdos_eval4make(
         }
     }
 
-    *name = &path[i - len];
+    *name = &path[i - token_len];
 
     /*
      * We have evaluated the path as far as we can.

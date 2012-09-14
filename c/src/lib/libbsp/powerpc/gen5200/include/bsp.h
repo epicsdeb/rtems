@@ -23,7 +23,9 @@
 #ifndef __GEN5200_BSP_h
 #define __GEN5200_BSP_h
 
-#include <libcpu/powerpc-utility.h> 
+#include <bspopts.h>
+
+#include <libcpu/powerpc-utility.h>
 
 /*
  * Some symbols defined in the linker command file.
@@ -69,60 +71,35 @@ LINKER_SYMBOL(MBAR);
  */
 #if defined(PM520_ZE30)
 #define PM520
-#define GPIOPCR_INITMASK 0x337F3F77
-#define GPIOPCR_INITVAL  0x01552114
-/* we have PSC1/4/5/6 */
-/* #define GEN5200_UART_AVAIL_MASK 0x39 */
-#define GEN5200_UART_AVAIL_MASK 0x39
 #endif
 /*
  * for PM520 mdule on a CR825 carrier
  */
 #if defined(PM520_CR825)
 #define PM520
-#define GPIOPCR_INITMASK 0x330F0F77
-#define GPIOPCR_INITVAL  0x01050444
-/* we have PSC1/2/3*/
-#define GEN5200_UART_AVAIL_MASK 0x07
+#endif
+
+#if !defined(HAS_UBOOT)
+  /* we need the low level initialization in start.S*/
+  #define NEED_LOW_LEVEL_INIT
 #endif
 
 #if defined(BRS5L)
 /*
  * IMD Custom Board BRS5L
  */
-#define GPIOPCR_INITMASK 0xb30F0F77
-#define GPIOPCR_INITVAL  0x91050444
-/* we have PSC1/2/3 */
-#define GEN5200_UART_AVAIL_MASK 0x07
-
-/* we need the low level initialization in start.S*/
-#define NEED_LOW_LEVEL_INIT
 
 #define HAS_NVRAM_93CXX
-#elif defined (PM520)
 
-#define HAS_UBOOT
+#elif defined (PM520)
 
 #elif defined (icecube)
 /*
  *  Codename: IceCube
  *  Compatible Boards:
- *     Freescape MPC5200LITE 
+ *     Freescape MPC5200LITE
  *     Embedded Planet EP5200
  */
-
-#define HAS_UBOOT
-
-/* These are copied from PM520 but seem to work so OK */
-#define GPIOPCR_INITMASK 0x330F0F77
-#define GPIOPCR_INITVAL  0x01050444
-
-/* we only have PSC1 */
-#define GEN5200_UART_AVAIL_MASK 0x01
-
-/* We want to prompt for a reset and then reset the board */
-#define BSP_PRESS_KEY_FOR_RESET 1
-#define BSP_RESET_BOARD_AT_EXIT 1
 
 #else
 #error "board type not defined"
@@ -134,11 +111,11 @@ LINKER_SYMBOL(MBAR);
 extern "C" {
 #endif
 
-#include "bspopts.h"
 
 #include <rtems.h>
 #include <rtems/console.h>
 #include <rtems/clockdrv.h>
+#include <rtems/rtc.h>
 #include <i2cdrv.h>
 #include <bsp/irq.h>
 #include <bsp/vectors.h>
@@ -148,8 +125,9 @@ extern "C" {
 #define CONFIG_MPC5xxx
 #include <u-boot.h>
 
-extern bd_t *uboot_bdinfo_ptr;
-extern bd_t uboot_bdinfo_copy;
+extern bd_t bsp_uboot_board_info;
+#else
+
 #endif
 
 /*
@@ -172,20 +150,7 @@ extern int rtems_mpc5200_fec_driver_attach_detach (struct rtems_bsdnet_ifconfig 
 */
 
 /*
- *  Stuff for Time Test 27
- */
-#define MUST_WAIT_FOR_INTERRUPT 0
-
-/*
  *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
  */
 
 #ifdef HAS_NVRAM_93CXX
@@ -194,27 +159,12 @@ extern int rtems_mpc5200_fec_driver_attach_detach (struct rtems_bsdnet_ifconfig 
     nvram_driver_read, nvram_driver_write, NULL }
 #endif
 
-#define RTC_DRIVER_TABLE_ENTRY \
-    { rtc_initialize, NULL, NULL, NULL, NULL, NULL }
-extern rtems_device_driver rtc_initialize(
-    rtems_device_major_number major,
-    rtems_device_minor_number minor,
-    void *arg
-);
-
 /*
  * indicate, that BSP has IDE driver
  */
 #define RTEMS_BSP_HAS_IDE_DRIVER
 
-/*
- * How many libio files we want
- */
-#define BSP_LIBIO_MAX_FDS       20
-
 /* functions */
-
-void bsp_cleanup(void);
 
 /* console modes (only termios) */
 #ifdef  PRINTK_MINOR
@@ -232,9 +182,9 @@ void bsp_cleanup(void);
 
 /* clock settings */
 #if defined(HAS_UBOOT)
-#define IPB_CLOCK (uboot_bdinfo_ptr->bi_ipbfreq)
-#define XLB_CLOCK (uboot_bdinfo_ptr->bi_busfreq)
-#define G2_CLOCK  (uboot_bdinfo_ptr->bi_intfreq)
+#define IPB_CLOCK (bsp_uboot_board_info.bi_ipbfreq)
+#define XLB_CLOCK (bsp_uboot_board_info.bi_busfreq)
+#define G2_CLOCK  (bsp_uboot_board_info.bi_intfreq)
 #else
 #define IPB_CLOCK 33000000   /* 33 MHz */
 #define XLB_CLOCK 66000000   /* 66 MHz */
@@ -242,7 +192,7 @@ void bsp_cleanup(void);
 #endif
 
 #if defined(HAS_UBOOT)
-#define GEN5200_CONSOLE_BAUD (uboot_bdinfo_ptr->bi_baudrate)
+#define GEN5200_CONSOLE_BAUD (bsp_uboot_board_info.bi_baudrate)
 #else
 #define GEN5200_CONSOLE_BAUD 9600
 #endif
@@ -266,8 +216,8 @@ void bsp_cleanup(void);
 #define USE_SLICETIMER_0     TRUE
 #define USE_SLICETIMER_1     FALSE
 
-Thread _Thread_Idle_body(uint32_t ignored);
-#define BSP_IDLE_TASK_BODY _Thread_Idle_body
+void *bsp_idle_thread( uintptr_t ignored );
+#define BSP_IDLE_TASK_BODY bsp_idle_thread
 
 /* BSP specific IRQ Benchmarking support */
 void BSP_IRQ_Benchmarking_Reset(void);

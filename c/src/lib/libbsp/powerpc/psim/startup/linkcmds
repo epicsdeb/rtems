@@ -6,7 +6,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: linkcmds,v 1.29 2008/09/05 14:42:59 joel Exp $
+ *  $Id: linkcmds,v 1.33 2009/11/15 22:37:19 strauman Exp $
  */
 
 OUTPUT_FORMAT("elf32-powerpc", "elf32-powerpc", "elf32-powerpc")
@@ -15,9 +15,23 @@ ENTRY(_start)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 PROVIDE (PSIM_INSTRUCTIONS_PER_MICROSECOND = 10000);
+
+RamBase = DEFINED(RamBase) ? RamBase : 0x0;
+/*
+ * make sure device tree (property /openprom/options/oea-memory-size)
+ * provides at least 'RamSize'.
+ * Also, the BATs must at map at least 'RamSize' (currently, they
+ * map 32M -- see startup/bspstart.c).
+ * Furthermore, the RAM region must be large enough (there is no
+ * disadvantage in making that one very large as long as it doesn't
+ * overlap another memory area).
+ *
+ */
+RamSize = DEFINED(RamSize) ? RamSize : 16M;
+
 MEMORY
   {
-        RAM       : ORIGIN = 0, LENGTH = 8M
+        RAM       : ORIGIN = 0, LENGTH = 32M
 	PSIM_REGS : ORIGIN = 0x0c000000, LENGTH = 16M
         VECTORS   : ORIGIN = 0xFFF00000, LENGTH = 0x20000
   }
@@ -54,6 +68,8 @@ SECTIONS
     *(.text*)
     *(.gnu.linkonce.t.*)
     *(.descriptors)
+    *(.eh_frame_hdr*)
+    *(.eh_frame*)
 
     /*
      * Special FreeBSD sysctl sections.
@@ -123,7 +139,6 @@ SECTIONS
   .rodata  	  : { *(.rodata*) *(.gnu.linkonce.r*) } >RAM
   .rodata1	  : { *(.rodata1) 	} >RAM
   PROVIDE (__FRAME_BEGIN__ = .);
-  .eh_frame	  : { *.(eh_frame)		} >RAM
   PROVIDE (__FRAME_END__ = .);
   PROVIDE (_etext = .);
   PROVIDE (etext = .);
@@ -131,7 +146,6 @@ _SDA2_BASE_ = __SDATA2_START__ + 0x8000;
   .sdata2   	  : { *(.sdata2) *(.gnu.linkonce.s2.*)	} >RAM
   .sbss2   	  : { *(.sbss2) *(.gnu.linkonce.sb2.*)	} >RAM
   PROVIDE (__SBSS2_END__ = .);
-  /* .eh_frame_hdr : { *(.eh_frame_hdr) } >RAM */
   /* Adjust the address for the data segment.  We want to adjust up to
      the same address within the page on the next page up.  It would
      be more correct to do this:
@@ -200,7 +214,7 @@ _SDA_BASE_ = __SDATA_START__ + 0x8000;
   _edata  =  .;
   PROVIDE (edata = .);
 
-  PROVIDE (RAM_END = 0x7f0000);
+  PROVIDE (RAM_END = 32M);
   .sbss      :
   {
     PROVIDE (__sbss_start = .);
@@ -217,9 +231,11 @@ _SDA_BASE_ = __SDATA_START__ + 0x8000;
    *(.bss .bss* .gnu.linkonce.b*)
    *(COMMON)
   } >RAM
+  . = ALIGN(16);
+  . += 0x1000;
+  PROVIDE(__stack = .);
   __rtems_end = . ;
   . =  ALIGN(8) + 0x8000;
-  PROVIDE(__stack = .);
   PROVIDE(_end = .);
   PROVIDE(end = .);
 

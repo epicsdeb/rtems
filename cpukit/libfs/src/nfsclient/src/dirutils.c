@@ -1,22 +1,22 @@
-/* $Id: dirutils.c,v 1.1.2.1 2008/12/08 13:11:40 ralf Exp $ */
+/* $Id: dirutils.c,v 1.5 2010/05/29 02:31:09 ralf Exp $ */
 
 /* very crude and basic fs utilities for testing the NFS */
 
 /* Till Straumann, <strauman@slac.stanford.edu>, 10/2002 */
 
-/* 
+/*
  * Authorship
  * ----------
  * This software (NFS-2 client implementation for RTEMS) was created by
  *     Till Straumann <strauman@slac.stanford.edu>, 2002-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The NFS-2 client implementation for RTEMS was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -25,18 +25,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -45,9 +45,13 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #ifdef __vxworks
 #include <vxWorks.h>
@@ -61,6 +65,24 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <limits.h> /* PATH_MAX */
+
+#include <inttypes.h> /* PRI* */
+
+#if SIZEOF_MODE_T == 8
+#define PRIomode_t PRIo64
+#elif SIZEOF_MODE_T == 4
+#define PRIomode_t PRIo32
+#else
+#error "unsupport size of mode_t"
+#endif
+
+#if SIZEOF_OFF_T == 8
+#define PRIdoff_t PRIo64
+#elif SIZEOF_OFF_T == 4
+#define PRIdoff_t PRIo32
+#else
+#error "unsupported size of off_t"
+#endif
 
 #ifdef HAVE_CEXP
 #include <cexpHelp.h>
@@ -105,7 +127,7 @@ char *t;
 						t = "@"; break;
 	}
 
-	printf("%10li, %10lib, %5i.%-5i 0%04o %s%s\n",
+	printf("%10li, %10" PRIdoff_t "b, %5i.%-5i 0%04" PRIomode_t " %s%s\n",
 				buf->st_ino,
 				buf->st_size,
 				buf->st_uid,

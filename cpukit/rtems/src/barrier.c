@@ -13,14 +13,14 @@
  *     + acquire a barrier
  *     + release a barrier
  *
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: barrier.c,v 1.1 2006/09/25 13:38:23 joel Exp $
+ *  $Id: barrier.c,v 1.3 2009/01/06 05:05:02 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,6 +28,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/support.h>
 #include <rtems/score/object.h>
@@ -39,27 +40,25 @@
 /**
  *  @brief _Barrier_Manager_initialization
  *
- *  Input parameters:
- *    maximum_barriers - maximum configured barriers
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _Barrier_Manager_initialization(
-  uint32_t   maximum_barriers
-)
+void _Barrier_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_Barrier_Information,         /* object information table */
     OBJECTS_CLASSIC_API,           /* object API */
     OBJECTS_RTEMS_BARRIERS,        /* object class */
-    maximum_barriers,              /* maximum objects of this class */
+    Configuration_RTEMS_API.maximum_barriers,
+                                   /* maximum objects of this class */
     sizeof( Barrier_Control ),     /* size of this object's control block */
-    FALSE,                         /* TRUE if the name is a string */
+    false,                         /* true if the name is a string */
     RTEMS_MAXIMUM_NAME_LENGTH      /* maximum length of an object name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                         /* TRUE if this is a global object class */
+    false,                         /* true if this is a global object class */
     NULL                           /* Proxy extraction support callout */
 #endif
   );

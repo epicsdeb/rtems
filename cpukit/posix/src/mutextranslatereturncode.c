@@ -1,14 +1,14 @@
 /*
  *  POSIX Mutex Error Translation
  *
- *  COPYRIGHT (c) 1989-2009.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mutextranslatereturncode.c,v 1.2.2.1 2009/03/12 15:32:09 joel Exp $
+ *  $Id: mutextranslatereturncode.c,v 1.3 2009/03/12 15:32:58 joel Exp $
  */
 
 #if HAVE_CONFIG_H

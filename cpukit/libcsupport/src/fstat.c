@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fstat.c,v 1.9 2003/09/04 18:54:13 joel Exp $
+ *  $Id: fstat.c,v 1.11 2009/09/30 08:20:21 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -65,12 +65,12 @@ int fstat(
  *  This is the Newlib dependent reentrant version of fstat().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE_FSTAT_R)
 
 #include <reent.h>
 
 int _fstat_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   int            fd,
   struct stat   *buf
 )

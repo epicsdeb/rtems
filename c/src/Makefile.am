@@ -1,5 +1,5 @@
 ##
-##  $Id: Makefile.am,v 1.38 2006/11/20 05:47:35 ralf Exp $
+##  $Id: Makefile.am,v 1.41 2009/10/21 05:27:11 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I aclocal
@@ -13,7 +13,7 @@ clean-local:
 make/@RTEMS_BSP@.cache: make/bsp.mak @CUSTOM_CFG_FILES@
 	$(RM) make/@RTEMS_BSP@.cache
 	$(MAKE) -f ${srcdir}/make/bsp.mak \
-	'RTEMS_BSP=@RTEMS_BSP@' 'RTEMS_HOST=@RTEMS_HOST@' 'RTEMS_ROOT=.' 'BARE_CPU_MODEL=${BARE_CPU_MODEL}' \
+	'RTEMS_BSP=@RTEMS_BSP@' 'RTEMS_ROOT=.' \
 	make/@RTEMS_BSP@.cache
 
 noinst_DATA = make/@RTEMS_BSP@.cache
@@ -23,9 +23,6 @@ rtems_makedir = $(prefix)/make
 rtems_make_customdir = $(rtems_makedir)/custom
 rtems_make_custom_DATA = @CUSTOM_CFG_FILES@
 DISTCLEANFILES += @CUSTOM_CFG_FILES@
-
-make/custom/default.cfg: $(srcdir)/make/custom/default.cfg.in
-	cp $< $@
 
 noinst_DATA += make/custom/default.cfg
 DISTCLEANFILES += make/custom/default.cfg

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timerfirewhen.c,v 1.8 2007/11/30 21:49:41 joel Exp $
+ *  $Id: timerfirewhen.c,v 1.10 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,7 +43,7 @@
  */
 
 rtems_status_code rtems_timer_fire_when(
-  Objects_Id                          id,
+  rtems_id                            id,
   rtems_time_of_day                  *wall_time,
   rtems_timer_service_routine_entry   routine,
   void                               *user_data
@@ -63,7 +63,7 @@ rtems_status_code rtems_timer_fire_when(
     return RTEMS_INVALID_ADDRESS;
 
   seconds = _TOD_To_seconds( wall_time );
-  if ( seconds <= _TOD_Seconds_since_epoch )
+  if ( seconds <= _TOD_Seconds_since_epoch() )
     return RTEMS_INVALID_CLOCK;
 
   the_timer = _Timer_Get( id, &location );
@@ -75,7 +75,7 @@ rtems_status_code rtems_timer_fire_when(
       _Watchdog_Initialize( &the_timer->Ticker, routine, id, user_data );
       _Watchdog_Insert_seconds(
          &the_timer->Ticker,
-         seconds - _TOD_Seconds_since_epoch
+         seconds - _TOD_Seconds_since_epoch()
        );
       _Thread_Enable_dispatch();
       return RTEMS_SUCCESSFUL;

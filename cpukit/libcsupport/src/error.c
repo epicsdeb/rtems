@@ -2,7 +2,7 @@
  *  report errors and panics to RTEMS' stderr.
  *  Currently just used by RTEMS monitor.
  *
- *  $Id: error.c,v 1.20 2008/08/20 19:31:24 joel Exp $
+ *  $Id: error.c,v 1.22 2009/10/12 16:17:37 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -56,11 +56,6 @@
 #include <string.h>
 #include <unistd.h>		/* _exit() */
 
-/* bug in hpux <errno.h>: no prototypes unless you are C++ */
-#ifdef hpux9
-char *strerror(int);
-#endif
-
 int          rtems_panic_in_progress;
 
 const rtems_assoc_t rtems_status_assoc[] = {
@@ -107,7 +102,7 @@ rtems_status_text(
 
 
 static int rtems_verror(
-    uint32_t     error_flag,
+    rtems_error_code_t error_flag,
     const char   *printf_format,
     va_list      arglist
 )
@@ -180,7 +175,7 @@ static int rtems_verror(
  */
 
 int rtems_error(
-    int   error_flag,
+    rtems_error_code_t error_flag,
     const char *printf_format,
     ...
   )

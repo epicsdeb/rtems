@@ -1,19 +1,298 @@
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2011-05-06	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* include/bsp.h: Moved NEED_LOW_LEVEL_INIT define because it has to be
+	visible for the assembler.
+	* startup/linkcmds.brs5l: Fixed RAM size.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* include/irq-config.h: Removed file.
+	* Makefile.am, preinstall.am: Reflect change above.  Added interrupt
+	support modules.
+	* include/irq.h: Moved defines from 'include/irq-config.h'.
+	* include/mpc5200.h: Added GPIO PIN defines.
+
+2010-04-07	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* start/start.S: fix sdram timing for MPC5200B chips
+
+2010-03-27	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* bestcomm/task_api/tasksetup_general.h,
+	gen5200/include/mscan-base.h, gen5200/mscan/mscan-base.c,
+	gen5200/irq/irq.c, startup/uboot_support.c: Removed warnings
+
+2010-03-25      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* configure.ac, include/bsp.h, console/console.c, start/start.S:
+	move more configuration constants to configure.ac
+
+2010-03-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* clock/*, startup/bspstart.c, Makefile.am: switch this BSP to use
+	decrementer as system clock source
+
+2010-03-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1497/bsps
+	* startup/bspreset.c: Do not enable interrupts while waiting for board
+	to reset.
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* console/console.c: adapted to new prototype for *_write
+	function
+
+2009-11-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* ide/pcmcia_ide.c (mpc5200_pcmciaide_write_block,
+	mpc5200_pcmciaide_read_block): Change "block_size" parameter to
+	uint32_t to match with ide_ctrl_fns_t.
+
+2009-11-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/linkcmds, startup/linkcmds.pm520: Remove.
+	* startup/linkcmds.pm520_ze30, startup/linkcmds.pm520_cr825:
+	New (Copy of former startup/linkcmds.pm520).
+	* Makefile.am: Rework linkcmds handling.
+	* configure.ac: Add RTEMS_BSP_LINKCMDS.
+	* make/custom/brs5l.cfg, make/custom/icecube.cfg,
+	make/custom/pm520_cr825.cfg, make/custom/pm520_ze30.cfg:
+	Remove RTEMS_LINKCMDS.
+	* make/custom/gen5200.inc: Remove LDFLAGS.
+
+2009-11-02	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* start/start.S: call to boot_card checked, removed warning 
+
+2009-10-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for exception support changes.
+	* irq/irq.c: Changed exception header file includes.
+	* startup/bspstart.c: Changed exception header file includes.  Update
+	for ppc_exc_initialize() changes.
+
+2009-10-22	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/clock.c: Add missing prototypes.
+	Remove argument from clockOff().
+	* tod/pcf8563.c: Add missing const.
+
+2009-10-21	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* clock/clock.c: Update for interrupt handler type change.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/gen5200.inc: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-17	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/gen5200.inc: New (Renamed from gen5200.cfg).
+	* make/custom/gen5200.cfg: Removed.
+	* make/custom/brs5l.cfg, make/custom/icecube.cfg,
+	make/custom/pm520_cr825.cfg, make/custom/pm520_ze30.cfg:
+	Include make/custom/gen5200.inc.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/icecube.cfg, make/custom/pm520_cr825.cfg,
+	make/custom/pm520_ze30.cfg:
+	New (relocated from /make/custom).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/brs5l.cfg: New (relocated from /make/custom).
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/gen5200.cfg: New (relocated from /make/custom).
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+2009-09-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1435/bsps
+	* Makefile.am: Use shared implementation of bsp_idle_thread().
+	* startup/bspidle.c: Removed.
+
+2009-08-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/bspstart.c: Rename BSP specific idle thread to
+	bsp_idle_thread and split into its own file.
+	* startup/bspidle.c: New file.
+
+2009-08-24	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h, startup/bspstart.c: Rename _Thread_Idle_body to
+	bsp_idle_thread.
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console/console.c: Spacing.
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-07-07	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* README.IceCube: Correct mkimage addresses.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* start/start.S: Update for boot_card command line change.
+
+2009-02-27	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* bsp_specs: Added crtbegin.o and crtend.o to support global C++
+	constructors and destructors.
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h, startup/bspstart.c: Change prototype of IDLE thread to
+	consistently return void * and take a uintptr_t argument.
+
+2008-12-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove references to start_g.o.
+
+2008-12-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* bsp_specs: Remove -u start -e start from %link.
+	* console/console.c: Use bool.
 
 2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
-	PR 1329/bsps
-	* network_5200/network.c: Eliminate use of boolean so this compiles.
+	* Makefile.am, preinstall.am: Use shared stub coverhd.h
+	* include/coverhd.h: Removed.
 
-2008-09-24	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-10-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Move PM520_ZE30, PM520_CR825, icecube, BRS5L
+	defines from *.cfg into bspopts.h.
+
+2008-10-01	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* include/bsp.h: #include <bspopts.h> first.
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/clock.c: include "../../../shared/clockdrv_shell.h".
+	* Makefile.am: Reflect changes above.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* preinstall.am: Regenerated.
 
 2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
 
 	* Makefile.am: Eliminates libcpudir.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cosmetics.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, console/console.c, include/bsp.h,
+	startup/bspstart.c: Use standardized bsp_cleanup() which can
+	optionally print a message, poll for user to press key, and call
+	bsp_reset(). Using this eliminates the various bsp_cleanup()
+	implementations which had their own implementation and variety of
+	string constants.
+	* startup/bspreset.c: New file.
+	* startup/bspclean.c: Removed.
+
+2008-09-22	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* startup/linkcmds.base: Fixed wrong section size symbols.
+
+2008-09-20	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, include/bsp.h, network_5200/network.c, start/start.S,
+	startup/bspstart.c, startup/cpuinit.c: Use top level shared
+	bsp_get_work_area() implementation. Augment it to know about U-Boot.
+	* startup/bspgetworkarea.c: Removed.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unnecessary boilerplate comments.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Eliminate definitions of BSP_LIBIO_MAX_FDS since this
+	is NOT used anywhere.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c, startup/linkcmds.base: Do some prep work in
+	anticipation of gen5200 and gen83xx being able to shared
+	bsp_get_work_area() implementation.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock/clock.c, startup/bspstart.c: Remove unnecessary includes of
+	rtems/libcsupport.h and rtems/libio.h.
+
+2008-09-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/bspstart.c: Use shared bsp_get_work_area() in
+	its own file and rely on BSP Framework to perform more
+	initialization.
+	* startup/bspgetworkarea.c: New file.
+
+2008-09-12	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* network_5200/network.c: Remove use of boolean.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h, startup/bspclean.c: Review of all bsp_cleanup()
+	implementations. In this phase, all prototypes were removed from
+	bsp.h and empty implementations were removed and made to use the
+	shared stub.
 
 2008-09-08	Ralf Corsépius <ralf.corsepius@rtems.org>
 

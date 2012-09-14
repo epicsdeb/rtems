@@ -1,79 +1,91 @@
 ##
-## $Id: Makefile.am,v 1.4.2.1 2008/09/24 07:34:19 ralf Exp $
+## $Id: Makefile.am,v 1.21 2010/04/30 11:59:05 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
 
+include_bspdir = $(includedir)/bsp
+
+dist_project_lib_DATA = bsp_specs
+
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
-# Compiler specs
-dist_project_lib_DATA = bsp_specs
-
-# Object files
-EXTRA_DIST = startup/start.S
-start.$(OBJEXT): startup/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = startup/start.S
 project_lib_DATA = start.$(OBJEXT)
 
-EXTRA_DIST += ../shared/start/rtems_crti.S
-rtems_crti.$(OBJEXT): ../shared/start/rtems_crti.S
-	$(CPPASCOMPILE) -o $@ -c $<
+libbspstart_a_SOURCES += ../shared/start/rtems_crti.S
 project_lib_DATA += rtems_crti.$(OBJEXT)
 
 # Link commands
-dist_project_lib_DATA += startup/linkcmds startup/linkcmds.memory
+dist_project_lib_DATA += startup/linkcmds.gwlcfm  startup/linkcmds.mpc5566evb \
+	startup/linkcmds.base	
+
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
 # Includes
 include_HEADERS = include/bsp.h
+include_HEADERS += ../../shared/include/tm27.h
 
-nodist_include_HEADERS = include/bspopts.h ../../shared/tod.h
-include_bspdir = $(includedir)/bsp
+nodist_include_HEADERS = include/bspopts.h ../../shared/tod.h \
+    ../../shared/include/coverhd.h
 include_bsp_HEADERS = include/mpc55xxevb.h \
-    include/irq-config.h \
+    include/smsc9218i.h \
     ../../shared/include/irq-generic.h \
+    ../../shared/include/irq-info.h \
+    ../../shared/include/utility.h \
     ../shared/include/tictac.h
 
-startup_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
-    ../../shared/bootcard.c ../shared/src/tictac.c startup/bspclean.c \
-    startup/bspstart.c ../../shared/bsppretaskinghook.c
+# startup
+libbsp_a_SOURCES += ../../shared/bsplibc.c ../../shared/bsppost.c \
+    ../../shared/bootcard.c ../shared/src/tictac.c ../../shared/bspclean.c \
+    ../shared/startup/bspidle.c startup/bspstart.c startup/bspgetworkarea.c \
+    ../../shared/bsppretaskinghook.c
 
-clock_SOURCES = ../shared/clock/clock.c
+# clock
+libbsp_a_SOURCES += clock/clock-config.c
 
-irq_generic_SOURCES = ../../shared/src/irq-generic.c \
-    ../../shared/src/irq-legacy.c
+# irq_generic
+libbsp_a_SOURCES += ../../shared/src/irq-generic.c \
+    ../../shared/src/irq-legacy.c \
+    ../../shared/src/irq-info.c \
+    ../../shared/src/irq-shell.c
 
-tests_SOURCES = tests/tests.c startup/sd-card-init.c
+# tests
+libbsp_a_SOURCES += tests/tests.c startup/sd-card-init.c
+
+# bsp_i2c
+libbsp_a_SOURCES += i2c/i2c_init.c
 
 # Network
 if HAS_NETWORKING
 noinst_PROGRAMS += network.rel
-network_rel_SOURCES = network/network.c
+network_rel_SOURCES = network/smsc9218i.c
 network_rel_CPPFLAGS = $(AM_CPPFLAGS) -D__INSIDE_RTEMS_BSD_TCPIP_STACK__ -D__BSD_VISIBLE
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
 # BSP library
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(irq_generic_SOURCES) \
-    $(tests_SOURCES)
 
 libbsp_a_LIBADD = ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/stack.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/misc.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/irq.rel \
+    ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/siu.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/edma.rel \
+    ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/emios.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/dspi.rel \
     ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/esci.rel \
     ../../../libcpu/@RTEMS_CPU@/@exceptions@/rtems-cpu.rel \
-    ../../../libcpu/@RTEMS_CPU@/@exceptions@/raw_exception.rel \
-    ../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel
-
+    ../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel \
+    ../../../libcpu/@RTEMS_CPU@/@RTEMS_CPU_MODEL@/timer.rel
 if HAS_NETWORKING
 libbsp_a_LIBADD += network.rel
 endif

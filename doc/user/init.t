@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: init.t,v 1.18.2.1 2008/11/03 19:02:25 joel Exp $
+@c  $Id: init.t,v 1.20 2008/12/15 19:22:26 joel Exp $
 @c
 
 @chapter Initialization Manager
@@ -211,9 +211,7 @@ constants, usage, and status codes.
 @ifset is-C
 @findex rtems_initialize_data_structures
 @example
-void rtems_initialize_data_structures(
-  rtems_configuration_table *configuration_table
-);
+void rtems_initialize_data_structures(void);
 @end example
 @end ifset
 

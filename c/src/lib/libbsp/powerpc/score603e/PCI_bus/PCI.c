@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: PCI.c,v 1.6.6.1 2009/05/05 16:18:05 jennifer Exp $
+ * $Id: PCI.c,v 1.10 2009/05/05 16:24:03 jennifer Exp $
  */
 
 #include <rtems.h>
@@ -27,7 +27,7 @@
  * an UNIVERSE register, without sufficient delay, the second access will
  * not work correctly.
  */
-void PCI_bus_delay ()
+void PCI_bus_delay (void)
 {
   asm("	nop");
   asm(" nop");

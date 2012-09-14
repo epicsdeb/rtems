@@ -3,7 +3,7 @@
  */
 
 /*
- *  This include file contains type definitions pertaining to the 
+ *  This include file contains type definitions pertaining to the
  *  SPARC processor family.
  *
  *  COPYRIGHT (c) 1989-1999.
@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: types.h,v 1.13.2.1 2008/09/18 03:01:48 ralf Exp $
+ *  $Id: types.h,v 1.16 2009/12/02 09:46:16 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_TYPES_H
@@ -22,7 +22,7 @@
 #ifndef ASM
 
 #include <stdbool.h>
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

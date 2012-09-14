@@ -27,8 +27,12 @@
  * SUCH DAMAGE.
  *
  *	@(#)in_cksum.c	8.1 (Berkeley) 6/10/93
- * $Id: in_cksum.c,v 1.16 2008/09/01 06:26:20 ralf Exp $
+ * $Id: in_cksum.c,v 1.18 2010/03/28 05:47:48 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <sys/mbuf.h>
@@ -38,7 +42,7 @@
  */
 
 
-#if (defined(__GNUC__) && (defined(__arm__) && !defined(__thumb__))) 
+#if (defined(__GNUC__) && (defined(__arm__) && !defined(__thumb__)))
 
 /* This currently does not support Thumb assembly */
 #include "in_cksum_arm.h"

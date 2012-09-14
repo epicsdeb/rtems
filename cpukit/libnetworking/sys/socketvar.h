@@ -1,4 +1,4 @@
-/* $Id: socketvar.h,v 1.11 2007/05/10 05:07:28 ralf Exp $ */
+/* $Id: socketvar.h,v 1.13 2010/05/27 07:31:49 ralf Exp $ */
 
 /*-
  * Copyright (c) 1982, 1986, 1990, 1993
@@ -90,8 +90,8 @@ struct socket {
 		struct	selinfo sb_sel;	/* process selecting read/write */
 		short	sb_flags;	/* flags, see below */
 		int	sb_timeo;	/* timeout for read/write */
-		void	(*sb_wakeup)(struct socket *, caddr_t);
-		caddr_t	sb_wakeuparg;	/* arg for above */
+		void	(*sb_wakeup)(struct socket *, void *);
+		void 	*sb_wakeuparg;	/* arg for above */
 	} so_rcv, so_snd;
 #define	SB_MAX		(256L*1024L)	/* default for max chars in sockbuf */
 #define	SB_LOCK		0x01		/* lock on data queue */
@@ -211,20 +211,10 @@ struct filedesc;
 struct mbuf;
 struct sockaddr;
 struct stat;
-struct file;
-
-/*
- * File operations on sockets.
- */
-int	soo_ioctl(struct file *fp, int cmd, caddr_t data,
-	    struct proc *p);
-int	soo_select(struct file *fp, int which, struct proc *p);
-int	soo_stat(struct socket *so, struct stat *ub);
 
 /*
  * From uipc_socket and friends
  */
-int	getsock(struct filedesc *fdp, int fdes, struct file **fpp);
 int	sockargs(struct mbuf **mp, caddr_t buf, int buflen, int type);
 void	sbappend(struct sockbuf *sb, struct mbuf *m);
 int	sbappendaddr(struct sockbuf *sb, struct sockaddr *asa,

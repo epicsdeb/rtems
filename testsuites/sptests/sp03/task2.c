@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task2.c,v 1.9 2003/09/04 18:53:47 joel Exp $
+ *  $Id: task2.c,v 1.11 2009/08/12 20:50:43 joel Exp $
  */
 
 #include "system.h"
@@ -28,11 +28,11 @@ rtems_task Task_2(
   rtems_time_of_day time;
 
   while( FOREVER ) {
-    status = rtems_task_wake_after( 1*TICKS_PER_SECOND );
+    status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     if ( time.second >= 17 ) {
       puts( "*** END OF TEST 3 *** " );

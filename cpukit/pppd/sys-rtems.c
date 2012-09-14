@@ -20,7 +20,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#define RCSID	"$Id: sys-rtems.c,v 1.10 2008/08/26 10:24:22 ralf Exp $"
+#define RCSID	"$Id: sys-rtems.c,v 1.12 2009/11/30 15:59:00 ralf Exp $"
 
 #include <stdio.h>
 #include <string.h>
@@ -484,7 +484,7 @@ output(
     u_char *p,
     int len)
 {
-    if (debug);
+    if (debug)
 	dbglog("sent %P", p, len);
 /*    printf("sent packet [%d]\n", len); */
 
@@ -583,7 +583,7 @@ ppp_send_config(
     int unit,
     int mtu,
     uint32_t asyncmap,
-    int pcomp, 
+    int pcomp,
     int accomp)
 {
     u_int x;
@@ -626,7 +626,7 @@ ppp_set_xaccm(
  */
 void
 ppp_recv_config(
-    int unit, 
+    int unit,
     int mru,
     uint32_t asyncmap,
     int pcomp, int accomp)
@@ -977,7 +977,7 @@ dodefaultroute(
 
     memset((void *) &netmask, 0, sizeof(netmask));
     netmask.sin_len = sizeof netmask;
-    netmask.sin_addr.s_addr = INADDR_ANY;  
+    netmask.sin_addr.s_addr = INADDR_ANY;
     netmask.sin_family = AF_INET;
 
     if (cmd=='s') {	

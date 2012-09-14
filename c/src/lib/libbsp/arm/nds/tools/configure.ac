@@ -1,21 +1,21 @@
 ##
-## $Id: configure.ac,v 1.1 2008/04/16 18:37:33 joel Exp $
+## $Id: configure.ac,v 1.2.2.1 2011/02/02 15:14:02 ralf Exp $
 ##
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-arm-nds-tools],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([runtest])
 RTEMS_TOP(../../../../../../..)
 
 # HACK: so we use the default native flags and do not inherit cross cflags
-# HACK: I really hope we get a better solution soon. --joel 
+# HACK: I really hope we get a better solution soon. --joel
 CFLAGS=
 AC_PROG_CC
 AC_PROG_CXX
 
 ## RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign 1.10])
+AM_INIT_AUTOMAKE([no-define foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENV_RTEMSBSP

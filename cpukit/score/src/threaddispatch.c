@@ -1,15 +1,14 @@
 /*
  *  Thread Handler
  *
- *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threaddispatch.c,v 1.15 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: threaddispatch.c,v 1.20.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,8 +29,8 @@
 #include <rtems/score/userext.h>
 #include <rtems/score/wkspace.h>
 
-#ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
-  #include <rtems/score/timespec.h>
+#ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
+  #include <rtems/score/timestamp.h>
 #endif
 
 /*PAGE
@@ -50,7 +49,8 @@
  *    no dispatch thread
  */
 
-#if ( (CPU_INLINE_ENABLE_DISPATCH == FALSE) || \
+#if ( (defined(CPU_INLINE_ENABLE_DISPATCH) &&  \
+       (CPU_INLINE_ENABLE_DISPATCH == FALSE)) || \
       (__RTEMS_DO_NOT_INLINE_THREAD_ENABLE_DISPATCH__ == 1) )
 void _Thread_Enable_dispatch( void )
 {
@@ -88,10 +88,10 @@ void _Thread_Dispatch( void )
 
   executing   = _Thread_Executing;
   _ISR_Disable( level );
-  while ( _Context_Switch_necessary == TRUE ) {
+  while ( _Context_Switch_necessary == true ) {
     heir = _Thread_Heir;
     _Thread_Dispatch_disable_level = 1;
-    _Context_Switch_necessary = FALSE;
+    _Context_Switch_necessary = false;
     _Thread_Executing = heir;
 #if __RTEMS_ADA__
     executing->rtems_ada_self = rtems_ada_self;
@@ -101,12 +101,16 @@ void _Thread_Dispatch( void )
       heir->cpu_time_budget = _Thread_Ticks_per_timeslice;
     _ISR_Enable( level );
 
-    #ifdef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+    #ifndef __RTEMS_USE_TICKS_FOR_STATISTICS__
       {
-        struct timespec uptime, ran;
+        Timestamp_Control uptime, ran;
         _TOD_Get_uptime( &uptime );
-        _Timespec_Subtract(&_Thread_Time_of_last_context_switch, &uptime, &ran);
-        _Timespec_Add_to( &executing->cpu_time_used, &ran );
+        _Timestamp_Subtract(
+          &_Thread_Time_of_last_context_switch,
+          &uptime,
+          &ran
+        );
+        _Timestamp_Add_to( &executing->cpu_time_used, &ran );
         _Thread_Time_of_last_context_switch = uptime;
       }
     #else

@@ -30,11 +30,15 @@
  * $FreeBSD: src/sys/netinet/in.c,v 1.75 2004/04/07 20:46:13 imp Exp $
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
 #include <sys/systm.h>
 #include <sys/ioctl.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/malloc.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>

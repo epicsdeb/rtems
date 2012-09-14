@@ -13,14 +13,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: eventset.h,v 1.15 2008/06/06 18:03:45 joel Exp $
+ *  $Id: eventset.h,v 1.16 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_EVENTSET_H
 #define _RTEMS_RTEMS_EVENTSET_H
 
 /**
- *  @defgroup ClassicEventSet Classic API Event Set
+ *  @defgroup ClassicEventSet Event Sets
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality related to Classic API
  *  Event Sets.  These are used by the Classic API Event Manager.

@@ -24,7 +24,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: chain.inl,v 1.3.2.2 2008/11/20 21:11:38 joel Exp $
+ *  $Id: chain.inl,v 1.8.2.1 2010/08/09 07:56:04 sh Exp $
  */
 
 #ifndef _RTEMS_CHAIN_H
@@ -74,6 +74,38 @@ RTEMS_INLINE_ROUTINE void rtems_chain_initialize_empty(
 }
 
 /**
+ *  @brief Set off chain
+ *
+ *  This function sets the next and previous fields of the @a node to NULL
+ *  indicating the @a node is not part of a chain.
+ *
+ *  @param[in] node the node set to off chain.
+ */
+RTEMS_INLINE_ROUTINE void rtems_chain_set_off_chain(
+  rtems_chain_node *node
+)
+{
+  _Chain_Set_off_chain( node );
+}
+
+/**
+ *  @brief Is the Node off Chain
+ *
+ *  This function returns true if the @a node is not on a chain. A @a node is
+ *  off chain if the next and previous fields are set to NULL.
+ *
+ *  @param[in] node is the node off chain.
+ *
+ *  @return This function returns true if the @a node is off chain.
+ */
+RTEMS_INLINE_ROUTINE bool rtems_chain_is_node_off_chain(
+  const rtems_chain_node *node
+)
+{
+  return _Chain_Is_node_off_chain( node );
+}
+
+/**
  *  @brief Is the Chain Node Pointer NULL
  *
  *  This function returns true if the_node is NULL and false otherwise.
@@ -96,7 +128,7 @@ RTEMS_INLINE_ROUTINE bool rtems_chain_is_null_node(
  *
  *  @param[in] the_chain is the chain to be operated upon.
  *
- *  @return This method returns the permanent head node of the chain.
+ *  @return This method returns the permanent  node of the chain.
  */
 RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_head(
   rtems_chain_control *the_chain
@@ -119,6 +151,72 @@ RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_tail(
 )
 {
   return _Chain_Tail( the_chain );
+}
+
+/**
+ *  @brief Return pointer to Chain's First node after the permanent head.
+ *
+ *  This function returns a pointer to the first node on the chain after the
+ *  head.
+ *
+ *  @param[in] the_chain is the chain to be operated upon.
+ *
+ *  @return This method returns the first node of the chain.
+ */
+RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_first(
+  rtems_chain_control *the_chain
+)
+{
+  return _Chain_First( the_chain );
+}
+
+/**
+ *  @brief Return pointer to Chain's Last node before the permanent tail.
+ *
+ *  This function returns a pointer to the last node on the chain just before
+ *  the tail.
+ *
+ *  @param[in] the_chain is the chain to be operated upon.
+ *
+ *  @return This method returns the last node of the chain.
+ */
+RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_last(
+  rtems_chain_control *the_chain
+)
+{
+  return _Chain_Last( the_chain );
+}
+
+/**
+ *  @brief Return pointer the next node from this node
+ *
+ *  This function returns a pointer to the next node after this node.
+ *
+ *  @param[in] the_node is the node to be operated upon.
+ *
+ *  @return This method returns the next node on the chain.
+ */
+RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_next(
+  rtems_chain_node *the_node
+)
+{
+  return _Chain_Next( the_node );
+}
+
+/**
+ *  @brief Return pointer the previous node from this node
+ *
+ *  This function returns a pointer to the previous node on this chain.
+ *
+ *  @param[in] the_node is the node to be operated upon.
+ *
+ *  @return This method returns the previous node on the chain.
+ */
+RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_previous(
+  rtems_chain_node *the_node
+)
+{
+  return _Chain_Previous( the_node );
 }
 
 /**
@@ -268,6 +366,21 @@ RTEMS_INLINE_ROUTINE void rtems_chain_extract(
 }
 
 /**
+ *  @brief Extract the specified node from a chain (unprotected).
+ *
+ *  This routine extracts @a the_node from the chain on which it resides.
+ *
+ *  @note It does NOT disable interrupts to ensure the atomicity of the
+ *  append operation.
+ */
+RTEMS_INLINE_ROUTINE void rtems_chain_extract_unprotected(
+  rtems_chain_node *the_node
+)
+{
+  _Chain_Extract_unprotected( the_node );
+}
+
+/**
  *  @brief Obtain the first node on a chain
  *
  *  This function removes the first node from @a the_chain and returns
@@ -287,6 +400,16 @@ RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_get(
 }
 
 /**
+ * @brief See _Chain_Get_unprotected().
+ */
+RTEMS_INLINE_ROUTINE rtems_chain_node *rtems_chain_get_unprotected(
+  rtems_chain_control *the_chain
+)
+{
+  return _Chain_Get_unprotected( the_chain );
+}
+
+/**
  *  @brief Insert a node on a chain
  *
  *  This routine inserts @a the_node on a chain immediately following
@@ -301,6 +424,17 @@ RTEMS_INLINE_ROUTINE void rtems_chain_insert(
 )
 {
   _Chain_Insert( after_node, the_node );
+}
+
+/**
+ * @brief See _Chain_Insert_unprotected().
+ */
+RTEMS_INLINE_ROUTINE void rtems_chain_insert_unprotected(
+  rtems_chain_node *after_node,
+  rtems_chain_node *the_node
+)
+{
+  _Chain_Insert_unprotected( after_node, the_node );
 }
 
 /**

@@ -19,7 +19,7 @@
 | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ |
 | 13.05.02  creation                                         doe  |
 |*****************************************************************|
-|* $Id: termios_printk.c,v 1.7 2008/09/01 11:28:56 ralf Exp $
+|* $Id: termios_printk.c,v 1.9 2009/01/02 13:01:21 ralf Exp $
  *
 |*****************************************************************|
 \*===============================================================*/
@@ -45,7 +45,11 @@
 int termios_printk_fd = -1;
 struct rtems_termios_tty *termios_printk_tty;
 
-static void _termios_printk_null_char( char c ) {return;}
+static void _termios_printk_null_char(
+	char c __attribute__((unused)))
+{
+  return;
+}
 
 BSP_output_char_function_type BSP_output_char = _termios_printk_null_char;
 BSP_polling_getchar_function_type BSP_poll_char;
@@ -94,7 +98,7 @@ void termios_printk_outputchar
 /*=========================================================================*\
 | Function:                                                                 |
 \*-------------------------------------------------------------------------*/
-char termios_printk_inputchar
+int termios_printk_inputchar
 /*-------------------------------------------------------------------------*\
 | Purpose:                                                                  |
 |    wait for one character from serial port                                |

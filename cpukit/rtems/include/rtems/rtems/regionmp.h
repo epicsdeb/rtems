@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regionmp.h,v 1.18 2008/04/18 20:08:08 joel Exp $
+ *  $Id: regionmp.h,v 1.20 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_REGIONMP_H
@@ -30,7 +30,9 @@ extern "C" {
 #include <rtems/rtems/region.h>
 
 /**
- *  @defgroup ClassicRegionMP Classic API Region MP Support
+ *  @defgroup ClassicRegionMP Region MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */
@@ -87,7 +89,7 @@ rtems_status_code _Region_MP_Send_request_packet (
   Region_MP_Remote_operations  operation,
   Objects_Id                   region_id,
   void                        *segment,
-  uint32_t                     size,
+  intptr_t                     size,
   rtems_option                 option_set,
   rtems_interval               timeout
 );

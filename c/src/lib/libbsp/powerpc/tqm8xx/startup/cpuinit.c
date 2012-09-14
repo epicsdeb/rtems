@@ -22,7 +22,6 @@
 void _InitTQM8xx (void)
 {
   register uint32_t   r1;
-  uint32_t msr;
 
   /*
    * Initialize the Instruction Support Control Register (ICTRL) to a
@@ -107,7 +106,7 @@ void _InitTQM8xx (void)
    *   Timebase Source is GCLK2 / 16
    */
   m8xx.sccrk = M8xx_UNLOCK_KEY;		/* unlock SCCR */
-  m8xx.sccr |= 0x02000000;		
+  m8xx.sccr |= 0x02000000;
 
   /* Unlock the timebase and decrementer registers. */
   m8xx.tbk = M8xx_UNLOCK_KEY;
@@ -123,23 +122,12 @@ void _InitTQM8xx (void)
   r1 = 0x00000000;
   _mtspr( M8xx_TBU_WR, r1 );
   _mtspr( M8xx_TBL_WR, r1 );
-  /* init the MMU */
+}
+/*
+ * further initialization (called from bsp_start)
+ */
+void cpu_init(void)
+{
+  /* mmu initialization */
   mmu_init();
-
-  /* 
-   * override setting from mmu_init:
-   * make sure the cache is ON(!!!) when the MMU is disabled
-   * otherwise the exception code will break
-   */
-  r1 = 0x04000e00;
-  _mtspr( M8xx_MD_CTR, r1 );
-
-  /* Read MSR */
-  msr = ppc_machine_state_register();
-
-  /* Enable data and instruction MMU in MSR */
-  msr |= MSR_DR | MSR_IR;
-
-  /* Update MSR */
-  ppc_set_machine_state_register( msr);
 }

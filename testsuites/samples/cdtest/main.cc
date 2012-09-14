@@ -22,7 +22,7 @@
  *  global or not, and added code to test C++ exception.
  *
  *
- *  $Id: main.cc,v 1.16.6.1 2009/03/02 17:28:35 joel Exp $
+ *  $Id: main.cc,v 1.18 2009/08/12 20:50:37 joel Exp $
  */
 
 #include <rtems.h>
@@ -152,7 +152,7 @@ cdtest(void)
     printf("IO Stream not tested\n");
 #endif
     bar = blech;
-    rtems_task_wake_after( 5 * get_ticks_per_second() );
+    rtems_task_wake_after( 5 * rtems_clock_get_ticks_per_second() );
 }
 
 //
@@ -211,7 +211,7 @@ rtems_task main_task(
       printf( "Caught another exception.\n" );
     }
     printf( "Exceptions are working properly.\n" );
-    rtems_task_wake_after( 5 * get_ticks_per_second() );
+    rtems_task_wake_after( 5 * rtems_clock_get_ticks_per_second() );
     printf( "Global Dtors should be called after this line....\n" );
     exit(0);
 }

@@ -1,5 +1,5 @@
 /*
- *  $Id: rtems_glue.c,v 1.50 2008/09/01 06:59:32 ralf Exp $
+ *  $Id: rtems_glue.c,v 1.52.2.1 2011/05/26 23:34:00 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -288,10 +288,11 @@ rtems_bsdnet_initialize (void)
 	/*
 	 * Compute clock tick conversion factors
 	 */
-	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_PER_SECOND, &rtems_bsdnet_ticks_per_second);
+	rtems_bsdnet_ticks_per_second = rtems_clock_get_ticks_per_second();
 	if (rtems_bsdnet_ticks_per_second <= 0)
 		rtems_bsdnet_ticks_per_second = 1;
-	rtems_bsdnet_microseconds_per_tick = 1000000 / rtems_bsdnet_ticks_per_second;
+	rtems_bsdnet_microseconds_per_tick =
+		1000000 / rtems_bsdnet_ticks_per_second;
 
 	/*
 	 * Ensure that `seconds' is greater than 0
@@ -554,7 +555,7 @@ networkDaemon (void *task_argument)
 				arpintr ();
 		}
 
-		rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
+  		now = rtems_clock_get_ticks_since_boot();
 		ticksPassed = now - ticksWhenCalloutsLastChecked;
 		if (ticksPassed != 0) {
 			ticksWhenCalloutsLastChecked = now;
@@ -675,11 +676,7 @@ rtems_status_code rtems_bsdnet_event_receive (
 void
 microtime (struct timeval *t)
 {
-	rtems_interval now;
-
-	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
-	t->tv_sec = now / rtems_bsdnet_ticks_per_second;
-	t->tv_usec = (now % rtems_bsdnet_ticks_per_second) * rtems_bsdnet_microseconds_per_tick;
+	rtems_clock_get_tod_timeval(t);
 }
 
 unsigned long
@@ -687,7 +684,7 @@ rtems_bsdnet_seconds_since_boot (void)
 {
 	rtems_interval now;
 
-	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
+	now = rtems_clock_get_ticks_since_boot();
 	return now / rtems_bsdnet_ticks_per_second;
 }
 
@@ -699,7 +696,7 @@ rtems_bsdnet_random (void)
 {
 	rtems_interval now;
 
-	rtems_clock_get (RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now);
+	now = rtems_clock_get_ticks_since_boot();
 	return (now * 99991);
 }
 
@@ -1148,8 +1145,14 @@ int rtems_bsdnet_ifconfig(const char *ifname, uint32_t cmd, void *param)
 	return r;
 }
 
-/*
- * Parse a network driver name into a name and a unit number
+/**
+ * @brief Splits a network interface name with interface configuration @a
+ * config into the unit name and number parts.
+ *
+ * Memory for the unit name will be allocated from the heap and copied to @a
+ * namep.  If @a namep is NULL nothing will be allocated and copied.
+ *
+ * Returns the unit number or -1 on error.
  */
 int
 rtems_bsdnet_parse_driver_name (const struct rtems_bsdnet_ifconfig *config, char **namep)
@@ -1171,14 +1174,16 @@ rtems_bsdnet_parse_driver_name (const struct rtems_bsdnet_ifconfig *config, char
 				unitNumber = (unitNumber * 10) + (c - '0');
 				c = *cp++;
 				if (c == '\0') {
-					char *unitName = malloc (len);
-					if (unitName == NULL) {
-						printf ("No memory.\n");
-						return -1;
+					if (namep != NULL) {
+						char *unitName = malloc (len);
+						if (unitName == NULL) {
+							printf ("No memory.\n");
+							return -1;
+						}
+						strncpy (unitName, config->name, len - 1);
+						unitName[len-1] = '\0';
+						*namep = unitName;
 					}
-					strncpy (unitName, config->name, len - 1);
-					unitName[len-1] = '\0';
-					*namep = unitName;
 					return unitNumber;
 				}
 				if ((c < '0') || (c > '9'))

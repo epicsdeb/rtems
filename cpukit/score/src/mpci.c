@@ -2,14 +2,14 @@
  *  Multiprocessing Communications Interface (MPCI) Handler
  *
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mpci.c,v 1.33 2008/09/08 15:19:34 joel Exp $
+ *  $Id: mpci.c,v 1.36 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -21,6 +21,7 @@
 #include <rtems/score/mpci.h>
 #include <rtems/score/mppkt.h>
 #endif
+#include <rtems/config.h>
 #include <rtems/score/cpu.h>
 #include <rtems/score/interr.h>
 #include <rtems/score/states.h>
@@ -46,16 +47,18 @@ CORE_semaphore_Control _MPCI_Semaphore;
  */
 
 void _MPCI_Handler_initialization(
-  MPCI_Control            *users_mpci_table,
-  uint32_t                 timeout_status
+  uint32_t   timeout_status
 )
 {
-  CORE_semaphore_Attributes    attributes;
+  CORE_semaphore_Attributes   attributes;
+  MPCI_Control               *users_mpci_table;
+
+  users_mpci_table = _Configuration_MP_table->User_mpci_table;
 
   if ( _System_state_Is_multiprocessing && !users_mpci_table )
     _Internal_error_Occurred(
       INTERNAL_ERROR_CORE,
-      TRUE,
+      true,
       INTERNAL_ERROR_NO_MPCI
     );
 
@@ -119,12 +122,12 @@ void _MPCI_Create_server( void )
     &_Thread_Internal_information,
     _MPCI_Receive_server_tcb,
     NULL,        /* allocate the stack */
-    _Stack_Minimum() + 
+    _Stack_Minimum() +
       CPU_MPCI_RECEIVE_SERVER_EXTRA_STACK +
       _Configuration_MP_table->extra_mpci_receive_server_stack,
     CPU_ALL_TASKS_ARE_FP,
     PRIORITY_MINIMUM,
-    FALSE,       /* no preempt */
+    false,       /* no preempt */
     THREAD_CPU_BUDGET_ALGORITHM_NONE,
     NULL,        /* no budget algorithm callout */
     0,           /* all interrupts enabled */
@@ -187,7 +190,7 @@ MP_packet_Prefix *_MPCI_Get_packet ( void )
   if ( the_packet == NULL )
     _Internal_error_Occurred(
       INTERNAL_ERROR_CORE,
-      TRUE,
+      true,
       INTERNAL_ERROR_OUT_OF_PACKETS
     );
 
@@ -372,7 +375,7 @@ Thread _MPCI_Receive_server(
     executing->receive_packet = NULL;
 
     _Thread_Disable_dispatch();
-    _CORE_semaphore_Seize( &_MPCI_Semaphore, 0, TRUE, WATCHDOG_NO_TIMEOUT );
+    _CORE_semaphore_Seize( &_MPCI_Semaphore, 0, true, WATCHDOG_NO_TIMEOUT );
     _Thread_Enable_dispatch();
 
     for ( ; ; ) {
@@ -391,7 +394,7 @@ Thread _MPCI_Receive_server(
       if ( !the_function )
         _Internal_error_Occurred(
           INTERNAL_ERROR_CORE,
-          TRUE,
+          true,
           INTERNAL_ERROR_BAD_PACKET
         );
 
@@ -494,7 +497,7 @@ void _MPCI_Internal_packets_Process_packet (
 
         _Internal_error_Occurred(
           INTERNAL_ERROR_CORE,
-          TRUE,
+          true,
           INTERNAL_ERROR_INCONSISTENT_MP_INFORMATION
         );
       }

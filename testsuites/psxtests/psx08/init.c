@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.9 2004/04/16 09:23:25 ralf Exp $
+ *  $Id: init.c,v 1.12 2009/12/08 17:52:53 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -29,26 +29,26 @@ void *POSIX_Init(
   /* get id of this thread */
 
   Init_id = pthread_self();
-  printf( "Init's ID is 0x%08x\n", Init_id );
+  printf( "Init's ID is 0x%08" PRIxpthread_t "\n", Init_id );
 
   puts( "Init: pthread_detach - ESRCH (invalid id)" );
-  status = pthread_detach( -1 );
-  assert( status == ESRCH );
+  status = pthread_detach( (pthread_t) -1 );
+  rtems_test_assert(  status == ESRCH );
 
   /* detach this thread */
 
   puts( "Init: pthread_detach self" );
   status = pthread_detach( pthread_self() );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   /* create thread */
 
   status = pthread_create( &Task1_id, NULL, Task_1, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: pthread_join - ESRCH (invalid id)" );
-  status = pthread_join( -1, &return_pointer );
-  assert( status == ESRCH );
+  status = pthread_join( (pthread_t) -1, &return_pointer );
+  rtems_test_assert(  status == ESRCH );
 
   puts( "Init: pthread_join - SUCCESSFUL" );
   status = pthread_join( Task1_id, &return_pointer );
@@ -56,7 +56,7 @@ void *POSIX_Init(
   puts( "Init: returned from pthread_join through return" );
   if ( status )
     printf( "status = %d\n", status );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   if ( return_pointer == &Task1_id )
     puts( "Init: pthread_join returned correct pointer" );
@@ -69,10 +69,10 @@ void *POSIX_Init(
 
   puts( "Init: creating two pthreads" );
   status = pthread_create( &Task2_id, NULL, Task_2, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   status = pthread_create( &Task3_id, NULL, Task_3, NULL );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   puts( "Init: pthread_join - SUCCESSFUL" );
   status = pthread_join( Task2_id, &return_pointer );
@@ -81,7 +81,7 @@ void *POSIX_Init(
   puts( "Init: returned from pthread_join through pthread_exit" );
   if ( status )
     printf( "status = %d\n", status );
-  assert( !status );
+  rtems_test_assert(  !status );
 
   if ( return_pointer == &Task2_id )
     puts( "Init: pthread_join returned correct pointer" );

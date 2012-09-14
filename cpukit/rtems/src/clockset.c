@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockset.c,v 1.6 2007/04/02 18:23:59 joel Exp $
+ *  $Id: clockset.c,v 1.8 2009/11/30 15:59:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,6 +16,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/clock.h>
 #include <rtems/score/isr.h>
@@ -48,8 +49,8 @@ rtems_status_code rtems_clock_set(
 
   if ( _TOD_Validate( time_buffer ) ) {
     newtime.tv_sec = _TOD_To_seconds( time_buffer );
-    newtime.tv_nsec = time_buffer->ticks * 
-                 (_TOD_Microseconds_per_tick * TOD_NANOSECONDS_PER_MICROSECOND);
+    newtime.tv_nsec = time_buffer->ticks *
+      rtems_configuration_get_nanoseconds_per_tick();
 
     _Thread_Disable_dispatch();
       _TOD_Set( &newtime );

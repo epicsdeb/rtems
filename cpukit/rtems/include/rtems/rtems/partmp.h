@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: partmp.h,v 1.18 2008/04/23 21:53:09 joel Exp $
+ *  $Id: partmp.h,v 1.19 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_PARTMP_H
@@ -30,7 +30,9 @@ extern "C" {
 #include <rtems/rtems/part.h>
 
 /**
- *  @defgroup ClassicPartMP Classic API Partition MP Support
+ *  @defgroup ClassicPartMP Partition MP Support
+ *
+ *  @ingroup ClassicMP
  *
  *  This encapsulates functionality which XXX
  */

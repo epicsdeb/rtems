@@ -12,7 +12,7 @@
  *  Modified to support the MCP750.
  *  Modifications Copyright (C) 1999 Eric Valette. valette@crf.canon.fr
  *
- *  $Id: pretaskinghook.c,v 1.7.2.1 2008/11/03 19:58:43 strauman Exp $
+ *  $Id: pretaskinghook.c,v 1.8.2.1 2011/05/18 05:08:35 strauman Exp $
  */
 
 #include <string.h>
@@ -26,17 +26,11 @@
 #include <rtems/bspIo.h>
 #endif
 
-#include <rtems/malloc.h>
-
-void bsp_libc_init( void *, uint32_t, int );
-
 /*
- *  Function:   bsp_pretasking_hook
- *  Created:    95/03/10
+ *  bsp_pretasking_hook
  *
  *  Description:
  *      BSP pretasking hook.  Called just before drivers are initialized.
- *      Used to setup libc and install any BSP extensions.
  *
  *  NOTES:
  *      Must not use libc (to do io) from here, since drivers are
@@ -46,25 +40,6 @@ void bsp_libc_init( void *, uint32_t, int );
 
 void bsp_pretasking_hook(void)
 {
-  uint32_t        heap_size;
-  uint32_t        heap_sbrk_spared;
-  extern uint32_t _bsp_sbrk_init(uint32_t, uint32_t*);
-
-  /* make sure it's properly aligned */
-  BSP_heap_start = (BSP_heap_start + CPU_ALIGNMENT - 1) & ~(CPU_ALIGNMENT-1);
-
-  heap_size = (BSP_mem_size - BSP_heap_start) - rtems_configuration_get_work_space_size();
-  heap_sbrk_spared=_bsp_sbrk_init(BSP_heap_start, &heap_size);
-
-#ifdef SHOW_MORE_INIT_SETTINGS
-  printk( "HEAP start %x  size %x (%x bytes spared for sbrk)\n",
-             BSP_heap_start, heap_size, heap_sbrk_spared);
-#endif    
-
-  rtems_malloc_sbrk_helpers = &rtems_malloc_sbrk_helpers_table;
-
-  bsp_libc_init((void *)BSP_heap_start, heap_size, heap_sbrk_spared);
-
   /* Note that VME support may be omitted also by
    * providing a no-op  BSP_vme_config routine
    */

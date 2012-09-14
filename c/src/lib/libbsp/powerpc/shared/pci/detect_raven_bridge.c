@@ -1,5 +1,5 @@
 /*
- *  $Id: detect_raven_bridge.c,v 1.14 2008/08/20 05:43:41 ralf Exp $
+ *  $Id: detect_raven_bridge.c,v 1.14.4.2 2011/01/19 16:56:46 joel Exp $
  */
 
 #include <libcpu/io.h>
@@ -110,7 +110,7 @@ void detect_host_bridge(void)
   /*
    * This code assumes that the host bridge is located at
    * bus 0, dev 0, func 0 AND that the old pre PCI 2.1
-   * standart devices detection mecahnism that was used on PC
+   * standard devices detection mechanism that was used on PC
    * (still used in BSD source code) works.
    */
   hostbridge=residual_find_device(&residualCopy, PROCESSORDEVICE, NULL,

@@ -9,14 +9,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: evtask1.c,v 1.11 2008/09/03 22:06:22 joel Exp $
+ *  $Id: evtask1.c,v 1.12 2009/08/12 20:50:29 joel Exp $
  */
 
 #include "system.h"
@@ -36,7 +36,7 @@ rtems_task Test_task(
   remote_node = ((Multiprocessing_configuration.node == 1) ? 2 : 1);
 
   puts( "About to go to sleep!" );
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
   puts( "Waking up!" );
 

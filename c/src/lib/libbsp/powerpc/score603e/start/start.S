@@ -14,7 +14,7 @@
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
  *
- * $Id: start.S,v 1.8.2.1 2009/05/05 16:18:06 jennifer Exp $
+ *  $Id: start.S,v 1.10 2009/05/05 16:24:04 jennifer Exp $
  */
 
 #include "ppc-asm.h"
@@ -114,10 +114,7 @@ past_constants:
 	stw	r0,0(sp)		/* clear back chain */
 	stwu	sp,-56(sp)		/* push another stack frame */
 
-        lis	r5,environ@ha
-        la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
+	li	r3, 0			/* command line */
 	/* Let her rip */
 	bl	FUNC_NAME(boot_card)
 

@@ -1,11 +1,11 @@
 ##
-##  $Id: Makefile.am,v 1.23 2007/05/11 19:45:50 joel Exp $
+##  $Id: Makefile.am,v 1.25 2009/10/26 11:32:35 ralf Exp $
 ##
 
 MANAGERS = io event semaphore
 
-rtems_tests_PROGRAMS = unlimited.exe
-unlimited_exe_SOURCES = init.c test1.c test2.c test3.c system.h
+rtems_tests_PROGRAMS = unlimited
+unlimited_SOURCES = init.c test1.c test2.c test3.c system.h
 
 dist_rtems_tests_DATA = unlimited.scn
 dist_rtems_tests_DATA += unlimited.doc
@@ -14,13 +14,15 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-unlimited_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(unlimited_exe_OBJECTS) $(unlimited_exe_LDADD)
-LINK_LIBS = $(unlimited_exe_LDLIBS)
+unlimited_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
-unlimited.exe$(EXEEXT): $(unlimited_exe_OBJECTS) $(unlimited_exe_DEPENDENCIES)
-	@rm -f unlimited.exe$(EXEEXT)
+LINK_OBJS = $(unlimited_OBJECTS) $(unlimited_LDADD)
+LINK_LIBS = $(unlimited_LDLIBS)
+
+unlimited$(EXEEXT): $(unlimited_OBJECTS) $(unlimited_DEPENDENCIES)
+	@rm -f unlimited$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

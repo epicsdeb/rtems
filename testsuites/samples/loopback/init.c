@@ -1,5 +1,5 @@
 /*
- *  $Id: init.c,v 1.6 2007/04/05 15:22:58 joel Exp $
+ *  $Id: init.c,v 1.10 2009/11/02 04:24:14 ralf Exp $
  */
 
 #include <bsp.h>
@@ -29,6 +29,8 @@ rtems_task Init(rtems_task_argument argument);
 
 #include <rtems/confdefs.h>
 
+#if !BSP_SMALL_MEMORY
+
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/error.h>
 #include <stdio.h>
@@ -42,13 +44,23 @@ rtems_task Init(rtems_task_argument argument);
 /*
  * Network configuration
  */
-extern void rtems_bsdnet_loopattach();
+extern int rtems_bsdnet_loopattach(struct rtems_bsdnet_ifconfig *conf, int attaching);
+
 static struct rtems_bsdnet_ifconfig loopback_config = {
     "lo0",                          /* name */
-    (int (*)(struct rtems_bsdnet_ifconfig *, int))rtems_bsdnet_loopattach, /* attach function */
+    rtems_bsdnet_loopattach,        /* attach function */
     NULL,                           /* link to next interface */
     "127.0.0.1",                    /* IP address */
     "255.0.0.0",                    /* IP net mask */
+    NULL,                           /* hardware_address */
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    NULL
 };
 
 struct rtems_bsdnet_config rtems_bsdnet_config = {
@@ -63,6 +75,11 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
     "127.0.0.1",            /* Log host */
     {"127.0.0.1" },         /* Name server(s) */
     {"127.0.0.1" },         /* NTP server(s) */
+    0,
+    0,
+    0,
+    0,
+    0
 };
 
 /*
@@ -273,3 +290,14 @@ Init (rtems_task_argument ignored)
     puts( "*** END OF LOOPBACK TEST ***" );
     exit( 0 );
 }
+#else
+#include <stdio.h>
+/*
+ * RTEMS Startup Task
+ */
+rtems_task
+Init (rtems_task_argument ignored)
+{
+  printf("NO NETWORKING. MEMORY TOO SMALL");
+}
+#endif

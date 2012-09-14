@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectsetname.c,v 1.3 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: objectsetname.c,v 1.8 2009/12/07 17:27:46 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -18,7 +18,6 @@
 #include <rtems/score/thread.h>
 #include <rtems/score/wkspace.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <string.h>
@@ -38,14 +37,15 @@ bool _Objects_Set_name(
   const char            *s;
 
   s      = name;
-  length = strnlen( name, information->name_length ) + 1;
+  length = strnlen( name, information->name_length );
 
+#if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
   if ( information->is_string ) {
     char *d;
 
-    d = _Workspace_Allocate( length );
+    d = _Workspace_Allocate( length + 1 );
     if ( !d )
-      return FALSE;
+      return false;
 
     if ( the_object->name.name_p ) {
       _Workspace_Free( (void *)the_object->name.name_p );
@@ -53,16 +53,19 @@ bool _Objects_Set_name(
     }
 
     strncpy( d, name, length );
+    d[length] = '\0';
     the_object->name.name_p = d;
-  } else {
+  } else
+#endif
+  {
     the_object->name.name_u32 =  _Objects_Build_name(
-      ((0<length) ? s[ 0 ] : ' '),
-      ((1<length) ? s[ 1 ] : ' '),
-      ((2<length) ? s[ 2 ] : ' '),
-      ((3<length) ? s[ 3 ] : ' ')
+      ((0 <= length) ? s[ 0 ] : ' '),
+      ((1 <  length) ? s[ 1 ] : ' '),
+      ((2 <  length) ? s[ 2 ] : ' '),
+      ((3 <  length) ? s[ 3 ] : ' ')
     );
 
   }
 
-  return TRUE;
+  return true;
 }

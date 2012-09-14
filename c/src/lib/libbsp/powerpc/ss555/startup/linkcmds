@@ -17,7 +17,7 @@
  * RTEMS_DEBUG symbol is defined in the bsp_specs file whenever make(1) is
  * invoked with VARIANT=DEBUG.
  *
- *  $Id: linkcmds,v 1.4 2008/03/03 23:07:19 joel Exp $
+ *  $Id: linkcmds,v 1.8 2009/10/16 10:51:07 ralf Exp $
  */
 
 OUTPUT_FORMAT("elf32-powerpc", "elf32-powerpc", "elf32-powerpc")
@@ -28,6 +28,9 @@ int_ram_org	= 0x003F9800;		/* base of internal RAM */
 int_ram_top	= 0x00400000;		/* top of internal RAM */
 ext_ram_size	= 0x00080000;		/* size of external RAM */
 
+RamBase = DEFINED(_RamBase) ? RamBase : 0x003F9800;
+RamSize = DEFINED(_RamSize) ? RamSize : 0x00486800;
+HeapSize = DEFINED(_HeapSize) ? HeapSize : 0x0;
 
 SECTIONS
 {
@@ -120,7 +123,6 @@ SECTIONS
     *(.shdata)
     *(.rodata*)
     *(.rodata1)
-    *.(eh_frame)
     *(.descriptors)
     *(rom_ver)
     _erodata = .;
@@ -196,25 +198,24 @@ SECTIONS
     data.end = .;
   }
   data.size = data.end - data.start;
-	
+
+  bss.start = .;
+  .sbss          :
+  {
+    PROVIDE (__sbss_start = .); PROVIDE (___sbss_start = .);
+    *(.dynsbss)
+    *(.sbss .sbss.* .gnu.linkonce.sb.*)
+    *(.scommon)
+    PROVIDE (__sbss_end = .); PROVIDE (___sbss_end = .);
+  }
   .bss :
   {
-    bss.start = .;
-	
-    PROVIDE (__SBSS2_START__ = .);
-    *(.sbss2)
-    PROVIDE (__SBSS2_END__ = .);
-	
-    PROVIDE (__SBSS_START__ = .);
-    *(.sbss*)
-    PROVIDE (__SBSS_END__ = .);
-
+    *(.dynbss)	
     *(.bss .bss* .gnu.linkonce.b*)
     *(COMMON)
-
     . = ALIGN(4);
-    bss.end = .;
   }
+  bss.end = .;
   bss.size = bss.end - bss.start;
 
   PROVIDE(_end = bss.end);
@@ -235,21 +236,17 @@ SECTIONS
   intrStack = .;
   PROVIDE(intrStackPtr = intrStack);
 
-  _WorkspaceBase = .;
-  __WorkspaceBase = .;
-	
   /*
-   * Heap
+   * Work Area
    *
-   * The heap is configured at run-time to use all available memory.  It
+   * The Work Area is configured at run-time to use all available memory.  It
    * begins just after the end of the Workspace and continues to the end of
    * the external RAM.
    */
   . = DEFINED(RTEMS_DEBUG) ? 0 + ext_ram_size : int_ram_top + ext_ram_size;
-  _HeapEnd = .;
-  __HeapEnd = .;
+  WorkAreaBase = .;
+
  
-        
   /* 
    * Internal I/O devices 
    */

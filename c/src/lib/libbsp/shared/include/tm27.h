@@ -5,7 +5,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tm27.h,v 1.1 2008/06/04 23:04:18 joel Exp $
+ *  $Id: tm27.h,v 1.2 2008/10/02 21:39:45 joel Exp $
  */
 
 #ifndef _RTEMS_TMTEST27
@@ -19,7 +19,7 @@
  *  Stuff for Time Test 27
  */
 
-#define MUST_WAIT_FOR_INTERRUPT 1
+#define MUST_WAIT_FOR_INTERRUPT 0
 
 void Install_tm27_vector(void (*_handler)())
 {

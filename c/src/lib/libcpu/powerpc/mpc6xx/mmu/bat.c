@@ -6,7 +6,7 @@
  *	    More detailed information can be found on motorola
  *	    site and more precisely in the following book :
  *
- *		MPC750 
+ *		MPC750
  *		Risc Microporcessor User's Manual
  *		Mtorola REF : MPC750UM/AD 8/97
  *
@@ -17,7 +17,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bat.c,v 1.13.2.1 2009/10/16 16:12:42 joel Exp $
+ * $Id: bat.c,v 1.19 2009/12/02 00:22:42 strauman Exp $
  */
 #include <rtems.h>
 #include <libcpu/bat.h>
@@ -160,7 +160,7 @@ bat_addrs_put (ubat * bat, int typ, int idx)
  * cache.
  */
 static void
-bat_addrs_init ()
+bat_addrs_init (void)
 {
   ubat bat;
 
@@ -204,15 +204,16 @@ bat_addrs_init ()
 }
 
 static void
-do_dssall ()
+do_dssall (void)
 {
   /* Before changing BATs, 'dssall' must be issued.
    * We check MSR for MSR_VE and issue a 'dssall' if
    * MSR_VE is set hoping that
    *  a) on non-altivec CPUs MSR_VE reads as zero
    *  b) all altivec CPUs use the same bit
+   * NOTE: psim doesn't implement dssall so we skip if we run on psim
    */
-  if (_read_MSR () & MSR_VE) {
+  if ( (_read_MSR () & MSR_VE) && PPC_PSIM != get_ppc_cpu_type() ) {
     /* this construct is needed because we don't know
      * if this file is compiled with -maltivec.
      * (I plan to add altivec support outside of
@@ -227,7 +228,7 @@ do_dssall ()
 
 /* Clear I/D bats 4..7 ONLY ON 7455 etc.  */
 static void
-clear_hi_bats ()
+clear_hi_bats (void)
 {
   do_dssall ();
   CLRBAT (DBAT4);
@@ -380,7 +381,7 @@ setbat (int typ, int bat_index, unsigned long virt, unsigned long phys,
       init_done = 1;
     }
   }
-  
+
   err = check_overlap (typ, virt, size);
   if ((size >= (1 << 17)) && (err >= 0) && (err != bat_index)) {
     rtems_interrupt_enable (level);

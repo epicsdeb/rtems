@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mprotect.c,v 1.2 2007/11/09 17:07:10 joel Exp $
+ *  $Id: mprotect.c,v 1.4 2009/11/30 15:44:20 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,11 +23,14 @@
  *  gcc 2.8.1 plus gnat 3.13p and gcc 3.0.1 require it to be there and
  *  return 0.
  *
- *  As of gcc 4.2.2, the gcc SPARC backend doesn't appear to have a 
+ *  As of gcc 4.2.2, the gcc SPARC backend doesn't appear to have a
  *  way to call this for RTEMS anymore but it doesn't hurt to leave it.
  */
 
-int mprotect(const void *addr, size_t len, int prot)
+int mprotect(
+  const void *addr __attribute__((unused)),
+  size_t len __attribute__((unused)),
+  int prot __attribute__((unused)) )
 {
   return 0;
 }

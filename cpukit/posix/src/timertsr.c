@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timertsr.c,v 1.2 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: timertsr.c,v 1.3 2009/01/02 10:04:24 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -30,7 +30,9 @@
 /*
  *  This is the operation that is run when a timer expires
  */
-void _POSIX_Timer_TSR(Objects_Id timer, void *data)
+void _POSIX_Timer_TSR(
+  Objects_Id timer __attribute__((unused)),
+  void *data)
 {
   POSIX_Timer_Control *ptimer;
   bool                 activated;

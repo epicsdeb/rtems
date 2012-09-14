@@ -1,24 +1,24 @@
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadinitthreads.c,v 1.3 2008/01/31 23:41:56 joel Exp $
+ *  $Id: pthreadinitthreads.c,v 1.6 2009/06/29 23:19:28 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 #include <limits.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/apiext.h>
 #include <rtems/score/stack.h>
 #include <rtems/score/thread.h>
@@ -44,7 +44,7 @@
  *  Output parameters:  NONE
  */
 
-void _POSIX_Threads_Initialize_user_threads_body( void )
+void _POSIX_Threads_Initialize_user_threads_body(void)
 {
   int                                 status;
   uint32_t                            index;
@@ -53,8 +53,8 @@ void _POSIX_Threads_Initialize_user_threads_body( void )
   pthread_t                           thread_id;
   pthread_attr_t                      attr;
 
-  user_threads = _POSIX_Threads_User_initialization_threads;
-  maximum      = _POSIX_Threads_Number_of_initialization_threads;
+  user_threads = Configuration_POSIX_API.User_initialization_threads_table;
+  maximum      = Configuration_POSIX_API.number_of_initialization_threads;
 
   if ( !user_threads || maximum == 0 )
     return;
@@ -81,7 +81,7 @@ void _POSIX_Threads_Initialize_user_threads_body( void )
       NULL
     );
     if ( status )
-      _Internal_error_Occurred( INTERNAL_ERROR_POSIX_API, TRUE, status );
+      _Internal_error_Occurred( INTERNAL_ERROR_POSIX_API, true, status );
   }
 }
 

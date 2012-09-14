@@ -8,7 +8,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockdrv.c,v 1.8 2006/02/08 17:59:35 joel Exp $
+ *  $Id: clockdrv.c,v 1.9 2008/09/30 06:48:58 ralf Exp $
  */
 
 #include <rtems.h>
@@ -46,4 +46,4 @@
 #define Clock_driver_support_shutdown_hardware() \
   MONGOOSEV_WRITE_REGISTER( CLOCK_BASE, MONGOOSEV_TIMER_CONTROL_REGISTER, 0 )
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

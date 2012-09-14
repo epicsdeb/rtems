@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_mount_nfs.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: main_mount_nfs.c,v 1.6 2009/11/29 12:12:39 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -31,8 +31,8 @@ static int
 rtems_shell_nfs_mounter (
   const char*                device,
   const char*                mntpoint,
-  rtems_shell_filesystems_t* fs,
-  rtems_filesystem_options_t options)
+  rtems_shell_filesystems_t* fs __attribute__((unused)),
+  rtems_filesystem_options_t options __attribute__((unused)))
 {
   char* uidhost;
   char* path;
@@ -49,12 +49,12 @@ rtems_shell_nfs_mounter (
   }
 
   nfsInit (0, 0);
-  
+
   uidhost = strdup (device);
   path = strchr (uidhost, ':');
   *path = '\0';
   path++;
-  
+
   ret = nfsMount(uidhost, path, (char*) mntpoint);
 
   free (uidhost);

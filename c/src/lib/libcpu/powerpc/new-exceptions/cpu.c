@@ -25,7 +25,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.24 2008/09/06 17:36:55 ralf Exp $
+ *  $Id: cpu.c,v 1.27 2009/12/02 01:41:57 strauman Exp $
  */
 
 #include <rtems/system.h>
@@ -33,28 +33,28 @@
 #include <rtems/score/context.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/interr.h>
+#include <rtems/score/cpu.h>
 #include <rtems/powerpc/powerpc.h>
 
 /*  _CPU_Initialize
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+void _CPU_Initialize(void)
 {
   /* Do nothing */
+#ifdef __ALTIVEC__
+  _CPU_Initialize_altivec();
+#endif
 }
 
 /*PAGE
  *
  *  _CPU_Context_Initialize
  */
-
 
 void _CPU_Context_Initialize(
   Context_Control  *the_context,
@@ -127,7 +127,7 @@ void _CPU_Context_Initialize(
 
 #if (PPC_ABI == PPC_ABI_SVR4)
   /*
-   * SVR4 says R2 is for 'system-reserved' use; it cannot hurt to 
+   * SVR4 says R2 is for 'system-reserved' use; it cannot hurt to
    * propagate R2 to all task contexts.
    */
   { uint32_t    r2 = 0;
@@ -147,6 +147,10 @@ void _CPU_Context_Initialize(
   }
 #else
 #error unsupported PPC_ABI
+#endif
+
+#ifdef __ALTIVEC__
+  _CPU_Context_initialize_altivec(the_context);
 #endif
 }
 
@@ -175,8 +179,8 @@ void _CPU_Install_interrupt_stack( void )
 void _CPU_ISR_install_vector(
   uint32_t    vector,
   proc_ptr    new_handler,
-  proc_ptr   *old_handler 
-) 
+  proc_ptr   *old_handler
+)
 {
   BSP_panic("_CPU_ISR_install_vector called\n");
 }

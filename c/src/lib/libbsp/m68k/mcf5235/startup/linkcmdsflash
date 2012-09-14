@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: linkcmdsflash,v 1.5 2008/03/03 23:06:27 joel Exp $
+ *  $Id: linkcmdsflash,v 1.7 2008/09/16 22:16:07 joel Exp $
  */
 
 /*
@@ -22,9 +22,9 @@ MCF5235_BSP_START_FROM_FLASH = 1;
 /*
  * Declare some sizes.
  */
-_RamBase = DEFINED(_RamBase) ? _RamBase : 0x0 ;
-_RamSize = DEFINED(_RamSize) ? _RamSize : 16M ;
-_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0 ;
+RamBase = DEFINED(RamBase) ? RamBase : 0x0;
+RamSize = DEFINED(RamSize) ? RamSize : 16M;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0;
 
 
 /*
@@ -172,7 +172,7 @@ SECTIONS
                 PROVIDE (end = .);
                 _clear_end = .;
 
-                _WorkspaceBase = .;
+                WorkAreaBase = .;
         } >ram
   /* Stabs debugging sections.  */
   .stab 0 : { *(.stab) }

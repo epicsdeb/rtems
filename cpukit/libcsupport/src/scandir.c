@@ -51,6 +51,8 @@ static char sccsid[] = "@(#)scandir.c	5.10 (Berkeley) 2/23/91";
  * struct dirent (through namelist). Returns -1 if there were any errors.
  */
 
+#ifndef HAVE_SCANDIR
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -84,7 +86,7 @@ scandir(
 	register struct dirent **names = NULL;
 	register size_t nitems = 0;
 	struct stat stb;
-	long arraysz;
+	size_t arraysz;
 	DIR *dirp = NULL;
         int i;
 
@@ -132,7 +134,7 @@ scandir(
 	}
 	closedir(dirp);
 	if (nitems && dcomp != NULL){
-		qsort(names, nitems, sizeof(struct dirent *), 
+		qsort(names, nitems, sizeof(struct dirent *),
 		(int (*)(const void *, const void *)) dcomp);
         }
 	*namelist = names;
@@ -163,3 +165,4 @@ alphasort(
 	return(strcmp((*(struct dirent **)d1)->d_name,
 	    (*(struct dirent **)d2)->d_name));
 }
+#endif

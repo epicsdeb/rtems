@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadsetschedparam.c,v 1.9 2007/11/30 20:34:13 humph Exp $
+ *  $Id: pthreadsetschedparam.c,v 1.11.2.1 2011/03/08 22:14:56 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -36,55 +36,27 @@ int pthread_setschedparam(
   Thread_CPU_budget_algorithms         budget_algorithm;
   Thread_CPU_budget_algorithm_callout  budget_callout;
   Objects_Locations                    location;
+  int                                  rc;
 
   /*
    *  Check all the parameters
    */
-
   if ( !param )
     return EINVAL;
 
-  if ( !_POSIX_Priority_Is_valid( param->sched_priority ) )
-    return EINVAL;
-
-  budget_algorithm = THREAD_CPU_BUDGET_ALGORITHM_NONE;
-  budget_callout = NULL;
-
-  switch ( policy ) {
-    case SCHED_OTHER:
-      budget_algorithm = THREAD_CPU_BUDGET_ALGORITHM_RESET_TIMESLICE;
-      break;
-
-    case SCHED_FIFO:
-      budget_algorithm = THREAD_CPU_BUDGET_ALGORITHM_NONE;
-      break;
-
-    case SCHED_RR:
-      budget_algorithm = THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE;
-      break;
-
-    case SCHED_SPORADIC:
-      budget_algorithm  = THREAD_CPU_BUDGET_ALGORITHM_CALLOUT;
-      budget_callout = _POSIX_Threads_Sporadic_budget_callout;
-
-      if ( _Timespec_To_ticks( &param->ss_replenish_period ) <
-           _Timespec_To_ticks( &param->ss_initial_budget ) )
-        return EINVAL;
-
-      if ( !_POSIX_Priority_Is_valid( param->ss_low_priority ) )
-        return EINVAL;
-
-      break;
-
-    default:
-      return EINVAL;
-  }
+  rc = _POSIX_Thread_Translate_sched_param(
+    policy,
+    param,
+    &budget_algorithm,
+    &budget_callout
+  );
+  if ( rc )
+    return rc;
 
   /*
    *  Actually change the scheduling policy and parameters
    */
-
-  the_thread = _POSIX_Threads_Get( thread, &location );
+  the_thread = _Thread_Get( thread, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:
@@ -110,7 +82,7 @@ int pthread_setschedparam(
           _Thread_Change_priority(
              the_thread,
              the_thread->real_priority,
-             TRUE
+             true
           );
           break;
 

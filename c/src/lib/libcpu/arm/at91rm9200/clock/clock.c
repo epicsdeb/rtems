@@ -11,7 +11,7 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: clock.c,v 1.7 2007/12/11 15:46:05 joel Exp $
+ *  $Id: clock.c,v 1.12 2010/04/30 13:15:48 sh Exp $
  */
 #include <rtems.h>
 #include <rtems/clockdrv.h>
@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 #include <bsp.h>
-#include <irq.h>
+#include <bsp/irq.h>
 #include <at91rm9200.h>
 #include <at91rm9200_pmc.h>
 
@@ -34,7 +34,7 @@ static unsigned long st_pimr_reload;
 static void clock_isr_on(const rtems_irq_connect_data *unused)
 {
     /* enable timer interrupt */
-    ST_REG(ST_IER) = ST_SR_PITS; 
+    ST_REG(ST_IER) = ST_SR_PITS;
 }
 
 /**
@@ -58,24 +58,27 @@ static void clock_isr_off(const rtems_irq_connect_data *unused)
 static int clock_isr_is_on(const rtems_irq_connect_data *irq)
 {
     /* check timer interrupt */
-    return ST_REG(ST_IMR) & ST_SR_PITS; 
+    return ST_REG(ST_IMR) & ST_SR_PITS;
 }
 
 rtems_isr Clock_isr(rtems_vector_number vector);
 
 /* Replace the first value with the clock's interrupt name. */
-rtems_irq_connect_data clock_isr_data = {AT91RM9200_INT_SYSIRQ,   
+rtems_irq_connect_data clock_isr_data = {AT91RM9200_INT_SYSIRQ,
                                          (rtems_irq_hdl)Clock_isr,
+					 NULL,
                                          clock_isr_on,
                                          clock_isr_off,
-                                         clock_isr_is_on,
-                                         3,     /* unused for ARM cpus */
-                                         0 };   /* unused for ARM cpus */
+                                         clock_isr_is_on};
 
 
 #define Clock_driver_support_install_isr( _new, _old ) \
-  BSP_install_rtems_irq_handler(&clock_isr_data)
+  do {                                                 \
+      (_old) = NULL;                                   \
+      BSP_install_rtems_irq_handler(&clock_isr_data);  \
+  } while(0)
 
+uint16_t st_pimr_value;
 void Clock_driver_support_initialize_hardware(void)
 {
   uint32_t st_str;
@@ -83,19 +86,31 @@ void Clock_driver_support_initialize_hardware(void)
 
   /* the system timer is driven from SLCK */
   slck = at91rm9200_get_slck();
-  st_pimr_reload =
+  st_pimr_value =
     (((rtems_configuration_get_microseconds_per_tick() * slck) + (1000000/2))/ 1000000);
+  st_pimr_reload = st_pimr_value;
 
-  /* read the status to clear the int */ 
+  /* read the status to clear the int */
   st_str = ST_REG(ST_SR);
-    
+
   /* set priority */
-  AIC_SMR_REG(AIC_SMR_SYSIRQ) = AIC_SMR_PRIOR(0x7); 
+  AIC_SMR_REG(AIC_SMR_SYSIRQ) = AIC_SMR_PRIOR(0x7);
 
   /* set the timer value */
   ST_REG(ST_PIMR) = st_pimr_reload;
 }
 
+uint32_t bsp_clock_nanoseconds_since_last_tick(void)
+{
+  uint16_t slck_counts;
+
+  slck_counts = st_pimr_value - st_pimr_reload;
+  return (rtems_configuration_get_microseconds_per_tick() * slck_counts * 1000)
+     / st_pimr_value;
+}
+
+#define Clock_driver_nanoseconds_since_last_tick \
+  bsp_clock_nanoseconds_since_last_tick
 
 #define CLOCK_VECTOR 0
 
@@ -112,4 +127,4 @@ void Clock_driver_support_shutdown_hardware( void )
     BSP_remove_rtems_irq_handler(&clock_isr_data);
 }
 
-#include "../../../../libbsp/shared/clockdrv_shell.c"
+#include "../../../../libbsp/shared/clockdrv_shell.h"

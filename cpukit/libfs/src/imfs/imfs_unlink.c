@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_unlink.c,v 1.14 2004/04/17 08:34:41 ralf Exp $
+ *  $Id: imfs_unlink.c,v 1.15 2009/06/12 01:53:33 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,7 +25,8 @@
 #include <rtems/seterr.h>
 
 int IMFS_unlink(
-  rtems_filesystem_location_info_t  *loc       /* IN */
+  rtems_filesystem_location_info_t  *parentloc, /* IN */
+  rtems_filesystem_location_info_t  *loc        /* IN */
 )
 {
   IMFS_jnode_t                      *node;
@@ -60,7 +61,7 @@ int IMFS_unlink(
 
     if ( node->info.hard_link.link_node->st_nlink == 1)
     {
-        result = (*the_link.handlers->rmnod_h)( &the_link );
+        result = (*the_link.handlers->rmnod_h)( parentloc, &the_link );
         if ( result != 0 )
             return -1;
     }
@@ -75,7 +76,7 @@ int IMFS_unlink(
    *  Now actually free the node we were asked to free.
    */
 
-  result = (*loc->handlers->rmnod_h)( loc );
+  result = (*loc->handlers->rmnod_h)( parentloc, loc );
 
   return result;
 }

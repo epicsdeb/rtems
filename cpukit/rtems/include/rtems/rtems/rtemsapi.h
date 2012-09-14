@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtemsapi.h,v 1.12 2008/04/18 20:08:08 joel Exp $
+ *  $Id: rtemsapi.h,v 1.14 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_RTEMSAPI_H
@@ -20,22 +20,13 @@
 #include <rtems/config.h>
 
 /**
- *  @addtogroup ClassicRTEMS
- *  @{
- */
-
-/**
  *  _RTEMS_API_Initialize
  *
  *  This routine initializes the RTEMS API by invoking the initialization
  *  routine for each RTEMS manager with the appropriate parameters
  *  from the configuration_table.
  */
-void _RTEMS_API_Initialize(
-  rtems_configuration_table *configuration_table
-);
-
-/**@}*/
+void _RTEMS_API_Initialize(void);
 
 #endif
 /* end of include file */

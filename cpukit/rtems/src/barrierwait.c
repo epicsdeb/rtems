@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: barrierwait.c,v 1.4 2007/11/30 21:49:40 joel Exp $
+ *  $Id: barrierwait.c,v 1.5 2009/01/06 05:05:02 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -51,7 +51,7 @@ rtems_status_code rtems_barrier_wait(
       _CORE_barrier_Wait(
         &the_barrier->Barrier,
         id,
-        TRUE,
+        true,
         timeout,
         NULL
       );

@@ -126,7 +126,7 @@ rtems_status_code spi_memdrv_write
 {
   rtems_status_code          rc = RTEMS_SUCCESSFUL;
   rtems_libio_rw_args_t *rwargs = arg;
-  unsigned                  off = rwargs->offset;
+  rtems_off64_t             off = rwargs->offset;
   int                       cnt = rwargs->count;
   unsigned char            *buf = (unsigned char *)rwargs->buffer;
   int                bytes_sent = 0;
@@ -162,11 +162,11 @@ rtems_status_code spi_memdrv_write
       rc = RTEMS_INVALID_ADDRESS;
     }
   }
-  while ((rc == RTEMS_SUCCESSFUL) && 
+  while ((rc == RTEMS_SUCCESSFUL) &&
 	 (cnt > bytes_sent)) {
     curr_cnt = cnt - bytes_sent;
     if ((mem_param_ptr->page_size > 0) &&
-	(off              / mem_param_ptr->page_size) != 
+	(off              / mem_param_ptr->page_size) !=
 	((off+curr_cnt+1) / mem_param_ptr->page_size)) {
       curr_cnt = mem_param_ptr->page_size - (off % mem_param_ptr->page_size);
     }
@@ -185,7 +185,7 @@ rtems_status_code spi_memdrv_write
 			       RTEMS_LIBI2C_IOCTL_SET_TFRMODE,
 			       &tfr_mode);
     }
-    
+
     /*
      * address device
      */
@@ -236,7 +236,7 @@ rtems_status_code spi_memdrv_write
      */
     if (rc == RTEMS_SUCCESSFUL) {
       cmdbuf[0] = SPI_MEM_CMD_PP;
-      if (mem_param_ptr->mem_size > 256*256) {
+      if (mem_param_ptr->mem_size > 0x10000 /* 256*256 */) {
 	cmdbuf[1] = (off >> 16) & 0xff;
 	cmdbuf[2] = (off >>  8) & 0xff;
 	cmdbuf[3] = (off >>  0) & 0xff;
@@ -312,7 +312,7 @@ rtems_status_code spi_memdrv_read
 {
   rtems_status_code rc = RTEMS_SUCCESSFUL;
   rtems_libio_rw_args_t *rwargs = arg;
-  unsigned                  off = rwargs->offset;
+  rtems_off64_t             off = rwargs->offset;
   int                       cnt = rwargs->count;
   unsigned char            *buf = (unsigned char *)rwargs->buffer;
   unsigned char         cmdbuf[4];
@@ -369,7 +369,7 @@ rtems_status_code spi_memdrv_read
   }
 
   if (off >= mem_param_ptr->mem_size) {
-    /* 
+    /*
      * HACK: beyond size of memory array? then read status register instead
      */
     /*
@@ -389,7 +389,7 @@ rtems_status_code spi_memdrv_read
      */
     if (rc == RTEMS_SUCCESSFUL) {
       cmdbuf[0] = SPI_MEM_CMD_READ;
-      if (mem_param_ptr->mem_size > 256*256) {
+      if (mem_param_ptr->mem_size > 0x10000 /* 256*256 */) {
 	cmdbuf[1] = (off >> 16) & 0xff;
 	cmdbuf[2] = (off >>  8) & 0xff;
 	cmdbuf[3] = (off >>  0) & 0xff;
@@ -411,7 +411,7 @@ rtems_status_code spi_memdrv_read
     }
   }
   /*
-   * fetch read data 
+   * fetch read data
    */
   if (rc == RTEMS_SUCCESSFUL) {
     ret_cnt = rtems_libi2c_read_bytes (minor,buf,cnt);
@@ -419,7 +419,7 @@ rtems_status_code spi_memdrv_read
       rc = -ret_cnt;
     }
   }
-    
+
   /*
    * terminate transfer
    */

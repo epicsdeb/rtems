@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  @(#) $Id: msdos_file.c,v 1.10.2.1 2009/03/09 14:12:58 joel Exp $
+ *  @(#) $Id: msdos_file.c,v 1.13 2009/06/12 01:53:33 ccj Exp $
  */
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -223,8 +223,8 @@ msdos_file_write(rtems_libio_t *iop,const void *buffer, size_t count)
  *     new offset on success, or -1 if error occured (errno set
  *     appropriately).
  */
-off_t
-msdos_file_lseek(rtems_libio_t *iop, off_t offset, int whence)
+rtems_off64_t
+msdos_file_lseek(rtems_libio_t *iop, rtems_off64_t offset, int whence)
 {
     int                rc = RC_OK;
     rtems_status_code  sc = RTEMS_SUCCESSFUL;
@@ -302,7 +302,7 @@ msdos_file_stat(
  *     RC_OK on success, or -1 if error occured (errno set appropriately).
  */
 int
-msdos_file_ftruncate(rtems_libio_t *iop, off_t length)
+msdos_file_ftruncate(rtems_libio_t *iop, rtems_off64_t length)
 {
     int                rc = RC_OK;
     rtems_status_code  sc = RTEMS_SUCCESSFUL;
@@ -444,6 +444,24 @@ msdos_file_ioctl(rtems_libio_t *iop,uint32_t   command, void *buffer)
     return rc;
 }
 
+/* msdos_file_chmod --
+ *     Change the attributes of the file. This currently does
+ *     nothing and returns no error.
+ *
+ * PARAMETERS:
+ *     pathloc - node description
+ *     mode - the new mode
+ *
+ * RETURNS:
+ *     RC_OK always
+ */
+int
+msdos_file_chmod(rtems_filesystem_location_info_t *pathloc,
+                 mode_t                            mode)
+{
+  return RC_OK;
+}
+
 /* msdos_file_rmnod --
  *     Remove node associated with a file - set up first name character to
  *     predefined value(and write it to the disk), and mark fat-file which
@@ -456,7 +474,8 @@ msdos_file_ioctl(rtems_libio_t *iop,uint32_t   command, void *buffer)
  *     RC_OK on success, or -1 if error occured (errno set appropriately)
  */
 int
-msdos_file_rmnod(rtems_filesystem_location_info_t *pathloc)
+msdos_file_rmnod(rtems_filesystem_location_info_t *parent_pathloc,
+                 rtems_filesystem_location_info_t *pathloc)
 {
     int                rc = RC_OK;
     rtems_status_code  sc = RTEMS_SUCCESSFUL;
@@ -469,8 +488,8 @@ msdos_file_rmnod(rtems_filesystem_location_info_t *pathloc)
         rtems_set_errno_and_return_minus_one(EIO);
 
     /* mark file removed */
-    rc = msdos_set_first_char4file_name(pathloc->mt_entry, fat_fd->info_cln,
-                                        fat_fd->info_ofs,
+    rc = msdos_set_first_char4file_name(pathloc->mt_entry,
+                                        &fat_fd->dir_pos,
                                         MSDOS_THIS_DIR_ENTRY_EMPTY);
     if (rc != RC_OK)
     {

@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.29 2008/05/14 20:27:59 joel Exp $
+## $Id: Makefile.am,v 1.42 2010/04/30 12:33:44 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,35 +14,46 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
 noinst_PROGRAMS =
 
-include_bspdir = $(includedir)/bsp
+include_HEADERS += ../../shared/include/coverhd.h
 
-include_HEADERS += include/coverhd.h
-
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds
 
-pclock_SOURCES = clock/p_clock.c
-console_SOURCES = console/console.c
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
 
-include_bsp_HEADERS = irq/irq.h
-irq_SOURCES = irq/irq.c irq/irq_init.c irq/irq.h irq/irq_asm.S
+# clock
+libbsp_a_SOURCES += ../shared/clock/clock.c
 
-include_bsp_HEADERS += vectors/vectors.h
-startup_SOURCES = ../../shared/bspclean.c ../../shared/bsplibc.c \
+# console
+libbsp_a_SOURCES += console/console.c
+
+include_bsp_HEADERS = irq/irq.h \
+	../../shared/include/irq-generic.h \
+	../../shared/include/irq-info.h
+
+# irq
+libbsp_a_SOURCES += irq/irq.c \
+	../../shared/src/irq-generic.c \
+	../../shared/src/irq-legacy.c \
+	../../shared/src/irq-info.c \
+	../../shared/src/irq-shell.c \
+	../../shared/src/irq-server.c
+
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsplibc.c \
     ../../shared/bsppredriverhook.c ../../shared/bsppost.c \
-    startup/bspstart.c ../../shared/bootcard.c ../../shared/sbrk.c \
-    ../../shared/gnatinstallhandler.c startup/cpuinit.c
-
-vectors_SOURCES = vectors/vectors_init.c vectors/vectors.h \
-    vectors/vectors.S
+    ../shared/startup/bspidle.c startup/bspstart.c ../../shared/bootcard.c \
+    ../../shared/sbrk.c ../../shared/gnatinstallhandler.c startup/cpuinit.c \
+    ../../shared/bspgetworkarea.c ../../shared/bsppretaskinghook.c
 
 if HAS_NETWORKING
 network_CPPFLAGS = -D__INSIDE_RTEMS_BSD_TCPIP_STACK__
@@ -52,24 +64,19 @@ network_rel_CPPFLAGS = $(AM_CPPFLAGS) $(network_CPPFLAGS)
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(pclock_SOURCES) $(irq_SOURCES) $(startup_SOURCES) \
-    $(console_SOURCES) $(vectors_SOURCES)
-
 libbsp_a_LIBADD = ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
     ../../../libcpu/@RTEMS_CPU@/@exceptions@/rtems-cpu.rel \
-    ../../../libcpu/@RTEMS_CPU@/mpc8260/clock.rel \
+    ../../../libcpu/@RTEMS_CPU@/@exceptions@/exc_bspsupport.rel \
     ../../../libcpu/@RTEMS_CPU@/mpc8260/console-generic.rel \
     ../../../libcpu/@RTEMS_CPU@/mpc8260/cpm.rel \
     ../../../libcpu/@RTEMS_CPU@/mpc8260/mmu.rel \
-    ../../../libcpu/@RTEMS_CPU@/mpc8260/timer.rel \
-    ../../../libcpu/@RTEMS_CPU@/@exceptions@/raw_exception.rel
+    ../../../libcpu/@RTEMS_CPU@/mpc8260/timer.rel
 if HAS_NETWORKING
 libbsp_a_LIBADD += network.rel
 endif
 
-EXTRA_DIST += times
+EXTRA_DIST = times
 
 include $(srcdir)/preinstall.am
 include $(top_srcdir)/../../../../automake/local.am

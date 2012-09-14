@@ -35,7 +35,7 @@
 | *  http://www.rtems.com/license/LICENSE.
 | **************************************************************************
 |
-|  $Id: bsp.h,v 1.38 2007/12/11 15:49:51 joel Exp $
+|  $Id: bsp.h,v 1.46 2009/12/23 17:33:41 joel Exp $
 +--------------------------------------------------------------------------*/
 
 #ifndef _BSP_H
@@ -54,19 +54,20 @@ extern "C" {
 #include <libcpu/cpu.h>
 #include <rtems/bspIo.h>
 
-/*
- *  confdefs.h overrides for this BSP:
- *   - number of termios serial ports
- *   - Interrupt stack space is not minimum if defined.
- */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 1
+#define BSP_HAS_FRAME_BUFFER 1
 
 /*
  * Network driver configuration
  */
-
 struct rtems_bsdnet_ifconfig;
+
+/* app. may provide a routine (called _very_ early) to tell us
+ * which ports to use for printk / console. BSP provides a default
+ * implementation (weak alias) which does nothing (use BSP default
+ * ports).
+ */
+extern void
+BSP_runtime_console_select(int *pPrintkPort, int *pConsolePort);
 
 extern int rtems_ne_driver_attach(struct rtems_bsdnet_ifconfig *, int);
 #define BSP_NE2000_NETWORK_DRIVER_NAME      "ne1"
@@ -91,7 +92,6 @@ extern int rtems_dec21140_driver_attach(struct rtems_bsdnet_ifconfig *, int);
 /*-------------------------------------------------------------------------+
 | Constants
 +--------------------------------------------------------------------------*/
-#define BSP_LIBIO_MAX_FDS 20             /* Number of libio files we want.    */
 
 /*-------------------------------------------------------------------------+
 | Video (console) related constants.
@@ -164,10 +164,6 @@ extern int rtems_dec21140_driver_attach(struct rtems_bsdnet_ifconfig *, int);
 extern interrupt_gate_descriptor Interrupt_descriptor_table[IDT_SIZE];
 extern segment_descriptors Global_descriptor_table   [GDT_SIZE];
 
-extern uint32_t                  rtemsFreeMemStart;
-  /* Address of start of free memory - should be used when creating new
-     partitions or regions and updated afterwards. */
-
 /*-------------------------------------------------------------------------+
 | Function Prototypes.
 +--------------------------------------------------------------------------*/
@@ -176,14 +172,23 @@ void          _IBMPC_outch    (char);    /* from 'outch.c'  */
 char          _IBMPC_inch     (void);    /* from 'inch.c'   */
 char          _IBMPC_inch_sleep (void);  /* from 'inch.c'   */
 
-void rtemsReboot(void);                  /* from 'exit.c'   */
-
 void Wait_X_ms(unsigned int timeToWait); /* from 'timer.c'  */
 
 /* Definitions for BSPConsolePort */
 #define BSP_CONSOLE_PORT_CONSOLE (-1)
 #define BSP_CONSOLE_PORT_COM1    (BSP_UART_COM1)
 #define BSP_CONSOLE_PORT_COM2    (BSP_UART_COM2)
+
+/*
+ * Command line.
+ */
+const char* bsp_cmdline(void);
+const char* bsp_cmdline_arg(const char* arg);
+
+/*
+ * IDE command line parsing.
+ */
+void bsp_ide_cmdline_init(void);
 
 /*
  * indicate, that BSP has IDE driver

@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ref_flg.c,v 1.1 2007/04/17 20:32:12 joel Exp $
+ *  $Id: ref_flg.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,8 +22,8 @@
  */
 
 ER ref_flg(
-  T_RFLG *pk_rflg,
-  ID      flgid
+  T_RFLG *pk_rflg __attribute__((unused)),
+  ID      flgid __attribute__((unused))
 )
 {
   return E_OK;

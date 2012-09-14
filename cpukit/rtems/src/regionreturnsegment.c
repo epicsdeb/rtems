@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regionreturnsegment.c,v 1.14 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regionreturnsegment.c,v 1.19 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -50,12 +50,12 @@
  */
 
 rtems_status_code rtems_region_return_segment(
-  Objects_Id  id,
-  void       *segment
+  rtems_id  id,
+  void     *segment
 )
 {
   Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
+  rtems_status_code        return_status;
 #ifdef RTEMS_REGION_FREE_SHRED_PATTERN
   uint32_t                 size;
 #endif
@@ -72,7 +72,7 @@ rtems_status_code rtems_region_return_segment(
         _Region_Debug_Walk( the_region, 3 );
 
 #ifdef RTEMS_REGION_FREE_SHRED_PATTERN
-        if ( !_Heap_Size_of_user_area( &the_region->Memory, segment, &size ) )
+        if ( !_Heap_Size_of_alloc_area( &the_region->Memory, segment, &size ) )
           return_status = RTEMS_INVALID_ADDRESS;
         else {
           memset( segment, (RTEMS_REGION_FREE_SHRED_PATTERN & 0xFF), size );
@@ -83,7 +83,6 @@ rtems_status_code rtems_region_return_segment(
 
           if ( !status )
             return_status = RTEMS_INVALID_ADDRESS;
-
           else {
             the_region->number_of_used_blocks -= 1;
 
@@ -102,6 +101,7 @@ rtems_status_code rtems_region_return_segment(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

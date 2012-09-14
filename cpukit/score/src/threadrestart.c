@@ -6,10 +6,10 @@
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadrestart.c,v 1.10 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: threadrestart.c,v 1.11.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -61,8 +61,8 @@ bool _Thread_Restart(
     if ( _Thread_Is_executing ( the_thread ) )
       _Thread_Restart_self();
 
-    return TRUE;
+    return true;
   }
 
-  return FALSE;
+  return false;
 }

@@ -1,7 +1,244 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-06-02 	Chris Johns <chrisj@rtems.org>
+
+	* iostream/init.cc: Remove the hack.
+
+2010-06-02 	Chris Johns <chrisj@rtems.org>
+
+	* fileio/init.c: Update to new mount API.
+	* iostream/init.cc: Hack to work around confdefs.h in C++.
+	* iostream/system.h: Add comment about base miniIMFS.
+
+2010-04-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* capture/init.c: Remove unused variable "out".
+
+2010-03-29	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* capture/init.c, capture/test1.c, paramoia/init.c,
+	paranoia/paranoia.c: exclude tests for SMALL MEMORY targets
+
+2010-03-12	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* fileio/init.c: Remove deprecation warnings.
+
+2010-03-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/init.c: Fix warnings for ctype methods.
+
+2009-11-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* loopback/init.c: Adjust return-type of rtems_bsdnet_loopattach to
+	int to match with rtems/rtems_bsdnet.h.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* base_mp/apptask.c: Use PRIxrtems_id to print rtems_ids.
+	Include "tmacros.h".
+	* base_mp/node1/Makefile.am, base_mp/node2/Makefile.am:
+	Add -I$(top_srcdir)/../support/include.
+
+2009-10-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* pppd/netconfig.h: Add UL suffix to long constants to avoid
+	implicit integer overflows on 16bit targets.
+	* fileio/init.c: Use %zd to print ssize_t.
+
+2009-10-27	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* base_sp/apptask.c, unlimited/init.c:
+	Use PRIdrtems_task_argument to print rtems_task_argument's.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* base_sp/apptask.c, unlimited/init.c, unlimited/test1.c,
+	unlimited/test2.c, unlimited/test3.c:
+	Include "tmacros.h". Use PRIxrtems_id to print rtems_ids.
+	* unlimited/Makefile.am, base_sp/Makefile.am:
+	Add -I$(top_srcdir)/../support/include.
+
+2009-10-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* loopback/init.c : Add prototype for rtems_bsdnet_loopattach.
+	Remove evil type-cast.
+	* nsecs/rprintf.h: Remove (PRItime_t moved to tmacros.h).
+	* nsecs/Makefile.am: Add -I$(top_srcdir)/../support/include.
+	* nsecs/init.c: Include "tmacros.h" instead of "rprintf.h"
+
+2009-10-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* capture/init.c: Remove setup_tasks_to_watch.
+	* capture/system.h: Remove test*().
+	Add setup_tasks_to_watch().
+	* capture/test1.c: Fix prototype.
+	* fileio/init.c: Fix broken printfs.
+	* minimum/init.c: Remove unused var.
+	* nsecs/empty.c: Add missing prototype.
+	* nsecs/rprintf.h: New.
+	* nsecs/init.c: Printf fixes.
+	* unlimited/system.h: Add missing prototypes.
+	* unlimited/init.c, unlimited/test1.c, unlimited/test2.c,
+	unlimited/test3.c: Various warning fixes.
+
+2009-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* unlimited/test1.c: Spacing.
+
+2009-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* hello/init.c: Remove call to devFS_Show() which had accidentally
+	gotten committed.
+
+2009-09-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* capture/test1.c: Use size_t for sizes.
+
+2009-08-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* hello/Makefile.am, hello/init.c: Simplify.
+	* hello/system.h: Removed.
+
+2009-08-21	Xi Yang <hiyangxi@gmail.com>
+
+	* unlimited/test2.c: Fix spacing.
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cdtest/main.cc, fileio/init.c, fileio/system.h, pppd/pppdapp.c,
+	ticker/system.h, ticker/tasks.c: Eliminate test routines
+	TICKS_PER_SECOND and get_ticks_per_second() in favor of new
+	rtems_clock_get_ticks_per_second().
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/system.h, ticker/system.h, ticker/ticker.scn: Convert calls to
+	legacy routine rtems_clock_get( RTEMS_CLOCK_GET_xxx, ..) to
+	rtems_clock_get_xxx().
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* ticker/tasks.c: Convert calls to legacy routine rtems_clock_get(
+	RTEMS_CLOCK_GET_TOD, ..) to rtems_clock_get_tod(..).
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/system.h: Switch to unified work area.
+
+2009-06-11	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* cdtest/system.h: modified the number of max semaphores - test was
+	failing before
+
+2009-06-04	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* loopback/init.c: Add missing initializers.
+
+2009-04-28    Chris Johns <chrisj@rtems.org>
+
+	* iostream/system.h: Remove the Init prototype. Provide in
+	confdefs.h.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* fileio/init.c, fileio/system.h, iostream/init.cc,
+	loopback/init.c, pppd/init.c, pppd/pppdapp.c: Do not build if
+	BSP_SMALL_MEMORY is defined. Remove this code once a better way is
+	supported by the build system.
+
+2009-04-14	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* fileio/init.c: Removed obsolete header include.
+
+2009-04-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* base_mp/node1/Makefile.am, base_mp/node2/Makefile.am,
+	base_sp/Makefile.am, capture/Makefile.am, cdtest/Makefile.am,
+	fileio/Makefile.am, hello/Makefile.am, iostream/Makefile.am,
+	loopback/Makefile.am, minimum/Makefile.am, nsecs/Makefile.am,
+	paranoia/Makefile.am, pppd/Makefile.am, ticker/Makefile.am,
+	unlimited/Makefile.am: Eliminate _exe_/.exe.
+
+2009-03-29  Joel Sherrill <joel.sherrill@gmail.com>
+
+	* fileio/init.c: Change arguments to rtems_shell_init() to match
+	new expectations.
+
 2009-03-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* cdtest/main.cc: Use printk() in global destructors since printf() no
 	longer works.
+
+2009-02-27	Sebastian Huber <Sebastian.Huber@embedded-brains.de>
+
+	* fileio/init.c: Adapt to modified shell configuration
+
+2008-12-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* capture/test1.c: Add const to eliminate warning.
+
+2008-12-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* capture/test1.c: Eliminate all public use of TOD conversion routines.
+
+2008-12-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* unlimited/init.c: Run all tests successfully with maxixum number of
+	priorities as 16 instead of 256. This was done by temporarily
+	modifying the score priority.h maximum. This allowed testing of all
+	API code to ensure that it worked properly with a reduced number of
+	priorities. Most modifications were to switch from hard-coded maximum
+	to using the API provided methods to determine maximum number of
+	priority levels.
+
+2008-12-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/init.c: Add explicit creation of /etc/passwd and /etc/group so
+	we have a test case for real password checking.
+
+2008-11-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* paranoia/paranoia.c: Add missing prototypes.
+
+2008-10-13	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* unlimited/system.h: Tighten configuration for stack space.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/init.c: When USE_SHELL not defined, do not attempt to
+	configure shell.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* unlimited/system.h: 10000 task ids is too many for some targets.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* unlimited/system.h: Support up to 10K tasks in loop. With 64MB on
+	pc386 and configured for unified workspace, you can get close to
+	this.
+
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* fileio/system.h: Rename STACK_CHECKER_ON to more appropriate
+	CONFIGURE_STACK_CHECKER_ENABLED.
+
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* minimum/init.c, unlimited/system.h: Add support for optionally having
+	a unified work area. In other words, the RTEMS Workspace and C
+	Program Heap are the same pool of memory.
+
+2008-09-17	Miao Yan <yanmiaobest@gmail.com>
+
+	* hello/system.h, minimum/Makefile.am, minimum/init.c: Merge GSOC
+	project code to add simple device only filesystem (devfs), optionally
+	completely drop out filesystem, and to clean up disabling newlib
+	reentrancy support. This dropped 17K from the minimum.exe for
+	sparc/sis and arm/rtl22xx_t now has a 15K code space.
 
 2008-09-06	Ralf Corsépius <ralf.corsepius@rtems.org>
 

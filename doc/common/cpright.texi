@@ -1,9 +1,9 @@
 @c
-@c  COPYRIGHT (c) 1988-2008.
+@c  COPYRIGHT (c) 1988-2011.
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: cpright.texi,v 1.13 2008/01/25 16:41:07 joel Exp $
+@c  $Id: cpright.texi,v 1.13.4.1 2011/02/08 17:18:30 joel Exp $
 @c
 
 @c
@@ -17,7 +17,7 @@
 @end tex
 
 @vskip 0pt plus 1filll
-COPYRIGHT @copyright{} 1988 - 2008.@*
+COPYRIGHT @copyright{} 1988 - 2011.@*
 On-Line Applications Research Corporation (OAR).@*
 
 The authors have used their best efforts in preparing

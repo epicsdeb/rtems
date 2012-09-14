@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/priority.h
  *
  *  This include file contains all thread priority manipulation routines.
@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: priority.h,v 1.23 2008/06/13 22:13:12 joel Exp $
+ *  $Id: priority.h,v 1.25.2.1 2010/06/14 06:09:11 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_PRIORITY_H
@@ -26,8 +26,8 @@
  *  This handler encapsulates functionality which is used to manage
  *  thread priorities.  At the SuperCore level 256 priority levels
  *  are supported with lower numbers representing logically more important
- *  threads.  The priority level 0 is reserved for internal RTEMS use. 
- *  Typically it is assigned to threads which defer internal RTEMS 
+ *  threads.  The priority level 0 is reserved for internal RTEMS use.
+ *  Typically it is assigned to threads which defer internal RTEMS
  *  actions from an interrupt to thread level to improve interrupt response.
  *  Priority level 255 is assigned to the IDLE thread and really should not
  *  be used by application threads.  The default IDLE thread implementation
@@ -36,14 +36,14 @@
  */
 /**@{*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Processor specific information.
  */
 #include <rtems/score/cpu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  *  The following type defines the control block used to manage
@@ -54,11 +54,7 @@ extern "C" {
 typedef uint32_t   Priority_Control;
 
 /** This defines the highest (most important) thread priority. */
-#if defined (CPU_PRIORITY_MINIMUM)
-#define PRIORITY_MINIMUM      CPU_PRIORITY_MINIMUM
-#else
 #define PRIORITY_MINIMUM      0
-#endif
 
 /** This defines the default lowest (least important) thread priority. */
 #if defined (CPU_PRIORITY_MAXIMUM)

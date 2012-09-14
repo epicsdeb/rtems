@@ -1,29 +1,29 @@
 /*
- *  MOTOROLA MC68360 QUAD INTEGRATED COMMUNICATIONS CONTROLLER (QUICC)  
- *                                                                     
- *                        HARDWARE DECLARATIONS                       
- *                                                                   
- *                                                                  
- *  Submitted By:                                                  
- *                                                                
- *      W. Eric Norum                                            
- *      Saskatchewan Accelerator Laboratory                     
- *      University of Saskatchewan                             
- *      107 North Road                                       
- *      Saskatoon, Saskatchewan, CANADA                    
- *      S7N 5C6                                         
- *                                                   
- *      eric@skatter.usask.ca                      
- *                                            
+ *  MOTOROLA MC68360 QUAD INTEGRATED COMMUNICATIONS CONTROLLER (QUICC)
  *
- *  COPYRIGHT (c) 1989-2009.
+ *                        HARDWARE DECLARATIONS
+ *
+ *
+ *  Submitted By:
+ *
+ *      W. Eric Norum
+ *      Saskatchewan Accelerator Laboratory
+ *      University of Saskatchewan
+ *      107 North Road
+ *      Saskatoon, Saskatchewan, CANADA
+ *      S7N 5C6
+ *
+ *      eric@skatter.usask.ca
+ *
+ *
+ *  COPYRIGHT (c) 1989-1999.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: m68360.h,v 1.2.2.1 2009/10/16 16:42:02 joel Exp $
+ *  $Id: m68360.h,v 1.3 2009/11/30 04:25:26 ralf Exp $
  */
 
 #ifndef __MC68360_h
@@ -759,7 +759,7 @@ typedef struct m360_ {
   volatile uint8_t          _pad14[0xF0-0xD0];
   volatile uint8_t          _pad15[0x100-0xF0];
   volatile uint8_t          _pad16[0x500-0x100];
-  
+
   /*
    * IDMA1 Block
    */
@@ -777,7 +777,7 @@ typedef struct m360_ {
   volatile uint8_t          csr1;
   volatile uint8_t          _pad21;
   volatile uint16_t          _pad22;
-  
+
   /*
    * SDMA Block
    */
@@ -785,7 +785,7 @@ typedef struct m360_ {
   volatile uint8_t          _pad23;
   volatile uint16_t          sdcr;
   volatile uint32_t         sdar;
-  
+
   /*
    * IDMA2 Block
    */
@@ -802,7 +802,7 @@ typedef struct m360_ {
   volatile uint8_t          _pad28;
   volatile uint16_t          _pad29;
   volatile uint32_t         _pad30;
-  
+
   /*
    * CPIC Block
    */
@@ -826,7 +826,7 @@ typedef struct m360_ {
   volatile uint16_t          pcint;
   volatile uint16_t          _pad32;
   volatile uint32_t         _pad33[5];
-  
+
   /*
    * TIMER Block
    */
@@ -854,7 +854,7 @@ typedef struct m360_ {
   volatile uint16_t          ter3;
   volatile uint16_t          ter4;
   volatile uint32_t         _pad36[2];
-  
+
   /*
    * CP Block
    */
@@ -935,9 +935,9 @@ typedef struct m360_ {
 } m360_t;
 
 struct bdregions_t {
-  uint8_t     *base;
-  uint32_t    size;
-  uint32_t    used;
+  char            *base;
+  unsigned int    size;
+  unsigned int    used;
 };
 
 #define M68360_RX_BUF_SIZE        1
@@ -976,8 +976,6 @@ void M360SetupMemory( M68360_t ptr );
 void *M360AllocateBufferDescriptors (M68360_t ptr, int count);
 void M360ExecuteRISC( volatile m360_t *m360, uint16_t command);
 int mc68360_scc_create_chip( PPMCQ1BoardData BoardData, uint8_t int_vector );
-
-void mc68360_sccInterruptHandler( void *ptr);
 
 #if 0
 extern volatile m360_t *m360;

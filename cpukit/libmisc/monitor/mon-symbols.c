@@ -8,7 +8,7 @@
  *
  *  TODO:
  *
- *  $Id: mon-symbols.c,v 1.29 2008/09/08 15:19:34 joel Exp $
+ *  $Id: mon-symbols.c,v 1.33 2010/04/12 15:21:42 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -16,6 +16,9 @@
 #endif
 
 #include <string.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 #define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
 #include <rtems.h>
@@ -67,7 +70,7 @@ rtems_symbol_table_destroy(rtems_symbol_table_t *table)
 rtems_symbol_t *
 rtems_symbol_create(
     rtems_symbol_table_t *table,
-    char                 *name,
+    const char           *name,
     uint32_t              value
     )
 {
@@ -274,7 +277,7 @@ rtems_symbol_value_lookup_exact(
 rtems_symbol_t *
 rtems_symbol_name_lookup(
     rtems_symbol_table_t *table,
-    char                 *name
+    const char           *name
   )
 {
     uint32_t   s;
@@ -299,7 +302,7 @@ rtems_symbol_name_lookup(
 void *
 rtems_monitor_symbol_next(
     void                   *object_info,
-    rtems_monitor_symbol_t *canonical,
+    rtems_monitor_symbol_t *canonical __attribute__((unused)),
     rtems_id               *next_id
 )
 {
@@ -343,7 +346,7 @@ rtems_monitor_symbol_canonical(
 void
 rtems_monitor_symbol_canonical_by_name(
     rtems_monitor_symbol_t *canonical_symbol,
-    char                   *name
+    const char             *name
 )
 {
     rtems_symbol_t *sp;
@@ -362,7 +365,7 @@ rtems_monitor_symbol_canonical_by_value(
     void                   *value_void_p
 )
 {
-    uint32_t   value = (uint32_t) value_void_p;
+    uintptr_t   value = (uintptr_t) value_void_p;
     rtems_symbol_t *sp;
 
     sp = rtems_symbol_value_lookup(0, value);
@@ -419,7 +422,7 @@ rtems_monitor_symbol_dump(
 void
 rtems_monitor_symbol_dump_all(
     rtems_symbol_table_t *table,
-    bool                  verbose
+    bool                  verbose __attribute__((unused))
 )
 {
     uint32_t   s;
@@ -450,12 +453,11 @@ rtems_monitor_symbol_dump_all(
  * 'symbol' command
  */
 
-void
-rtems_monitor_symbol_cmd(
-    int        argc,
-    char     **argv,
-    rtems_monitor_command_arg_t* command_arg,
-    bool       verbose
+void rtems_monitor_symbol_cmd(
+  int                                argc,
+  char                             **argv,
+  const rtems_monitor_command_arg_t *command_arg,
+  bool                               verbose
 )
 {
     int arg;

@@ -1,12 +1,14 @@
 /*
  *  readdir_r - reentrant version of readdir()
  *
- *  $Id: readdir_r.c,v 1.2 2005/01/27 13:32:25 ralf Exp $
+ *  $Id: readdir_r.c,v 1.3 2008/12/05 06:42:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_READDIR_R
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -24,3 +26,5 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
          *entry = **result;
      return *result ? 0 : errno;
 }
+
+#endif

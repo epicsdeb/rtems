@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectnamespaceremove.c,v 1.1 2008/02/06 23:54:55 joel Exp $
+ *  $Id: objectnamespaceremove.c,v 1.2 2009/09/11 14:54:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,15 +22,19 @@ void _Objects_Namespace_remove(
   Objects_Control      *the_object
 )
 {
-  /*
-   *  If this is a string format name, then free the memory.
-   */
-  if ( information->is_string && the_object->name.name_p )
-     _Workspace_Free( (void *)the_object->name.name_p );
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    /*
+     *  If this is a string format name, then free the memory.
+     */
+    if ( information->is_string && the_object->name.name_p )
+       _Workspace_Free( (void *)the_object->name.name_p );
+  #endif
 
   /*
    * Clear out either format.
    */
-  the_object->name.name_p   = NULL;
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    the_object->name.name_p   = NULL;
+  #endif
   the_object->name.name_u32 = 0;
 }

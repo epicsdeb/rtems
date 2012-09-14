@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskmode.c,v 1.9 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: taskmode.c,v 1.11 2009/09/04 13:09:48 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -86,7 +86,7 @@ rtems_status_code rtems_task_mode(
    */
 
   if ( mask & RTEMS_PREEMPT_MASK )
-    executing->is_preemptible = _Modes_Is_preempt(mode_set) ? TRUE : FALSE;
+    executing->is_preemptible = _Modes_Is_preempt(mode_set) ? true : false;
 
   if ( mask & RTEMS_TIMESLICE_MASK ) {
     if ( _Modes_Is_timeslice(mode_set) ) {
@@ -107,8 +107,8 @@ rtems_status_code rtems_task_mode(
    *  This is specific to the RTEMS API
    */
 
-  is_asr_enabled = FALSE;
-  needs_asr_dispatching = FALSE;
+  is_asr_enabled = false;
+  needs_asr_dispatching = false;
 
   if ( mask & RTEMS_ASR_MASK ) {
     is_asr_enabled = _Modes_Is_asr_disabled( mode_set ) ? false : true;
@@ -122,7 +122,7 @@ rtems_status_code rtems_task_mode(
     }
   }
 
-  if ( _System_state_Is_up(_System_state_Current) )
+  if ( _System_state_Is_up( _System_state_Get() ) )
     if ( _Thread_Evaluate_mode() || needs_asr_dispatching )
       _Thread_Dispatch();
 

@@ -27,7 +27,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: setvec.c,v 1.10 2004/04/21 10:43:03 ralf Exp $
+ *  $Id: setvec.c,v 1.12 2009/08/19 16:05:38 joel Exp $
  */
 
 #include <bsp.h>
@@ -58,13 +58,4 @@ rtems_isr_entry set_vector(                   /* returns old vector */
   }
 
   return previous_isr;
-}
-
-/* ERC32 power-down function */
-
-void _CPU_Thread_Idle_body( void )
-{
-  while (1) {
-    ERC32_MEC.Power_Down = 0;   /* value is irrelevant */
-  }
 }

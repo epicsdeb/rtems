@@ -1,5 +1,5 @@
 /*
- *  $Id: GT64260TWSI.h,v 1.2 2005/04/15 20:13:18 joel Exp $
+ *  $Id: GT64260TWSI.h,v 1.3 2009/02/03 08:49:36 ralf Exp $
  */
 
 #ifndef __GT64260TWSI_h
@@ -15,10 +15,10 @@
 #define TWSI_TWSIEN     0x40
 #define TWSI_INTEN      0x80
 
-void GT64260TWSIinit();
-int GT64260TWSIstart();
+void GT64260TWSIinit(void);
+int GT64260TWSIstart(void);
 int GT64260TWSIwrite(unsigned char Data);
 int GT64260TWSIread(unsigned char *, int lastByte);
-int GT64260TWSIstop();
+int GT64260TWSIstop(void);
 
 #endif

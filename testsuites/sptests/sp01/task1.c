@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.8 2003/09/04 18:53:47 joel Exp $
+ *  $Id: task1.c,v 1.12 2009/11/30 03:33:23 ralf Exp $
  */
 
 #include "system.h"
@@ -27,13 +27,21 @@ rtems_task Task_1_through_3(
   rtems_id          tid;
   rtems_time_of_day time;
   rtems_status_code status;
+  rtems_interval    ticks;
 
   status = rtems_task_ident( RTEMS_SELF, RTEMS_SEARCH_ALL_NODES, &tid );
   directive_failed( status, "rtems_task_ident" );
 
+  /*
+   * Use TOD_MILLISECONDS_TO_TICKS not RTEMS_MILLISECONDS_TO_TICKS to
+   * test C implementation in SuperCore -- not macro version used
+   * everywhere else.
+   */
+  ticks = TOD_MILLISECONDS_TO_TICKS( task_number( tid ) * 5 * 1000 );
+
   while( FOREVER ) {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     if ( time.second >= 35 ) {
       puts( "*** END OF TEST 1 ***" );
@@ -41,9 +49,9 @@ rtems_task Task_1_through_3(
     }
 
     put_name( Task_name[ task_number( tid ) ], FALSE );
-    print_time( " - rtems_clock_get - ", &time, "\n" );
+    print_time( " - rtems_clock_get_tod - ", &time, "\n" );
 
-    status = rtems_task_wake_after( task_number( tid ) * 5 * TICKS_PER_SECOND );
+    status = rtems_task_wake_after( ticks );
     directive_failed( status, "rtems_task_wake_after" );
   }
 }

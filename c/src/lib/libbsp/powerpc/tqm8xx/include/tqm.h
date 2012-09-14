@@ -23,15 +23,13 @@
 
 #ifndef __TQM_H__
 #define __TQM_H__
-
-#if !defined(ASM)
 #include <rtems.h>
 
 typedef struct {
   uint32_t sdram_size;  /* existing SDRAM size */
   uint32_t flash_base;  /* start address flash */
   uint32_t flash_size;  /* existing Flash size */
-  uint32_t flash_offset; 
+  uint32_t flash_offset;
   uint32_t sram_base;   /* start address sram                */
   uint32_t sram_size;   /* existing sram size                */
   uint32_t immr_base;   /* start address internal memory map */
@@ -42,9 +40,7 @@ typedef struct {
   void (*put_char)(int c); /* function to output characters  */
 } tqm_bd_info_t;
 
-#endif /* !defined(ASM) */
 #define TQM_BD_INFO_ADDR 0x3400
-
 #define TQM_BD_INFO (*(tqm_bd_info_t *)TQM_BD_INFO_ADDR)
 
 #define TQM_CONF_INFO_BLOCK_ADDR 0x4001fe00

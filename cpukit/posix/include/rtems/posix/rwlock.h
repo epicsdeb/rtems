@@ -12,14 +12,14 @@
  *     + delete a RWLock
  *     + wait for a RWLock
  *
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rwlock.h,v 1.1 2006/11/15 14:08:48 joel Exp $
+ *  $Id: rwlock.h,v 1.3 2009/11/30 15:44:20 ralf Exp $
  */
 
 #ifndef _RTEMS_POSIX_RWLOCK_H
@@ -59,9 +59,7 @@ POSIX_EXTERN Objects_Information  _POSIX_RWLock_Information;
  *             concurrently be active in the system.
  */
 
-void _POSIX_RWLock_Manager_initialization(
-  uint32_t   maximum_rwlocks
-);
+void _POSIX_RWLock_Manager_initialization(void);
 
 /**
  *  @brief _POSIX_RWLock_Translate_core_RWLock_return_code (
@@ -72,7 +70,7 @@ void _POSIX_RWLock_Manager_initialization(
  *
  *  @param[in] the_RWLock_status is the SuperCore status.
  *
- *  @return the corresponding POSIX status 
+ *  @return the corresponding POSIX status
  */
 int _POSIX_RWLock_Translate_core_RWLock_return_code(
   CORE_RWLock_Status  the_RWLock_status

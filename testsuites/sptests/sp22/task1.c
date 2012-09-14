@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.11 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: task1.c,v 1.14 2009/10/26 11:29:24 ralf Exp $
  */
 
 #include "system.h"
@@ -33,7 +33,7 @@ rtems_task Task_1(
   puts( "TA1 - rtems_timer_ident - identing timer 1" );
   status = rtems_timer_ident( Timer_name[ 1 ], &tmid );
   directive_failed( status, "rtems_timer_ident" );
-  printf( "TA1 - timer 1 has id (0x%x)\n", tmid );
+  printf( "TA1 - timer 1 has id (0x%" PRIxrtems_id ")\n", tmid );
 
 /* after which is allowed to fire */
 
@@ -42,7 +42,7 @@ rtems_task Task_1(
   puts( "TA1 - rtems_timer_fire_after - timer 1 in 3 seconds" );
   status = rtems_timer_fire_after(
     tmid,
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     Delayed_resume,
     NULL
   );
@@ -59,14 +59,14 @@ rtems_task Task_1(
   puts( "TA1 - rtems_timer_fire_after - timer 1 in 3 seconds" );
   status = rtems_timer_fire_after(
     tmid,
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     Delayed_resume,
     NULL
   );
   directive_failed( status, "rtems_timer_fire_after" );
 
   puts( "TA1 - rtems_task_wake_after - 1 second" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   Print_time();
@@ -99,7 +99,7 @@ rtems_task Task_1(
   puts( "TA1 - rtems_timer_fire_after - timer 1 in 3 seconds" );
   status = rtems_timer_fire_after(
     tmid,
-    3 * TICKS_PER_SECOND,
+    3 * rtems_clock_get_ticks_per_second(),
     Delayed_resume,
     NULL
   );
@@ -113,8 +113,8 @@ rtems_task Task_1(
 
   Print_time();
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-  directive_failed( status, "rtems_clock_get" );
+  status = rtems_clock_get_tod( &time );
+  directive_failed( status, "rtems_clock_get_tod" );
 
   time.second += 3;
 
@@ -130,8 +130,8 @@ rtems_task Task_1(
 
 /* when which is canceled */
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-  directive_failed( status, "rtems_clock_get" );
+  status = rtems_clock_get_tod( &time );
+  directive_failed( status, "rtems_clock_get_tod" );
 
   time.second += 3;
 
@@ -140,7 +140,7 @@ rtems_task Task_1(
   directive_failed( status, "rtems_timer_fire_when" );
 
   puts( "TA1 - rtems_task_wake_after - 1 second" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   Print_time();

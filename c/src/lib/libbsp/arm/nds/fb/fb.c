@@ -8,7 +8,7 @@
  *
  * http://www.rtems.com/license/LICENSE
  *
- * $Id: fb.c,v 1.2 2008/08/20 16:31:41 joel Exp $
+ * $Id: fb.c,v 1.9 2010/04/09 20:24:57 thomas Exp $
  */
 
 #include <stdlib.h>
@@ -17,46 +17,56 @@
 #include <sys/types.h>
 
 #include <bsp.h>
-#include "../irq/irq.h"
+#include <rtems/irq.h>
 #include <rtems/libio.h>
 #include <nds.h>
 
-#include <rtems/mw_fb.h>
+#include <rtems/fb.h>
+
 
 /*
  * screen information for the driver (fb0).
  */
 
-static struct fb_screeninfo fb_info = {
-  SCREEN_WIDTH, SCREEN_HEIGHT,  /* screen size x, y  */
-  16,                           /* bits per pixel    */
-  SCREEN_WIDTH,                 /* pixels per line (redundant with xres ?) */
-  (void *) VRAM_A,              /* buffer pointer    */
-  0x18000,                      /* buffer size       */
-  FB_TYPE_PACKED_PIXELS,        /* type of dsplay    */
-  FB_VISUAL_TRUECOLOR           /* color scheme used */
+static struct fb_var_screeninfo fb_var_info = {
+  .xres                = SCREEN_WIDTH,		/* screen size x, y  */
+  .yres                = SCREEN_HEIGHT,
+  .bits_per_pixel      = 16			/* bits per pixel    */
+};
+
+static struct fb_fix_screeninfo fb_fix_info = {
+  .smem_start          = (void *) VRAM_A,      	     /* buffer pointer    */
+  .smem_len            = 0x18000,                    /* buffer size       */
+  .type                = FB_TYPE_PACKED_PIXELS,      /* type of dsplay    */
+  .visual              = FB_VISUAL_TRUECOLOR,        /* color scheme used */
+  .line_length         = SCREEN_WIDTH               /* pixels per line (redundant with xres ?) */
 };
 
 /*
  * screen information for the driver (fb1).
  */
 
-static struct fb_screeninfo fb_info2 = {
-  SCREEN_WIDTH, SCREEN_HEIGHT,  /* screen size x, y  */
-  16,                           /* bits per pixel    */
-  SCREEN_WIDTH,                 /* pixels per line (redundant with xres ?) */
-  (void *) VRAM_B,              /* buffer pointer    */
-  0x18000,                      /* buffer size       */
-  FB_TYPE_PACKED_PIXELS,        /* type of dsplay    */
-  FB_VISUAL_TRUECOLOR           /* color scheme used */
+static struct fb_var_screeninfo fb_var_info2 = {
+  .xres                = SCREEN_WIDTH,		/* screen size x, y  */
+  .yres                = SCREEN_HEIGHT,
+  .bits_per_pixel      = 16			/* bits per pixel    */
 };
+
+static struct fb_fix_screeninfo fb_fix_info2 = {
+  .smem_start          = (void *) VRAM_B,      	     /* buffer pointer    */
+  .smem_len            = 0x18000,                    /* buffer size       */
+  .type                = FB_TYPE_PACKED_PIXELS,      /* type of dsplay    */
+  .visual              = FB_VISUAL_TRUECOLOR,        /* color scheme used */
+  .line_length         = SCREEN_WIDTH               /* pixels per line (redundant with xres ?) */
+};
+
 
 /*
  * fbds device driver initialize entry point.
  */
 
 rtems_device_driver
-fbds_initialize (rtems_device_major_number major,
+frame_buffer_initialize (rtems_device_major_number major,
                  rtems_device_minor_number minor, void *arg)
 {
   rtems_status_code status;
@@ -82,9 +92,19 @@ fbds_initialize (rtems_device_major_number major,
  */
 
 rtems_device_driver
-fbds_open (rtems_device_major_number major,
+frame_buffer_open (rtems_device_major_number major,
            rtems_device_minor_number minor, void *arg)
 {
+   printk ("[#] entering graphic mode on fb%d\n", minor);
+   if (!minor) {
+      videoSetMode (MODE_FB0);
+      vramSetBankA (VRAM_A_LCD);
+      memset ((void *)fb_fix_info.smem_start, 0, fb_fix_info.smem_len);
+   } else {
+      videoSetModeSub (MODE_FB0);
+      vramSetBankB (VRAM_B_LCD);
+      memset ((void *)fb_fix_info2.smem_start, 0, fb_fix_info2.smem_len);
+    }
   return RTEMS_SUCCESSFUL;
 }
 
@@ -93,9 +113,20 @@ fbds_open (rtems_device_major_number major,
  */
 
 rtems_device_driver
-fbds_close (rtems_device_major_number major,
+frame_buffer_close (rtems_device_major_number major,
             rtems_device_minor_number minor, void *arg)
 {
+  printk ("[#] leaving graphic mode on fb%d\n", minor);
+  if (!minor) {
+      memset ((void *)fb_fix_info.smem_start, 0, fb_fix_info.smem_len);
+  }
+  else {
+      memset ((void *)fb_fix_info2.smem_start, 0, fb_fix_info2.smem_len);
+      /* back to console */
+      videoSetModeSub (MODE_0_2D | DISPLAY_BG0_ACTIVE);
+      vramSetBankC (VRAM_C_SUB_BG);
+  }
+
   return RTEMS_SUCCESSFUL;
 }
 
@@ -104,7 +135,7 @@ fbds_close (rtems_device_major_number major,
  */
 
 rtems_device_driver
-fbds_read (rtems_device_major_number major,
+frame_buffer_read (rtems_device_major_number major,
            rtems_device_minor_number minor, void *arg)
 {
   rtems_libio_rw_args_t *rw_args = (rtems_libio_rw_args_t *) arg;
@@ -118,7 +149,7 @@ fbds_read (rtems_device_major_number major,
  */
 
 rtems_device_driver
-fbds_write (rtems_device_major_number major,
+frame_buffer_write (rtems_device_major_number major,
             rtems_device_minor_number minor, void *arg)
 {
   rtems_libio_rw_args_t *rw_args = (rtems_libio_rw_args_t *) arg;
@@ -132,7 +163,7 @@ fbds_write (rtems_device_major_number major,
  */
 
 rtems_device_driver
-fbds_control (rtems_device_major_number major,
+frame_buffer_control (rtems_device_major_number major,
               rtems_device_minor_number minor, void *arg)
 {
   rtems_libio_ioctl_args_t *args = arg;
@@ -140,63 +171,21 @@ fbds_control (rtems_device_major_number major,
   /* XXX check minor */
 
   switch (args->command) {
-  case FB_SCREENINFO:
-    memcpy (args->buffer, minor ? &fb_info2 : &fb_info, sizeof (fb_info));
+  case FBIOGET_VSCREENINFO:
+    memcpy (args->buffer, minor ? &fb_var_info2 : &fb_var_info, sizeof (fb_var_info));
     args->ioctl_return = 0;
     break;
-  case FB_GETPALETTE:
+  case FBIOGET_FSCREENINFO:
+    memcpy (args->buffer, minor ? &fb_fix_info2 : &fb_fix_info, sizeof (fb_fix_info));
+    args->ioctl_return = 0;
+    break;
+  case FBIOGETCMAP:
     args->ioctl_return = 0;     /* XXX */
     break;
-  case FB_SETPALETTE:
+  case FBIOPUTCMAP:
     args->ioctl_return = 0;     /* XXX */
     break;
 
-    /*
-     * this function would execute one of the routines of the
-     * interface based on the operation requested.
-     */
-  case FB_EXEC_FUNCTION:
-    {
-      struct fb_exec_function *env = args->buffer;
-
-      switch (env->func_no) {
-      case FB_FUNC_ENTER_GRAPHICS:
-        /* enter graphics mode */
-        printk ("[#] entering graphic mode on fb%d\n", minor);
-        if (!minor) {
-          videoSetMode (MODE_FB0);
-          vramSetBankA (VRAM_A_LCD);
-          memset ((void *)fb_info.smem_start, 0, fb_info.smem_len);
-        } else {
-          videoSetModeSub (MODE_FB0);
-          vramSetBankB (VRAM_B_LCD);
-          memset ((void *)fb_info2.smem_start, 0, fb_info2.smem_len);
-        }
-        break;
-
-      case FB_FUNC_EXIT_GRAPHICS:
-        /* leave graphics mode, in fact we only clear screen */
-        printk ("[#] leaving graphic mode on fb%d\n", minor);
-        if (!minor) {
-          memset ((void *)fb_info.smem_start, 0, fb_info.smem_len);
-        } else {
-          memset ((void *)fb_info2.smem_start, 0, fb_info2.smem_len);
-          /* back to console */
-          videoSetModeSub (MODE_0_2D | DISPLAY_BG0_ACTIVE);
-          vramSetBankC (VRAM_C_SUB_BG);
-        }
-        break;
-
-      case FB_FUNC_IS_DIRTY:
-        break;
-
-      case FB_FUNC_GET_MODE:
-        break;
-
-      default:
-        break;
-      }
-    }
     /* no break on purpose */
   default:
     args->ioctl_return = 0;

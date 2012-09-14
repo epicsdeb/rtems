@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: types.h,v 1.13.2.1 2008/09/18 03:01:47 ralf Exp $
+ *  $Id: types.h,v 1.15 2008/12/11 00:45:34 ralf Exp $
  */
 /* @(#)mipstypes.h       08/20/96     1.4 */
 
@@ -23,7 +23,7 @@
 #ifndef ASM
 
 #include <stdbool.h>
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -11,7 +11,7 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: start.S,v 1.6 2004/04/21 16:01:32 ralf Exp $
+ *  $Id: start.S,v 1.9 2010/04/07 21:49:45 joel Exp $
 */
 
 /* Some standard definitions...*/
@@ -158,7 +158,8 @@ init2 :
 
 /* --- Now we enter the C code */
 
-    bl	boot_card
+	mov     r0, #0
+	bl	boot_card
 
 	ldmia	sp!, {r4-r12, lr}
 	mov	sp, r12

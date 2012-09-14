@@ -1,32 +1,30 @@
 /*
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.11 2008/06/05 14:23:57 joel Exp $
+ *  $Id: init.c,v 1.20 2009/11/30 03:33:24 ralf Exp $
  */
 
-#define CONFIGURE_INIT
 #include <tmacros.h>
-
-rtems_task Init(rtems_task_argument argument);
-
-#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
-#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
-#define CONFIGURE_MAXIMUM_USER_EXTENSIONS    2
-
-#define CONFIGURE_MAXIMUM_TASKS              4
-#define CONFIGURE_MAXIMUM_TASK_VARIABLES     (4)
-#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
-#define CONFIGURE_MICROSECONDS_PER_TICK      10000
-
-#define CONFIGURE_MICROSECONDS_INIT
-
-#include <rtems/confdefs.h>
 
 #include <bsp.h>
 #include <rtems/error.h>
 #include <stdio.h>
+
+rtems_task subtask(rtems_task_argument arg);
+rtems_task Task_variable_deleter(rtems_task_argument ignored);
+void starttask(int arg);
+void test_errors(void);
+void test_dtor(void *pointer);
+void test_multiple_taskvars(void);
+void test_out_of_memory(void);
+rtems_task Other_Task(rtems_task_argument ignored);
+void test_delete_from_other_task(void);
+void test_delete_as_side_effect(void);
 
 volatile void *taskvar;
 volatile int nRunning;
@@ -35,7 +33,7 @@ volatile int nDeleted;
 rtems_task
 subtask (rtems_task_argument arg)
 {
-  int localvar = arg;
+  uintptr_t localvar = arg;
   int i;
   rtems_status_code sc;
 
@@ -49,10 +47,11 @@ subtask (rtems_task_argument arg)
   while (localvar < 1000) {
     localvar++;
     rtems_task_wake_after (0);
-    taskvar = (void *)((int)taskvar + 1);
+    taskvar = (void *)((uintptr_t)taskvar + 1);
     rtems_task_wake_after (0);
-    if ((int)taskvar != localvar) {
-      printf ("Task:%d taskvar:%d localvar:%d\n", arg, (int)taskvar, localvar);
+    if ((uintptr_t)taskvar != localvar) {
+      printf ("Task:%" PRIdrtems_task_argument " taskvar:%" PRIuPTR " localvar:%" PRIuPTR "\n",
+        arg, (uintptr_t)taskvar, localvar);
       rtems_task_suspend (RTEMS_SELF);
     }
   }
@@ -60,8 +59,9 @@ subtask (rtems_task_argument arg)
   nDeleted++;
   directive_failed( sc, "task variable delete" );
 
-  if ((int)taskvar == localvar) {
-    printf("Task:%d deleted taskvar:%d localvar:%d\n", arg, (int)taskvar, localvar);
+  if ((uintptr_t)taskvar == localvar) {
+    printf("Task:%" PRIdrtems_task_argument " deleted taskvar:%" PRIuPTR " localvar:%" PRIuPTR "\n",
+      arg, (uintptr_t)taskvar, localvar);
     nRunning--;
     rtems_task_suspend (RTEMS_SELF);
   }
@@ -72,8 +72,9 @@ subtask (rtems_task_argument arg)
     rtems_task_wake_after(0);
     if (nRunning <= 1)
       break;
-    if ((int)taskvar == localvar) {
-      printf("Task:%d taskvar:%d localvar:%d\n", arg, (int)taskvar, localvar);
+    if ((uintptr_t)taskvar == localvar) {
+      printf("Task:%" PRIdrtems_task_argument " taskvar:%" PRIuPTR " localvar:%" PRIuPTR "\n",
+        arg, (uintptr_t)taskvar, localvar);
       nRunning--;
       rtems_task_suspend(RTEMS_SELF);
     }
@@ -93,7 +94,7 @@ starttask (int arg)
   rtems_status_code sc;
 
   sc = rtems_task_create(rtems_build_name ('S', 'R', 'V', arg + 'A'),
-    100,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_PREEMPT|RTEMS_NO_TIMESLICE|RTEMS_NO_ASR|RTEMS_INTERRUPT_LEVEL(0),
     RTEMS_NO_FLOATING_POINT|RTEMS_LOCAL,
@@ -115,8 +116,23 @@ void test_errors(void)
   void              *value;
 
   /*
+   *  task variable add error status codes
+   */
+  puts( "task variable add - NULL pointer - RTEMS_INVALID_ADDRESS" );
+  sc = rtems_task_variable_add(RTEMS_SELF, NULL, NULL );
+  fatal_directive_status( sc, RTEMS_INVALID_ADDRESS, "add NULL pointer" );
+
+  /*
    *  task variable get error status codes
    */
+  puts( "task variable get - bad Id - RTEMS_INVALID_ID" );
+  sc = rtems_task_variable_get(
+    rtems_task_self() + 10,
+    (void **)&taskvar1,
+    &value
+  );
+  fatal_directive_status( sc, RTEMS_INVALID_ID, "bad Id" );
+
   puts( "task variable get - NULL pointer - RTEMS_INVALID_ADDRESS" );
   sc = rtems_task_variable_get(RTEMS_SELF, NULL, &value );
   fatal_directive_status( sc, RTEMS_INVALID_ADDRESS, "get NULL pointer" );
@@ -132,6 +148,10 @@ void test_errors(void)
   /*
    *  task variable delete error status codes
    */
+  puts( "task variable delete - bad Id - RTEMS_INVALID_ID" );
+  sc = rtems_task_variable_delete( rtems_task_self() + 10, (void **)&taskvar1 );
+  fatal_directive_status( sc, RTEMS_INVALID_ID, "bad Id" );
+
   puts( "task variable delete - NULL pointer - RTEMS_INVALID_ADDRESS" );
   sc = rtems_task_variable_delete(RTEMS_SELF, NULL);
   fatal_directive_status( sc, RTEMS_INVALID_ADDRESS, "delete NULL pointer" );
@@ -161,6 +181,14 @@ void test_multiple_taskvars(void)
    *  Add multiple task variables and add each twice to
    *  verify that behavior is OK
    */
+  puts( "task variable add - bad Id - RTEMS_INVALID_ID" );
+  sc = rtems_task_variable_add(
+    rtems_task_self() + 10,
+    (void **)&taskvar1,
+    NULL
+  );
+  fatal_directive_status( sc, RTEMS_INVALID_ID, "bad Id" );
+
   puts( "Adding multiple task variables" );
   sc = rtems_task_variable_add(RTEMS_SELF, (void **)&taskvar1, NULL);
   directive_failed( sc, "add multiple #1" );
@@ -190,7 +218,7 @@ void test_multiple_taskvars(void)
   directive_failed( sc, "get multiple #2" );
   sc = rtems_task_variable_get( RTEMS_SELF, (void **)&taskvar1, &value );
   directive_failed( sc, "get multiple #2" );
-  
+
   /*
    *  Delete task variables in various spots on the chain
    */
@@ -209,7 +237,7 @@ void test_multiple_taskvars(void)
   directive_failed( sc, "delete multiple #3" );
 
   if ( test_dtor_ran != 2 ) {
-    printf( "Test dtor ran %d times not 2 times as expected\n", test_dtor_ran );
+    printf( "Test dtor ran %" PRIu32 " times not 2 times as expected\n", test_dtor_ran );
     rtems_test_exit(0);
   }
 }
@@ -277,7 +305,7 @@ void test_delete_from_other_task(void)
   directive_failed( sc, "add for other task case" );
 
   sc = rtems_task_create(rtems_build_name ('O', 'T', 'H', 'R'),
-    100,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_PREEMPT|RTEMS_NO_TIMESLICE|RTEMS_NO_ASR|RTEMS_INTERRUPT_LEVEL(0),
     RTEMS_NO_FLOATING_POINT|RTEMS_LOCAL,
@@ -289,9 +317,9 @@ void test_delete_from_other_task(void)
   directive_failed( sc, "task start other" );
 
   rtems_task_wake_after( 100 );
-  
+
   if ( test_dtor_ran != 1 ) {
-    printf( "Test dtor ran %d times not 1 times as expected\n", test_dtor_ran );
+    printf( "Test dtor ran %" PRIu32 " times not 1 times as expected\n", test_dtor_ran );
     rtems_test_exit(0);
   }
 }
@@ -324,7 +352,7 @@ void test_delete_as_side_effect(void)
   test_dtor_ran = 0;
 
   sc = rtems_task_create(rtems_build_name ('O', 'T', 'H', 'R'),
-    100,
+    RTEMS_MAXIMUM_PRIORITY - 1u,
     RTEMS_MINIMUM_STACK_SIZE,
     RTEMS_PREEMPT|RTEMS_NO_TIMESLICE|RTEMS_NO_ASR|RTEMS_INTERRUPT_LEVEL(0),
     RTEMS_NO_FLOATING_POINT|RTEMS_LOCAL,
@@ -336,9 +364,9 @@ void test_delete_as_side_effect(void)
   directive_failed( sc, "task start deleter" );
 
   rtems_task_wake_after( 100 );
-  
+
   if ( test_dtor_ran != 2 ) {
-    printf( "Test dtor ran %d times not 2 times as expected\n", test_dtor_ran );
+    printf( "Test dtor ran %" PRIu32 " times not 2 times as expected\n", test_dtor_ran );
     rtems_test_exit(0);
   }
 }
@@ -363,3 +391,16 @@ rtems_task Init (rtems_task_argument ignored)
 
   rtems_task_suspend (RTEMS_SELF);
 }
+
+#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+#define CONFIGURE_MAXIMUM_USER_EXTENSIONS    2
+
+#define CONFIGURE_MAXIMUM_TASKS              4
+#define CONFIGURE_MAXIMUM_TASK_VARIABLES     (4)
+#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+#define CONFIGURE_MICROSECONDS_PER_TICK      10000
+
+#define CONFIGURE_INIT
+#include <rtems/confdefs.h>
+

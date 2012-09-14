@@ -103,7 +103,7 @@
  * Host:                  Reply:
  * $m0,10#2a               +$00010203040506070809101112131415#42
  *
- *  $Id: m68k-stub.c,v 1.9 2008/09/06 17:30:29 ralf Exp $
+ *  $Id: m68k-stub.c,v 1.11.2.1 2010/06/22 11:23:22 ccj Exp $
  *
  ****************************************************************************/
 
@@ -167,7 +167,7 @@ enum regnames {D0,D1,D2,D3,D4,D5,D6,D7,
                FPCONTROL,FPSTATUS,FPIADDR
               };
 
-
+
 /* We keep a whole frame cache here.  "Why?", I hear you cry, "doesn't
    GDB handle that sort of thing?"  Well, yes, I believe the only
    reason for this cache is to save and restore floating point state
@@ -601,7 +601,7 @@ void getpacket(char *buffer)
     count = 0;
 
     /* now, read until a # or end of buffer is found */
-    while (count < BUFMAX) {
+    while (count < (BUFMAX - 1)) {
       ch = getDebugChar() & 0x7f;
       if (ch == '#') break;
       checksum = checksum + ch;
@@ -1030,13 +1030,13 @@ void initializeRemcomErrorFrame()
     lastFrame->previous = lastFrame;
 }
 
+extern void _debug_level7(void);
+extern void remcomHandler(void);
+
 /* this function is used to set up exception handlers for tracing and
    breakpoints */
 void set_debug_traps()
 {
-  extern void _debug_level7(void);
-  extern void remcomHandler(void);
-
   int exception;
 
   initializeRemcomErrorFrame();

@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.12 2007/12/11 15:49:34 joel Exp $
+ *  $Id: bsp.h,v 1.14 2008/09/18 17:39:23 joel Exp $
  */
 
 #ifndef __BSVC_SIM
@@ -48,25 +48,7 @@ extern "C" {
                   : "0"  (_tmp), "1"  (_delay) ); \
   }
 
-/* Constants */
-
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector( rtems_isr_entry, rtems_vector_number, int );
 

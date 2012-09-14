@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.19 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.20 2008/10/28 21:42:42 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -28,8 +28,6 @@ rtems_task High_task(
 rtems_task Preempt_task(
   rtems_task_argument argument
 );
-
-#define MESSAGE_SIZE (sizeof(long) * 4)
 
 rtems_task Init(
   rtems_task_argument argument

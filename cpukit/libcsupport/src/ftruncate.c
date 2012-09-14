@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ftruncate.c,v 1.12 2004/04/18 06:05:34 ralf Exp $
+ *  $Id: ftruncate.c,v 1.12.8.1 2011/07/31 14:12:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -32,6 +32,7 @@ int ftruncate(
   rtems_libio_check_fd( fd );
   iop = rtems_libio_iop( fd );
   rtems_libio_check_is_open(iop);
+  rtems_libio_check_permissions( iop, LIBIO_FLAGS_WRITE );
 
   /*
    *  Now process the ftruncate() request.

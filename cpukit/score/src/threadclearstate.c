@@ -1,15 +1,14 @@
 /*
- *  Thread Handler
+ *  Thread Handler / Thread Clear State
  *
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadclearstate.c,v 1.8 2008/01/22 15:20:34 joel Exp $
+ *  $Id: threadclearstate.c,v 1.10.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -78,7 +77,7 @@ void _Thread_Clear_state(
          *  then we have a new heir.  This may or may not result in a
          *  context switch.
          *
-         *  Normal case: 
+         *  Normal case:
          *    If the current thread is preemptible, then we need to do
          *    a context switch.
          *  Pseudo-ISR case:
@@ -89,7 +88,7 @@ void _Thread_Clear_state(
           _Thread_Heir = the_thread;
           if ( _Thread_Executing->is_preemptible ||
                the_thread->current_priority == 0 )
-            _Context_Switch_necessary = TRUE;
+            _Context_Switch_necessary = true;
         }
       }
   }

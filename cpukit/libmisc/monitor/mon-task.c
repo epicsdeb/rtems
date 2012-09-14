@@ -1,7 +1,7 @@
 /*
  * RTEMS Monitor task support
  *
- *  $Id: mon-task.c,v 1.15 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-task.c,v 1.17 2009/11/29 12:12:39 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -33,7 +33,7 @@ rtems_monitor_task_canonical(
     canonical_task->state = rtems_thread->current_state;
     canonical_task->wait_id = rtems_thread->Wait.id;
     canonical_task->events = api->pending_events;
-    /* 
+    /*
      * FIXME: make this optionally cpu_time_executed
      */
 #if 0
@@ -57,7 +57,7 @@ rtems_monitor_task_canonical(
 
 void
 rtems_monitor_task_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\
@@ -75,7 +75,7 @@ rtems_monitor_task_dump_header(
 void
 rtems_monitor_task_dump(
     rtems_monitor_task_t *monitor_task,
-    bool                  verbose
+    bool                  verbose __attribute__((unused))
 )
 {
     int length = 0;

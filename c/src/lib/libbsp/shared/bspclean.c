@@ -8,9 +8,34 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspclean.c,v 1.3 2003/09/04 18:52:52 joel Exp $
+ *  $Id: bspclean.c,v 1.5 2009/11/30 04:56:10 ralf Exp $
  */
+
+#include <rtems.h>
+#include <rtems/bspIo.h>
+#include <bsp.h>
+#include <bspopts.h>
+#include <bsp/bootcard.h>
 
 void bsp_cleanup( void )
 {
+  #if (BSP_PRESS_KEY_FOR_RESET)
+    printk( "\nEXECUTIVE SHUTDOWN! Any key to reboot..." );
+
+    /*
+     * Wait for a key to be pressed
+     */
+    while ( getchark() == -1 )
+      ;
+
+    printk("\n");
+  #endif
+
+  /*
+   *  Check both conditions -- if you want to ask for reboot, then
+   *  you must have meant to reset the board.
+   */
+  #if (BSP_PRESS_KEY_FOR_RESET) || (BSP_RESET_BOARD_AT_EXIT)
+    bsp_reset();
+  #endif
 }

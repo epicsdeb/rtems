@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: m68kidle.c,v 1.3.2.1 2009/09/10 21:20:22 strauman Exp $
+ *  $Id: m68kidle.c,v 1.6 2009/11/30 05:09:41 ralf Exp $
  */
 
 #include <rtems/system.h>
@@ -28,8 +28,8 @@
  *
  *  Output parameters:  NONE
  */
- 
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
 #if defined(mcf5272)
   for( ; ; ) {

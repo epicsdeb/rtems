@@ -16,7 +16,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: object.h,v 1.66 2008/09/04 17:36:23 ralf Exp $
+ *  $Id: object.h,v 1.77 2010/04/08 10:13:46 thomas Exp $
  */
 
 #ifndef _RTEMS_SCORE_OBJECT_H
@@ -25,17 +25,37 @@
 #include <rtems/score/chain.h>
 #include <rtems/score/isr.h>
 
+#if defined(RTEMS_POSIX_API)
+  #define RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @defgroup Score SuperCore
+ *
+ * @brief Provides services for all APIs.
+ */
+
+/**
+ * @defgroup ScoreCPU CPU Architecture Support
+ *
+ * @ingroup Score
+ *
+ * @brief Provides CPU architecture dependent services.
+ */
 
 /**
  *  The following type defines the control block used to manage
  *  object names.
  */
 typedef union {
-  /** This is a pointer to a string name. */
-  const char *name_p;
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    /** This is a pointer to a string name. */
+    const char *name_p;
+  #endif
   /** This is the actual 32-bit "raw" integer name. */
   uint32_t    name_u32;
 } Objects_Name;
@@ -73,20 +93,20 @@ typedef uint16_t   Objects_Id;
  */
 typedef uint8_t    Objects_Maximum;
 
-#define OBJECTS_INDEX_START_BIT  0
-#define OBJECTS_API_START_BIT    8
-#define OBJECTS_CLASS_START_BIT 11
+#define OBJECTS_INDEX_START_BIT  0U
+#define OBJECTS_API_START_BIT    8U
+#define OBJECTS_CLASS_START_BIT 11U
 
-#define OBJECTS_INDEX_MASK      (Objects_Id)0x00ff
-#define OBJECTS_API_MASK        (Objects_Id)0x0700
-#define OBJECTS_CLASS_MASK      (Objects_Id)0xF800
+#define OBJECTS_INDEX_MASK      (Objects_Id)0x00ffU
+#define OBJECTS_API_MASK        (Objects_Id)0x0700U
+#define OBJECTS_CLASS_MASK      (Objects_Id)0xF800U
 
-#define OBJECTS_INDEX_VALID_BITS  (Objects_Id)0x00ff
-#define OBJECTS_API_VALID_BITS    (Objects_Id)0x0007
+#define OBJECTS_INDEX_VALID_BITS  (Objects_Id)0x00ffU
+#define OBJECTS_API_VALID_BITS    (Objects_Id)0x0007U
 /* OBJECTS_NODE_VALID_BITS should not be used with 16 bit Ids */
-#define OBJECTS_CLASS_VALID_BITS  (Objects_Id)0x001f
+#define OBJECTS_CLASS_VALID_BITS  (Objects_Id)0x001fU
 
-#define OBJECTS_UNLIMITED_OBJECTS 0x8000
+#define OBJECTS_UNLIMITED_OBJECTS 0x8000U
 
 #define OBJECTS_ID_INITIAL_INDEX  (0)
 #define OBJECTS_ID_FINAL_INDEX    (0xff)
@@ -113,76 +133,76 @@ typedef uint16_t   Objects_Maximum;
  *  This is the bit position of the starting bit of the index portion of
  *  the object Id.
  */
-#define OBJECTS_INDEX_START_BIT  0
+#define OBJECTS_INDEX_START_BIT  0U
 
 
 /**
  *  This is the bit position of the starting bit of the node portion of
  *  the object Id.
  */
-#define OBJECTS_NODE_START_BIT  16
+#define OBJECTS_NODE_START_BIT  16U
 
 /**
  *  This is the bit position of the starting bit of the API portion of
  *  the object Id.
  */
-#define OBJECTS_API_START_BIT   24
+#define OBJECTS_API_START_BIT   24U
 
 /**
  *  This is the bit position of the starting bit of the class portion of
  *  the object Id.
  */
-#define OBJECTS_CLASS_START_BIT 27
+#define OBJECTS_CLASS_START_BIT 27U
 
 /**
  *  This mask is used to extract the index portion of an object Id.
  */
-#define OBJECTS_INDEX_MASK      (Objects_Id)0x0000ffff
+#define OBJECTS_INDEX_MASK      (Objects_Id)0x0000ffffU
 
 /**
  *  This mask is used to extract the node portion of an object Id.
  */
-#define OBJECTS_NODE_MASK       (Objects_Id)0x00ff0000
+#define OBJECTS_NODE_MASK       (Objects_Id)0x00ff0000U
 
 /**
  *  This mask is used to extract the API portion of an object Id.
  */
-#define OBJECTS_API_MASK        (Objects_Id)0x07000000
+#define OBJECTS_API_MASK        (Objects_Id)0x07000000U
 
 /**
  *  This mask is used to extract the class portion of an object Id.
  */
-#define OBJECTS_CLASS_MASK      (Objects_Id)0xf8000000
+#define OBJECTS_CLASS_MASK      (Objects_Id)0xf8000000U
 
 /**
  *  This mask represents the bits that is used to ensure no extra bits
  *  are set after shifting to extract the index portion of an object Id.
  */
-#define OBJECTS_INDEX_VALID_BITS  (Objects_Id)0x0000ffff
+#define OBJECTS_INDEX_VALID_BITS  (Objects_Id)0x0000ffffU
 
 /**
  *  This mask represents the bits that is used to ensure no extra bits
  *  are set after shifting to extract the node portion of an object Id.
  */
-#define OBJECTS_NODE_VALID_BITS   (Objects_Id)0x000000ff
+#define OBJECTS_NODE_VALID_BITS   (Objects_Id)0x000000ffU
 
 /**
  *  This mask represents the bits that is used to ensure no extra bits
  *  are set after shifting to extract the API portion of an object Id.
  */
-#define OBJECTS_API_VALID_BITS    (Objects_Id)0x00000007
+#define OBJECTS_API_VALID_BITS    (Objects_Id)0x00000007U
 
 /**
  *  This mask represents the bits that is used to ensure no extra bits
  *  are set after shifting to extract the class portion of an object Id.
  */
-#define OBJECTS_CLASS_VALID_BITS  (Objects_Id)0x0000001f
+#define OBJECTS_CLASS_VALID_BITS  (Objects_Id)0x0000001fU
 
 /**
  *  Mask to enable unlimited objects.  This is used in the configuration
  *  table when specifying the number of configured objects.
  */
-#define OBJECTS_UNLIMITED_OBJECTS 0x80000000
+#define OBJECTS_UNLIMITED_OBJECTS 0x80000000U
 
 /**
  *  This is the lowest value for the index portion of an object Id.
@@ -192,7 +212,7 @@ typedef uint16_t   Objects_Maximum;
 /**
  *  This is the highest value for the index portion of an object Id.
  */
-#define OBJECTS_ID_FINAL_INDEX    (0xff)
+#define OBJECTS_ID_FINAL_INDEX    (0xffffU)
 #endif
 
 /**
@@ -333,10 +353,10 @@ typedef struct {
   Objects_Id        maximum_id;
   /** This is the maximum number of objects in this class. */
   Objects_Maximum   maximum;
-  /** This is the TRUE if unlimited objects in this class. */
+  /** This is the true if unlimited objects in this class. */
   bool              auto_extend;
   /** This is the number of objects in a block. */
-  uint32_t          allocation_size;
+  Objects_Maximum   allocation_size;
   /** This is the size in bytes of each object instance. */
   size_t            size;
   /** This points to the table of local objects. */
@@ -349,16 +369,18 @@ typedef struct {
   uint32_t         *inactive_per_block;
   /** This is a table to the chain of inactive object memory blocks. */
   void            **object_blocks;
-  /** This is true if names are strings. */
-  bool              is_string;
+  #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+    /** This is true if names are strings. */
+    bool              is_string;
+  #endif
   /** This is the maximum length of names. */
   uint16_t          name_length;
   /** This is this object class' method called when extracting a thread. */
   Objects_Thread_queue_Extract_callout extract;
-#if defined(RTEMS_MULTIPROCESSING)
-  /** This is this object class' pointer to the global name table */
-  Chain_Control    *global_table;
-#endif
+  #if defined(RTEMS_MULTIPROCESSING)
+    /** This is this object class' pointer to the global name table */
+    Chain_Control    *global_table;
+  #endif
 }   Objects_Information;
 
 /**
@@ -434,27 +456,6 @@ SCORE_EXTERN Objects_Information
  */
 #define OBJECTS_ID_FINAL           ((Objects_Id)~0)
 
-#if defined(RTEMS_MULTIPROCESSING)
-/**
- *  This function performs the initialization necessary for this handler.
- *
- *  @param[in] node indicates the identifying number of this node.
- *  @param[in] maximum_nodes is the maximum number of nodes in this system.
- *  @param[in] maximum_global_objects is maximum number of global objects
- *             concurrently offered in the system.
- */
-void _Objects_Handler_initialization(
-  uint32_t   node,
-  uint32_t   maximum_nodes,
-  uint32_t   maximum_global_objects
-);
-#else
-/**
- *  This function performs the initialization necessary for this handler.
- */
-void _Objects_Handler_initialization(void);
-#endif
-
 /**
  *  This function extends an object class information record.
  *
@@ -475,8 +476,8 @@ void _Objects_Shrink_information(
 
 /**
  *  This function initializes an object class information record.
- *  SUPPORTS_GLOBAL is TRUE if the object class supports global
- *  objects, and FALSE otherwise.  Maximum indicates the number
+ *  SUPPORTS_GLOBAL is true if the object class supports global
+ *  objects, and false otherwise.  Maximum indicates the number
  *  of objects required in this class and size indicates the size
  *  in bytes of each control block for this object class.  The
  *  name length and string designator are also set.  In addition,
@@ -489,7 +490,7 @@ void _Objects_Shrink_information(
  *  @param[in] maximum is the maximum number of instances of this object
  *             class which may be concurrently active.
  *  @param[in] size is the size of the data structure for this class.
- *  @param[in] is_string is TRUE if this object uses string style names.
+ *  @param[in] is_string is true if this object uses string style names.
  *  @param[in] maximum_name_length is the maximum length of object names.
  */
 void _Objects_Initialize_information (
@@ -513,9 +514,9 @@ void _Objects_Initialize_information (
  *
  *  @param[in] api is the API of interest
  *
- *  @return A positive integer on success and -1 otherwise.
+ *  @return A positive integer on success and 0 otherwise.
  */
-int _Objects_API_maximum_class(
+unsigned int _Objects_API_maximum_class(
   uint32_t api
 );
 
@@ -540,7 +541,7 @@ Objects_Control *_Objects_Allocate(
  */
 Objects_Control *_Objects_Allocate_by_index(
   Objects_Information *information,
-  uint16_t             the_index,
+  int                  the_index,
   uint16_t             sizeof_control
 );
 
@@ -559,7 +560,7 @@ void _Objects_Free(
 
 /**
  *  This macro is used to build a thirty-two bit style name from
- *  four characters.  The most significant byte will be the 
+ *  four characters.  The most significant byte will be the
  *  character @a _C1.
  *
  *  @param[in] _C1 is the first character of the name
@@ -612,7 +613,7 @@ typedef enum {
  *  @param[in] node is the set of nodes to search.
  *  @param[in] id will contain the Id if the search is successful.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a id will contain the Id of
  *          the requested object.
@@ -624,6 +625,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_u32(
   Objects_Id          *id
 );
 
+#if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
 /**
  *  This method converts an object name to an Id.  It performs a look up
  *  using the object information block for this object class.
@@ -632,7 +634,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_u32(
  *  @param[in] name is the name of the object to find.
  *  @param[in] id will contain the Id if the search is successful.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a id will contain the Id of
  *          the requested object.
@@ -642,6 +644,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_string(
   const char          *name,
   Objects_Id          *id
 );
+#endif
 
 /**
  *  This function implements the common portion of the object Id
@@ -651,7 +654,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_string(
  *  @param[in] id is the Id of the object whose name we are locating.
  *  @param[in] name will contain the name of the object, if found.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a name will contain the name of
  *          the requested object.
@@ -677,7 +680,7 @@ Objects_Name_or_id_lookup_errors _Objects_Id_to_name (
  *  @param[in] id is the Id of the object whose name we are locating.
  *  @param[in] location will contain an indication of success or failure.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a id will contain the Id of
  *          the requested object.
@@ -708,7 +711,7 @@ Objects_Control *_Objects_Get (
  *  @param[in] location will contain an indication of success or failure.
  *  @param[in] level is the interrupt level being turned.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a name will contain the name of
  *          the requested object.
@@ -737,7 +740,7 @@ Objects_Control *_Objects_Get_isr_disable(
  *
  *  @return This method returns a pointer to the object associated with ID.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a id will contain the id of
  *          the requested object.
@@ -767,7 +770,7 @@ Objects_Control *_Objects_Get_by_index (
  *  @param[in] id is the Id of the object whose name we are locating.
  *  @param[in] location will contain an indication of success or failure.
  *
- *  @return This method returns one of the values from the 
+ *  @return This method returns one of the values from the
  *          @ref Objects_Name_or_id_lookup_errors enumeration to indicate
  *          successful or failure.  On success @a id will contain the Id of
  *          the requested object.
@@ -791,7 +794,7 @@ Objects_Control *_Objects_Get_no_protection(
  *  @param[in] location_p will contain an indication of success or failure.
  *  @param[in] next_id_p is the Id of the next object we will look at.
  *
- *  @return This method returns the pointer to the object located or 
+ *  @return This method returns the pointer to the object located or
  *          NULL on error.
  */
 Objects_Control *_Objects_Get_next(
@@ -857,7 +860,7 @@ char *_Objects_Get_name_as_string(
  *  @param[in] the_object is the object to operate upon
  *  @param[in] name is a pointer to the name to use
  *
- *  @return If successful, TRUE is returned.  Otherwise FALSE is returned.
+ *  @return If successful, true is returned.  Otherwise false is returned.
  */
 bool _Objects_Set_name(
   Objects_Information *information,

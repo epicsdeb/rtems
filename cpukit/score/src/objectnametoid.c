@@ -1,15 +1,14 @@
 /*
  *  Object Handler
  *
- *
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectnametoid.c,v 1.13 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: objectnametoid.c,v 1.14.2.1 2011/05/25 14:17:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -62,7 +61,7 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_u32(
   Objects_Name               name_for_mp;
 #endif
 
-  /* ASSERT: information->is_string == FALSE */
+  /* ASSERT: information->is_string == false */
 
   if ( !id )
     return OBJECTS_INVALID_ADDRESS;
@@ -70,14 +69,14 @@ Objects_Name_or_id_lookup_errors _Objects_Name_to_id_u32(
   if ( name == 0 )
     return OBJECTS_INVALID_NAME;
 
-  search_local_node = FALSE;
+  search_local_node = false;
 
   if ( information->maximum != 0 &&
       (node == OBJECTS_SEARCH_ALL_NODES ||
        node == OBJECTS_SEARCH_LOCAL_NODE ||
        _Objects_Is_local_node( node )
       ))
-   search_local_node = TRUE;
+   search_local_node = true;
 
   if ( search_local_node ) {
     name_length = information->name_length;

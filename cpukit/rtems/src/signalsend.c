@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: signalsend.c,v 1.8 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: signalsend.c,v 1.10 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -41,7 +41,7 @@
  */
 
 rtems_status_code rtems_signal_send(
-  Objects_Id        id,
+  rtems_id          id,
   rtems_signal_set  signal_set
 )
 {
@@ -67,7 +67,7 @@ rtems_status_code rtems_signal_send(
           the_thread->do_post_task_switch_extension = true;
 
           if ( _ISR_Is_in_progress() && _Thread_Is_executing( the_thread ) )
-            _ISR_Signals_to_thread_executing = TRUE;
+            _ISR_Signals_to_thread_executing = true;
         } else {
           _ASR_Post_signals( signal_set, &asr->signals_pending );
         }

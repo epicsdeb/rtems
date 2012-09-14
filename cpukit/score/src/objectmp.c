@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectmp.c,v 1.24 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: objectmp.c,v 1.27 2009/07/03 15:13:47 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,6 +17,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/interr.h>
 #include <rtems/score/object.h>
 #include <rtems/score/wkspace.h>
@@ -24,16 +25,41 @@
 
 /*PAGE
  *
+ *  _Objects_MP_Handler_early_initialization
+ *
+ */
+void _Objects_MP_Handler_early_initialization(void)
+{
+  uint32_t   node;
+  uint32_t   maximum_nodes;
+
+  node                   = _Configuration_MP_table->node;
+  maximum_nodes          = _Configuration_MP_table->maximum_nodes;
+
+  if ( node < 1 || node > maximum_nodes )
+    _Internal_error_Occurred(
+      INTERNAL_ERROR_CORE,
+      true,
+      INTERNAL_ERROR_INVALID_NODE
+    );
+
+  _Objects_Local_node    = node;
+  _Objects_Maximum_nodes = maximum_nodes;
+}
+
+/*PAGE
+ *
  *  _Objects_MP_Handler_initialization
  *
  */
 
-void _Objects_MP_Handler_initialization (
-  uint32_t   node,
-  uint32_t   maximum_nodes,
-  uint32_t   maximum_global_objects
-)
+void _Objects_MP_Handler_initialization(void)
 {
+
+  uint32_t   maximum_global_objects;
+
+  maximum_global_objects = _Configuration_MP_table->maximum_global_objects;
+
   _Objects_MP_Maximum_global_objects = maximum_global_objects;
 
   if ( maximum_global_objects == 0 ) {
@@ -93,12 +119,12 @@ bool _Objects_MP_Allocate_and_open (
   the_global_object = _Objects_MP_Allocate_global_object();
   if ( _Objects_MP_Is_null_global_object( the_global_object ) ) {
 
-    if ( is_fatal_error == FALSE )
-      return FALSE;
+    if ( is_fatal_error == false )
+      return false;
 
     _Internal_error_Occurred(
       INTERNAL_ERROR_CORE,
-      TRUE,
+      true,
       INTERNAL_ERROR_OUT_OF_GLOBAL_OBJECTS
     );
 
@@ -106,7 +132,7 @@ bool _Objects_MP_Allocate_and_open (
 
   _Objects_MP_Open( information, the_global_object, the_name, the_id );
 
-  return TRUE;
+  return true;
 }
 
 /*PAGE
@@ -143,7 +169,7 @@ void _Objects_MP_Close (
 
   _Internal_error_Occurred(
     INTERNAL_ERROR_CORE,
-    TRUE,
+    true,
     INTERNAL_ERROR_INVALID_GLOBAL_ID
   );
 }
@@ -278,3 +304,4 @@ void _Objects_MP_Is_remote (
   *the_object = NULL;
 
 }
+

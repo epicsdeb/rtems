@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: universe.c,v 1.8.4.2 2009/05/05 16:18:05 jennifer Exp $
+ * $Id: universe.c,v 1.13 2009/11/30 04:33:54 ralf Exp $
  */
 
 #include <rtems.h>
@@ -156,7 +156,7 @@ volatile Universe_Memory *UNIVERSE =
  * a complete SCORE603e VME initialization is required.
  */
 
-void initialize_universe()
+void initialize_universe(void)
 {
   uint32_t         jumper_selection;
   uint32_t         pci_id;
@@ -166,7 +166,7 @@ void initialize_universe()
    */
   jumper_selection = PCI_bus_read(
                      (volatile uint32_t*)SCORE603E_VME_JUMPER_ADDR );
-  printk("initialize_universe: Read 0x%x = 0x%x\n", 
+  printk("initialize_universe: Read 0x%x = 0x%x\n",
           SCORE603E_VME_JUMPER_ADDR, jumper_selection);
   jumper_selection = (jumper_selection >> 3) & 0x1f;
 
@@ -182,7 +182,7 @@ void initialize_universe()
      printk ("Invalid SCORE603E_UNIVERSE_CHIP_ID: 0x08%" PRId32 "\n", pci_id);
      rtems_fatal_error_occurred( 0x603e0bad );
    } else {
-     printk("initialize_universe: Reg 0x%x read 0x%x\n", 
+     printk("initialize_universe: Reg 0x%x read 0x%x\n",
      SCORE603E_IO_VME_UNIVERSE_BASE, pci_id );
    }
 
@@ -229,7 +229,7 @@ void set_vme_base_address (
 /*
  * Gets the VME base address
  */
-uint32_t         get_vme_base_address ()
+uint32_t         get_vme_base_address (void)
 {
   volatile uint32_t         temp;
 
@@ -238,7 +238,7 @@ uint32_t         get_vme_base_address ()
   return (temp);
 }
 
-uint32_t         get_vme_slave_size()
+uint32_t         get_vme_slave_size(void)
 {
   volatile uint32_t         temp;
   temp  =  PCI_bus_read( &UNIVERSE->VSI0_BD);

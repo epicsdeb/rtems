@@ -4,7 +4,7 @@
  * as far as this copyight notice is kept unchanged, but does not imply
  * an endorsement by T.sqware of the product in which it is included.
  *
- *  $Id: i386-stub-glue.c,v 1.8 2008/08/18 10:44:35 ralf Exp $
+ *  $Id: i386-stub-glue.c,v 1.10 2009/10/16 22:14:01 ccj Exp $
  */
 
 #include <rtems/system.h>
@@ -19,6 +19,17 @@ int  getDebugChar(void);       /* read and return a single char */
 
 /* assign an exception handler */
 void exceptionHandler(int, void (*handler)(void));
+
+static void
+nop(const rtems_raw_irq_connect_data* notused)
+{
+}
+
+static int
+isOn(const rtems_raw_irq_connect_data* notused)
+{
+  return 1;
+}
 
 void BSP_loop(int uart);
 
@@ -36,7 +47,8 @@ i386_stub_glue_init(int uart)
 
   uart_current = uart;
 
-  BSP_uart_init(uart, 38400, CHR_8_BITS, 0, 0, 0);
+  /* BSP_uart_init(uart, 38400, CHR_8_BITS, 0, 0, 0);*/
+  BSP_uart_init(uart, 115200, CHR_8_BITS, 0, 0, 0);
 }
 
 void BSP_uart_on(const rtems_raw_irq_connect_data* used)
@@ -133,9 +145,6 @@ int getDebugChar(void)
 
   return val;
 }
-
-static void nop(void){}
-static int isOn(void) {return 1;}
 
 void exceptionHandler(int vector, void (*handler)(void))
 {

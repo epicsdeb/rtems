@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutexsurrender.c,v 1.18 2008/06/30 15:03:03 ralf Exp $
+ *  $Id: coremutexsurrender.c,v 1.22 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -48,8 +48,13 @@
 
 CORE_mutex_Status _CORE_mutex_Surrender(
   CORE_mutex_Control                *the_mutex,
+#if defined(RTEMS_MULTIPROCESSING)
   Objects_Id                         id,
   CORE_mutex_API_mp_support_callout  api_mutex_mp_support
+#else
+  Objects_Id                         id __attribute__((unused)),
+  CORE_mutex_API_mp_support_callout  api_mutex_mp_support __attribute__((unused))
+#endif
 )
 {
   Thread_Control *the_thread;
@@ -80,16 +85,26 @@ CORE_mutex_Status _CORE_mutex_Surrender(
   the_mutex->nest_count--;
 
   if ( the_mutex->nest_count != 0 ) {
-    switch ( the_mutex->Attributes.lock_nesting_behavior ) {
-      case CORE_MUTEX_NESTING_ACQUIRES:
-        return CORE_MUTEX_STATUS_SUCCESSFUL;
-      case CORE_MUTEX_NESTING_IS_ERROR:
-        /* should never occur */
-        return CORE_MUTEX_STATUS_NESTING_NOT_ALLOWED;
-      case CORE_MUTEX_NESTING_BLOCKS:
-        /* Currently no API exercises this behavior. */
-        break;
-    }
+    /*
+     *  All error checking is on the locking side, so if the lock was
+     *  allowed to acquired multiple times, then we should just deal with
+     *  that.  The RTEMS_DEBUG is just a validation.
+     */
+    #if defined(RTEMS_DEBUG)
+      switch ( the_mutex->Attributes.lock_nesting_behavior ) {
+        case CORE_MUTEX_NESTING_ACQUIRES:
+          return CORE_MUTEX_STATUS_SUCCESSFUL;
+        case CORE_MUTEX_NESTING_IS_ERROR:
+          /* should never occur */
+          return CORE_MUTEX_STATUS_NESTING_NOT_ALLOWED;
+        case CORE_MUTEX_NESTING_BLOCKS:
+          /* Currently no API exercises this behavior. */
+          break;
+      }
+    #else
+      /* must be CORE_MUTEX_NESTING_ACQUIRES or we wouldn't be here */
+      return CORE_MUTEX_STATUS_SUCCESSFUL;
+    #endif
   }
 
   /*
@@ -121,11 +136,11 @@ CORE_mutex_Status _CORE_mutex_Surrender(
        _CORE_mutex_Is_priority_ceiling( &the_mutex->Attributes ) ) {
 #ifdef __RTEMS_STRICT_ORDER_MUTEX__
     if(the_mutex->queue.priority_before != holder->current_priority)
-      _Thread_Change_priority(holder,the_mutex->queue.priority_before,TRUE);
+      _Thread_Change_priority(holder,the_mutex->queue.priority_before,true);
 #endif
     if ( holder->resource_count == 0 &&
          holder->real_priority != holder->current_priority ) {
-      _Thread_Change_priority( holder, holder->real_priority, TRUE );
+      _Thread_Change_priority( holder, holder->real_priority, true );
     }
   }
 
@@ -174,7 +189,7 @@ CORE_mutex_Status _CORE_mutex_Surrender(
               _Thread_Change_priority(
                 the_thread,
                 the_mutex->Attributes.priority_ceiling,
-                FALSE
+                false
               );
           }
           break;

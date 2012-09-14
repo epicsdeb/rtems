@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadsuspend.c,v 1.4 2005/01/27 05:57:05 ralf Exp $
+ *  $Id: threadsuspend.c,v 1.6 2009/06/01 21:44:01 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -56,7 +56,9 @@ void _Thread_Suspend(
 
   ready = the_thread->ready;
   _ISR_Disable( level );
-  the_thread->suspend_count++;
+  #if defined(RTEMS_ITRON_API)
+    the_thread->suspend_count++;
+  #endif
   if ( !_States_Is_ready( the_thread->current_state ) ) {
     the_thread->current_state =
        _States_Set( STATES_SUSPENDED, the_thread->current_state );
@@ -80,7 +82,7 @@ void _Thread_Suspend(
      _Thread_Calculate_heir();
 
   if ( _Thread_Is_executing( the_thread ) )
-    _Context_Switch_necessary = TRUE;
+    _Context_Switch_necessary = true;
 
   _ISR_Enable( level );
 }

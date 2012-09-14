@@ -7,14 +7,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pritask.c,v 1.10 2008/01/07 15:26:46 joel Exp $
+ *  $Id: pritask.c,v 1.15 2009/11/30 03:33:24 ralf Exp $
  */
 
 #include "system.h"
@@ -32,7 +32,7 @@ rtems_task Priority_task(
   its_priority = Task_priority[ its_index ];
 
   if ( its_priority < 3 )
-    timeout = 5 * TICKS_PER_SECOND;
+    timeout = 5 * rtems_clock_get_ticks_per_second();
   else
     timeout = RTEMS_NO_TIMEOUT;
 
@@ -46,13 +46,13 @@ rtems_task Priority_task(
   );
   directive_failed( status, "rtems_semaphore_obtain of SM2" );
 
-  if ( its_priority < 64 ) {
-    printf( "PRI%d - WHY AM I HERE? (pri=%d)", its_index, its_priority );
+  if ( its_priority < PRIORITY_INHERIT_BASE_PRIORITY ) {
+    printf( "PRI%" PRIdrtems_task_argument " - WHY AM I HERE? (pri=%" PRIdrtems_task_priority ")", its_index, its_priority );
     rtems_test_exit( 0 );
   }
 
   /* special case of setting priority while holding a resource */
-  { 
+  {
     rtems_task_priority priority;
     rtems_task_priority old_priority;
 
@@ -63,7 +63,7 @@ rtems_task Priority_task(
     status = rtems_task_set_priority( RTEMS_SELF, priority, &old_priority );
     directive_failed( status, "rtems_task_set_priority with resource" );
     if ( priority != old_priority ) {
-      printf( "priority != old_priority (%d != %d)\n", priority, old_priority );
+      printf( "priority != old_priority (%" PRIdrtems_task_priority " != %" PRIdrtems_task_priority ")\n", priority, old_priority );
       rtems_test_exit(0);
     }
   }
@@ -101,7 +101,7 @@ rtems_task Priority_task(
     &current_priority
   );
   directive_failed( status, "PRI5 rtems_task_set_priority CURRENT" );
-  printf( "PRI5 - priority of PRI5 is %d\n", current_priority );
+  printf( "PRI5 - priority of PRI5 is %" PRIdrtems_task_priority "\n", current_priority );
 
   (void) rtems_task_suspend( RTEMS_SELF );
 }

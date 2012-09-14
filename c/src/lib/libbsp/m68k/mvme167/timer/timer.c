@@ -27,7 +27,7 @@
  *  Modifications of respective RTEMS file:
  *  Copyright (c) 1998, National Research Council of Canada
  *
- *  $Id: timer.c,v 1.10 2008/09/05 08:43:44 ralf Exp $
+ *  $Id: timer.c,v 1.12 2010/04/28 19:43:35 joel Exp $
  */
 
 #include <rtems.h>
@@ -48,7 +48,7 @@ uint32_t            Ttimer_val;
  */
 bool benchmark_timer_find_average_overhead;
 
-rtems_isr timerisr(void);
+rtems_isr_entry timerisr(rtems_vector_number);
 
 /*
  *  This routine initializes the Tick Timer 1 on the MVME167 board.

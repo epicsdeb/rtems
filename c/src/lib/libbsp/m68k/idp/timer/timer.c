@@ -1,4 +1,4 @@
-/* 
+/*
  *  Code Modified for the MC68230 by Doug McBride, Colorado Space Grant College
  *
  *  COPYRIGHT (c) 1989-1999.
@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.c,v 1.18.2.1 2008/09/30 16:28:05 joel Exp $
+ *  $Id: timer.c,v 1.22 2010/04/28 19:43:22 joel Exp $
  */
 
 #include <rtems.h>
@@ -20,7 +20,7 @@
 int Ttimer_val;
 bool benchmark_timer_find_average_overhead;
 
-rtems_isr timerisr(void);
+rtems_isr_entry timerisr(rtems_vector_number);
 
 void benchmark_timer_initialize(void)
 {

@@ -6,10 +6,10 @@
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadstart.c,v 1.9 2008/09/04 17:39:56 ralf Exp $
+ *  $Id: threadstart.c,v 1.9.4.1 2011/05/25 14:17:53 ralf Exp $
  */
 
 #if HAVE_CONFIG_H

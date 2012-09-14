@@ -17,19 +17,17 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.10 2008/09/06 03:31:20 ralf Exp $
+ *  $Id: init.c,v 1.14 2009/10/27 06:59:20 ralf Exp $
  */
 
 #define CONFIGURE_INIT
 
 #include "system.h"
+#include "tmacros.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 rtems_id task_id[MAX_TASKS];
-
-void test1();
-void test2();
 
 rtems_task Init(
   rtems_task_argument ignored
@@ -37,11 +35,12 @@ rtems_task Init(
 {
   rtems_task_priority old_priority;
   rtems_mode          old_mode;
-  uint32_t      task;
+  uint32_t            task;
 
   /* lower the task priority to allow created tasks to execute */
 
-  rtems_task_set_priority(RTEMS_SELF, 20, &old_priority);
+  rtems_task_set_priority(
+    RTEMS_SELF, RTEMS_MAXIMUM_PRIORITY - 1, &old_priority);
   rtems_task_mode(RTEMS_PREEMPT,  RTEMS_PREEMPT_MASK, &old_mode);
 
   printf( "\n*** UNLIMITED TASK TEST ***\n" );
@@ -67,11 +66,11 @@ rtems_task test_task(
 {
   rtems_event_set out;
 
-  printf( "task %i has started.\n",  my_number);
+  printf( "task %" PRIdrtems_task_argument " has started.\n",  my_number);
 
   rtems_event_receive(1, RTEMS_WAIT | RTEMS_EVENT_ANY, 0, &out);
 
-  printf( "task %i ending.\n",  my_number);
+  printf( "task %" PRIdrtems_task_argument " ending.\n",  my_number);
 
   rtems_task_delete(RTEMS_SELF);
 }
@@ -89,7 +88,7 @@ void destory_all_tasks(
   for (task = 0; task < MAX_TASKS; task++)
     if (task_id[task])
     {
-      printf(" %s : signal task %08x to delete, ", who, task_id[task]);
+      printf(" %s : signal task %08" PRIxrtems_id " to delete, ", who, task_id[task]);
       fflush(stdout);
       rtems_event_send(task_id[task], 1);
       task_id[task] = 0;

@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ualarm.c,v 1.8 2008/07/18 18:45:56 joel Exp $
+ *  $Id: ualarm.c,v 1.12 2010/04/30 08:37:27 sh Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,16 +23,14 @@
 #include <rtems/posix/psignal.h>
 #include <rtems/posix/time.h>
 
-Watchdog_Control _POSIX_signals_Ualarm_timer;
-
 /*PAGE
  *
  *  _POSIX_signals_Ualarm_TSR
  */
 
 void _POSIX_signals_Ualarm_TSR(
-  Objects_Id      id,
-  void           *argument
+  Objects_Id      id __attribute__((unused)),
+  void           *argument __attribute__((unused))
 )
 {
   /*
@@ -40,10 +38,10 @@ void _POSIX_signals_Ualarm_TSR(
    * It's OK, there isn't a way this should fail.
    */
   (void) kill( getpid(), SIGALRM );
-  
+
   /*
    * If the reset interval is non-zero, reschedule ourselves.
-   */ 
+   */
   _Watchdog_Reset( &_POSIX_signals_Ualarm_timer );
 }
 
@@ -66,27 +64,23 @@ useconds_t ualarm(
   if ( !the_timer->routine ) {
     _Watchdog_Initialize( the_timer, _POSIX_signals_Ualarm_TSR, 0, NULL );
   } else {
-    switch ( _Watchdog_Remove( the_timer ) ) {
-      case WATCHDOG_INACTIVE:
-      case WATCHDOG_BEING_INSERTED:
-        break;
+    Watchdog_States state;
 
-      case WATCHDOG_ACTIVE:
-      case WATCHDOG_REMOVE_IT:
-        /*
-         *  The stop_time and start_time fields are snapshots of ticks since
-         *  boot.  Since alarm() is dealing in seconds, we must account for
-         *  this.
-         */
+    state = _Watchdog_Remove( the_timer );
+    if ( (state == WATCHDOG_ACTIVE) || (state == WATCHDOG_REMOVE_IT) ) {
+      /*
+       *  The stop_time and start_time fields are snapshots of ticks since
+       *  boot.  Since alarm() is dealing in seconds, we must account for
+       *  this.
+       */
 
-        ticks = the_timer->initial;
-        ticks -= (the_timer->stop_time - the_timer->start_time);
-        /* remaining is now in ticks */
+      ticks = the_timer->initial;
+      ticks -= (the_timer->stop_time - the_timer->start_time);
+      /* remaining is now in ticks */
 
-        _Timespec_From_ticks( ticks, &tp );
-        remaining  = tp.tv_sec * TOD_MICROSECONDS_PER_SECOND;
-        remaining += tp.tv_nsec / 1000;
-        break;
+      _Timespec_From_ticks( ticks, &tp );
+      remaining  = tp.tv_sec * TOD_MICROSECONDS_PER_SECOND;
+      remaining += tp.tv_nsec / 1000;
     }
   }
 
@@ -102,7 +96,7 @@ useconds_t ualarm(
     tp.tv_nsec = (useconds % TOD_MICROSECONDS_PER_SECOND) * 1000;
     ticks = _Timespec_To_ticks( &tp );
     if ( ticks == 0 )
-      ticks = 1; 
+      ticks = 1;
 
     _Watchdog_Insert_ticks( the_timer, _Timespec_To_ticks( &tp ) );
   }

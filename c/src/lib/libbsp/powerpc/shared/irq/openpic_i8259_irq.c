@@ -1,6 +1,7 @@
 /*
  *
- *  This file contains the i8259/openpic-specific implementation of the function described in irq.h
+ *  This file contains the i8259/openpic-specific implementation of
+ *  the function described in irq.h
  *
  *  Copyright (C) 1998, 1999 valette@crf.canon.fr
  *
@@ -8,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: openpic_i8259_irq.c,v 1.6 2007/12/08 17:26:19 strauman Exp $
+ *  $Id: openpic_i8259_irq.c,v 1.10 2009/11/30 04:33:10 ralf Exp $
  */
 
 #include <stdlib.h>
@@ -16,9 +17,10 @@
 #include <bsp.h>
 #include <bsp/irq.h>
 #include <bsp/irq_supp.h>
+#ifndef BSP_HAS_NO_VME
 #include <bsp/VMEConfig.h>
+#endif
 #include <bsp/openpic.h>
-#include <libcpu/raw_exception.h>
 #include <libcpu/io.h>
 #include <bsp/vectors.h>
 #include <stdlib.h>
@@ -109,7 +111,7 @@ BSP_enable_irq_at_pic(const rtems_irq_number name)
       BSP_irq_enable_at_i8259s ((int) name - BSP_ISA_IRQ_LOWEST_OFFSET);
     }
 #endif
-    
+
     if (is_pci_irq(name)) {
       /*
        * Enable interrupt at OPENPIC level

@@ -31,8 +31,12 @@
  */
  
 /*
- *	$Id: tcp_usrreq.c,v 1.8 2008/09/01 06:36:17 ralf Exp $
+ *	$Id: tcp_usrreq.c,v 1.10 2010/03/28 05:47:49 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_tcpdebug.h"
 
@@ -46,7 +50,7 @@
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/protosw.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include <net/if.h>

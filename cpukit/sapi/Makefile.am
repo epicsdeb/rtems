@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.35 2008/07/15 22:56:45 joel Exp $
+## $Id: Makefile.am,v 1.38 2009/08/09 15:23:10 joel Exp $
 ##
 
 include $(top_srcdir)/automake/multilib.am
@@ -21,6 +21,7 @@ include_rtems_HEADERS += inline/rtems/chain.inl \
 AM_CPPFLAGS += -D__RTEMS_INSIDE__
 
 noinst_LIBRARIES = libsapi.a
+project_lib_LIBRARIES = libsapi.a
 libsapi_a_SOURCES = src/debug.c src/extension.c src/extensioncreate.c \
     src/extensiondelete.c src/extensionident.c src/fatal.c src/exinit.c \
     src/exshutdown.c src/io.c src/ioclose.c src/iocontrol.c src/iodata.c \

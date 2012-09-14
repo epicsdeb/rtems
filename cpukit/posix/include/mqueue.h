@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueue.h,v 1.11 2008/07/18 18:45:55 joel Exp $
+ *  $Id: mqueue.h,v 1.12 2009/01/05 20:26:01 joel Exp $
  */
 
 #ifndef _MQUEUE_H
@@ -34,9 +34,11 @@ extern "C" {
  */
 
 /**
- *  Message queue id type
+ *  Message queue id type.
+ *
+ *  @note Use uint32_t since all POSIX Ids are 32-bit currently.
  */
-typedef Objects_Id  mqd_t;
+typedef uint32_t  mqd_t;
 
 /**
  *  This is the message queue attributes structure.

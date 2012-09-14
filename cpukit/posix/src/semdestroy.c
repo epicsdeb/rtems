@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semdestroy.c,v 1.10 2007/12/17 16:19:14 joel Exp $
+ *  $Id: semdestroy.c,v 1.11 2009/02/03 10:10:56 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -47,7 +47,7 @@ int sem_destroy(
        *  Undefined operation on a named semaphore.
        */
 
-      if ( the_semaphore->named == TRUE ) {
+      if ( the_semaphore->named == true ) {
         _Thread_Enable_dispatch();
         rtems_set_errno_and_return_minus_one( EINVAL );
       }

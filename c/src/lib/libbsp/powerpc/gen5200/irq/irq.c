@@ -76,12 +76,10 @@
 #include <rtems.h>
 
 #include <libcpu/powerpc-utility.h>
-#include <libcpu/raw_exception.h>
+#include <bsp/vectors.h>
 
 #include <bsp.h>
 #include <bsp/irq.h>
-#include <bsp/vectors.h>
-#include <bsp/ppc_exc_bspsupp.h>
 #include <bsp/irq-generic.h>
 #include <bsp/mpc5200.h>
 
@@ -485,14 +483,16 @@ void BSP_IRQ_Benchmarking_Report( void)
 /*
  * High level IRQ handler called from shared_raw_irq_code_entry
  */
-int C_dispatch_irq_handler( CPU_Interrupt_frame * frame, unsigned int excNum)
+int C_dispatch_irq_handler(BSP_Exception_frame *frame, unsigned excNum)
 {
   register unsigned int irq;
   register unsigned int pmce;
   register unsigned int crit_pri_main_mask,
     per_mask;
 
+#if (ALLOW_IRQ_NESTING == 1)
   uint32_t msr;
+#endif
 
 #if (BENCHMARK_IRQ_PROCESSING == 1)
   uint64_t start,

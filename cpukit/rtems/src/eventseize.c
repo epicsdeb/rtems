@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: eventseize.c,v 1.8 2008/01/22 18:28:53 joel Exp $
+ *  $Id: eventseize.c,v 1.9 2009/07/21 23:09:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -86,11 +86,19 @@ void _Event_Seize(
     return;
   }
 
-  _Event_Sync_state = THREAD_BLOCKING_OPERATION_NOTHING_HAPPENED;
-
+  /*
+   *  Note what we are waiting for BEFORE we enter the critical section.
+   *  The interrupt critical section management code needs this to be
+   *  set properly when we are marked as in the event critical section.
+   *
+   *  NOTE: Since interrupts are disabled, this isn't that much of an
+   *        issue but better safe than sorry.
+   */
   executing->Wait.option            = (uint32_t) option_set;
   executing->Wait.count             = (uint32_t) event_in;
   executing->Wait.return_argument   = event_out;
+
+  _Event_Sync_state = THREAD_BLOCKING_OPERATION_NOTHING_HAPPENED;
 
   _ISR_Enable( level );
 

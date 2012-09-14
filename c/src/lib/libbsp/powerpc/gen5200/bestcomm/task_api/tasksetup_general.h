@@ -1,17 +1,17 @@
 /******************************************************************************
 *
 * Copyright (c) 2004 Freescale Semiconductor, Inc.
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
 * to deal in the Software without restriction, including without limitation
 * the rights to use, copy, modify, merge, publish, distribute, sublicense,
 * and/or sell copies of the Software, and to permit persons to whom the
 * Software is furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included
 * in all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -255,8 +255,10 @@ TaskId TASKSETUP_NAME(TASK_API            *TaskAPI,
                       TaskSetupParamSet_t *TaskSetupParams)
 {
 	TaskId TaskNum;
+#if ((MAX_BD>0)||(DEBUG_BESTCOMM_API>0))
 	uint32 Status = 0;
-#if ((INCR_TYPE_SRC!=0)||(INCR_TYPE_DST!=0)||(DEBUG_BESTCOMM_API>0))
+#endif
+#if ((MAX_BD>0)&&((INCR_TYPE_SRC!=0)||(INCR_TYPE_DST!=0))||(DEBUG_BESTCOMM_API>0))
 	uint8  NumPtr = 0;
 #endif
 #if (INITIATOR_DATA<0)	/* runtime configurable */
@@ -373,7 +375,7 @@ TaskId TASKSETUP_NAME(TASK_API            *TaskAPI,
 				*(TaskAPI->DRD[i]) = (*(TaskAPI->DRD[i]) & DRD_INIT_MASK)
 							| (TaskSetupParams->Initiator << DRD_INIT_OFFSET);
 			}
-			
+
 			if ((*(TaskAPI->DRD[i]) & DRD_EXT_FLAG) != 0)
 			{
 				ext = 1;

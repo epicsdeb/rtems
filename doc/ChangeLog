@@ -1,3 +1,238 @@
+2011-12-07	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1984/doc
+	* user/conf.t: Change CONFIGURE_MINIMUM_STACK_SIZE to
+	CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+
+2011-07-29	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1864/doc
+	* user/conf.t: Add missing documentation for
+	CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS,
+	CONFIGURE_MAXIMUM_POSIX_BARRIERS , CONFIGURE_MAXIMUM_POSIX_SPINLOCKS,
+	CONFIGURE_MAXIMUM_POSIX_RWLOCKS.
+
+2011-07-26	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1851/doc
+	* user/conf.t: Fix typo in CONFIGURE_MESSAGE_BUFFER_MEMORY example.
+
+2011-03-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1744/doc
+	* user/clock.t: rtems_clock_time_value type uses changed to struct
+	timeval.
+
+2011-02-08	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* common/cpright.texi: Update copyright.
+
+2011-02-08	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* setup.def, shell/preface.texi: Update version.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2011-01-02	Danila Bespalov <danila DOT bespalov AT gmail DOT com>
+
+	* started/buildc.t, started/buildrt.t, started/nt.t, started/require.t,
+	started/sample.t: Review and improve.
+
+2010-11-24	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1674/doc
+	* user/Makefile.am, user/dirstat.texi: Fix bad node reference.
+
+2010-11-11	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1716/doc
+	* user/concepts.t: print_name example used a variable which did not
+	match the name of the passed in parameter.
+
+2010-11-01	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1714/doc
+	* user/datatypes.t, user/intr.t: Add missing description of
+	rtems_status_codes.
+
+2010-08-09	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	PR 1513/doc
+	* user/chains.t: Added missing functions.  Uniform text for
+	unprotected functions.
+
+2010-08-03	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	PR 1650/cpukit
+	* user/part.t: Clarify.
+
+2010-06-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Don't install html_imagesdir unconditionally.
+	* main.am: Don't install html_projectdir unconditionally.
+	* cpu_supplement/Makefile.am: Include main.am.
+
+2010-06-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* ada_user/Makefile.am, bsp_howto/Makefile.am,
+	cpu_supplement/Makefile.am, develenv/Makefile.am,
+	filesystem/Makefile.am, itron3.0/Makefile.am,
+	networking/Makefile.am, new_chapters/Makefile.am,
+	porting/Makefile.am, posix1003.1/Makefile.am,
+	posix_users/Makefile.am, relnotes/Makefile.am,
+	shell/Makefile.am, started/Makefile.am,
+	started_ada/Makefile.am, user/Makefile.am:
+	Remove EDITION (Unused).
+
+2010-06-11	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* cpu_supplement/Makefile.am, cpu_supplement/cpu_supplement.texi:
+	Remove tic4x.
+	* cpu_supplement/tic4x.t: Remove.
+
+2010-06-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/.cvsignore: Add semaphore_attributes.pdf.
+
+2010-05-18	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1520/doc
+	* user/part.t: Partition create discussion said it returned the number
+	of buffers created but it does not.
+
+2010-05-18	Alin Rus <alin.codejunkie@gmail.com>
+
+	PR 1519/doc
+	* user/chains.t: Fix typo in Chain_Control example.
+
+2010-05-13	Chris Johns <chrisj@rtems.org>
+
+	* shell/file.t: Add dd, debugrfs, hexdump, ln, mknod, mkrfs, mv.
+	* shell/general.t: Add time.
+	
+2010-05-12	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	PR 1512/doc
+	* shell/general.t: Add rtc.
+	* shell/file.t: Add fdisk.
+
+2010-05-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1512/doc
+	* shell/general.t: Add setenv, getenv, and unsetenv.
+
+2010-05-05	Alin Rus <alin.codejunkie@gmail.com>
+
+	PR 1510/doc
+	* user/chains.t: Fix code example.
+
+2010-04-22	Alin Rus <alin.codejunkie@gmail.com>
+
+	* user/chain.t: Fixed the example from PR 1504.
+
+2010-03-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/conf.t: CONFIGURE_DISABLE_CLASSIC_NOTEPADS is typo of
+	CONFIGURE_DISABLE_CLASSIC_API_NOTEPADS. Fix it.
+
+2010-02-18	Chris Johns <chrisj@rtems.org>
+
+	* networking/networkapp.t: Updated the BOOTP/DHCP to document the
+	default behaviour of looping forever.
+
+2010-01-11	Marc Pignat <marc.pignat@hevs.ch>
+
+	PR 1490/doc
+	* user/clock.t: Fix typo. rtems_clock_get_ticks_per_second not
+	rtems_clock_get_ticks_per_seconds.
+
+2009-12-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/clock.t: Eliminate unused type rtems_clock_time_value.
+
+2009-12-16	Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* bsp_howto/console.t: adaption to ssize_t return value for
+	my_driver_write() function
+
+2009-11-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	PR 1460/cpukit
+	* user/object.t: Change return type on methods accessing portions of
+	RTEMS Ids to int. This allows -1 to be return on error.
+
+2009-11-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* ada_user/Makefile.am, ada_user/ada_user.texi, user/Makefile.am,
+	user/c_user.texi, user/concepts.t, user/overview.t,
+	user/preface.texi, user/schedule.t, user/sem.t: Add table of figures.
+	Add text and graphic of tree illustrating valid combinations of
+	semaphore attributes.
+	* user/semaphore_attributes.eps, user/semaphore_attributes.png:
+	New files.
+
+2009-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_howto/console.t: Capitalization.
+
+2009-10-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/preface.texi: Remove UNIX and update port list.
+
+2009-10-14	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* HELP.html, bsp_howto/support.t, relnotes/status.texi,
+	started_ada/buildada.t: Remove references to posix/Unix port.
+
+2009-09-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/conf.t, user/userext.t: Eliminate use of deprecated
+	rtems_extension.
+
+2009-09-14	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* cpu_supplement/arm.t: Update.
+	* cpu_supplement/preface.texi: Typo.
+	* cpu_supplement/general.t: Expanded abbreviation.
+
+2009-09-14	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* cpu_supplement/arm.t: Update.
+	* cpu_supplement/preface.texi: Typo.
+	* cpu_supplement/general.t: Expanded abbreviation.
+
+2009-08-26	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* user/conf.t: Change stack allocator signature.
+
+2009-08-22	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* bsp_howto/framebuffer.t: documented the improvements made to
+	read/write
+
+2009-08-21	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* bsp_howto/framebuffer.t: Updated the frame buffer documentation.
+
+2009-08-05	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* user/conf.t: Add configuration of posix message queue file
+	descriptors as separate entity. Also add documentation on posix
+	configuration elements not previously covered.
+
+2009-08-03	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* bsp_howto/framebuffer.t: added documentation
+
+2009-07-28	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_howto/.cvsignore, bsp_howto/Makefile.am,
+	bsp_howto/bsp_howto.texi: Add Frame Buffer Device Driver shell.
+	* bsp_howto/framebuffer.t: New file.
+	* user/conf.t: Add CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER.
+
 2009-07-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* user/region.t: Fix typos where semaphore referenced instead of region
@@ -7,20 +242,76 @@
 
 	* user/preface.texi: Correct list of supported CPU architectures.
 
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/conf.t: Change work_space_size to uintptr_t since it cannot be
+	negative.
+
+2009-04-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* cpu_supplement/.cvsignore, cpu_supplement/Makefile.am,
+	cpu_supplement/cpu_supplement.texi: Add shell for Atmel AVR chapter.
+	* cpu_supplement/avr.t: New file.
+
+2009-03-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* shell/confinit.t: New argument sequence for rtems_shell_init().
+
+2009-03-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* user/.cvsignore: Add Object ID PDF files.
+
+2009-02-27	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* posix_users/preface.texi, shell/preface.texi: Add stock
+	acknowledgement paragraphs that are required when excerpting and
+	reusing text from POSIX standards per the agreement at
+	* common/opengroup_manpage_acknowledgement.texi,
+	common/opengroup_preface_acknowledgement.texi: New files.
+
 2009-02-27	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	PR 1387/doc
 	* user/intr.t: Add Interrupt Manager services to list of services
 	callable from ISR.
 
+2009-02-19	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shell/rtems.t: Add halt command.
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* porting/idlethread.t: Change prototype of IDLE thread to consistently
+	return void * and take a uintptr_t argument.
+
 2009-01-29	Sebastian Huber <sebastian.huber@embedded-brains.de>
 
 	* bsp_howto/console.t: Clarify interrupt transmit process.
 	* user/concepts.t: Typo.
 
-2008-12-19	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-12-19	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	* index.html.in: Remove dead manual references.
+	* index.html.in: Remove manuals that are dead.
+
+2008-12-18	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* user/cpuuse.t: Reflect change in CPU Usage report format.
+
+2008-12-15	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/init.t: Eliminate pointers to API configuration tables in the
+	main configuration table. Reference the main configuration table and
+	the API configuration tables directly using the confdefs.h version
+	rather than obtaining a pointer to it. This eliminated some
+	variables, a potential fatal error, some unnecessary default
+	configuration structures. Overall, about a 4.5% reduction in the code
+	size for minimum and hello on the SPARC.
+
+2008-12-14	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/conf.t, user/region.t: Change sizes of heap/region and allocated
+	objects in heap to intptr_t so they can be larger than a single
+	allocatable object (e.g. size_t).
 
 2008-12-12	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -40,15 +331,27 @@
 	* bsp_howto/TERMIOSFlow.eps, bsp_howto/TERMIOSFlow.png: New files.
 	Joel added Termios Flow figure from RTEMS Open Class material.
 
+2008-12-04	Jukka Pietarinen <jukka.pietarinen@mrf.fi>
+
+	* cpu_supplement/.cvsignore, cpu_supplement/Makefile.am,
+	cpu_supplement/cpu_supplement.texi: Add Lattice Mico32 support.
+	* cpu_supplement/lm32.t: New file.
+
+2008-12-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* ada_user/Makefile.am: Fix typo.
+
+2008-12-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* ada_user/Makefile.am, user/Makefile.am, user/concepts.t: Add 16 bit
+	object Id format information.
+	* user/ObjectId-16Bits.eps, user/ObjectId-16Bits.png: New files.
+
 2008-12-01	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* user/datatypes.t: Add C99 uint types.
 
-2008-12-01	Joel Sherrill <joel.sherrill@OARcorp.com>
-
-	* user/concepts.t: Id has four parts not three.
-
-2008-11-20	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-11-20	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	PR 1340/cpukit
 	* user/chains.t: Add rtems_chain_initialize to public chain API.
@@ -73,7 +376,7 @@
 	* ada_user/Makefile.am: Make Ada manual build again after adding
 	figure.
 
-2008-11-03	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-11-07	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	PR 1334/doc
 	* user/Makefile.am, user/concepts.t, user/init.t, user/overview.t,
@@ -81,24 +384,49 @@
 	parts of 32-bit object id.
 	* user/ObjectId-32Bits.eps, user/ObjectId-32Bits.png: New files.
 
+2008-10-14	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* user/conf.t: Fix typo.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* user/region.t: Change size_t to ssize_t.
+
+2008-10-01	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shell/preface.texi: Bump version to 4.9.99.0
+
 2008-09-30	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* bsp_howto/timer.t: Eliminate uses of old benchmark timer names.
 
-2008-09-25	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-09-25	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	* setup.def, started/buildc.t: Update versions and patches.
+	* setup.def, started/buildc.t: Update.
 
 2008-09-23	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* bsp_howto/BSPInitFlowchart-49.png: Update figure.
 
-2008-09-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+2008-09-18	Miao Yan <yanmiaobest@gmail.com>
 
-	* cpu_supplement/.cvsignore, cpu_supplement/Makefile.am,
-	cpu_supplement/cpu_supplement.texi, porting/cpumodels.t,
-	user/preface.texi: Remove TI C4x and NIOS2 ports from 4.9 branch.
-	* cpu_supplement/tic4x.t: Removed.
+	* user/conf.t: Add CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM and
+	CONFIGURE_APPLICATION_DISABLE_FILESYSTEM.
+
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* shell/rtems.t, user/conf.t, user/stackchk.t: Rename STACK_CHECKER_ON
+	to more appropriate CONFIGURE_STACK_CHECKER_ENABLED.
+
+2008-09-17	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* user/conf.t: Fix typo.
+
+2008-09-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* user/conf.t: Add support for optionally having a unified work area.
+	In other words, the RTEMS Workspace and C Program Heap are the same
+	pool of memory.
 
 2008-09-09	Joel Sherrill <joel.sherrill@oarcorp.com>
 

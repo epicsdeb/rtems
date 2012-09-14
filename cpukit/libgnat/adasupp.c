@@ -1,5 +1,5 @@
 /*
- *  $Id: adasupp.c,v 1.1 2007/12/12 00:15:54 joel Exp $
+ *  $Id: adasupp.c,v 1.2 2008/12/16 15:59:26 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -10,10 +10,10 @@
 #include <pthread.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/posix/pthread.h>
 
-/*PAGE
- *
+/*
  *  _ada_pthread_minimum_stack_size
  *
  *  This routine returns the minimum stack size so the GNAT RTS can
@@ -28,4 +28,9 @@ size_t _ada_pthread_minimum_stack_size( void )
    */
 
   return PTHREAD_MINIMUM_STACK_SIZE * 2;
+}
+
+uint32_t _ada_microseconds_per_tick(void)
+{
+  return rtems_configuration_get_microseconds_per_tick();
 }

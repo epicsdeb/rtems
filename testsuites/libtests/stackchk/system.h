@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.10 2004/04/01 15:16:12 ralf Exp $
+ *  $Id: system.h,v 1.11 2008/09/17 19:31:13 joel Exp $
  */
 
 #include <tmacros.h>
@@ -41,7 +41,7 @@ void blow_stack( void );
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 
-#define STACK_CHECKER_ON
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include <rtems/confdefs.h>
 

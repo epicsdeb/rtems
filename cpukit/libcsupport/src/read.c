@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: read.c,v 1.13 2007/09/20 22:25:14 joel Exp $
+ *  $Id: read.c,v 1.15.2.1 2011/07/31 14:12:29 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -32,7 +32,7 @@ ssize_t read(
   rtems_libio_check_is_open( iop );
   rtems_libio_check_buffer( buffer );
   rtems_libio_check_count( count );
-  rtems_libio_check_permissions( iop, LIBIO_FLAGS_READ );
+  rtems_libio_check_permissions_with_error( iop, LIBIO_FLAGS_READ, EBADF );
 
   /*
    *  Now process the read().
@@ -55,12 +55,12 @@ ssize_t read(
  *  This is the Newlib dependent reentrant version of read().
  */
 
-#if defined(RTEMS_NEWLIB)
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__READ_R)
 
 #include <reent.h>
 
 ssize_t _read_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   int            fd,
   void          *buf,
   size_t         nbytes

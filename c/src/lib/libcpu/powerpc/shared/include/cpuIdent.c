@@ -10,7 +10,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: cpuIdent.c,v 1.25 2008/08/20 17:29:19 joel Exp $
+ * $Id: cpuIdent.c,v 1.29 2010/04/07 14:18:53 thomas Exp $
  *
  */
 
@@ -35,7 +35,8 @@ ppc_feature_t      current_ppc_features = {
   .has_8_bats = 0,
   .has_epic = 0,
   .has_shadowed_gprs = 0,
-  .has_ivpr_and_ivor = 0
+  .has_ivpr = 0,
+  .has_ivor = 0
 };
 
 char *get_ppc_cpu_type_name(ppc_cpu_id_t cpu)
@@ -62,6 +63,8 @@ char *get_ppc_cpu_type_name(ppc_cpu_id_t cpu)
     case PPC_8245:		return "MPC8245";
     case PPC_8540:		return "MPC8540";
     case PPC_PSIM:		return "PSIM";
+    case PPC_e200z0:		return "e200z0";
+    case PPC_e200z1:		return "e200z1";
     case PPC_e200z6:		return "e200z6";
     default:
       printk("Unknown CPU value of 0x%x. Please add it to "
@@ -70,20 +73,43 @@ char *get_ppc_cpu_type_name(ppc_cpu_id_t cpu)
   return "UNKNOWN";
 }
 
-ppc_cpu_id_t get_ppc_cpu_type()
+ppc_cpu_id_t get_ppc_cpu_type(void)
 {
+  /*
+   * cpu types listed here have the lowermost nibble as a version identifier
+   * we will tweak them to the starndard version
+   */
+  const uint32_t ppc_cpu_id_version_nibble[] = {
+    PPC_e200z6,
+    PPC_e200z0,
+    PPC_e200z1};
+
   unsigned int pvr;
+  int i;
 
   if ( PPC_UNKNOWN != current_ppc_cpu )
   	return current_ppc_cpu;
 
   pvr = (_read_PVR() >> 16);
+  /*
+   * apply tweaks to ignore version
+   */
+  for (i = 0;
+       i < (sizeof(ppc_cpu_id_version_nibble)
+	    /sizeof(ppc_cpu_id_version_nibble[0]));
+       i++) {
+    if ((pvr & 0xfff0) == (ppc_cpu_id_version_nibble[i] & 0xfff0)) {
+      pvr = ppc_cpu_id_version_nibble[i];
+      break;
+    }
+  }
+
   current_ppc_cpu = (ppc_cpu_id_t) pvr;
 
   switch (pvr) {
     case PPC_405:
-	case PPC_405GP:
-	case PPC_405EX:
+    case PPC_405GP:
+    case PPC_405EX:
     case PPC_601:
     case PPC_5XX:
     case PPC_603:
@@ -102,6 +128,8 @@ ppc_cpu_id_t get_ppc_cpu_type()
     case PPC_8245:
     case PPC_PSIM:
     case PPC_8540:
+    case PPC_e200z0:
+    case PPC_e200z1:
     case PPC_e200z6:
     case PPC_e300c1:
     case PPC_e300c2:
@@ -123,6 +151,16 @@ ppc_cpu_id_t get_ppc_cpu_type()
     case PPC_7457:
 		current_ppc_features.has_8_bats			= 1;
     case PPC_7400:
+	/* NOTE: PSIM PVR doesn't tell us anything (its
+     *       contents are not set based on what model
+	 *       the uses chooses but has to be programmed via
+	 *       the device file with the special value 0xfffe
+	 *       telling us that we have a 'psim cpu').
+	 *
+	 *       I'm not sure pagetables work if the user chooses
+	 *       e.g., the 603 model...
+	 */
+	case PPC_PSIM:
 		current_ppc_features.has_altivec		= 1;
 	case PPC_604:
 	case PPC_604e:
@@ -148,6 +186,8 @@ ppc_cpu_id_t get_ppc_cpu_type()
 		current_ppc_features.is_bookE			= PPC_BOOKE_405;
 	break;
   	case PPC_8540:
+  	case PPC_e200z0:
+  	case PPC_e200z1:
   	case PPC_e200z6:
 		current_ppc_features.is_bookE			= PPC_BOOKE_E500;
 	default:
@@ -175,8 +215,14 @@ ppc_cpu_id_t get_ppc_cpu_type()
   }
 
 	switch (current_ppc_cpu) {
+		case PPC_e200z0:
+		case PPC_e200z1:
+			current_ppc_features.has_ivpr = 1;
+			current_ppc_features.has_hwivor = 1;
+			break;
 		case PPC_e200z6:
-			current_ppc_features.has_ivpr_and_ivor = 1;
+			current_ppc_features.has_ivpr = 1;
+			current_ppc_features.has_ivor = 1;
 			break;
 		default:
 			break;
@@ -185,7 +231,7 @@ ppc_cpu_id_t get_ppc_cpu_type()
   return current_ppc_cpu;
 }
 
-ppc_cpu_revision_t get_ppc_cpu_revision()
+ppc_cpu_revision_t get_ppc_cpu_revision(void)
 {
   ppc_cpu_revision_t rev = (ppc_cpu_revision_t) (_read_PVR() & 0xffff);
   current_ppc_revision = rev;

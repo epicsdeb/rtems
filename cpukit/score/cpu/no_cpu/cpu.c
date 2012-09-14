@@ -9,8 +9,12 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.19 2008/07/31 14:55:51 joel Exp $
+ *  $Id: cpu.c,v 1.24 2010/03/27 15:02:26 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
@@ -20,30 +24,15 @@
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *  INPUT PARAMETERS: NONE
  *
  *  NO_CPU Specific Information:
  *
  *  XXX document implementation including references if appropriate
  */
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+
+void _CPU_Initialize(void)
 {
-  /*
-   *  The thread_dispatch argument is the address of the entry point
-   *  for the routine called at the end of an ISR once it has been
-   *  decided a context switch is necessary.  On some compilation
-   *  systems it is difficult to call a high-level language routine
-   *  from assembly.  This allows us to trick these systems.
-   *
-   *  If you encounter this problem save the entry point in a CPU
-   *  dependent variable.
-   */
-
-  _CPU_Thread_dispatch_pointer = thread_dispatch;
-
   /*
    *  If there is not an easy way to initialize the FP context
    *  during Context_Initialize, then it is usually easier to
@@ -62,7 +51,7 @@ void _CPU_Initialize(
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 uint32_t   _CPU_ISR_Get_level( void )
 {
   /*
@@ -80,7 +69,7 @@ uint32_t   _CPU_ISR_Get_level( void )
  *
  *  XXX document implementation including references if appropriate
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -171,7 +160,7 @@ void _CPU_Install_interrupt_stack( void )
  *  XXX document implementation including references if appropriate
  */
 
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
 
   for( ; ; )

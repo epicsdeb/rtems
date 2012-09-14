@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regionmp.c,v 1.19 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: regionmp.c,v 1.21 2009/01/06 05:02:25 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -83,7 +83,7 @@ rtems_status_code _Region_MP_Send_request_packet (
   Region_MP_Remote_operations  operation,
   Objects_Id                   region_id,
   void                        *segment,
-  uint32_t                     size,
+  intptr_t                     size,
   rtems_option                 option_set,
   rtems_interval               timeout
 )
@@ -199,7 +199,7 @@ void _Region_MP_Process_packet (
                   &_Region_Information,
                   the_packet->name,
                   the_packet->Prefix.id,
-                  TRUE
+                  true
                 );
 
       _MPCI_Return_packet( the_packet_prefix );

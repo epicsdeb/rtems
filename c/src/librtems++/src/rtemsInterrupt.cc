@@ -1,6 +1,6 @@
 /*
   ------------------------------------------------------------------------
-  $Id: rtemsInterrupt.cc,v 1.5 2008/08/04 19:24:28 joel Exp $
+  $Id: rtemsInterrupt.cc,v 1.7 2009/11/23 15:29:33 ralf Exp $
   ------------------------------------------------------------------------
 
   COPYRIGHT (c) 1997
@@ -36,7 +36,7 @@ static bool initialised = false;
    rtemsInterrupt
 */
 
-#include <stdlib.h> /* for malloc */
+#include <cstdlib>
 
 rtemsInterrupt::rtemsInterrupt()
   : vector(0),
@@ -75,10 +75,13 @@ const rtems_status_code rtemsInterrupt::isr_catch(const rtems_vector_number vec)
   interrupt_table[vec] = this;
   vector = vec;
   
+#if (CPU_SIMPLE_VECTORED_INTERRUPTS == TRUE)
   set_status_code(rtems_interrupt_catch(redirector,
                                         vector,
                                         &old_handler));
-
+#else
+  set_status_code(RTEMS_NOT_DEFINED);
+#endif
   if (successful())
     caught = true;
   else
@@ -96,10 +99,13 @@ const rtems_status_code rtemsInterrupt::release(void)
 {
   if (caught)
   {
+#if (CPU_SIMPLE_VECTORED_INTERRUPTS == TRUE)
     set_status_code(rtems_interrupt_catch(old_handler,
                                           vector,
                                           &old_handler));
-
+#else
+  set_status_code(RTEMS_NOT_DEFINED);
+#endif
     interrupt_table[vector] = old_interrupt;
     old_interrupt = 0;
     old_handler = 0;

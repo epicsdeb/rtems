@@ -5,7 +5,7 @@
  *
  * See the file "license.txt" for usage and redistribution license requirements
  *
- * $Id: ejparse.c,v 1.4 2004/03/05 18:14:27 joel Exp $
+ * $Id: ejparse.c,v 1.6 2010/03/12 16:26:14 joel Exp $
  */
 
 /******************************** Description *********************************/
@@ -174,26 +174,26 @@ char_t *ejEvalFile(int eid, char_t *path, char_t **emsg)
 		ejError(ep, T("Bad handle %d"), eid);
 		return NULL;
 	}
-	
+
 	if (gstat(path, &sbuf) < 0) {
 		gclose(fd);
 		ejError(ep, T("Cant stat %s"), path);
 		return NULL;
 	}
-	
+
 	if ((fileBuf = balloc(B_L, sbuf.st_size + 1)) == NULL) {
 		gclose(fd);
 		ejError(ep, T("Cant malloc %d"), sbuf.st_size);
 		return NULL;
 	}
-	
+
 	if (gread(fd, fileBuf, sbuf.st_size) != (int)sbuf.st_size) {
 		gclose(fd);
 		bfree(B_L, fileBuf);
 		ejError(ep, T("Error reading %s"), path);
 		return NULL;
 	}
-	
+
 	fileBuf[sbuf.st_size] = '\0';
 	gclose(fd);
 
@@ -292,13 +292,13 @@ char_t *ejEval(int eid, char_t *script, char_t **emsg)
 	int		state;
 	void	*endlessLoopTest;
 	int		loopCounter;
-	
-	
+
+
 	a_assert(script);
 
 	if (emsg) {
 		*emsg = NULL;
-	} 
+	}
 
 	if ((ep = ejPtr(eid)) == NULL) {
 		return NULL;
@@ -1144,7 +1144,7 @@ static int evalCond(ej_t *ep, char_t *lhs, int rel, char_t *rhs)
 	a_assert(rel > 0);
 
 	lval = 0;
-	if (gisdigit((int)*lhs) && gisdigit((int)*rhs)) {
+	if (gisdigit((unsigned char)*lhs) && gisdigit((unsigned char)*rhs)) {
 		l = gatoi(lhs);
 		r = gatoi(rhs);
 		switch (rel) {
@@ -1159,7 +1159,7 @@ static int evalCond(ej_t *ep, char_t *lhs, int rel, char_t *rhs)
 			return -1;
 		}
 	} else {
-		if (!gisdigit((int)*lhs)) {
+		if (!gisdigit((unsigned char)*lhs)) {
 			ejError(ep, T("Conditional must be numeric"), lhs);
 		} else {
 			ejError(ep, T("Conditional must be numeric"), rhs);
@@ -1190,7 +1190,7 @@ static int evalExpr(ej_t *ep, char_t *lhs, int rel, char_t *rhs)
  */
 	numeric = 1;
 	for (cp = lhs; *cp; cp++) {
-		if (!gisdigit((int)*cp)) {
+		if (!gisdigit((unsigned char)*cp)) {
 			numeric = 0;
 			break;
 		}
@@ -1198,7 +1198,7 @@ static int evalExpr(ej_t *ep, char_t *lhs, int rel, char_t *rhs)
 
 	if (numeric) {
 		for (cp = rhs; *cp; cp++) {
-			if (!gisdigit((int)*cp)) {
+			if (!gisdigit((unsigned char)*cp)) {
 				numeric = 0;
 				break;
 			}

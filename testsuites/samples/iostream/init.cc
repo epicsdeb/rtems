@@ -17,21 +17,31 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.cc,v 1.2 2008/02/28 16:44:13 joel Exp $
+ *  $Id: init.cc,v 1.5 2010/06/02 04:38:49 ccj Exp $
  */
 
 #define CONFIGURE_INIT
 #include "system.h"
 
+#if BSP_SMALL_MEMORY
+#include <stdio.h>
+#else
 #include <iostream>
+#endif
+
 #include <stdlib.h>
 
 rtems_task Init(
   rtems_task_argument ignored
 )
 {
+#if BSP_SMALL_MEMORY
+  printf ("NO STDC++. MEMORY TOO SMALL");
+#else
   std::cout << "\n\n*** HELLO WORLD TEST ***" << std::endl;
   std::cout << "Hello World" << std::endl;
   std::cout << "*** END OF HELLO WORLD TEST ***" << std::endl;
+#endif
   exit( 0 );
 }
+

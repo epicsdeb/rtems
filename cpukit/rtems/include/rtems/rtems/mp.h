@@ -12,14 +12,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mp.h,v 1.12 2008/04/18 20:08:07 joel Exp $
+ *  $Id: mp.h,v 1.13 2009/08/05 18:17:12 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_MP_H
 #define _RTEMS_RTEMS_MP_H
 
 /**
- *  @defgroup ClassicMP Classic API Multiprocessing
+ *  @defgroup ClassicMP Multiprocessing
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */

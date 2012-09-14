@@ -5,7 +5,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tm27.h,v 1.2.6.1 2009/03/09 16:26:55 joel Exp $
+ *  $Id: tm27.h,v 1.3 2008/09/30 15:47:34 joel Exp $
  */
 
 #ifndef _RTEMS_TMTEST27

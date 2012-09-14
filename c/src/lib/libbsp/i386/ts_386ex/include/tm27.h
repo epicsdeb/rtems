@@ -5,7 +5,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tm27.h,v 1.2 2004/04/23 04:47:36 ralf Exp $
+ *  $Id: tm27.h,v 1.3 2009/08/06 21:51:50 joel Exp $
  */
 
 #ifndef _RTEMS_TMTEST27
@@ -21,13 +21,10 @@
  *  NOTE: Use a software interrupt for the i386.
  */
 
-#define MUST_WAIT_FOR_INTERRUTPT 0
+#define MUST_WAIT_FOR_INTERRUPT 0
 
-#define Install_tm27_vector(handler) \
-{ \
-  rtems_isr_entry dummy; \
-  rtems_interrupt_catch(handler, 0x90, &dummy); \
-}
+#define Install_tm27_vector(handler)
+
 #define Cause_tm27_intr()              asm volatile( "int $0x90" : : );
 
 #define Clear_tm27_intr() /* empty */

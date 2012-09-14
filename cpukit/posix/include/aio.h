@@ -10,17 +10,17 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: aio.h,v 1.11.2.1 2009/01/02 09:53:09 ralf Exp $
+ *  $Id: aio.h,v 1.12.2.1 2010/08/09 07:37:18 ralf Exp $
  */
 
 #ifndef _AIO_H
 #define _AIO_H
 
+#include <unistd.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <unistd.h>
 
 #if defined(_POSIX_ASYNCHRONOUS_IO)
 
@@ -109,7 +109,7 @@ int aio_error(
  *        P1003.1b-1993, p. 162
  */
 
-int aio_return(
+ssize_t aio_return(
   const struct aiocb  *aiocbp
 );
 

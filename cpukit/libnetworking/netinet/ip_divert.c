@@ -30,8 +30,12 @@
  */
 
 /*
- *	$Id: ip_divert.c,v 1.6 2008/08/01 05:07:41 ralf Exp $
+ *	$Id: ip_divert.c,v 1.10 2010/03/28 05:47:48 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
@@ -40,7 +44,7 @@
 #include <sys/socket.h>
 #include <sys/protosw.h>
 #include <sys/socketvar.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/systm.h>
 
 #include <net/if.h>
@@ -88,7 +92,7 @@ static u_long	div_sendspace = DIVSNDQ;	/* XXX sysctl ? */
 static u_long	div_recvspace = DIVRCVQ;	/* XXX sysctl ? */
 
 /* Optimization: have this preinitialized */
-static struct sockaddr_in divsrc = { sizeof(divsrc), AF_INET };
+static struct sockaddr_in divsrc = { sizeof(divsrc), AF_INET, 0, { 0 }, { 0 } };
 
 /* Internal functions */
 

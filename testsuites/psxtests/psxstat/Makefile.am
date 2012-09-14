@@ -1,11 +1,11 @@
 ##
-## $Id: Makefile.am,v 1.23 2006/07/11 04:50:25 ralf Exp $
+## $Id: Makefile.am,v 1.24 2009/04/03 12:44:41 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = psxstat.exe
-psxstat_exe_SOURCES = main.c test.c ../include/pmacros.h
+rtems_tests_PROGRAMS = psxstat
+psxstat_SOURCES = main.c test.c ../include/pmacros.h
 
 dist_rtems_tests_DATA = psxstat.scn
 
@@ -13,16 +13,16 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-psxstat_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+psxstat_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
 AM_CPPFLAGS += -I$(top_srcdir)/include
 AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(psxstat_exe_OBJECTS) $(psxstat_exe_LDADD)
-LINK_LIBS = $(psxstat_exe_LDLIBS)
+LINK_OBJS = $(psxstat_OBJECTS) $(psxstat_LDADD)
+LINK_LIBS = $(psxstat_LDLIBS)
 
-psxstat.exe$(EXEEXT): $(psxstat_exe_OBJECTS) $(psxstat_exe_DEPENDENCIES)
-	@rm -f psxstat.exe$(EXEEXT)
+psxstat$(EXEEXT): $(psxstat_OBJECTS) $(psxstat_DEPENDENCIES)
+	@rm -f psxstat$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

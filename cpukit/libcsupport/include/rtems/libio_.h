@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio_.h,v 1.28.2.1 2009/06/03 03:40:06 ralf Exp $
+ *  $Id: libio_.h,v 1.34.2.4 2011/07/31 14:12:29 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_LIBIO__H
@@ -37,7 +37,7 @@ extern "C" {
 #define RTEMS_LIBIO_IOP_SEM(n)  rtems_build_name('L', 'B', 'I', n)
 
 extern rtems_id                          rtems_libio_semaphore;
-extern rtems_filesystem_file_handlers_r  rtems_filesystem_null_handlers;
+extern const rtems_filesystem_file_handlers_r rtems_filesystem_null_handlers;
 
 /*
  *  File descriptor Table Information
@@ -90,7 +90,7 @@ extern rtems_libio_t *rtems_libio_iop_freelist;
 
 #define rtems_libio_check_fd(_fd) \
   do {                                                     \
-      if ((uint32_t) (_fd) >= rtems_libio_number_iops) { \
+      if ((uint32_t) (_fd) >= rtems_libio_number_iops) {   \
           errno = EBADF;                                   \
           return -1;                                       \
       }                                                    \
@@ -124,18 +124,29 @@ extern rtems_libio_t *rtems_libio_iop_freelist;
   } while (0)
 
 /*
+ *  rtems_libio_check_permissions_with_error
+ *
+ *  Macro to check if a file descriptor is open for this operation.
+ *  On failure, return the user specified error.
+ */
+
+#define rtems_libio_check_permissions_with_error(_iop, _flag, _errno) \
+  do {                                                      \
+      if (((_iop)->flags & (_flag)) == 0) {                 \
+            rtems_set_errno_and_return_minus_one( _errno ); \
+            return -1;                                      \
+      }                                                     \
+  } while (0)
+
+/*
  *  rtems_libio_check_permissions
  *
  *  Macro to check if a file descriptor is open for this operation.
+ *  On failure, return EINVAL
  */
 
-#define rtems_libio_check_permissions(_iop, _flag)    \
-  do {                                                \
-      if (((_iop)->flags & (_flag)) == 0) {           \
-            rtems_set_errno_and_return_minus_one( EINVAL ); \
-            return -1;                                \
-      }                                               \
-  } while (0)
+#define rtems_libio_check_permissions(_iop, _flag) \
+   rtems_libio_check_permissions_with_error(_iop, _flag, EINVAL )
 
 /*
  *  rtems_filesystem_freenode
@@ -148,44 +159,6 @@ extern rtems_libio_t *rtems_libio_iop_freelist;
     if ( (_node)->ops )\
       if ( (_node)->ops->freenod_h ) \
         (*(_node)->ops->freenod_h)( (_node) ); \
-  } while (0)
-
-/*
- *  rtems_filesystem_is_separator
- *
- *  Macro to determine if a character is a path name separator.
- *
- *  NOTE:  This macro handles MS-DOS and UNIX style names.
- */
-
-#define rtems_filesystem_is_separator( _ch ) \
-   ( ((_ch) == '/') || ((_ch) == '\\') || ((_ch) == '\0'))
-
-/*
- *  rtems_filesystem_get_start_loc
- *
- *  Macro to determine if path is absolute or relative.
- */
-
-#define rtems_filesystem_get_start_loc( _path, _index, _loc )  \
-  do {                                                         \
-    if ( rtems_filesystem_is_separator( (_path)[ 0 ] ) ) {     \
-      *(_loc) = rtems_filesystem_root;                         \
-      *(_index) = 1;                                           \
-    } else {                                                   \
-      *(_loc) = rtems_filesystem_current;                      \
-      *(_index) = 0;                                           \
-    }                                                          \
-  } while (0)
-
-#define rtems_filesystem_get_sym_start_loc( _path, _index, _loc )  \
-  do {                                                         \
-    if ( rtems_filesystem_is_separator( (_path)[ 0 ] ) ) {     \
-      *(_loc) = rtems_filesystem_root;                         \
-      *(_index) = 1;                                           \
-    } else {                                                   \
-      *(_index) = 0;                                           \
-    }                                                          \
   } while (0)
 
 
@@ -203,6 +176,16 @@ extern rtems_user_env_t   rtems_global_user_env;
 
 rtems_status_code rtems_libio_set_private_env(void);
 rtems_status_code rtems_libio_share_private_env(rtems_id task_id) ;
+
+static inline void rtems_libio_lock( void )
+{
+  rtems_semaphore_obtain( rtems_libio_semaphore, RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+}
+
+static inline void rtems_libio_unlock( void )
+{
+  rtems_semaphore_release( rtems_libio_semaphore );
+}
 
 /*
  *  File Descriptor Routine Prototypes
@@ -234,21 +217,44 @@ int rtems_libio_is_file_open(
  *  File System Routine Prototypes
  */
 
-int rtems_filesystem_evaluate_path(
+int rtems_filesystem_evaluate_relative_path(
   const char                        *pathname,
+  size_t                             pathnamelen,
   int                                flags,
   rtems_filesystem_location_info_t  *pathloc,
   int                                follow_link
 );
 
-int rtems_filesystem_evaluate_parent(
+int rtems_filesystem_evaluate_path(
+  const char                        *pathname,
+  size_t                             pathnamelen,
   int                                flags,
-  rtems_filesystem_location_info_t  *pathloc
+  rtems_filesystem_location_info_t  *pathloc,
+  int                                follow_link
+);
+
+int rtems_filesystem_dirname(
+  const char  *pathname
+);
+
+int rtems_filesystem_prefix_separators(
+  const char  *pathname,
+  int          pathnamelen
 );
 
 void rtems_filesystem_initialize(void);
 
 int init_fs_mount_table(void);
+
+int rtems_filesystem_is_separator(char ch);
+
+void rtems_filesystem_get_start_loc(const char *path,
+				    int *index,
+				    rtems_filesystem_location_info_t *loc);
+
+void rtems_filesystem_get_sym_start_loc(const char *path,
+					int *index,
+					rtems_filesystem_location_info_t *loc);
 
 #ifdef __cplusplus
 }

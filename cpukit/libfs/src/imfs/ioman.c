@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ioman.c,v 1.16 2008/09/04 08:33:06 ralf Exp $
+ *  $Id: ioman.c,v 1.18 2009/10/14 16:09:11 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -29,10 +29,6 @@
 #include <rtems/seterr.h>
 #include "imfs.h"
 
-#if defined(__linux__)
-#define S_IFCHR __S_IFCHR
-#endif
-
 /*
  *  rtems_io_register_name
  *
@@ -45,7 +41,6 @@ rtems_status_code rtems_io_register_name(
   rtems_device_minor_number  minor
 )
 {
-#if !defined(RTEMS_UNIX)
   int    status;
   dev_t  dev;
 
@@ -56,7 +51,6 @@ rtems_status_code rtems_io_register_name(
   if ( status )
     return RTEMS_TOO_MANY;
 
-#endif
   return RTEMS_SUCCESSFUL;
 }
 
@@ -74,13 +68,12 @@ rtems_status_code rtems_io_lookup_name(
   rtems_driver_name_t  *device_info
 )
 {
-#if !defined(RTEMS_UNIX)
   IMFS_jnode_t                      *the_jnode;
   rtems_filesystem_location_info_t   loc;
   int                                result;
   rtems_filesystem_node_types_t      node_type;
 
-  result = rtems_filesystem_evaluate_path( name, 0x00, &loc, true );
+  result = rtems_filesystem_evaluate_path( name, strlen( name ), 0x00, &loc, true );
   the_jnode = loc.node_access;
 
   if ( !loc.ops->node_type_h ) {
@@ -102,6 +95,5 @@ rtems_status_code rtems_io_lookup_name(
 
   rtems_filesystem_freenode( &loc );
 
-#endif
   return RTEMS_SUCCESSFUL;
 }

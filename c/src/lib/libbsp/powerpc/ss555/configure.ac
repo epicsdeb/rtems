@@ -1,17 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.9 2006/12/02 05:59:47 ralf Exp $
+##
+## $Id: configure.ac,v 1.15.2.1 2011/02/02 15:16:56 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-mbx5xx],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -19,7 +19,7 @@ RTEMS_CHECK_NETWORKING
 AM_CONDITIONAL(HAS_NETWORKING,test "$HAS_NETWORKING" = "yes")
 
 RTEMS_BSPOPTS_SET([WATCHDOG_TIMEOUT],[*],[0xFFFF])
-RTEMS_BSPOPTS_HELP([WATCHDOG_TIMEOUT], 
+RTEMS_BSPOPTS_HELP([WATCHDOG_TIMEOUT],
 [Define to the desired timeout (in steps of 1/20 msec) to enable the
  watchdog.  Default is to disable the watchdog entirely.])
 
@@ -44,7 +44,9 @@ RTEMS_BSPOPTS_HELP([PRINTK_MINOR],
  I/O.  Don't open the printk port from RTEMS unless also using polled I/O
  for the SCI ports.])
 
-# Explicitly list a Makefile here 
+RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
+
+# Explicitly list a Makefile here
 AC_CONFIG_FILES([Makefile])
 
 RTEMS_PPC_EXCEPTIONS

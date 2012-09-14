@@ -23,7 +23,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: types.h,v 1.12.2.1 2008/09/18 03:01:48 ralf Exp $
+ *  $Id: types.h,v 1.14 2008/12/11 00:45:34 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_TYPES_H
@@ -32,7 +32,7 @@
 #ifndef ASM
 
 #include <stdbool.h>
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,15 +13,15 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: clockdrv.c,v 1.6 2007/12/11 15:46:05 joel Exp $
+ *  $Id: clockdrv.c,v 1.9 2010/04/30 13:15:49 sh Exp $
 */
 #include <rtems.h>
 #include <bsp.h>
-#include <irq.h>
+#include <bsp/irq.h>
 #include <mc9328mxl.h>
 #include <rtems/bspIo.h>  /* for printk */
 
-/* this is defined in ../../../shared/clockdrv_shell.c */
+/* this is defined in ../../../shared/clockdrv_shell.h */
 rtems_isr Clock_isr(rtems_vector_number vector);
 static void clock_isr_on(const rtems_irq_connect_data *unused);
 static void clock_isr_off(const rtems_irq_connect_data *unused);
@@ -37,12 +37,12 @@ rtems_irq_connect_data clock_isr_data = {
     .isOn   = clock_isr_is_on,
 };
 
-/* If you follow the code, this is never used, so any value 
+/* If you follow the code, this is never used, so any value
  * should work
  */
 #define CLOCK_VECTOR 0
 
-    
+
 /**
  * When we get the clock interrupt
  *    - clear the interrupt bit?
@@ -72,9 +72,9 @@ rtems_irq_connect_data clock_isr_data = {
  *   - enable it
  *   - clear any pending interrupts
  *
- * Since you may want the clock always running, you can 
+ * Since you may want the clock always running, you can
  * enable interrupts here. If you do so, the clock_isr_on(),
- * clock_isr_off(), and clock_isr_is_on() functions can be 
+ * clock_isr_off(), and clock_isr_is_on() functions can be
  * NOPs.
  */
 #define Clock_driver_support_initialize_hardware() \
@@ -95,7 +95,7 @@ rtems_irq_connect_data clock_isr_data = {
      } while (0)
 
 /**
- * Do whatever you need to shut the clock down and remove the 
+ * Do whatever you need to shut the clock down and remove the
  * interrupt handler. Since this normally only gets called on
  * RTEMS shutdown, you may not need to do anything other than
  * remove the ISR.
@@ -145,4 +145,4 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq)
 
 
 /* Make sure to include this, and only at the end of the file */
-#include "../../../../libbsp/shared/clockdrv_shell.c"
+#include "../../../../libbsp/shared/clockdrv_shell.h"

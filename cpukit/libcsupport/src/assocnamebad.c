@@ -2,7 +2,7 @@
  * assoc.c
  *      rtems assoc routines
  *
- *  $Id: assocnamebad.c,v 1.7 2008/09/05 21:35:04 joel Exp $
+ *  $Id: assocnamebad.c,v 1.8 2009/09/15 09:29:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,7 +22,11 @@
 
 const char *
 rtems_assoc_name_bad(
+#ifdef RTEMS_DEBUG
     uint32_t   bad_value
+#else
+    uint32_t   bad_value __attribute((unused))
+#endif
 )
 {
 #ifdef RTEMS_DEBUG

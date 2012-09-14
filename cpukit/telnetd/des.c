@@ -58,6 +58,10 @@
  *	alignment).
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define __FORCE_GLIBC
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -71,33 +75,39 @@
 #include <stdlib.h>
 
 #define REENTRANT
-/* Re-entrantify me -- all this junk needs to be in 
+/* Re-entrantify me -- all this junk needs to be in
  * struct crypt_data to make this really reentrant... */
 
 /* TS; not really - only the stuff in Des_Context */
-static struct fixed {
+static struct fixed1 {
 u_char	inv_key_perm[64];
 u_char	inv_comp_perm[56];
 u_char	u_sbox[8][64];
 u_char	un_pbox[32];
+} des1_f;
+static struct fixed2 {
 u_int32_t ip_maskl[8][256], ip_maskr[8][256];
+} des2_f;
+static struct fixed3 {
 u_int32_t fp_maskl[8][256], fp_maskr[8][256];
+} des3_f;
+static struct fixed4 {
 u_int32_t key_perm_maskl[8][128], key_perm_maskr[8][128];
 u_int32_t comp_maskl[8][128], comp_maskr[8][128];
-} des_f;
+} des4_f;
 
-#define	inv_key_perm des_f.inv_key_perm
-#define	inv_comp_perm des_f.inv_comp_perm
-#define	u_sbox des_f.u_sbox
-#define	un_pbox des_f.un_pbox
-#define ip_maskl des_f.ip_maskl
-#define ip_maskr des_f.ip_maskr
-#define fp_maskl des_f.fp_maskl
-#define fp_maskr des_f.fp_maskr
-#define key_perm_maskl des_f.key_perm_maskl
-#define key_perm_maskr des_f.key_perm_maskr
-#define comp_maskl des_f.comp_maskl
-#define comp_maskr des_f.comp_maskr
+#define	inv_key_perm des1_f.inv_key_perm
+#define	inv_comp_perm des1_f.inv_comp_perm
+#define	u_sbox des1_f.u_sbox
+#define	un_pbox des1_f.un_pbox
+#define ip_maskl des2_f.ip_maskl
+#define ip_maskr des2_f.ip_maskr
+#define fp_maskl des3_f.fp_maskl
+#define fp_maskr des3_f.fp_maskr
+#define key_perm_maskl des4_f.key_perm_maskl
+#define key_perm_maskr des4_f.key_perm_maskr
+#define comp_maskl des4_f.comp_maskl
+#define comp_maskr des4_f.comp_maskr
 
 /* These need to be maintained per-process */
 struct Des_Context {
@@ -121,8 +131,8 @@ static struct Des_Context single;
 #define old_rawkey0 des_ctx->old_rawkey0
 #define old_rawkey1 des_ctx->old_rawkey1
 
-/* Static stuff that stays resident and doesn't change after 
- * being initialized, and therefore doesn't need to be made 
+/* Static stuff that stays resident and doesn't change after
+ * being initialized, and therefore doesn't need to be made
  * reentrant. */
 static u_char	init_perm[64], final_perm[64];
 static u_char	m_sbox[4][4096];
@@ -235,7 +245,7 @@ static const u_char	bits8[8] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 
 static const u_int32_t *bits28, *bits24;
 
 
-static int 
+static int
 ascii_to_bin(char ch)
 {
   if (ch > 'z')
@@ -767,7 +777,7 @@ __des_crypt_r(const char *key, const char *setting, char *output, int sz)
      */
     output[9] = '\0';
     p = (u_char *)output + strlen(output);
-  } else 
+  } else
 #endif
   {
     /*
@@ -837,8 +847,16 @@ __des_crypt(const char *key, const char *setting)
 void
 des_snap(void **pf, void **pd)
 {
-  *pf = malloc(sizeof(struct fixed));
-  memcpy(*pf, &des_f, sizeof(des_f));
+  uint8* pfc;
+  *pf = malloc(sizeof(struct fixed1) + sizeof(struct fixed2) + sizeof(struct fixed3) + sizeof(struct fixed4));
+  pfc = *pf;
+  memcpy(pfc, &des1_f, sizeof(des1_f));
+  pfc += sizeof(des1_f);
+  memcpy(pfc, &des2_f, sizeof(des2_f));
+  pfc += sizeof(des2_f);
+  memcpy(pfc, &des3_f, sizeof(des3_f));
+  pfc += sizeof(des3_f);
+  memcpy(pfc, &des4_f, sizeof(des4_f));
 //	*pd = malloc(sizeof(struct Des_Context));
 //	memcpy(*pd, &des_ctx, sizeof(des_ctx));
 }
@@ -846,10 +864,16 @@ des_snap(void **pf, void **pd)
 void
 des_check(void *pf, void *pd)
 {
+  uint8* pfc1, pfc2, pfc3, pfc4;
+  pfc1 = pf;
+  pfc2 = pfc1 + sizeof(des1_f);
+  pfc3 = pfc2 + sizeof(des2_f);
+  pfc4 = pfc3 + sizeof(des3_f);
   printf("Fixed: do%s differ"/*", Context: do%s differ"*/"\n",
-      memcmp(pf, &des_f, sizeof(des_f)) ? "" : "nt"
-//			,memcmp(pd, &des_ctx, sizeof(des_ctx)) ? "" : "nt"
-      );
+         (memcmp(pfc1, &des1_f, sizeof(des1_f)) ||
+          memcmp(pfc2, &des2_f, sizeof(des2_f)) ||
+          memcmp(pfc3, &des4_f, sizeof(des3_f)) ||
+          memcmp(pfc4, &des4_f, sizeof(des4_f))) ? "" : "nt");
 }
 
 #endif

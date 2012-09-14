@@ -2,14 +2,14 @@
  *  Timer Manager
  *
  *
- *  COPYRIGHT (c) 1989-2002.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtemstimer.c,v 1.22.6.1 2008/12/03 21:01:08 joel Exp $
+ *  $Id: rtemstimer.c,v 1.26 2009/11/30 09:08:35 thomas Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -17,6 +17,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/support.h>
 #include <rtems/score/object.h>
@@ -31,36 +32,33 @@
  *
  *  This routine initializes all timer manager related data structures.
  *
- *  Input parameters:
- *    maximum_timers - number of timers to initialize
+ *  Input parameters: NONE
  *
  *  Output parameters:  NONE
  */
 
-void _Timer_Manager_initialization(
-  uint32_t   maximum_timers
-)
+void _Timer_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_Timer_Information,       /* object information table */
     OBJECTS_CLASSIC_API,       /* object API */
     OBJECTS_RTEMS_TIMERS,      /* object class */
-    maximum_timers,            /* maximum objects of this class */
+    Configuration_RTEMS_API.maximum_timers ,
+                               /* maximum objects of this class */
     sizeof( Timer_Control ),   /* size of this object's control block */
-    FALSE,                     /* TRUE if the name is a string */
+    false,                     /* true if the name is a string */
     RTEMS_MAXIMUM_NAME_LENGTH  /* maximum length of an object name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                     /* TRUE if this is a global object class */
+    false,                     /* true if this is a global object class */
     NULL                       /* Proxy extraction support callout */
 #endif
   );
 
   /*
-   *  Initialize the pointer to the Timer Server TCB to NULL indicating
-   *  that task-based timer support is not initialized.
+   *  Initialize the pointer to the default timer server control block to NULL
+   *  indicating that task-based timer support is not initialized.
    */
 
-  _Timer_Server = NULL;
-  _Timer_Server_schedule_operation = NULL;
+  _Timer_server = NULL;
 }

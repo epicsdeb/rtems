@@ -20,7 +20,7 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@skatter.usask.ca
  *
- *  $Id: start.S,v 1.10 2004/04/02 11:19:39 ralf Exp $
+ *  $Id: start.S,v 1.12 2009/04/28 06:25:48 ccj Exp $
  */
 
 #include <rtems/asm.h>
@@ -392,12 +392,8 @@ ZEROLOOPTEST:
 	cmpl	a1,a0			| Done?
 	bcs.s	ZEROLOOP		| No, skip
 
-	movel	4(a7),_M68k_Ramsize	| Set RAM size
-
 	movel	#_stack_init,a7		| set master stack pointer
-	pea	env			| envp
-	pea	arg			| argv
-	movel	d0,a7@-			| argc
+	movel	d0,a7@-			| command line
 	jsr	boot_card		| Call C main
 
 	PUBLIC (_mainDone)
@@ -415,15 +411,10 @@ BEGIN_DATA_DCL
         .align 2
 	PUBLIC (environ)
 environ:
-	.long	env
+	.long	0
 	PUBLIC (_M68kSpuriousInterruptCount)
 _M68kSpuriousInterruptCount:
 	.long	0
 END_DATA_DCL
-
-BEGIN_BSS
-env:	.long	0
-arg:	.long	0
-END_BSS
 
 END

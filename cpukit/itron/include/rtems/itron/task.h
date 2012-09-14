@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task.h,v 1.12 2008/08/18 19:18:52 joel Exp $
+ *  $Id: task.h,v 1.14 2009/11/29 13:35:32 ralf Exp $
  */
 
 #ifndef _RTEMS_ITRON_TASK_H
@@ -56,18 +56,10 @@ typedef struct {
 
 ITRON_EXTERN Objects_Information _ITRON_Task_Information;
 
-/*
- *  These are used to manage the user initialization tasks.
- */
-
-ITRON_EXTERN itron_initialization_tasks_table
-               *_ITRON_Task_User_initialization_tasks;
-ITRON_EXTERN uint32_t     _ITRON_Task_Number_of_initialization_tasks;
-
 /**
  *  When the user configures a set of ITRON API initialization tasks,
  *  This variable will point to the method used to initialize them.
- *  
+ *
  *  @note It is instantiated and initialized by confdefs.h based upon
  *        application requirements.
  */
@@ -79,11 +71,7 @@ extern void (*_ITRON_Initialize_user_tasks_p)(void);
  *  This routine initializes the ITRON Task Manager.
  */
 
-void _ITRON_Task_Manager_initialization(
-  uint32_t                          maximum_tasks,
-  uint32_t                          number_of_initialization_tasks,
-  itron_initialization_tasks_table *user_tasks
-);
+void _ITRON_Task_Manager_initialization(void);
 
 /*
  * Return a status code and enable dispatching

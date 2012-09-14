@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semaphorenametoid.c,v 1.12 2008/01/31 16:15:34 joel Exp $
+ *  $Id: semaphorenametoid.c,v 1.13 2009/01/05 20:26:01 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -36,11 +36,12 @@
  */
 
 int _POSIX_Semaphore_Name_to_id(
-  const char          *name,
+  const char     *name,
   sem_t          *id
 )
 {
   Objects_Name_or_id_lookup_errors  status;
+  Objects_Id                        the_id;
 
    if ( !name )
      return EINVAL;
@@ -49,7 +50,11 @@ int _POSIX_Semaphore_Name_to_id(
     return EINVAL;
 
   status = _Objects_Name_to_id_string(
-    &_POSIX_Semaphore_Information, name, (Objects_Id*)id );
+    &_POSIX_Semaphore_Information,
+    name,
+    &the_id
+  );
+  *id = the_id;
 
   if ( status == OBJECTS_NAME_OR_ID_LOOKUP_SUCCESSFUL )
     return 0;

@@ -1,5 +1,5 @@
 /*
- *  $Id: start.S,v 1.9 2004/04/21 16:01:36 ralf Exp $
+ *  $Id: start.S,v 1.10 2009/04/28 06:25:48 ccj Exp $
  *
  *  Re-written the gen68302 start-up code.
  *
@@ -381,8 +381,6 @@ zerobss_loop:
         movel   %d0,%a7                         | set master stack pointer
         movel   %d0,%a6                         | set base pointer
 
-	pea	env				| push environp
-	pea	arg				| push argv
 	movel	#0,%a7@-			| push argc
         jsr     boot_card
 	| if this returns, what do we do???
@@ -403,11 +401,8 @@ bsp_exitted:
 
         .sect   .bss
 
-env: .long  0
-arg: .long  0
-
         .global environ
         .align  2
 
 environ:
-        .long   env
+        .long   0

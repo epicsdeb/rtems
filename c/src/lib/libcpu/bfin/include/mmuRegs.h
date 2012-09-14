@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mmuRegs.h,v 1.1 2008/08/15 20:18:41 joel Exp $
+ *  $Id: mmuRegs.h,v 1.2 2009/05/27 11:57:33 joel Exp $
  */
 
 #ifndef _mmuRegs_h_
@@ -50,8 +50,8 @@
 #define ICPLB_DATA_CPLB_L1_CHBL                   0x00001000
 #define ICPLB_DATA_CPLB_LRUPRIO                   0x00000100
 #define ICPLB_DATA_CPLB_USER_RD                   0x00000004
-#define ICPLB_DATA_CPLB_CPLB_LOCK                 0x00000002
-#define ICPLB_DATA_CPLB_CPLB_VALID                0x00000001
+#define ICPLB_DATA_CPLB_LOCK                      0x00000002
+#define ICPLB_DATA_CPLB_VALID                     0x00000001
 
 #endif /* _mmuRegs_h_ */
 

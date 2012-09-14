@@ -12,7 +12,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: polled_io.c,v 1.13 2007/09/07 16:15:27 joel Exp $
+ * $Id: polled_io.c,v 1.15 2010/04/28 18:51:58 joel Exp $
  */
 
 #include <rtems/system.h>
@@ -40,7 +40,7 @@
 #include "console.inl"
 
 #ifdef __BOOT__
-extern void boot_udelay();
+extern void boot_udelay(uint32_t   _microseconds);
 void * __palloc(u_long);
 void  pfree(void *);
 #else
@@ -1094,7 +1094,7 @@ int k_vsprintf(char *buf, const char *fmt, va_list args)
 					n = (short) n;
 				else
 				  	n = (unsigned short) n;
-			} else if (! flags & LONG) {
+			} else if (!(flags & LONG)) {
 				/* Here the compiler correctly removes this
 				 * do nothing code on 32 bit PPC.
 				 */

@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.77 2008/07/11 10:07:00 thomas Exp $
+## $Id: Makefile.am,v 1.94.2.2 2010/07/01 14:51:13 sh Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I aclocal
@@ -25,6 +25,7 @@ SUBDIRS += ftpd
 SUBDIRS += telnetd
 SUBDIRS += pppd
 SUBDIRS += shttpd
+SUBDIRS += mghttpd
 
 noinst_DATA = preinstall-stamp
 preinstall-stamp:
@@ -44,18 +45,25 @@ include_rtems_bsd_sysdir = $(include_rtemsdir)/bsd/sys
 include_rtems_bsd_sys_HEADERS = include/rtems/bsd/sys/queue.h
 include_rtems_bsd_sys_HEADERS += include/rtems/bsd/sys/cdefs.h
 
+include_uuiddir = $(includedir)/uuid
+include_uuid_HEADERS = libmisc/uuid/uuid.h
+
 if NEWLIB
 include_sysdir = $(includedir)/sys
 include_sys_HEADERS =
 
-include_HEADERS += libnetworking/memory.h
-
-include_HEADERS += libcsupport/include/tar.h
+include_HEADERS += libnetworking/memory.h \
+    libmd/md4.h \
+    libmd/md5.h
 
 include_sys_HEADERS += libcsupport/include/sys/ioccom.h \
     libcsupport/include/sys/filio.h libcsupport/include/sys/ioctl.h \
-    libcsupport/include/sys/sockio.h libcsupport/include/sys/ttycom.h \
-    libcsupport/include/sys/termios.h libcsupport/include/sys/utsname.h
+    libcsupport/include/sys/statvfs.h libcsupport/include/sys/sockio.h \
+    libcsupport/include/sys/ttycom.h libcsupport/include/sys/termios.h \
+    libcsupport/include/sys/utsname.h
+
+include_sys_HEADERS += libnetworking/sys/uio.h
+include_sys_HEADERS += include/sys/priority.h
 
 if LIBNETWORKING
 include_rtems_bsdnetdir = $(includedir)/rtems/bsdnet
@@ -65,8 +73,8 @@ endif
 endif
 
 include_rtems_HEADERS += include/rtems/bspIo.h include/rtems/userenv.h \
-    include/rtems/fs.h include/rtems/pci.h include/rtems/stdint.h \
-    include/rtems/concat.h include/rtems/tar.h \
+    include/rtems/fs.h include/rtems/pci.h \
+    include/rtems/concat.h \
     include/rtems/status-checks.h
 
 include_rtems_HEADERS += include/rtems/endian.h
@@ -79,23 +87,54 @@ include_rtems_HEADERS += include/rtems/irq-extension.h
 ## libfs
 include_rtems_HEADERS += libfs/src/imfs/imfs.h
 
+## POSIX FIFO/pipe
+include_rtems_HEADERS += libfs/src/pipe/pipe.h
+
+## devfs
+include_rtems_HEADERS += libfs/src/devfs/devfs.h
+
 if LIBDOSFS
 include_rtems_HEADERS += libfs/src/dosfs/dosfs.h
 endif
 
+# RFS
+include_rtems_HEADERS += \
+   libfs/src/rfs/rtems-rfs.h \
+   libfs/src/rfs/rtems-rfs-format.h \
+   libfs/src/rfs/rtems-rfs-shell.h
+include_rtems_rfsdir = $(include_rtemsdir)/rfs
+include_rtems_rfs_HEADERS = \
+   libfs/src/rfs/rtems-rfs-bitmaps.h \
+   libfs/src/rfs/rtems-rfs-block-pos.h \
+   libfs/src/rfs/rtems-rfs-block.h \
+   libfs/src/rfs/rtems-rfs-buffer.h \
+   libfs/src/rfs/rtems-rfs-data.h \
+   libfs/src/rfs/rtems-rfs-dir.h \
+   libfs/src/rfs/rtems-rfs-dir-hash.h \
+   libfs/src/rfs/rtems-rfs-file.h \
+   libfs/src/rfs/rtems-rfs-file-system-fwd.h \
+   libfs/src/rfs/rtems-rfs-file-system.h \
+   libfs/src/rfs/rtems-rfs-group.h \
+   libfs/src/rfs/rtems-rfs-inode.h \
+   libfs/src/rfs/rtems-rfs-link.h \
+   libfs/src/rfs/rtems-rfs-mutex.h \
+   libfs/src/rfs/rtems-rfs-trace.h
+
 ## libblock
-if !UNIX
 include_rtems_HEADERS += libblock/include/rtems/bdbuf.h \
     libblock/include/rtems/blkdev.h libblock/include/rtems/diskdevs.h \
     libblock/include/rtems/flashdisk.h libblock/include/rtems/ramdisk.h \
     libblock/include/rtems/nvdisk.h libblock/include/rtems/nvdisk-sram.h \
-    libblock/include/rtems/ide_part_table.h
-endif
+    libblock/include/rtems/ide_part_table.h \
+    libblock/include/rtems/bdpart.h
 
 ## ftpd
 if LIBNETWORKING
 include_rtems_HEADERS += ftpd/ftpd.h
 endif
+
+## bspcmdline
+include_rtems_HEADERS += libmisc/bspcmdline/bspcmdline.h
 
 ## capture
 include_rtems_HEADERS += libmisc/capture/capture.h \
@@ -113,13 +152,16 @@ include_rtems_HEADERS += libmisc/dumpbuf/dumpbuf.h
 ## monitor
 include_rtems_HEADERS += libmisc/monitor/monitor.h
 
-## mw-fb
-include_rtems_HEADERS += libmisc/mw-fb/mw_fb.h libmisc/mw-fb/mw_uid.h
+## fb
+include_rtems_HEADERS += libmisc/fb/fb.h libmisc/fb/mw_uid.h
 
 ## shell
 if LIBSHELL
 include_rtems_HEADERS += libmisc/shell/shell.h libmisc/shell/shellconfig.h
 endif
+
+## stringto
+include_rtems_HEADERS += libmisc/stringto/stringto.h
 
 ## i2c
 include_rtems_HEADERS += libi2c/libi2c.h

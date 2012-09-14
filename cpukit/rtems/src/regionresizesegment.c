@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regionresizesegment.c,v 1.3 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regionresizesegment.c,v 1.12 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -44,16 +44,16 @@
  */
 
 rtems_status_code rtems_region_resize_segment(
-  Objects_Id  id,
+  rtems_id    id,
   void       *segment,
-  size_t      size,
-  size_t     *old_size
+  uintptr_t   size,
+  uintptr_t  *old_size
 )
 {
-  uint32_t                 avail_size;
+  uintptr_t                avail_size;
   Objects_Locations        location;
-  uint32_t                 osize;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
+  uintptr_t                osize;
+  rtems_status_code        return_status;
   Heap_Resize_status       status;
   register Region_Control *the_region;
 
@@ -80,15 +80,17 @@ rtems_status_code rtems_region_resize_segment(
 
         _Region_Debug_Walk( the_region, 8 );
 
-        if ( status == HEAP_RESIZE_SUCCESSFUL && avail_size > 0 )
+        if ( status == HEAP_RESIZE_SUCCESSFUL )
           _Region_Process_queue( the_region );    /* unlocks allocator */
         else
           _RTEMS_Unlock_allocator();
 
-        return
-          (status == HEAP_RESIZE_SUCCESSFUL) ?  RTEMS_SUCCESSFUL :
-          (status == HEAP_RESIZE_UNSATISFIED) ? RTEMS_UNSATISFIED :
-          RTEMS_INVALID_ADDRESS;
+
+        if (status == HEAP_RESIZE_SUCCESSFUL)
+          return RTEMS_SUCCESSFUL;
+        if (status == HEAP_RESIZE_UNSATISFIED)
+          return RTEMS_UNSATISFIED;
+        return RTEMS_INVALID_ADDRESS;
         break;
 
 #if defined(RTEMS_MULTIPROCESSING)
@@ -97,6 +99,7 @@ rtems_status_code rtems_region_resize_segment(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

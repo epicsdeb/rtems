@@ -1,11 +1,11 @@
 ##
-##  $Id: Makefile.am,v 1.17 2007/05/11 19:45:50 joel Exp $
+##  $Id: Makefile.am,v 1.18 2009/04/03 12:42:12 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = loopback.exe
-loopback_exe_SOURCES = init.c
+rtems_tests_PROGRAMS = loopback
+loopback_SOURCES = init.c
 
 dist_rtems_tests_DATA = loopback.scn
 
@@ -13,13 +13,13 @@ include $(RTEMS_ROOT)/make/custom/@RTEMS_BSP@.cfg
 include $(top_srcdir)/../automake/compile.am
 include $(top_srcdir)/../automake/leaf.am
 
-loopback_exe_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
+loopback_LDADD = $(MANAGERS_NOT_WANTED:%=$(PROJECT_LIB)/no-%.rel)
 
-LINK_OBJS = $(loopback_exe_OBJECTS) $(loopback_exe_LDADD)
-LINK_LIBS = $(loopback_exe_LDLIBS)
+LINK_OBJS = $(loopback_OBJECTS) $(loopback_LDADD)
+LINK_LIBS = $(loopback_LDLIBS)
 
-loopback.exe$(EXEEXT): $(loopback_exe_OBJECTS) $(loopback_exe_DEPENDENCIES)
-	@rm -f loopback.exe$(EXEEXT)
+loopback$(EXEEXT): $(loopback_OBJECTS) $(loopback_DEPENDENCIES)
+	@rm -f loopback$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

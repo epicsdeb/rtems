@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpuModel.h,v 1.4.6.1 2008/12/03 17:29:13 joel Exp $
+ *  $Id: cpuModel.h,v 1.8 2010/04/15 14:09:57 joel Exp $
  */
 
 #ifndef libcpu_cpuModel_h
@@ -24,9 +24,12 @@ extern char hard_math;	/* floating point coprocessor present indicator */
 extern char x86;	/* type of cpu (3 = 386, 4 =486, ...) */
 extern char x86_model;
 extern char x86_mask;
-extern int x86_capability;
+extern int x86_capability;       /* cpuid:EDX */
+extern int x86_capability_x;     /* cpuid:ECX */
+extern int x86_capability_ebx;   /* cpuid:EBX */
+extern int x86_capability_cores; /* cpuid.(EAX=4, ECX=0) - physical cores */
 extern char x86_vendor_id[13];
-extern int have_cpuid;  
+extern int have_cpuid;
 extern unsigned char Cx86_step; /* cyrix processor identification */
 
 extern void printCpuInfo(); /* Display this information on console in ascii form */

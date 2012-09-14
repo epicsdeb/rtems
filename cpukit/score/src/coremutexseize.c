@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutexseize.c,v 1.16 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: coremutexseize.c,v 1.17 2008/12/22 05:52:31 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -65,7 +65,7 @@ void _CORE_mutex_Seize_interrupt_blocking(
       _Thread_Change_priority(
         the_mutex->holder,
         executing->current_priority,
-        FALSE
+        false
       );
     }
   }

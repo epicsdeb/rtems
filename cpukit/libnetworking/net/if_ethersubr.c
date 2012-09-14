@@ -31,8 +31,12 @@
  */
  
 /*
- * $Id: if_ethersubr.c,v 1.16 2008/09/01 04:56:32 ralf Exp $
+ * $Id: if_ethersubr.c,v 1.18 2010/03/28 05:50:28 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_atalk.h"
 #include "opt_inet.h"
@@ -50,7 +54,7 @@
 #include <sys/protosw.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/syslog.h>
 #include <sys/sysctl.h>
 

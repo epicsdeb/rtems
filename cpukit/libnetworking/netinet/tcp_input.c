@@ -27,8 +27,12 @@
  * SUCH DAMAGE.
  *
  *	@(#)tcp_input.c	8.12 (Berkeley) 5/24/95
- *	$Id: tcp_input.c,v 1.11 2008/09/01 06:36:17 ralf Exp $
+ *	$Id: tcp_input.c,v 1.13 2010/03/28 05:47:49 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "opt_tcpdebug.h"
 
@@ -43,7 +47,7 @@
 #include <sys/protosw.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/syslog.h>
 
 #include <machine/cpu.h>	/* before tcp_seq.h, for tcp_random18() */

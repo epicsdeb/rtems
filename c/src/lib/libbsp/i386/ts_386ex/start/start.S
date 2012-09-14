@@ -25,7 +25,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.7 2004/04/21 16:01:34 ralf Exp $
+ *  $Id: start.S,v 1.8 2009/04/28 06:19:45 ccj Exp $
  */
 
 #include <rtems/asm.h>
@@ -463,11 +463,9 @@ SYM (zero_bss):
 /*
  *  Transfer control to User's Board Support Package
  */
-        pushl   $0                       # environp
-        pushl   $0                       # argv
-        pushl   $0                       # argc
+        pushl   $0                       # command line
 	call SYM(boot_card)
-        addl    $12,esp
+        addl    $4,esp
 
 	LED_RED                          # Indicate RTEMS exited
 /*

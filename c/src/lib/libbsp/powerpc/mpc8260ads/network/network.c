@@ -23,7 +23,7 @@
  * Saskatoon, Saskatchewan, CANADA
  * eric@skatter.usask.ca
  *
- *  $Id: network.c,v 1.10 2006/12/15 07:27:02 ralf Exp $
+ *  $Id: network.c,v 1.11 2009/08/10 13:31:43 joel Exp $
  */
 #include <bsp.h>
 #include <bsp/irq.h>
@@ -337,23 +337,6 @@ m8260_scc_initialize_hardware (struct m8260_hdlc_struct *sc)
 		 rtems_status_text (status));
   }
   m8260.scc3.sccm = 0;     /* No interrupts unmasked till necessary */
-
-#if 0
-  /*
-   * Set up interrupts
-   */
-  status = rtems_interrupt_catch (m8260_scc3_interrupt_handler,
-				  PPC_IRQ_CPM_SCC3,
-				  &old_handler);
-  if (status != RTEMS_SUCCESSFUL) {
-    rtems_panic ("Can't attach M8260 SCC3 interrupt handler: %s\n",
-		 rtems_status_text (status));
-  }
-
-  m8260.sipnr_l = M8260_SIMASK_SCC3; /* clear pending event */
-  m8260.simr_l |= M8260_SIMASK_SCC3; /* Enable SCC interrupt */
-
-#endif
 
   m8260.scc3.gsmr_h  = 0;
   m8260.scc3.gsmr_l  = 0x10000000;

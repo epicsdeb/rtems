@@ -1,14 +1,14 @@
 /*
  *  IMFS Initialization
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_initsupp.c,v 1.18 2008/09/04 08:33:06 ralf Exp $
+ *  $Id: imfs_initsupp.c,v 1.21 2010/05/15 06:29:55 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,28 +43,25 @@ static int IMFS_determine_bytes_per_block(
 {
   bool is_valid = false;
   int bit_mask;
+
   /*
    * check, whether requested bytes per block is valid
    */
-  for (bit_mask = 16;
-       !is_valid && (bit_mask <= 512); 
-       bit_mask <<= 1) {
+  for (bit_mask = 16; !is_valid && (bit_mask <= 512); bit_mask <<= 1) {
     if (bit_mask == requested_bytes_per_block) {
       is_valid = true;
     }
   }
-  *dest_bytes_per_block = ((is_valid) 
+  *dest_bytes_per_block = ((is_valid)
 			   ? requested_bytes_per_block
 			   : default_bytes_per_block);
   return 0;
-    
 }
 
 
 /*
  *  IMFS_initialize
  */
-
 int IMFS_initialize_support(
   rtems_filesystem_mount_table_entry_t        *temp_mt_entry,
    const rtems_filesystem_operations_table    *op_table,
@@ -72,6 +69,7 @@ int IMFS_initialize_support(
    const rtems_filesystem_file_handlers_r     *directory_handlers
 )
 {
+  static int                             imfs_instance;
   IMFS_fs_info_t                        *fs_info;
   IMFS_jnode_t                          *jnode;
 
@@ -81,21 +79,13 @@ int IMFS_initialize_support(
   IMFS_determine_bytes_per_block(&imfs_memfile_bytes_per_block,
 				 imfs_rq_memfile_bytes_per_block,
 				 IMFS_MEMFILE_DEFAULT_BYTES_PER_BLOCK);
-  
+
   /*
    *  Create the root node
    *
    *  NOTE: UNIX root is 755 and owned by root/root (0/0).
    */
-
-  temp_mt_entry->mt_fs_root.node_access = IMFS_create_node(
-    NULL,
-    IMFS_DIRECTORY,
-    "",
-    ( S_IFDIR | 0755 ),
-    NULL
-  );
-
+  temp_mt_entry->mt_fs_root.node_access      = IMFS_create_root_node();
   temp_mt_entry->mt_fs_root.handlers         = directory_handlers;
   temp_mt_entry->mt_fs_root.ops              = op_table;
   temp_mt_entry->pathconf_limits_and_options = IMFS_LIMITS_AND_OPTIONS;
@@ -104,7 +94,7 @@ int IMFS_initialize_support(
    * Create custom file system data.
    */
   fs_info = calloc( 1, sizeof( IMFS_fs_info_t ) );
-  if ( !fs_info ){
+  if ( !fs_info ) {
     free(temp_mt_entry->mt_fs_root.node_access);
     rtems_set_errno_and_return_minus_one(ENOMEM);
   }
@@ -114,12 +104,16 @@ int IMFS_initialize_support(
    * Set st_ino for the root to 1.
    */
 
+  fs_info->instance              = imfs_instance++;
   fs_info->ino_count             = 1;
   fs_info->memfile_handlers      = memfile_handlers;
   fs_info->directory_handlers    = directory_handlers;
 
   jnode = temp_mt_entry->mt_fs_root.node_access;
   jnode->st_ino = fs_info->ino_count;
+
+  /* Initialize POSIX FIFO/pipe module */
+  rtems_pipe_initialize();
 
   return 0;
 }

@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_whoami.c,v 1.5 2008/07/17 15:43:56 joel Exp $
+ *  $Id: main_whoami.c,v 1.6 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -27,8 +27,8 @@
 #include "internal.h"
 
 int rtems_shell_main_whoami(
-  int   argc,
-  char *argv[]
+  int   argc __attribute__((unused)),
+  char *argv[] __attribute__((unused))
 )
 {
   struct passwd *pwd;

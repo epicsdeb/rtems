@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.21 2008/09/08 21:47:23 joel Exp $
+ *  $Id: task1.c,v 1.23 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -18,7 +17,7 @@ rtems_id Queue_id;
 rtems_task Test_task(
   rtems_task_argument argument
 );
-void queue_test();
+void queue_test(void);
 
 rtems_task Init(
   rtems_task_argument argument
@@ -32,7 +31,7 @@ rtems_task Init(
 
   status = rtems_task_create(
     1,
-    128,
+    (RTEMS_MAXIMUM_PRIORITY / 2u) + 1u,
     RTEMS_MINIMUM_STACK_SIZE * 2,
     RTEMS_DEFAULT_MODES,
     RTEMS_DEFAULT_ATTRIBUTES,
@@ -87,7 +86,7 @@ rtems_task Test_task (
   rtems_test_exit( 0 );
 }
 
-void queue_test()
+void queue_test(void)
 {
   uint32_t    send_loop_time;
   uint32_t    urgent_loop_time;

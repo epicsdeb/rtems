@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clockgettime.c,v 1.12 2008/02/01 00:44:15 joel Exp $
+ *  $Id: clockgettime.c,v 1.14.2.1 2011/05/19 15:32:44 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,6 +23,8 @@
 
 #include <rtems/seterr.h>
 
+#include "posixtime.h"
+
 /*PAGE
  *
  *  14.2.1 Clocks, P1003.1b-1993, p. 263
@@ -36,22 +38,30 @@ int clock_gettime(
   if ( !tp )
     rtems_set_errno_and_return_minus_one( EINVAL );
 
-  if ( clock_id == CLOCK_REALTIME ) 
+  if ( clock_id == CLOCK_REALTIME ) {
     _TOD_Get(tp);
+    return 0;
+  }
 #ifdef CLOCK_MONOTONIC
-  else if ( clock_id == CLOCK_MONOTONIC )
-    _TOD_Get_uptime(tp);
+  if ( clock_id == CLOCK_MONOTONIC ) {
+    _TOD_Get_uptime_as_timespec( tp );
+    return 0;
+  }
 #endif
+
 #ifdef _POSIX_CPUTIME
-  else if ( clock_id == CLOCK_PROCESS_CPUTIME )
-    _TOD_Get_uptime(tp);
+  if ( clock_id == CLOCK_PROCESS_CPUTIME_ID ) {
+    _TOD_Get_uptime_as_timespec( tp );
+    return 0;
+  }
 #endif
+
 #ifdef _POSIX_THREAD_CPUTIME
-  else if ( clock_id == CLOCK_THREAD_CPUTIME )
+  if ( clock_id == CLOCK_THREAD_CPUTIME_ID )
     rtems_set_errno_and_return_minus_one( ENOSYS );
 #endif
-  else
-    rtems_set_errno_and_return_minus_one( EINVAL );
+
+  rtems_set_errno_and_return_minus_one( EINVAL );
 
   return 0;
 }

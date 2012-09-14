@@ -1,5 +1,5 @@
 /*  bsp.h
- *  
+ *
  *  This include file contains all board IO definitions for bf537Stamp.
  *
  *  Copyright (c) 2006 by Atos Automacao Industrial Ltda.
@@ -10,9 +10,9 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.1 2008/08/15 20:21:00 joel Exp $
+ *  $Id: bsp.h,v 1.5 2009/11/30 03:38:33 ralf Exp $
  */
- 
+
 
 #ifndef _BSP_H
 #define _BSP_H
@@ -30,15 +30,11 @@ extern "C" {
 #include <libcpu/bf537.h>
 #include <libcpu/memoryRegs.h>
 
-
-/* #define CLOCK_DRIVER_USE_FAST_IDLE */
-
-
 /* configure data cache to use 16K of each SRAM bank when enabled */
 #define BSP_DATA_CACHE_CONFIG  (3 << DMEM_CONTROL_DMC_SHIFT)
 
 
-/* 
+/*
  * PLL and clock setup values:
  */
 
@@ -70,13 +66,6 @@ extern "C" {
 #define FIFOLENGTH 0x100
 
 /*
- *  confdefs.h overrides for this BSP:
- *   - number of termios serial ports (defaults to 1)
- */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
-
-/*
  *  Simple spin delay in microsecond units for device drivers.
  *  This is very dependent on the clock speed of the target.
  */
@@ -89,20 +78,6 @@ extern "C" {
 
 #define RAM_START 0
 #define RAM_END   0x4000000
-
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
 
 /* functions */
 

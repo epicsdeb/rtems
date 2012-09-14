@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tod.h,v 1.4 2004/04/21 16:01:47 ralf Exp $
+ *  $Id: tod.h,v 1.5 2009/05/27 14:21:29 joel Exp $
  */
 
 #ifndef TOD_H
@@ -25,7 +25,7 @@ extern "C" {
  */
 
 int setRealTime(
-  rtems_time_of_day *tod
+  const rtems_time_of_day *tod
 );
 
 /*
@@ -40,20 +40,20 @@ void getRealTime(
  *  Read real time from RTC and set it to RTEMS' clock manager
  */
 
-void setRealTimeToRTEMS();
+void setRealTimeToRTEMS(void);
 
 /*
  *  Read time from RTEMS' clock manager and set it to RTC
  */
 
-void setRealTimeFromRTEMS();
+void setRealTimeFromRTEMS(void);
 
 /*
  *  Return the difference between RTC and RTEMS' clock manager time in minutes.
  *  If the difference is greater than 1 day, this returns 9999.
  */
 
-int checkRealTime();
+int checkRealTime(void);
 
 #ifdef __cplusplus
 }

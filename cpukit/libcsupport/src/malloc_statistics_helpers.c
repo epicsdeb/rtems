@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: malloc_statistics_helpers.c,v 1.3 2008/07/29 09:25:11 ralf Exp $
+ *  $Id: malloc_statistics_helpers.c,v 1.7 2009/09/14 14:48:38 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 
-void rtems_malloc_statistics_initialize( void )
+static void rtems_malloc_statistics_initialize( void )
 {
   /*
    * Zero all the statistics
@@ -31,22 +31,22 @@ void rtems_malloc_statistics_initialize( void )
   (void) memset(&rtems_malloc_statistics, 0, sizeof(rtems_malloc_statistics));
 }
 
-void rtems_malloc_statistics_at_malloc(
+static void rtems_malloc_statistics_at_malloc(
   void *pointer
 )
 {
-  size_t     actual_size = 0;
-  uint32_t   current_depth;
+  uintptr_t actual_size = 0;
+  uint32_t current_depth;
   rtems_malloc_statistics_t *s = &rtems_malloc_statistics;
 
   if ( !pointer )
     return;
 
-  _Protected_heap_Get_block_size(&RTEMS_Malloc_Heap, pointer, &actual_size);
+  _Protected_heap_Get_block_size(RTEMS_Malloc_Heap, pointer, &actual_size);
 
   MSBUMP(lifetime_allocated, actual_size);
 
-  current_depth = s->lifetime_allocated - s->lifetime_freed;
+  current_depth = (uint32_t) (s->lifetime_allocated - s->lifetime_freed);
   if (current_depth > s->max_depth)
       s->max_depth = current_depth;
 }
@@ -55,13 +55,13 @@ void rtems_malloc_statistics_at_malloc(
  *  If the pointer is not in the heap, then we won't be able to get its
  *  size and thus we skip updating the statistics.
  */
-void rtems_malloc_statistics_at_free(
+static void rtems_malloc_statistics_at_free(
   void *pointer
 )
 {
-  size_t size;
+  uintptr_t size;
 
-  if (_Protected_heap_Get_block_size(&RTEMS_Malloc_Heap, pointer, &size) ) {
+  if (_Protected_heap_Get_block_size(RTEMS_Malloc_Heap, pointer, &size) ) {
     MSBUMP(lifetime_freed, size);
   }
 }

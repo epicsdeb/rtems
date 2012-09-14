@@ -8,12 +8,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: execvp.c,v 1.5 2007/12/13 16:52:20 joel Exp $
+ *  $Id: execvp.c,v 1.6 2008/12/05 06:44:40 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_EXECVP
 
 #include <errno.h>
 #include <rtems/seterr.h>
@@ -25,3 +27,5 @@ int execvp(
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );
 }
+
+#endif

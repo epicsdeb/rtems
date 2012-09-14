@@ -18,7 +18,7 @@
  */
 
 #include <rtems/asm.h>
-#include "regs.h"
+#include <bsp/regs.h>
 
 #ifdef __mips16
 /* This file contains 32 bit assembly code.  */
@@ -124,7 +124,7 @@ _start_in_ram:
 	nop
 3:
 	LA (gp, _gp)				# set the global data pointer
-	.end _start
+	.end _start_in_ram
 
 /*
  * zero out the bss section.
@@ -159,7 +159,7 @@ zerobss:
 	.ent	init
 init:
 
-	move	a0,zero				# set argc to 0
+	move	a0,zero				# set command line to 0
 	jal	boot_card			# call the program start function
 	nop
 

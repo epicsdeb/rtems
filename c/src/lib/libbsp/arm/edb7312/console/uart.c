@@ -5,12 +5,12 @@
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
- *
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: uart.c,v 1.6 2004/04/21 16:01:32 ralf Exp $
-*/
+ *  $Id: uart.c,v 1.8 2010/04/14 09:27:31 ralf Exp $
+ */
+
 #include <bsp.h>                /* Must be before libio.h */
 #include <rtems/libio.h>
 #include <termios.h>
@@ -26,7 +26,7 @@ int     uart_poll_read(int minor);
 static int     uart_first_open(int major, int minor, void *arg);
 static int     uart_last_close(int major, int minor, void *arg);
 static int     uart_read(int minor);
-static int     uart_write(int minor, const char *buf, int len);
+static ssize_t uart_write(int minor, const char *buf, size_t len);
 static void    uart_init(int minor);
 static void    uart_write_polled(int minor, char c);
 static int     uart_set_attributes(int minor, const struct termios *t);
@@ -107,15 +107,12 @@ int uart_poll_read(int minor)
     return c;
 }
 
-static void _BSP_null_char( char c ) {uart_write_polled(0, c);}
-BSP_output_char_function_type BSP_output_char = _BSP_null_char;
-
-static int uart_write(int minor, const char *buf, int len)
+static ssize_t uart_write(int minor, const char *buf, size_t len)
 {
     volatile uint32_t   *data_reg;
     volatile uint32_t   *ctrl_reg1;
     volatile uint32_t   *ctrl_reg2;
-    int i;
+    size_t i;
     char c;
 
     data_reg = (uint32_t*)Console_Port_Tbl[minor].ulDataPort;
@@ -132,7 +129,7 @@ static int uart_write(int minor, const char *buf, int len)
         *data_reg = c;
     }
 
-    return 1;
+    return len;
 }
 
 static void uart_init(int minor)
@@ -156,3 +153,20 @@ static void uart_init(int minor)
                  0x17);              /* 9600 baud */
 
 }
+
+/*
+ * Debug IO support
+ */
+static void _BSP_null_char(char c)
+{
+  uart_write_polled(0, c);
+}
+
+static int _BSP_get_char(void)
+{
+  return uart_poll_read(0);
+}
+
+BSP_output_char_function_type BSP_output_char = _BSP_null_char;
+
+BSP_polling_getchar_function_type BSP_poll_char = _BSP_get_char;

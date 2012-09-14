@@ -1,8 +1,9 @@
 /**
- * @file rtems/rtems/support.inl
+ * @file
  *
- *  This include file contains the static inline implementation of all
- *  of the inlined routines specific to the RTEMS API.
+ * @ingroup ClassicRTEMS
+ *
+ * @brief Classic API support.
  */
 
 /*  COPYRIGHT (c) 1989-2008.
@@ -12,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: support.inl,v 1.14 2008/09/04 17:43:18 ralf Exp $
+ *  $Id: support.inl,v 1.16 2009/08/05 18:17:12 joel Exp $
  */
  
 #ifndef _RTEMS_RTEMS_SUPPORT_H
@@ -23,14 +24,13 @@
 #define _RTEMS_RTEMS_SUPPORT_INL
 
 /**
- *  @addtogroup ClassicSupport
- *  @{
+ * @addtogroup ClassicRTEMS
+ *
+ * @{
  */
 
 /**
- *  rtems_is_name_valid
- *
- *  This function returns TRUE if the name is valid, and FALSE otherwise.
+ * @brief Returns @c true if the name is valid, and @c false otherwise.
  */
 RTEMS_INLINE_ROUTINE bool rtems_is_name_valid (
   rtems_name name
@@ -40,10 +40,8 @@ RTEMS_INLINE_ROUTINE bool rtems_is_name_valid (
 }
 
 /**
- *  rtems_name_to_characters
- *
- *  This function breaks the object name into the four component
- *  characters C1, C2, C3, and C4.
+ * @brief Breaks the object name into the four component characters @a c1,
+ * @a c2, @a c3, and @a c4.
  */
 RTEMS_INLINE_ROUTINE void rtems_name_to_characters(
   rtems_name    name,
@@ -53,13 +51,13 @@ RTEMS_INLINE_ROUTINE void rtems_name_to_characters(
   char         *c4
 )
 {
-  *c1 = (name >> 24) & 0xff;
-  *c2 = (name >> 16) & 0xff;
-  *c3 = (name >> 8) & 0xff;
-  *c4 =  name & 0xff;
+  *c1 = (char) ((name >> 24) & 0xff);
+  *c2 = (char) ((name >> 16) & 0xff);
+  *c3 = (char) ((name >> 8) & 0xff);
+  *c4 = (char) ( name & 0xff);
 }
 
-/**@}*/
+/** @} */
 
 #endif
 /* end of include file */

@@ -3,14 +3,14 @@
  *
  *  NOTE:
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: itronapi.c,v 1.8 2008/05/27 10:34:15 thomas Exp $
+ *  $Id: itronapi.c,v 1.11 2009/01/05 20:26:01 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -37,6 +37,7 @@
 
 #include <rtems/itron/eventflags.h>
 #include <rtems/itron/fmempool.h>
+#include <rtems/itron/itronapi.h>
 #include <rtems/itron/mbox.h>
 #include <rtems/itron/msgbuffer.h>
 #include <rtems/itron/port.h>
@@ -51,72 +52,31 @@
  *  XXX
  */
 
-const itron_api_configuration_table _ITRON_Default_configuration = {
-  0,                             /* maximum_tasks */
-  0,                             /* maximum_semaphores */
-  0,                             /* maximum_eventflags */
-  0,                             /* maximum_mailboxes */
-  0,                             /* maximum_message_buffers */
-  0,                             /* maximum_ports */
-  0,                             /* maximum_memory_pools */
-  0,                             /* maximum_fixed_memory_pools */
-  0,                             /* number_of_initialization_tasks */
-  NULL                           /* User_initialization_tasks_table */
-};
-
 Objects_Information *_ITRON_Objects[ OBJECTS_ITRON_CLASSES_LAST + 1 ];
 
-void _ITRON_API_Initialize(
-  rtems_configuration_table *configuration_table
-)
+void _ITRON_API_Initialize(void)
 {
-  const itron_api_configuration_table *api_configuration;
+  /*
+   * If there are any type size assumptions in the ITRON API, this is
+   * the appropriate place to place them.
+   *
+   * Currently, there are no none type size assumptions.
+   */
 
-  /* XXX need to assert here based on size assumptions */
-
-  assert( sizeof(ID) == sizeof(Objects_Id) );
-
-  api_configuration = configuration_table->ITRON_api_configuration;
-  if ( !api_configuration )
-    api_configuration = &_ITRON_Default_configuration;
-
+  /*
+   * Install our API Object Management Table and initialize the
+   * various managers.
+   */
   _Objects_Information_table[OBJECTS_ITRON_API] = _ITRON_Objects;
 
-  _ITRON_Task_Manager_initialization(
-    api_configuration->maximum_tasks,
-    api_configuration->number_of_initialization_tasks,
-    api_configuration->User_initialization_tasks_table
-  );
-
-  _ITRON_Semaphore_Manager_initialization(
-    api_configuration->maximum_semaphores
-  );
-
-  _ITRON_Eventflags_Manager_initialization(
-    api_configuration->maximum_eventflags
-  );
-
-  _ITRON_Fixed_memory_pool_Manager_initialization(
-    api_configuration->maximum_fixed_memory_pools
-  );
-
-  _ITRON_Mailbox_Manager_initialization(
-    api_configuration->maximum_mailboxes
-  );
-
-  _ITRON_Message_buffer_Manager_initialization(
-    api_configuration->maximum_message_buffers
-  );
-
-  _ITRON_Port_Manager_initialization(
-    api_configuration->maximum_ports
-  );
-
-  _ITRON_Variable_memory_pool_Manager_initialization(
-    api_configuration->maximum_memory_pools
-  );
-
-
+  _ITRON_Task_Manager_initialization();
+  _ITRON_Semaphore_Manager_initialization();
+  _ITRON_Eventflags_Manager_initialization();
+  _ITRON_Fixed_memory_pool_Manager_initialization();
+  _ITRON_Mailbox_Manager_initialization();
+  _ITRON_Message_buffer_Manager_initialization();
+  _ITRON_Port_Manager_initialization();
+  _ITRON_Variable_memory_pool_Manager_initialization();
 }
 
 #endif

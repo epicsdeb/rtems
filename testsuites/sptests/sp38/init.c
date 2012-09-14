@@ -1,14 +1,14 @@
 /*
  *  Classic API Signal to Task from ISR
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.3 2008/09/06 03:28:07 ralf Exp $
+ *  $Id: init.c,v 1.6 2009/11/30 03:33:24 ralf Exp $
  */
 
 #define CONFIGURE_INIT
@@ -18,6 +18,11 @@ volatile bool signal_sent;
 volatile bool signal_processed;
 
 rtems_id main_task;
+void signal_handler(rtems_signal_set signals);
+rtems_timer_service_routine test_signal_from_isr(
+  rtems_id  timer,
+  void     *arg
+);
 
 void signal_handler(
   rtems_signal_set signals
@@ -61,8 +66,7 @@ rtems_task Init(
   /*
    *  Get starting time
    */
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &start );
-  directive_failed( status, "rtems_clock_get start" );
+  start = rtems_clock_get_ticks_since_boot();
 
   status = rtems_signal_catch( signal_handler, RTEMS_DEFAULT_MODES );
   directive_failed( status, "rtems_signal_catch" );
@@ -77,8 +81,7 @@ rtems_task Init(
   directive_failed( status, "timer_fire_after failed" );
 
   while (1) {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &now );
-    directive_failed( status, "rtems_clock_get now" );
+    now = rtems_clock_get_ticks_since_boot();
     if ( (now-start) > 100 ) {
       puts( "Signal from ISR did not get processed\n" );
       rtems_test_exit( 0 );
@@ -87,7 +90,7 @@ rtems_task Init(
       break;
   }
 
-  puts( "Signal sent from ISR has been processed" ); 
+  puts( "Signal sent from ISR has been processed" );
   puts( "*** END OF TEST 38 ***" );
   rtems_test_exit( 0 );
 }

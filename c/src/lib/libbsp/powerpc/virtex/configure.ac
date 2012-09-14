@@ -1,17 +1,17 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl $Id: configure.ac,v 1.1 2007/07/04 19:02:58 thomas Exp $
+dnl $Id: configure.ac,v 1.7.2.1 2011/02/02 15:17:00 ralf Exp $
 
-AC_PREREQ(2.59)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-powerpc-virtex],[_RTEMS_VERSION],[rtems-bugs@rtems.com])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.9])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_PROG_CCAS
 
@@ -40,6 +40,8 @@ RTEMS_BSPOPTS_HELP([RTEMS_XPARAMETERS_H],
 RTEMS_BSPOPTS_SET([RTEMS_XPPC_BASE],[*],[.])
 RTEMS_BSPOPTS_HELP([RTEMS_XPPC_BASE],[Defines path to Xilinx XPS PPC libraries.])
 #RSG End
+
+RTEMS_BSP_CLEANUP_OPTIONS(0, 1)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

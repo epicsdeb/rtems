@@ -46,7 +46,7 @@
  *
  *  http://www.OARcorp.com/rtems/license.html.
  *
- *  $Id: console.c,v 1.2.2.1 2008/10/02 12:43:10 thomas Exp $
+ *  $Id: console.c,v 1.9 2010/01/19 09:11:34 thomas Exp $
  */
 
 #include <rtems.h>
@@ -54,31 +54,20 @@
 #include <stdlib.h>
 #include <bsp.h>
 #include <mpc8xx.h>
+#include <rtems/irq.h>
+#include <bsp/irq.h>
 #include <rtems/libio.h>
 #include <termios.h>
 #include <unistd.h>
 #include <rtems/termiostypes.h>
 #include <rtems/bspIo.h>
-
-/*
- * Declare clock speed -- may be overwritten by downloader or debugger
- */
-int m8xx_clock_rate	= 0;
+#include <rtems/error.h>
 
 /*
  * Interrupt-driven input buffer
  */
-#define RXBUFSIZE	256
+#define RXBUFSIZE	16
 
-#define M8xx_IVEC_SRC_MASK (0x1f)
-#define M8xx_IVEC_SRC_SCC1  (0x1E)
-#define M8xx_IVEC_SRC_SCC2  (0x1D)
-#define M8xx_IVEC_SRC_SCC3  (0x1C)
-#define M8xx_IVEC_SRC_SCC4  (0x1B)
-#define M8xx_IVEC_SRC_SMC1  (0x04)
-#define M8xx_IVEC_SRC_SMC2  (0x03)
-
-#define M8xx_IREG_MASK(src) (1UL << src)
 #define M8xx_SICR_BRG1 (0)
 #define M8xx_SICR_BRG2 (1)
 #define M8xx_SICR_BRG3 (2)
@@ -132,9 +121,8 @@ typedef struct m8xx_console_chan_desc_s {
     volatile m8xxSMCRegisters_t *smcr;
   } regs;
   int ivec_src;
-  uint32_t ireg_mask;
-  int        cr_chan_code;
-  int        brg_used;
+  int cr_chan_code;
+  int brg_used;
 } m8xx_console_chan_desc_t;
 
 m8xx_console_chan_desc_t m8xx_console_chan_desc[CONS_CHN_CNT] = {
@@ -142,48 +130,42 @@ m8xx_console_chan_desc_t m8xx_console_chan_desc[CONS_CHN_CNT] = {
   {TRUE,
    {(m8xxSCCparms_t *)&(m8xx.scc1p),NULL},
    {&(m8xx.scc1),NULL},
-   M8xx_IVEC_SRC_SCC1,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SCC1),
+   BSP_CPM_IRQ_SCC1,
    M8xx_CR_CHAN_SCC1,
    -1},
   /* SCC2 */
   {TRUE,
    {&(m8xx.scc2p),NULL},
    {&(m8xx.scc2),NULL},
-   M8xx_IVEC_SRC_SCC2,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SCC2),
+   BSP_CPM_IRQ_SCC2,
    M8xx_CR_CHAN_SCC2,
    -1},
   /* SCC3 */
   {TRUE,
    {&(m8xx.scc3p),NULL},
    {&(m8xx.scc3),NULL},
-   M8xx_IVEC_SRC_SCC3,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SCC3),
+   BSP_CPM_IRQ_SCC3,
    M8xx_CR_CHAN_SCC3,
    -1},
   /* SCC4 */
   {TRUE,
    {&(m8xx.scc4p),NULL},
    {&(m8xx.scc4),NULL},
-   M8xx_IVEC_SRC_SCC4,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SCC4),
+   BSP_CPM_IRQ_SCC4,
    M8xx_CR_CHAN_SCC4,
    -1},
   /* SMC1 */
   {FALSE,
    {NULL,&(m8xx.smc1p)},
    {NULL,&(m8xx.smc1)},
-   M8xx_IVEC_SRC_SMC1,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SMC1),
+   BSP_CPM_IRQ_SMC1,
    M8xx_CR_CHAN_SMC1,
    -1},
   /* SMC2 */
   {FALSE,
    {NULL,&(m8xx.smc2p)},
    {NULL,&(m8xx.smc2)},
-   M8xx_IVEC_SRC_SMC2,
-   M8xx_IREG_MASK(M8xx_IVEC_SRC_SMC2),
+   BSP_CPM_IRQ_SMC2_OR_PIP,
    M8xx_CR_CHAN_SMC2,
    -1}};
 
@@ -249,7 +231,7 @@ sccBRGval (int baud)
   int divisor;
   int div16 = 0;
 
-  divisor = ((m8xx_clock_rate / 16) + (baud / 2)) / baud;
+  divisor = ((BSP_bus_frequency / 16) + (baud / 2)) / baud;
   if (divisor > 4096) {
     div16 = 1;
     divisor = (divisor + 8) / 16;
@@ -260,11 +242,11 @@ sccBRGval (int baud)
 typedef struct {
   uint32_t reg_content;
   int link_cnt;
-}brg_state_t; 
+}brg_state_t;
 brg_state_t scc_brg_state[BRG_CNT];
 
 /*
- * initialize brg_state 
+ * initialize brg_state
  */
 static void sccBRGinit(void)
 {
@@ -274,7 +256,29 @@ static void sccBRGinit(void)
     scc_brg_state[brg_idx].reg_content = 0;
     scc_brg_state[brg_idx].link_cnt    = 0;
   }
+#ifndef MDE360
+  /*
+   * on ZEM40, init CLK4/5 inputs
+   */
+  m8xx.papar |=  ((1 << 11) | (1 << 12));
+  m8xx.padir &= ~((1 << 11) | (1 << 12));
+#endif
 }
+
+#if CONS_USE_EXT_CLK
+/*
+ * input clock frq for CPM clock inputs
+ */
+static uint32_t clkin_frq[2][4] = {
+#ifdef MDE360
+  {0,0,0,0},
+  {0,0,0,0}
+#else
+  {0,0,0,1843000},
+  {1843000,0,0,0}
+#endif
+};
+#endif
 
 /*
  * allocate, set and connect baud rate generators
@@ -290,12 +294,31 @@ static int sccBRGalloc(int chan,int baud)
   int old_brg;
   int new_brg = -1;
   int brg_idx;
+#if CONS_USE_EXT_CLK
+  int clk_group;
+  int clk_sel;
+#endif
 
   old_brg = chan_desc->brg_used;
   /* compute brg register contents needed */
   reg_val = sccBRGval(baud);
 
-  rtems_interrupt_disable(level);  
+#if CONS_EXT_CLK
+  /* search for clock input with this frq */
+  clk_group = ((chan == CONS_CHN_SCC3) ||
+	       (chan == CONS_CHN_SCC4) ||
+	       (chan == CONS_CHN_SMC2)) ? 1 : 0;
+
+  for (clk_sel = 0, new_brg = -1;
+       (clk_sel < 4) && (new_brg < 0);
+       clk_sel++) {
+    if (baud == (clkin_frq[clk_group][clk_sel] / 16)) {
+      new_brg = clk_sel + 4;
+    }
+  }
+#endif
+
+  rtems_interrupt_disable(level);
 
   if (new_brg < 0) {
     /* search for brg with this settings */
@@ -306,9 +329,9 @@ static int sccBRGalloc(int chan,int baud)
 	new_brg = brg_idx;
       }
     }
-    /* 
-     * if not found: check, whether brg currently in use 
-     * is linked only from our channel  
+    /*
+     * if not found: check, whether brg currently in use
+     * is linked only from our channel
      */
     if ((new_brg < 0) &&
 	(old_brg >= 0) &&
@@ -326,17 +349,17 @@ static int sccBRGalloc(int chan,int baud)
   }
 
   /* decrease old link count */
-  if ((old_brg >= 0) && 
+  if ((old_brg >= 0) &&
       (old_brg < 4)) {
     scc_brg_state[old_brg].link_cnt--;
   }
   /* increase new brg link count, set brg */
-  if ((new_brg >= 0) && 
+  if ((new_brg >= 0) &&
       (new_brg < 4)) {
     scc_brg_state[new_brg].link_cnt++;
     scc_brg_state[new_brg].reg_content = reg_val;
     (&m8xx.brgc1)[new_brg] = reg_val;
-  }  
+  }
   rtems_interrupt_enable(level);
 
   /* connect to scc/smc */
@@ -353,9 +376,8 @@ static int sccBRGalloc(int chan,int baud)
     }
     else {
       /* connect SMC to BRGx or CLKx... */
-      m8xx.simode = ((m8xx.simode 
-		      & ~(M8xx_SIMODE_SMCCS_MSK(chan - CONS_CHN_SMC1)))
-		     | M8xx_SIMODE_SMCCS(chan - CONS_CHN_SMC1,new_brg));
+      m8xx.simode = ((m8xx.simode & ~(M8xx_SIMODE_SMCCS_MSK(chan - CONS_CHN_SMC1)))|
+		     M8xx_SIMODE_SMCCS(chan - CONS_CHN_SMC1,new_brg));
     }
   }
   return (new_brg < 0);
@@ -397,42 +419,19 @@ sccSetAttributes (int minor, const struct termios *t)
 }
 
 /*
- * Interrupt handler 
+ * Interrupt handler
  */
 static rtems_isr
-sccInterruptHandler (rtems_vector_number v)
+sccInterruptHandler (void *arg)
 {
-  int chan = 0;
-  /*
-   * calculate channel from vector
-   */
-  switch(v & M8xx_IVEC_SRC_MASK) {
-  case M8xx_IVEC_SRC_SCC1:
-    chan = CONS_CHN_SCC1;
-    break;
-  case M8xx_IVEC_SRC_SCC2:
-    chan = CONS_CHN_SCC2;
-    break;
-  case M8xx_IVEC_SRC_SCC3:
-    chan = CONS_CHN_SCC3;
-    break;
-  case M8xx_IVEC_SRC_SCC4:
-    chan = CONS_CHN_SCC4;
-    break;
-  case M8xx_IVEC_SRC_SMC1:
-    chan = CONS_CHN_SMC1;
-    break;
-  case M8xx_IVEC_SRC_SMC2:
-    chan = CONS_CHN_SMC2;
-    break;
-  }
+  int chan = (int)arg;
 
   /*
    * Buffer received?
    */
   if (CHN_EVENT_GET(chan) & 0x1) {
     /*
-     * clear SCC event flag 
+     * clear SCC event flag
      */
     CHN_EVENT_CLR(chan,0x01);
     /*
@@ -449,8 +448,8 @@ sccInterruptHandler (rtems_vector_number v)
       /*
        * clear status
        */
-      sccCurrRxBd[chan]->status = 
-	(sccCurrRxBd[chan]->status 
+      sccCurrRxBd[chan]->status =
+	(sccCurrRxBd[chan]->status
 	 & (M8xx_BD_WRAP | M8xx_BD_INTERRUPT))
 	| M8xx_BD_EMPTY;
       /*
@@ -481,7 +480,7 @@ sccInterruptHandler (rtems_vector_number v)
     while((sccDequTxBd[chan] != sccPrepTxBd[chan]) &&
 	  ((sccDequTxBd[chan]->status & M8xx_BD_READY) == 0)) {
       if (sccttyp[chan] != NULL) {
-	rtems_termios_dequeue_characters (sccttyp[chan], 
+	rtems_termios_dequeue_characters (sccttyp[chan],
 					  sccDequTxBd[chan]->length);
       }
       /*
@@ -495,8 +494,26 @@ sccInterruptHandler (rtems_vector_number v)
       }
     }
   }
+}
 
-  m8xx.cisr = m8xx_console_chan_desc[chan].ireg_mask;/* Clear interrupt-in-service bit */
+static void
+mpc8xx_console_irq_on(const rtems_irq_connect_data *irq)
+{
+    CHN_MASK_SET(irq->name - BSP_CPM_IRQ_LOWEST_OFFSET,
+		 3);	/* Enable TX and RX interrupts */
+}
+
+static void
+mpc8xx_console_irq_off(const rtems_irq_connect_data *irq)
+{
+    CHN_MASK_SET(irq->name - BSP_CPM_IRQ_LOWEST_OFFSET,
+		 0);	/* Disable TX and RX interrupts */
+}
+
+static int
+mpc8xx_console_irq_isOn(const rtems_irq_connect_data *irq)
+{
+  return (0 != CHN_MASK_GET(irq->name - BSP_CPM_IRQ_LOWEST_OFFSET)); /* Check TX and RX interrupts */
 }
 
 static void
@@ -516,17 +533,17 @@ sccInitialize (int chan)
      * round up rxBuf[chan] to start at a cache line size
      */
     rxBuf[chan] = (sccRxBuf_t *)
-      (((uint32_t)rxBuf[chan]) + 
+      (((uint32_t)rxBuf[chan]) +
        (PPC_CACHE_ALIGNMENT
 	- ((uint32_t)rxBuf[chan]) % PPC_CACHE_ALIGNMENT));
   }
   /*
-   * Allocate buffer descriptors 
+   * Allocate buffer descriptors
    */
-  sccCurrRxBd[chan] = 
+  sccCurrRxBd[chan] =
     sccFrstRxBd[chan] = m8xx_bd_allocate(SCC_RXBD_CNT);
-  sccPrepTxBd[chan] = 
-    sccDequTxBd[chan] = 
+  sccPrepTxBd[chan] =
+    sccDequTxBd[chan] =
     sccFrstTxBd[chan] = m8xx_bd_allocate(SCC_TXBD_CNT);
   switch(chan) {
   case CONS_CHN_SCC1:
@@ -597,7 +614,7 @@ sccInitialize (int chan)
     /*
      * Configure port B pins to enable SMTXD1 and SMRXD1 pins
      */
-    m8xx.pbpar |=  0xC0; 
+    m8xx.pbpar |=  0xC0;
     m8xx.pbdir &= ~0xC0;
     break;
   case CONS_CHN_SMC2:
@@ -609,14 +626,11 @@ sccInitialize (int chan)
     break;
   }
   /*
-   * allocate and connect BRG 
+   * allocate and connect BRG
    */
-#if defined(BSP_HAS_UBOOT)
-  sccBRGalloc(chan,mpc8xx_uboot_board_info.bi_baudrate);
-#else
   sccBRGalloc(chan,9600);
-#endif
-  
+
+
   /*
    * Set up SCCx parameter RAM common to all protocols
    */
@@ -628,7 +642,7 @@ sccInitialize (int chan)
     CHN_PARAM_SET(chan,mrblr,RXBUFSIZE);
   else
     CHN_PARAM_SET(chan,mrblr,1);
-  
+
   /*
    * Set up SCCx parameter RAM UART-specific parameters
    */
@@ -640,7 +654,7 @@ sccInitialize (int chan)
     m8xx_console_chan_desc[chan].parms.sccp->un.uart.character[0]=0x8000; /* no char filter */
     m8xx_console_chan_desc[chan].parms.sccp->un.uart.rccm=0x80FF; /* control character mask */
   }
-  
+
   /*
    * Set up the Receive Buffer Descriptors
    */
@@ -663,13 +677,13 @@ sccInitialize (int chan)
     sccFrstTxBd[chan][i].length = 0;
     sccFrstTxBd[chan][i].buffer = NULL;
   }
-  
+
   /*
    * Set up SCC general and protocol-specific mode registers
    */
   CHN_EVENT_CLR(chan,~0);	/* Clear any pending events */
   CHN_MASK_SET(chan,0);	        /* Mask all interrupt/event sources */
-	       
+
   if (m8xx_console_chan_desc[chan].is_scc) {
     m8xx_console_chan_desc[chan].regs.sccr->psmr = 0xb000; /* 8N1, CTS flow control */
     m8xx_console_chan_desc[chan].regs.sccr->gsmr_h = 0x00000000;
@@ -681,9 +695,9 @@ sccInitialize (int chan)
   /*
    * Send "Init parameters" command
    */
-  m8xx_cp_execute_cmd(M8xx_CR_OP_INIT_RX_TX 
+  m8xx_cp_execute_cmd(M8xx_CR_OP_INIT_RX_TX
 		      | m8xx_console_chan_desc[chan].cr_chan_code);
-  
+
   /*
    * Enable receiver and transmitter
    */
@@ -695,15 +709,18 @@ sccInitialize (int chan)
   }
 
   if (m8xx_scc_mode[chan] != TERMIOS_POLLED) {
-    rtems_isr_entry old_handler;
-    rtems_status_code sc;
-    
-    sc = rtems_interrupt_catch (sccInterruptHandler,
-				m8xx_console_chan_desc[chan].ivec_src 
-				| (m8xx.cicr & 0xE0),
-				&old_handler);
-    CHN_MASK_SET(chan,3);	/* Enable TX and RX interrupts */
-    m8xx.cimr |= m8xx_console_chan_desc[chan].ireg_mask;  /* Enable interrupts */
+
+    rtems_irq_connect_data irq_conn_data = {
+      m8xx_console_chan_desc[chan].ivec_src,
+      sccInterruptHandler,         /* rtems_irq_hdl           */
+      (rtems_irq_hdl_param)chan,   /* (rtems_irq_hdl_param)   */
+      mpc8xx_console_irq_on,       /* (rtems_irq_enable)      */
+      mpc8xx_console_irq_off,      /* (rtems_irq_disable)     */
+      mpc8xx_console_irq_isOn      /* (rtems_irq_is_enabled)  */
+    };
+    if (!BSP_install_rtems_irq_handler (&irq_conn_data)) {
+      rtems_panic("console: cannot install IRQ handler");
+    }
   }
 }
 
@@ -713,32 +730,44 @@ sccInitialize (int chan)
 static int
 sccPollRead (int minor)
 {
-  unsigned char c;
+  int c = -1;
   int chan = minor;
 
-  if ((sccCurrRxBd[chan]->status & M8xx_BD_EMPTY) != 0) {
-    return -1;
+  while(1) {
+    if ((sccCurrRxBd[chan]->status & M8xx_BD_EMPTY) != 0) {
+      return -1;
+    }
+
+    if (0 == (sccCurrRxBd[chan]->status & (M8xx_BD_OVERRUN
+					   | M8xx_BD_PARITY_ERROR
+					   | M8xx_BD_FRAMING_ERROR
+					   | M8xx_BD_BREAK
+					   | M8xx_BD_IDLE))) {
+      /* character received and no error detected */
+      rtems_cache_invalidate_multiple_data_lines((void *)sccCurrRxBd[chan]->buffer,
+						 sccCurrRxBd[chan]->length);
+      c = (unsigned)*((char *)sccCurrRxBd[chan]->buffer);
+      /*
+       * clear status
+       */
+    }
+    sccCurrRxBd[chan]->status =
+      (sccCurrRxBd[chan]->status
+       & (M8xx_BD_WRAP | M8xx_BD_INTERRUPT))
+      | M8xx_BD_EMPTY;
+    /*
+     * advance to next BD
+     */
+    if ((sccCurrRxBd[chan]->status & M8xx_BD_WRAP) != 0) {
+      sccCurrRxBd[chan] = sccFrstRxBd[chan];
+    }
+    else {
+      sccCurrRxBd[chan]++;
+    }
+    if (c >= 0) {
+      return c;
+    }
   }
-  rtems_cache_invalidate_multiple_data_lines((void *)sccCurrRxBd[chan]->buffer,
-					     sccCurrRxBd[chan]->length);
-  c = *((char *)sccCurrRxBd[chan]->buffer);
-  /*
-   * clear status
-   */
-  sccCurrRxBd[chan]->status = 
-    (sccCurrRxBd[chan]->status 
-     & (M8xx_BD_WRAP | M8xx_BD_INTERRUPT))
-    | M8xx_BD_EMPTY;
-  /*
-   * advance to next BD
-   */
-  if ((sccCurrRxBd[chan]->status & M8xx_BD_WRAP) != 0) {
-    sccCurrRxBd[chan] = sccFrstRxBd[chan];
-  }
-  else {
-    sccCurrRxBd[chan]++;
-  }
-  return c;
 }
 
 
@@ -749,8 +778,8 @@ sccPollRead (int minor)
  * Polling devices:
  *	Transmit all characters.
  */
-static int
-sccInterruptWrite (int minor, const char *buf, int len)
+static ssize_t
+sccInterruptWrite (int minor, const char *buf, size_t len)
 {
   int chan = minor;
 
@@ -761,8 +790,8 @@ sccInterruptWrite (int minor, const char *buf, int len)
     /*
      * clear status, set ready bit
      */
-    sccPrepTxBd[chan]->status = 
-      (sccPrepTxBd[chan]->status 
+    sccPrepTxBd[chan]->status =
+      (sccPrepTxBd[chan]->status
        & M8xx_BD_WRAP)
       | M8xx_BD_READY | M8xx_BD_INTERRUPT;
     if ((sccPrepTxBd[chan]->status & M8xx_BD_WRAP) != 0) {
@@ -775,24 +804,25 @@ sccInterruptWrite (int minor, const char *buf, int len)
   return 0;
 }
 
-static int
-sccPollWrite (int minor, const char *buf, int len)
+static ssize_t
+sccPollWrite (int minor, const char *buf, size_t len)
 {
   static char txBuf[CONS_CHN_CNT][SCC_TXBD_CNT];
   int chan = minor;
   int bd_used;
-  
+  size_t retval = len;
+
   while (len--) {
     while (sccPrepTxBd[chan]->status & M8xx_BD_READY)
       continue;
     bd_used = sccPrepTxBd[chan]-sccFrstTxBd[chan];
     txBuf[chan][bd_used] = *buf++;
       rtems_cache_flush_multiple_data_lines((const void *)&txBuf[chan][bd_used],
-					    sizeof(txBuf[chan][bd_used]));    
+					    sizeof(txBuf[chan][bd_used]));
     sccPrepTxBd[chan]->buffer = &(txBuf[chan][bd_used]);
     sccPrepTxBd[chan]->length = 1;
-    sccPrepTxBd[chan]->status = 
-      (sccPrepTxBd[chan]->status 
+    sccPrepTxBd[chan]->status =
+      (sccPrepTxBd[chan]->status
        & M8xx_BD_WRAP)
       | M8xx_BD_READY;
     if ((sccPrepTxBd[chan]->status & M8xx_BD_WRAP) != 0) {
@@ -802,7 +832,7 @@ sccPollWrite (int minor, const char *buf, int len)
       sccPrepTxBd[chan]++;
     }
   }
-  return 0;
+  return retval;
 }
 
 /*
@@ -817,7 +847,7 @@ static void console_debug_putc_onlcr(const char c)
 
   if (BSP_output_chan != CONS_CHN_NONE) {
     rtems_interrupt_disable(irq_level);
-    
+
     if (c == '\n') {
       sccPollWrite (BSP_output_chan,&cr_chr,1);
     }
@@ -861,13 +891,6 @@ rtems_device_driver console_initialize(rtems_device_major_number  major,
   char tty_name[] = "/dev/tty00";
 
   /*
-   * init base clock for BRGs
-   * (if not already set by debugger etc)
-   */
-  if (m8xx_clock_rate == 0) {
-    m8xx_clock_rate = BSP_bus_frequency;
-  }
-  /*
    * Set up TERMIOS
    */
   rtems_termios_initialize ();
@@ -897,18 +920,18 @@ rtems_device_driver console_initialize(rtems_device_major_number  major,
        * Register the device
        */
       status = rtems_io_register_name (tty_name,
-				       major, 
+				       major,
 				       channel_list[entry].minor);
       if (status != RTEMS_SUCCESSFUL) {
 	rtems_fatal_error_occurred (status);
       }
-    }	  
+    }
   }
   /*
    * register /dev/console
    */
   status = rtems_io_register_name ("/dev/console",
-				   major, 
+				   major,
 				   CONSOLE_CHN);
   if (status != RTEMS_SUCCESSFUL) {
     rtems_fatal_error_occurred (status);
@@ -954,7 +977,7 @@ rtems_device_driver console_open(
     0			/* outputUsesInterrupts */
   };
 
-  if (m8xx_scc_mode[chan] == TERMIOS_IRQ_DRIVEN) {    
+  if (m8xx_scc_mode[chan] == TERMIOS_IRQ_DRIVEN) {
     status = rtems_termios_open (major, minor, arg, &interruptCallbacks);
     sccttyp[chan] = args->iop->data1;
   }
@@ -962,13 +985,9 @@ rtems_device_driver console_open(
     status = rtems_termios_open (major, minor, arg, &pollCallbacks);
     sccttyp[chan] = args->iop->data1;
   }
-#if defined(BSP_HAS_UBOOT)  
-  rtems_termios_set_initial_baud(sccttyp[chan],
-				 mpc8xx_uboot_board_info.bi_baudrate);
-#endif
   return status;
 }
- 
+
 /*
  * Close the device
  */
@@ -1040,7 +1059,7 @@ static int scc_io_set_trm_char(rtems_device_minor_number minor,
     }
   }
   /*
-   * transfer characters 
+   * transfer characters
    */
   if (rc == RTEMS_SUCCESSFUL) {
     if (trm_char_info->char_cnt > CON8XX_TRM_CHAR_CNT) {
@@ -1050,7 +1069,7 @@ static int scc_io_set_trm_char(rtems_device_minor_number minor,
       /*
        * check, whether device is a SCC
        */
-      if ((rc == RTEMS_SUCCESSFUL) && 
+      if ((rc == RTEMS_SUCCESSFUL) &&
 	  !m8xx_console_chan_desc[minor].is_scc) {
 	rc = RTEMS_UNSATISFIED;
       }
@@ -1080,14 +1099,14 @@ rtems_device_driver console_control(
 				    rtems_device_minor_number minor,
 				    void                    * arg
 				    )
-{ 
+{
   rtems_libio_ioctl_args_t *ioa=arg;
 
   switch (ioa->command) {
 #if 0
   case CON8XX_IO_SET_TRM_CHAR:
     return scc_io_set_trm_char(minor, ioa);
-#endif    
+#endif
   default:
     return rtems_termios_ioctl (arg);
     break;

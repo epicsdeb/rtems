@@ -1,19 +1,21 @@
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: psignal.c,v 1.60 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: psignal.c,v 1.67.2.2 2011/07/31 22:40:43 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <assert.h>
+#if defined(RTEMS_DEBUG)
+  #include <assert.h>
+#endif
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
@@ -21,6 +23,7 @@
 #include <stdlib.h>	/* exit */
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/tqdata.h>
@@ -36,7 +39,8 @@
 
 sigset_t  _POSIX_signals_Pending;
 
-void _POSIX_signals_Abnormal_termination_handler( int signo )
+void _POSIX_signals_Abnormal_termination_handler(
+  int signo __attribute__((unused)) )
 {
   exit( 1 );
 }
@@ -85,6 +89,9 @@ Thread_queue_Control _POSIX_signals_Wait_queue;
 Chain_Control _POSIX_signals_Inactive_siginfo;
 Chain_Control _POSIX_signals_Siginfo[ SIG_ARRAY_MAX ];
 
+Watchdog_Control _POSIX_signals_Alarm_timer;
+Watchdog_Control _POSIX_signals_Ualarm_timer;
+
 /*PAGE
  *
  *  XXX - move these
@@ -106,8 +113,19 @@ void _POSIX_signals_Post_switch_extension(
   POSIX_API_Control  *api;
   int                 signo;
   ISR_Level           level;
+  int                 hold_errno;
 
   api = the_thread->API_Extensions[ THREAD_API_POSIX ];
+
+  /*
+   *  We need to ensure that if the signal handler executes a call
+   *  which overwrites the unblocking status, we restore it.
+   */
+  hold_errno = _Thread_Executing->Wait.return_code;
+
+  /*
+   * api may be NULL in case of a thread close in progress
+   */
   if ( !api )
     return;
 
@@ -120,7 +138,6 @@ void _POSIX_signals_Post_switch_extension(
    *  processed at all.  No point in doing this loop otherwise.
    */
   while (1) {
-  restart:
     _ISR_Disable( level );
       if ( !(~api->signals_blocked &
             (api->signals_pending | _POSIX_signals_Pending)) ) {
@@ -130,28 +147,18 @@ void _POSIX_signals_Post_switch_extension(
     _ISR_Enable( level );
 
     for ( signo = SIGRTMIN ; signo <= SIGRTMAX ; signo++ ) {
-
-      if ( _POSIX_signals_Check_signal( api, signo, false ) )
-        goto restart;
-
-      if ( _POSIX_signals_Check_signal( api, signo, true ) )
-        goto restart;
-
+      _POSIX_signals_Check_signal( api, signo, false );
+      _POSIX_signals_Check_signal( api, signo, true );
     }
-
-    /* XXX - add __SIGFIRSTNOTRT or something like that to newlib signal .h */
+    /* Unfortunately - nothing like __SIGFIRSTNOTRT in newlib signal .h */
 
     for ( signo = SIGHUP ; signo <= __SIGLASTNOTRT ; signo++ ) {
-
-      if ( _POSIX_signals_Check_signal( api, signo, false ) )
-        goto restart;
-
-      if ( _POSIX_signals_Check_signal( api, signo, true ) )
-        goto restart;
-
+      _POSIX_signals_Check_signal( api, signo, false );
+      _POSIX_signals_Check_signal( api, signo, true );
     }
   }
-  return;
+
+  _Thread_Executing->Wait.return_code = hold_errno;
 }
 
 /*PAGE
@@ -159,19 +166,22 @@ void _POSIX_signals_Post_switch_extension(
  *  _POSIX_signals_Manager_Initialization
  */
 
-void _POSIX_signals_Manager_Initialization(
-  int  maximum_queued_signals
-)
+void _POSIX_signals_Manager_Initialization(void)
 {
   uint32_t   signo;
+  uint32_t   maximum_queued_signals;
+
+  maximum_queued_signals = Configuration_POSIX_API.maximum_queued_signals;
 
   /*
    *  Ensure we have the same number of vectors and default vector entries
    */
 
-  assert(
-   sizeof(_POSIX_signals_Vectors) == sizeof(_POSIX_signals_Default_vectors)
-  );
+  #if defined(RTEMS_DEBUG)
+    assert(
+     sizeof(_POSIX_signals_Vectors) == sizeof(_POSIX_signals_Default_vectors)
+    );
+  #endif
 
   memcpy(
     _POSIX_signals_Vectors,
@@ -182,16 +192,14 @@ void _POSIX_signals_Manager_Initialization(
   /*
    *  Initialize the set of pending signals for the entire process
    */
-
   sigemptyset( &_POSIX_signals_Pending );
 
   /*
    *  Initialize the queue we use to block for signals
    */
-
   _Thread_queue_Initialize(
     &_POSIX_signals_Wait_queue,
-    THREAD_QUEUE_DISCIPLINE_PRIORITY,
+    THREAD_QUEUE_DISCIPLINE_FIFO,
     STATES_WAITING_FOR_SIGNAL | STATES_INTERRUPTIBLE_BY_SIGNAL,
     EAGAIN
   );
@@ -201,7 +209,6 @@ void _POSIX_signals_Manager_Initialization(
   /*
    *  Allocate the siginfo pools.
    */
-
   for ( signo=1 ; signo<= SIGRTMAX ; signo++ )
     _Chain_Initialize_empty( &_POSIX_signals_Siginfo[ signo ] );
 
@@ -217,4 +224,10 @@ void _POSIX_signals_Manager_Initialization(
   } else {
     _Chain_Initialize_empty( &_POSIX_signals_Inactive_siginfo );
   }
+
+  /*
+   *  Initialize the Alarm Timer
+   */
+  _Watchdog_Initialize( &_POSIX_signals_Alarm_timer, NULL, 0, NULL );
+  _Watchdog_Initialize( &_POSIX_signals_Ualarm_timer, NULL, 0, NULL );
 }

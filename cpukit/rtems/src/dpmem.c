@@ -1,14 +1,14 @@
 /*
  *  Dual Port Memory Manager
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: dpmem.c,v 1.19 2007/05/21 23:19:20 joel Exp $
+ *  $Id: dpmem.c,v 1.21 2009/01/06 05:05:02 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,6 +16,7 @@
 #endif
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/rtems/status.h>
 #include <rtems/rtems/support.h>
 #include <rtems/score/address.h>
@@ -30,28 +31,26 @@
  *  This routine initializes all dual-ported memory manager related
  *  data structures.
  *
- *  Input parameters:
- *    maximum_ports - number of ports to initialize
+ *  Input parameters:   NONE
  *
  *  Output parameters:  NONE
  */
 
-void _Dual_ported_memory_Manager_initialization(
-  uint32_t   maximum_ports
-)
+void _Dual_ported_memory_Manager_initialization(void)
 {
   _Objects_Initialize_information(
     &_Dual_ported_memory_Information, /* object information table */
     OBJECTS_CLASSIC_API,              /* object API */
     OBJECTS_RTEMS_PORTS,              /* object class */
-    maximum_ports,                    /* maximum objects of this class */
+    Configuration_RTEMS_API.maximum_ports,
+                                  /* maximum objects of this class */
     sizeof( Dual_ported_memory_Control ),
                                   /* size of this object's control block */
-    FALSE,                        /* TRUE if names of this object are strings */
+    false,                        /* true if names of this object are strings */
     RTEMS_MAXIMUM_NAME_LENGTH     /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                        /* TRUE if this is a global object class */
+    false,                        /* true if this is a global object class */
     NULL                          /* Proxy extraction support callout */
 #endif
   );

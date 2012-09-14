@@ -20,15 +20,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.19 2008/09/05 22:05:13 joel Exp $
+ *  $Id: ckinit.c,v 1.20 2008/09/16 19:03:21 joel Exp $
  */
 
 #include <stdlib.h>
 
 #include <bsp.h>
-#include <rtems/libio.h>
 
-uint32_t         Clock_isrs;        /* ISRs until next tick */
+uint32_t                  Clock_isrs;        /* ISRs until next tick */
 volatile uint32_t         Clock_driver_ticks;
                                     /* ticks since initialization */
 rtems_isr_entry  Old_ticker;

@@ -1,26 +1,114 @@
+2011-03-15	Till Straumann <strauman@slac.stanford.edu>
+
+	* startup/bspstart.c: Fix clock code on qemu. Also ensure UART is
+	initialized early for printk.
+
+2011-03-04	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1738/bsps
+	* clock/clock.c, include/bsp.h, network/network.c: system clock driver
+	programs the PIT w/o assuming the CPU clock frequency being a power
+	of two.
+
+2011-02-17	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1738/bsps
+	* README, startup/bspstart.c, startup/linkcmds: Add support for dynamic
+	clock speed determination. This algorithm is described in the README
+	file. The output of the RTEMS Timing Tests was moved to TIMES to
+	signicantly shrink the README.
+	* TIMES: New file.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-04-27	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* network/network.c: Remove warnings.
+
+2010-04-27	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* network/network.c, startup/bspclean.c, startup/init5282.c: Remove
+	warnings.
+
+2010-04-26  Eric Norum <norume@aps.anl.gov>
+
+    * startup/bspstart.c: Clean up some warnings.
+    * network/network.c: Fix up full/half duplex printout and some warnings.
+
+2010-04-08	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* start/start.S: Spacing.
+
+2009-12-16      Thomas Doerfler <Thomas.Doerfler@embedded-brains.de>
+
+	* console/console.c: adapted to new prototype for *_write
+	function
+
+2009-11-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* startup/bspstart.c: Add missing prototype.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/uC5282.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/uC5282.cfg: New (relocated from /make/custom).
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c: Reflect termios_baud_to_number having been
+	renamed to rtems_termios_baud_to_number.
+
+2009-09-28	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* console/console.c: Add pointer to method used by getchark().
+
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
 2009-09-09	Till Straumann <strauman@slac.stanford.edu>
 
 	* startup/bspstart.c: Added dummy implementation of firmware
 	syscalls for use with QEMU. Dummy handler is installed if no
 	pre-existing firmware handler is found.
 
+2009-08-26	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock/clock.c, include/bsp.h: Rename BSP specific idle thread to
+	bsp_idle_thread.
+
 2009-07-30  Eric Norum <norume@aps.anl.gov>
 
 	* include/bsp.h, network/network.c, startup/bspstart.c:  Try enabling
-    the data cache.
+	the data cache.
 
 2009-07-28  Eric Norum <norume@aps.anl.gov>
 
-   PR 1420/bsps
-   * startup/bspstart.c: Turn on buffered writes to DRAM. As Device Errata
-      SECF124 notes this may cause double writes, but that's not really a big
-      problem and benchmarking tests have shown that buffered writes do gain
-      some performance.
+	PR 1420/bsps
+	* startup/bspstart.c: Turn on buffered writes to DRAM. As Device Errata
+	SECF124 notes this may cause double writes, but that's not really a big
+	problem and benchmarking tests have shown that buffered writes do gain
+	some performance.
 
-2009-06-02	Eric Norum <norume@aps.anl.gov>
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-06-02  Eric Norum <norume@aps.anl.gov>
 
 	PR 1420/bsps
 	* startup/bspstart.c: Turn off buffered writes.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* start/start.S: Update for boot_card command line change.
 
 2009-03-02	Till Straumann <strauman@slac.stanford.edu>
 
@@ -28,14 +116,88 @@
 	* clock/clock.c: Correct implementation of nanoseconds since last tick
 	handler.
 
+2009-02-25	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* clock/clock.c, include/bsp.h: Make bsp idle thread names match.
+
+2009-02-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock/clock.c, include/bsp.h: Change prototype of IDLE thread to
+	consistently return void * and take a uintptr_t argument.
+
 2009-01-21	Eric Norum <norume@aps.anl.gov>
 
 	PR 1358/bsps
 	* clock/clock.c: Fix time-access bug in uc5282 BSP.
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am, preinstall.am: Use shared stub coverhd.h
+	* include/coverhd.h: Removed.
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/clock.c: include "../../../shared/clockdrv_shell.h".
+	* Makefile.am: Reflect changes above.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, include/bsp.h, startup/bspstart.c: Rename
+	existing bsp_reset() to bsp_sysReset() since the prototype did not
+	match the standard one. Add standard bsp_reset().
+	* startup/bspreset.c: New file.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Remove unnecessary boilerplate comments.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, startup/bspstart.c, startup/linkcmds: Use top level
+	shared bsp_get_work_area() implementation.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, startup/bspstart.c, startup/linkcmds: Add
+	use of bsp_get_work_area() in its own file and rely on BSP Framework
+	to perform more initialization. Remove unnecessary includes of
+	rtems/libio.h and rtems/libcsupport.h.
+
+2008-09-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Review of all bsp_cleanup() implementations. In this
+	phase, all prototypes were removed from bsp.h and empty
+	implementations were removed and made to use the shared stub.
 
 2008-09-05	Ralf Corsépius <ralf.corsepius@rtems.org>
 
@@ -85,7 +247,7 @@
 
 2008-04-24	Eric Norum <norume@aps.anl.gov>
 
-    * startup/bspstart.c: More clean up of FPGA interrupts.
+	* startup/bspstart.c: More clean up of FPGA interrupts.
 
 2008-04-23	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -94,11 +256,11 @@
 
 2008-04-07	Eric Norum <norume@aps.anl.gov>
 
-    * startup/bspstart.c: Clean up non-FPGA use of EPORT interrupts.
+	* startup/bspstart.c: Clean up non-FPGA use of EPORT interrupts.
 
 2008-04-07	Eric Norum <norume@aps.anl.gov>
 
-    * network/network.c: Track half/fullduplex changes from 4.7 branch.
+	* network/network.c: Track half/fullduplex changes from 4.7 branch.
 
 2008-03-03	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -215,7 +377,7 @@
 2006-05-15  Eric Norum <norume@aps.anl.gov>
 
 	* startup/bspstart.c: Add checks for FPGA interrupt request overflow.
-                          Allow single spurious FPGA interrupt.
+	Allow single spurious FPGA interrupt.
 
 2006-04-11  Eric Norum <norume@aps.anl.gov>
 
@@ -231,7 +393,7 @@
 
 2006-02-06  Eric Norum <norume@aps.anl.gov>
 
-    * clock/clock.c: Avoid division by zero.
+	* clock/clock.c: Avoid division by zero.
 
 2006-01-29  Eric Norum <norume@aps.anl.gov>
 
@@ -244,8 +406,8 @@
 
 2005-12-19  Eric Norum <norume@aps.anl.gov>
 
-    * startup/bspstart.c: Add another 'extended BSP' routine which return
-                          reboot status register information.
+	* startup/bspstart.c: Add another 'extended BSP' routine which return
+	reboot status register information.
 
 2005-11-12	Ralf Corsepius <ralf.corsepius@rtems.org>
 
@@ -253,15 +415,15 @@
 
 2005-11-11  Eric Norum <norume@aps.anl.gov>
 
-    * console/console.c: Clean up UART2 pin setup.  Protect pin setup code.
+	* console/console.c: Clean up UART2 pin setup.  Protect pin setup code.
 
 2005-11-08  Eric Norum <norume@aps.anl.gov>
 
-    * console/console.c: Add code to set up pin assignments
+	* console/console.c: Add code to set up pin assignments
 
 2005-11-07  Eric Norum <norume@aps.anl.gov>
 
-    * Almost everything: Assign copyright to OAR.
+	* Almost everything: Assign copyright to OAR.
 
 2005-10-26  Eric Norum <norume@aps.anl.gov>
 
@@ -305,7 +467,7 @@
 2005-05-10  Eric Norum <norume@aps.anl.gov>
 
 	* network/network.c: Poke RDAR/TDAR every time.
-                         Add more diagnostic printout.
+	Add more diagnostic printout.
 
 2005-05-03	Joel Sherrill <joel@OARcorp.com>
 
@@ -324,13 +486,13 @@
 2005-04-19  Eric Norum <norume@aps.anl.gov>
 
 	* startup/bspstart.c: Expose read/write copy of cache control registers
-                          in case some application diagnostic code wants to
-                          display the values.
+	in case some application diagnostic code wants to
+	display the values.
 
 2005-04-13  Eric Norum <norume@aps.anl.gov>
 
 	* network/network.c: Add some more diagnostics.
-                         Poke TDAR/RDAR only when necessary.
+	Poke TDAR/RDAR only when necessary.
 
 2005-04-10  Eric Norum <norume@aps.anl.gov>
 

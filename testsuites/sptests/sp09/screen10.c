@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen10.c,v 1.9 2007/11/27 20:44:55 humph Exp $
+ *  $Id: screen10.c,v 1.13 2009/09/28 19:39:06 joel Exp $
  */
 
 #include "system.h"
@@ -26,6 +26,15 @@ void Screen10()
   /*
    * Check create error cases.
    */
+  status = rtems_rate_monotonic_create( Period_name[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_rate_monotonic_create with NULL param"
+  );
+
+  puts( "TA1 - rtems_rate_monotonic_create - RTEMS_INVALID_ADDRESS" );
+
   status = rtems_rate_monotonic_create( 0, &Junk_id );
   fatal_directive_status(
     status,
@@ -68,7 +77,7 @@ void Screen10()
   );
   puts( "TA1 - rtems_rate_monotonic_period - RTEMS_INVALID_ID" );
 
-  status = rtems_rate_monotonic_period( 0x10100, 5 );
+  status = rtems_rate_monotonic_period( rtems_build_id( 1, 1, 1, 256 ), 5 );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,
@@ -106,14 +115,35 @@ void Screen10()
        status,
        "rtems_rate_monotonic_period waiting for timeout"
      );
+
+     rtems_task_wake_after( 1 );
   }
   puts(
     "TA1 - rtems_rate_monotonic_period(RTEMS_PERIOD_STATUS) - RTEMS_TIMEOUT"
   );
 
   /*
+   * Check get_statistics error cases.
+   */
+  status = rtems_rate_monotonic_get_statistics( Period_id[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_rate_monotonic_get_statistics with NULL param"
+  );
+  puts( "TA1 - rtems_rate_monotonic_get_statistics - RTEMS_INVALID_ADDRESS" );
+
+  /*
    * Check get_status error cases.
    */
+  status = rtems_rate_monotonic_get_status( Period_id[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_rate_monotonic_get_status with NULL param"
+  );
+  puts( "TA1 - rtems_rate_monotonic_get_status - RTEMS_INVALID_ADDRESS" );
+
   status = rtems_rate_monotonic_get_status( 100, &period_status );
   fatal_directive_status(
     status,
@@ -133,7 +163,7 @@ void Screen10()
   );
   puts( "TA1 - rtems_rate_monotonic_cancel - RTEMS_INVALID_ID" );
 
-  status = rtems_rate_monotonic_cancel( 0x10100 );
+  status = rtems_rate_monotonic_cancel( rtems_build_id( 1, 1, 1, 256 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,
@@ -148,7 +178,7 @@ void Screen10()
   status = rtems_rate_monotonic_period( Period_id[ 1 ], 5 );
   directive_failed( status, "rtems_rate_monotonic_period restart" );
 
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   status = rtems_rate_monotonic_period( Period_id[ 1 ], 5 );
@@ -176,7 +206,7 @@ void Screen10()
   );
   puts( "TA1 - rtems_rate_monotonic_delete - RTEMS_INVALID_ID" );
 
-  status = rtems_rate_monotonic_delete( 0x10100 );
+  status = rtems_rate_monotonic_delete( rtems_build_id( 1, 1, 1, 256 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,

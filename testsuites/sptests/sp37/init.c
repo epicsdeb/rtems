@@ -2,23 +2,49 @@
  *  Interrupt Disable/Enable Tests
  *  Clock Tick from task level
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.4 2008/09/06 03:28:07 ralf Exp $
+ *  $Id: init.c,v 1.10 2009/11/30 03:33:24 ralf Exp $
  */
 
 #define __RTEMS_VIOLATE_KERNEL_VISIBILITY__
 #define CONFIGURE_INIT
 #include "system.h"
 
+/* HACK: API visibilty violation */
+extern rtems_attribute rtems_interrupt_level_attribute(uint32_t level);
+
+/* prototypes */
+void test_interrupt_inline(void);
+void check_isr_in_progress_inline(void);
+rtems_task blocked_task(rtems_task_argument argument);
+rtems_timer_service_routine test_unblock_task(
+  rtems_id  timer,
+  void     *arg
+);
+rtems_timer_service_routine test_unblock_task(
+  rtems_id  timer,
+  void     *arg
+);
+void check_isr_worked(
+  char *s,
+  int   result
+);
+rtems_timer_service_routine test_isr_in_progress(
+  rtems_id  timer,
+  void     *arg
+);
+
+/* test bodies */
 void test_interrupt_inline(void)
 {
   rtems_interrupt_level level;
+  rtems_attribute level_attribute, level_attribute_macro;
   bool                  in_isr;
 
   puts( "interrupt is in progress (use body)" );
@@ -36,6 +62,13 @@ void test_interrupt_inline(void)
 
   puts( "interrupt enable (use inline)" );
   rtems_interrupt_enable( level );
+
+  puts( "interrupt level attribute (use inline)" );
+  level_attribute = rtems_interrupt_level_attribute( level );
+  level_attribute_macro = RTEMS_INTERRUPT_LEVEL(level);
+  if ( level_attribute_macro == level_attribute ) {
+    puts( "test case working.." );
+  }
 }
 
 volatile int isr_in_progress_body;
@@ -50,9 +83,13 @@ void check_isr_in_progress_inline(void)
 }
 
 #undef rtems_interrupt_disable
+extern rtems_interrupt_level rtems_interrupt_disable(void);
 #undef rtems_interrupt_enable
+extern void rtems_interrupt_enable(rtems_interrupt_level previous_level);
 #undef rtems_interrupt_flash
+extern void rtems_interrupt_flash(rtems_interrupt_level previous_level);
 #undef rtems_interrupt_is_in_progress
+extern bool rtems_interrupt_is_in_progress(void);
 
 rtems_timer_service_routine test_isr_in_progress(
   rtems_id  timer,
@@ -80,7 +117,7 @@ void check_isr_worked(
       printf( "isr_in_progress(%s) from ISR -- OK\n", s );
       break;
     case 2:
-      printf( "isr_in_progress(%s) from ISR -- returned bad value\n");
+      printf( "isr_in_progress(%s) from ISR -- returned bad value\n", s);
       rtems_test_exit(0);
       break;
   }
@@ -131,7 +168,7 @@ rtems_timer_service_routine test_unblock_task(
     status = rtems_timer_fire_after( timer, 1, test_unblock_task, NULL );
     directive_failed( status, "timer_fire_after failed" );
     return;
-  } 
+  }
 
   blocked_task_status = 2;
   _Thread_Disable_dispatch();
@@ -147,6 +184,7 @@ rtems_task Init(
   rtems_time_of_day     time;
   rtems_status_code     status;
   rtems_interrupt_level level;
+  rtems_attribute level_attribute,level_attribute_macro;
   bool                  in_isr;
   rtems_id              timer;
   int                   i;
@@ -251,6 +289,13 @@ rtems_task Init(
   puts( "interrupt enable (use body)" );
   rtems_interrupt_enable( level );
 
+  puts( "interrupt level attribute (use body)" );
+  level_attribute = rtems_interrupt_level_attribute( level );
+  level_attribute_macro = RTEMS_INTERRUPT_LEVEL(level);
+  if ( level_attribute_macro == level_attribute ) {
+    puts("test seems to work");
+  }
+
   /*
    * Test ISR in progress from actual ISR
    */
@@ -262,7 +307,7 @@ rtems_task Init(
 
   status = rtems_task_wake_after( 100 );
   directive_failed( status, "wake_after failed" );
-  
+
   check_isr_worked( "inline", isr_in_progress_body );
 
   check_isr_worked( "body", isr_in_progress_body );

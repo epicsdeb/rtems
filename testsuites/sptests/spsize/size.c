@@ -1,16 +1,15 @@
-/*  main
- *
+/*
  *  This program is run to determine the data space and work space
  *  requirements of the current version of RTEMS.
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: size.c,v 1.60 2008/09/05 14:43:45 joel Exp $
+ *  $Id: size.c,v 1.64 2009/10/27 07:27:43 ralf Exp $
  */
 
 #include <rtems/system.h>
@@ -52,6 +51,10 @@
 
 /* external function prototypes */
 int getint( void );
+void size_rtems(int mode);
+void help_size(void);
+void print_formula(void);
+
 
 /* These are always defined by the executive.
  *
@@ -132,10 +135,8 @@ extern CORE_semaphore_Control _MPCI_Semaphore;
     (STACK_MINIMUM_SIZE + sizeof(Thread_Control) + SYSTEM_IDLE_FP + \
      MP_SYSTEM_TASKS)
 
+/* FIXME: uint32_t doesn't seem right */
 uint32_t   sys_req;
-
-void help_size();
-void print_formula();
 
 void size_rtems(
   int mode
@@ -222,7 +223,7 @@ uninitialized =
 
 /*clock.h*/     0                                         +
 
-/*config.h*/    (sizeof _Configuration_Table)             +
+/*config.h*/
         #if defined(RTEMS_MULTIPROCESSING)
                 (sizeof _Configuration_MP_table)          +
         #endif
@@ -374,7 +375,6 @@ uninitialized =
 
 /*tod.h*/       (sizeof _TOD_Now)                         +
                 (sizeof _TOD_Uptime)                      +
-                (sizeof _TOD_Microseconds_per_tick)       +
 
 /*tqdata.h*/    0                                         +
 
@@ -620,7 +620,7 @@ printf( " Extensions           - %03d * %03ld            =  %ld\n",
 printf( " Device Drivers       - %03d * %03ld            =  %ld\n",
           maximum_drvs, PER_DRV, (long) size_drvs );
 
-printf( " System Requirements  - %04d                 =  %d\n",
+printf( " System Requirements  - %04" PRIu32 "                 =  %"PRIu32 "\n",
           sys_req, sys_req );
 
 printf( " Floating Point Tasks - %03d * %03ld            =  %ld\n",
@@ -655,7 +655,7 @@ printf( " Ports                - maximum_ports * %ld\n",      PER_PORT );
 printf( " Periods              - maximum_periods * %ld\n",    PER_PORT );
 printf( " Extensions           - maximum_extensions * %ld\n", PER_EXTENSION );
 printf( " Device Drivers       - number_of_device_drivers * %ld\n", PER_DRV);
-printf( " System Requirements  - %d\n",                       sys_req );
+printf( " System Requirements  - %" PRIu32 "\n",              sys_req );
 printf( " Floating Point Tasks - FPMASK Tasks * %ld\n",       PER_FPTASK );
 printf( " User's Tasks' Stacks -\n" );
 printf( " Interrupt Stack      -\n" );

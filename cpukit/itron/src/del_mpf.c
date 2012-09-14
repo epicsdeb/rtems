@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: del_mpf.c,v 1.1 2007/04/17 20:32:12 joel Exp $
+ *  $Id: del_mpf.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,7 +22,7 @@
  */
 
 ER del_mpf(
-  ID mpfid
+  ID mpfid __attribute__((unused))
 )
 {
   return E_OK;

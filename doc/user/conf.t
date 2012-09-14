@@ -2,7 +2,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: conf.t,v 1.52 2008/09/09 08:19:38 ralf Exp $
+@c  $Id: conf.t,v 1.64.2.3 2011/12/07 20:08:49 joel Exp $
 @c
 
 @c The following macros from confdefs.h have not been discussed in this
@@ -184,12 +184,25 @@ before RTEMS release 4.5.0.  The miniIMFS supports
 only directories and device nodes and is smaller in executable
 code size than the full IMFS.
 
-@findex STACK_CHECKER_ON
-@item @code{STACK_CHECKER_ON} is defined when the application 
-wishes to enable run-time stack bounds checking.  This increases
-the time required to create tasks as well as adding overhead
-to each context switch.  By default, this is not defined and
-thus stack checking is disabled.
+@findex CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM
+@item @code{CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM} is defined
+if the application wishes to use the device-only filesytem. The 
+device-only filesystem supports only device nodes and is smaller 
+in executable code size than the full IMFS and miniIMFS.
+
+@findex CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+@item @code{CONFIGURE_APPLICATION_DISABLE_FILESYSTEM} is defined
+if the application dose not intend to use any kind of filesystem
+supports(including printf family). 
+
+
+@findex CONFIGURE_STACK_CHECKER_ENABLED
+@item @code{CONFIGURED_STACK_CHECKER_ENABLED} is defined when
+the application wishes to enable run-time stack bounds checking.
+This increases the time required to create tasks as well as adding
+overhead to each context switch.  By default, this is not defined and
+thus stack checking is disabled.  NOTE: In 4.9 and older, this was named
+@code{STACK_CHECKER_ON}
 
 @end itemize
 
@@ -210,6 +223,21 @@ address of the RTEMS RAM Workspace.  By default, this value
 is NULL indicating that the BSP is to determine the location
 of the RTEMS RAM Workspace.
 
+@findex CONFIGURE_UNIFIED_WORK_AREAS
+@item @code{CONFIGURE_UNIFIED_WORK_AREAS} configures RTEMS to use a
+single memory pool for the RTEMS Workspace and C Program Heap.  If not
+defined, there will be separate memory pools for the RTEMS Workspace and
+C Program Heap.  Having separate pools does have some advantages in the
+event a task blows a stack or writes outside its memory area. However,
+in low memory systems the overhead of the two pools plus the potential
+for unused memory in either pool is very undesirable.
+
+In high memory environments, this is desirable when you want to use the
+RTEMS "unlimited" objects option.  You will be able to create objects
+until you run out of all available memory rather then just until you
+run out of RTEMS Workspace.
+
+@findex CONFIGURE_MICROSECONDS_PER_TICK
 @item @code{CONFIGURE_MICROSECONDS_PER_TICK} is the length
 of time between clock ticks.  By default, this is set to
 10000 microseconds.
@@ -231,9 +259,8 @@ system reduces the amount of memory allocated from the RTEMS Workspace.
 By default, RTEMS supports 256 priority levels ranging from 0 to 255 so
 the default value for this field is 255.
 
-@findex CONFIGURE_MICROSECONDS_PER_TICK
-@fnindex CONFIGURE_MINIMUM_STACK_SIZE
-@item @code{CONFIGURE_MINIMUM_STACK_SIZE} is set to the number of bytes
+@fnindex CONFIGURE_MINIMUM_TASK_STACK_SIZE
+@item @code{CONFIGURE_MINIMUM_TASK_STACK_SIZE} is set to the number of bytes
 the application wants the minimum stack size to be for every task or 
 thread in the system.  By default, this is set to the recommended minimum
 stack size for this processor.
@@ -301,7 +328,7 @@ by the type @code{other_message_type}.
 
 @example
 
-#define CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE \
+#define CONFIGURE_MESSAGE_BUFFER_MEMORY \
  (CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE( \
     24, sizeof(one_message_type) + \
   CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE( \
@@ -391,7 +418,7 @@ set to 10.
 @findex CONFIGURE_MAXIMUM_DEVICES
 @item @code{CONFIGURE_MAXIMUM_DEVICES} is defined
 to the number of individual devices that may be registered
-in the system.  By default, this is set to 20.
+in the system.  By default, this is set to 4.
 
 @findex CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 @item @code{CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER}
@@ -433,6 +460,15 @@ By default, this is not defined.
 @findex CONFIGURE_APPLICATION_NEEDS_WATCHDOG_DRIVER
 @item @code{CONFIGURE_APPLICATION_NEEDS_WATCHDOG_DRIVER}
 is defined if the application wishes to include the Watchdog Driver.
+By default, this is not defined.
+
+@findex CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
+@item @code{CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER}
+is defined
+if the application wishes to include the BSP's Frame Buffer Device Driver.
+Most BSPs do not provide a Frame Buffer Device Driver.  If this is
+defined and the BSP does not have this device driver, then the user
+will get a link time error for an undefined symbol.
 By default, this is not defined.
 
 @findex CONFIGURE_APPLICATION_NEEDS_STUB_DRIVER
@@ -519,8 +555,8 @@ system configuration parameters supported by @code{rtems/confdefs.h}.
 Classic API tasks that can be concurrently active. 
 The default for this field is 0.
 
-@findex CONFIGURE_DISABLE_CLASSIC_NOTEPADS
-@item @code{CONFIGURE_DISABLE_CLASSIC_NOTEPADS} should be defined
+@findex CONFIGURE_DISABLE_CLASSIC_API_NOTEPADS
+@item @code{CONFIGURE_DISABLE_CLASSIC_API_NOTEPADS} should be defined
 if the user does not want to have support for Classic API Notepads
 in their application.  By default, this is not defined and Classic API
 Notepads are supported.
@@ -683,9 +719,32 @@ The default is 0.
 POSIX API message queues that can be concurrently active.
 The default is 0.
 
+@findex CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS
+@item @code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS}
+is the maximum number of POSIX API message
+queue descriptors that can be concurrently
+active. @code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS}
+should be greater than or equal to
+@code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}. The default is 0.
+
 @findex CONFIGURE_MAXIMUM_POSIX_SEMAPHORES
 @item @code{CONFIGURE_MAXIMUM_POSIX_SEMAPHORES} is the maximum number of
 POSIX API semaphores that can be concurrently active.
+The default is 0.
+
+@findex CONFIGURE_MAXIMUM_POSIX_BARRIERS
+@item @code{CONFIGURE_MAXIMUM_POSIX_BARRIERS} is the maximum number of
+POSIX API barriers that can be concurrently active.
+The default is 0.
+
+@findex CONFIGURE_MAXIMUM_POSIX_SPINLOCKS
+@item @code{CONFIGURE_MAXIMUM_POSIX_SPINLOCKS} is the maximum number of
+POSIX API spinlocks that can be concurrently active.
+The default is 0.
+
+@findex CONFIGURE_MAXIMUM_POSIX_RWLOCKS
+@item @code{CONFIGURE_MAXIMUM_POSIX_RWLOCKS} is the maximum number of
+POSIX API read-write locks that can be concurrently active.
 The default is 0.
 
 @end itemize
@@ -885,14 +944,14 @@ The RTEMS Configuration Table is defined in the following C structure:
 @group
 typedef struct @{
   void                           *work_space_start;
-  uint32_t                        work_space_size;
+  uintptr_t                       work_space_size;
   uint32_t                        maximum_extensions;
   uint32_t                        microseconds_per_tick;
   uint32_t                        ticks_per_timeslice;
   void                          (*idle_task)( void );
   uint32_t                        idle_task_stack_size;
   uint32_t                        interrupt_stack_size;
-  void *                        (*stack_allocate_hook)( uint32_t );
+  void *                        (*stack_allocate_hook)( size_t );
   void                          (*stack_free_hook)( void * );
   bool                            do_zero_of_workspace;
   uint32_t                        maximum_drivers;
@@ -1293,11 +1352,12 @@ typedef struct @{
   int                                 maximum_timers;
   int                                 maximum_queued_signals;
   int                                 maximum_message_queues;
+  int                                 maximum_message_queue_descriptors;
   int                                 maximum_semaphores;
   int                                 maximum_barriers;
   int                                 maximum_rwlocks;
   int                                 maximum_spinlocks;
-  int                                 number_of_initialization_tasks;
+  int                                 number_of_initialization_threads;
   posix_initialization_threads_table *User_initialization_tasks_table;
 @} posix_api_configuration_table;
 @end group
@@ -1357,6 +1417,61 @@ an RTEMS application, the value for this field corresponds
 to the setting of the macro @code{CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS}.
 If not defined by the application, then the
 @code{CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS} macro defaults to 0.
+
+@item maximum_message_queues
+is the maximum number of POSIX message queues that can be concurrently
+active in the system.  When using the @code{rtems/confdefs.h}
+mechanism for configuring an RTEMS application, the
+value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}.  If not defined by the
+application, then the @code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}
+macro defaults to 0.
+
+@item maximum_message_queue_descriptors
+is the maximum number of POSIX message queue descriptors
+that can be concurrently active in the system.  When using the
+@code{rtems/confdefs.h} mechanism for configuring an RTEMS application,
+the value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS}.
+If not defined by the application, then the
+@code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUE_DESCRIPTORS} macro defaults
+to the value of @code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}
+
+@item maximum_semaphores
+is the maximum number of POSIX semaphore that can be concurrently
+active in the system.  When using the @code{rtems/confdefs.h}
+mechanism for configuring an RTEMS application, the
+value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_SEMAPHORES}.  If not defined by the
+application, then the @code{CONFIGURE_MAXIMUM_POSIX_SEMAPHORES}
+macro defaults to 0.
+
+@item maximum_barriers
+is the maximum number of POSIX barriers that can be concurrently
+active in the system.  When using the @code{rtems/confdefs.h}
+mechanism for configuring an RTEMS application, the
+value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_BARRIERS}.  If not defined by the
+application, then the @code{CONFIGURE_MAXIMUM_POSIX_BARRIERS}
+macro defaults to 0.
+
+@item maximum_rwlocks
+is the maximum number of POSIX rwlocks that can be concurrently
+active in the system.  When using the @code{rtems/confdefs.h}
+mechanism for configuring an RTEMS application, the
+value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_SPINLOCKS}.  If not defined by the
+application, then the @code{CONFIGURE_MAXIMUM_POSIX_SPINLOCKS}
+macro defaults to 0.
+
+@item maximum_spinlocks
+is the maximum number of POSIX spinlocks that can be concurrently
+active in the system.  When using the @code{rtems/confdefs.h}
+mechanism for configuring an RTEMS application, the
+value for this field corresponds to the setting of the macro
+@code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}.  If not defined by the
+application, then the @code{CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES}
+macro defaults to 0.
 
 @item number_of_initialization_threads
 is the number of initialization threads configured.  At least one
@@ -1571,33 +1686,33 @@ in the User Extensions Table is defined in the following C structure:
 
 @example
 typedef void           rtems_extension;
-typedef rtems_extension (*rtems_task_create_extension)(
+typedef void (*rtems_task_create_extension)(
    Thread_Control * /* executing */,
    Thread_Control * /* created */
 );
-typedef rtems_extension (*rtems_task_delete_extension)(
+typedef void (*rtems_task_delete_extension)(
    Thread_Control * /* executing */,
    Thread_Control * /* deleted */
 );
-typedef rtems_extension (*rtems_task_start_extension)(
+typedef void (*rtems_task_start_extension)(
    Thread_Control * /* executing */,
    Thread_Control * /* started */
 );
-typedef rtems_extension (*rtems_task_restart_extension)(
+typedef void (*rtems_task_restart_extension)(
    Thread_Control * /* executing */,
    Thread_Control * /* restarted */
 );
-typedef rtems_extension (*rtems_task_switch_extension)(
+typedef void (*rtems_task_switch_extension)(
    Thread_Control * /* executing */,
    Thread_Control * /* heir */
 );
-typedef rtems_extension (*rtems_task_begin_extension)(
+typedef void (*rtems_task_begin_extension)(
    Thread_Control * /* beginning */
 );
-typedef rtems_extension (*rtems_task_exitted_extension)(
+typedef void (*rtems_task_exitted_extension)(
    Thread_Control * /* exiting */
 );
-typedef rtems_extension (*rtems_fatal_extension)(
+typedef void (*rtems_fatal_extension)(
    Internal_errors_Source /* the_source */,
    bool                   /* is_internal */,
    uint32_t               /* the_error */

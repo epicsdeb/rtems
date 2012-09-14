@@ -38,7 +38,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clock.c,v 1.6 2008/09/05 22:06:53 joel Exp $
+ *  $Id: clock.c,v 1.8 2010/04/28 17:17:59 joel Exp $
  */
 
 #include <rtems.h>
@@ -52,16 +52,17 @@
 volatile uint32_t Clock_driver_ticks;
 extern int BSP_connect_clock_handler(rtems_isr_entry);
 extern int BSP_disconnect_clock_handler();
+extern uint32_t bsp_clicks_per_usec;
 
 void Clock_exit( void );
 
 /*
  * These are set by clock driver during its init
  */
- 
+
 rtems_device_major_number rtems_clock_major = ~0;
 rtems_device_minor_number rtems_clock_minor;
- 
+
 /*
  *  ISR Handler
  */
@@ -70,7 +71,7 @@ rtems_isr Clock_isr(rtems_vector_number vector)
   usiu.piscrk = USIU_UNLOCK_KEY;
   usiu.piscr |= USIU_PISCR_PS;			/* acknowledge interrupt */
   usiu.piscrk = 0;
-  
+
   Clock_driver_ticks++;
   rtems_clock_tick();
 }
@@ -79,12 +80,11 @@ void clockOn(void* unused)
 {
   unsigned desiredLevel;
   uint32_t pit_value;
-  extern uint32_t bsp_clicks_per_usec;
 
-  /* calculate and set modulus */  
+  /* calculate and set modulus */
   pit_value = (rtems_configuration_get_microseconds_per_tick() *
                bsp_clicks_per_usec) - 1 ;
-  
+
   if (pit_value > 0xffff) {           /* pit is only 16 bits long */
     rtems_fatal_error_occurred(-1);
   }
@@ -114,13 +114,13 @@ clockOff(void* unused)
 {
   /* disable PIT and PIT interrupts */
   usiu.piscrk = USIU_UNLOCK_KEY;
-  usiu.piscr &= ~(USIU_PISCR_PTE | USIU_PISCR_PIE); 
+  usiu.piscr &= ~(USIU_PISCR_PTE | USIU_PISCR_PIE);
   usiu.piscrk = 0;
 }
 
 int clockIsOn(void* unused)
 {
-  if (usiu.piscr & USIU_PISCR_PIE) 
+  if (usiu.piscr & USIU_PISCR_PIE)
     return 1;
   return 0;
 }
@@ -157,13 +157,13 @@ rtems_device_driver Clock_initialize(
 )
 {
   Install_clock( Clock_isr );
-  
+
   /*
    * make major/minor avail to others such as shared memory driver
    */
- 
+
   rtems_clock_major = major;
   rtems_clock_minor = minor;
- 
+
   return RTEMS_SUCCESSFUL;
 }

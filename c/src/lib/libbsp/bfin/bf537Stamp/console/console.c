@@ -1,5 +1,5 @@
 /*  Console driver for bf537Stamp
- * 
+ *
  *  Copyright (c) 2008 Kallisti Labs, Los Gatos, CA, USA
  *             written by Allan Hessenflow <allanh@kallisti.com>
  *
@@ -7,9 +7,9 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console.c,v 1.1 2008/08/15 20:21:00 joel Exp $
+ *  $Id: console.c,v 1.5.2.2 2011/04/22 17:07:59 joel Exp $
  */
- 
+
 
 #include <rtems.h>
 #include <rtems/libio.h>
@@ -26,22 +26,30 @@
 */
 
 static bfin_uart_channel_t channels[] = {
-  {"/dev/console",
-   (char *) UART0_BASE_ADDRESS,
-   CONSOLE_USE_INTERRUPTS,
-#ifdef CONSOLE_FORCE_BAUD
-   CONSOLE_FORCE_BAUD,
-#else
-   0,
-#endif
-   NULL,
-   0},
+    {"/dev/console",
+     UART0_BASE_ADDRESS,
+     0,
+     0,
+     CONSOLE_USE_INTERRUPTS,
+     0,
+  #ifdef CONSOLE_FORCE_BAUD
+     CONSOLE_FORCE_BAUD,
+  #else
+     0,
+  #endif
+     NULL,
+     0,
+     0}
+
+#if (!BFIN_ON_SKYEYE)
+,
   {"/dev/tty1",
    (char *) UART1_BASE_ADDRESS,
    CONSOLE_USE_INTERRUPTS,
    0,
    NULL,
    0}
+#endif
 };
 
 static bfin_uart_config_t config = {
@@ -52,10 +60,10 @@ static bfin_uart_config_t config = {
 
 #if CONSOLE_USE_INTERRUPTS
 static bfin_isr_t bfinUARTISRs[] = {
-  {SIC_DMA8_UART0_RX_VECTOR, bfin_uart_isr, 0, 0, NULL},
-  {SIC_DMA10_UART1_RX_VECTOR, bfin_uart_isr, 0, 0, NULL},
-  {SIC_DMA9_UART0_TX_VECTOR, bfin_uart_isr, 0, 0, NULL},
-  {SIC_DMA11_UART1_TX_VECTOR, bfin_uart_isr, 0, 0, NULL}
+  {SIC_DMA8_UART0_RX_VECTOR, bfinUart_rxIsr, 0, 0, NULL},
+  {SIC_DMA10_UART1_RX_VECTOR, bfinUart_rxIsr, 0, 0, NULL},
+  {SIC_DMA9_UART0_TX_VECTOR, bfinUart_txIsr, 0, 0, NULL},
+  {SIC_DMA11_UART1_TX_VECTOR, bfinUart_txIsr, 0, 0, NULL}
 };
 #endif
 
@@ -65,7 +73,7 @@ static void bf537Stamp_BSP_output_char(char c) {
   bfin_uart_poll_write(0, c);
 }
 
-static char bf537Stamp_BSP_poll_char(void) {
+static int bf537Stamp_BSP_poll_char(void) {
 
   return bfin_uart_poll_read(0);
 }

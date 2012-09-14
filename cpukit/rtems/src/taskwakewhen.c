@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: taskwakewhen.c,v 1.6 2007/04/02 18:23:59 joel Exp $
+ *  $Id: taskwakewhen.c,v 1.7 2008/12/08 19:41:31 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -67,7 +67,7 @@ rtems_status_code rtems_task_wake_when(
 
   seconds = _TOD_To_seconds( time_buffer );
 
-  if ( seconds <= _TOD_Seconds_since_epoch )
+  if ( seconds <= _TOD_Seconds_since_epoch() )
     return RTEMS_INVALID_CLOCK;
 
   _Thread_Disable_dispatch();
@@ -80,7 +80,7 @@ rtems_status_code rtems_task_wake_when(
     );
     _Watchdog_Insert_seconds(
       &_Thread_Executing->Timer,
-      seconds - _TOD_Seconds_since_epoch
+      seconds - _TOD_Seconds_since_epoch()
     );
   _Thread_Enable_dispatch();
   return RTEMS_SUCCESSFUL;

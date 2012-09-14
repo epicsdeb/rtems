@@ -1,7 +1,7 @@
 /*
  * RTEMS Monitor region support
  *
- *  $Id: mon-region.c,v 1.4 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-region.c,v 1.7 2010/04/12 15:25:43 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -33,14 +33,14 @@ rtems_monitor_region_canonical(
 
 void
 rtems_monitor_region_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     printf("\
   ID       NAME   ATTR        STARTADDR LENGTH    PAGE_SIZE USED_BLOCKS\n");
 /*23456789 123456789 123456789 123456789 123456789 123456789 123456789 1234
           1         2         3         4         5         6         7    */
-           
+
     rtems_monitor_separator();
 }
 
@@ -50,7 +50,7 @@ rtems_monitor_region_dump_header(
 void
 rtems_monitor_region_dump(
     rtems_monitor_region_t *monitor_region,
-    bool  verbose
+    bool  verbose __attribute__((unused))
 )
 {
     int length = 0;
@@ -61,7 +61,7 @@ rtems_monitor_region_dump(
     length += rtems_monitor_pad(18, length);
     length += rtems_monitor_dump_attributes(monitor_region->attribute);
     length += rtems_monitor_pad(30, length);
-    length += rtems_monitor_dump_hex((uint32_t)monitor_region->start_addr);
+    length += rtems_monitor_dump_addr(monitor_region->start_addr);
     length += rtems_monitor_pad(40, length);
     length += rtems_monitor_dump_hex(monitor_region->length);
     length += rtems_monitor_pad(50, length);

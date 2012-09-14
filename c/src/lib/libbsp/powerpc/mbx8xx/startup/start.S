@@ -241,16 +241,16 @@ spin:
 /*
  * test function:	 blink orange led once
  */
-#define LEDBLINK_DELAY (5*1000*1000)	
+#define LEDBLINK_DELAY (5*1000*1000)
 #define LEDPORT 0xFA100001
 #define LEDMASK 0xf0
 #define LEDON   0x00
 #define LEDOFF  0x08
-		
+
 	PUBLIC_VAR(ledblink)
 SYM(ledblink):
 	lis	r3,LEDBLINK_DELAY>>16
-ledblink1:	
+ledblink1:
 	subi	r3,r3,1
 	cmpi	0,1,r3,0
 	bne	ledblink1
@@ -262,9 +262,9 @@ ledblink1:
 	andi.	r0,r0,LEDMASK
 	ori	r0,r0,LEDOFF
 	stb	r0,LEDPORT@l(r3)
-	
+
 	lis	r3,LEDBLINK_DELAY>>16
-ledblink2:	
+ledblink2:
 	subi	r3,r3,1
 	cmpi	0,1,r3,0
 	bne	ledblink2
@@ -276,8 +276,8 @@ ledblink2:
 	andi.	r0,r0,LEDMASK
 	ori	r0,r0,LEDON
 	stb	r0,LEDPORT@l(r3)
-	
-	blr	
+
+	blr
 /*
  * #define LOADED_BY_EPPCBUG
  */
@@ -322,9 +322,8 @@ ledblink2:
 #endif
 	lis	r5,environ@ha
         la	r5,environ@l(r5)		/* environp */
-        /* clear argc and argv */
+        /* clear argc command line */
         xor     r3, r3, r3
-        xor     r4, r4, r4
 
         EXTERN_PROC (boot_card)
         bl       PROC (boot_card)	/* call the first C routine */

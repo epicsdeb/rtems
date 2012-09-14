@@ -2,14 +2,14 @@
  *  Thread Handler
  *
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadtickletimeslice.c,v 1.8 2008/08/05 13:10:16 joel Exp $
+ *  $Id: threadtickletimeslice.c,v 1.11 2009/12/02 18:22:19 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -49,7 +49,7 @@ void _Thread_Tickle_timeslice( void )
 
   executing = _Thread_Executing;
 
-  #ifndef RTEMS_ENABLE_NANOSECOND_CPU_USAGE_STATISTICS
+  #ifdef __RTEMS_USE_TICKS_FOR_STATISTICS__
     /*
      *  Increment the number of ticks this thread has been executing
      */
@@ -76,16 +76,20 @@ void _Thread_Tickle_timeslice( void )
       break;
 
     case THREAD_CPU_BUDGET_ALGORITHM_RESET_TIMESLICE:
-    case THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE:
+    #if defined(RTEMS_SCORE_THREAD_ENABLE_EXHAUST_TIMESLICE)
+      case THREAD_CPU_BUDGET_ALGORITHM_EXHAUST_TIMESLICE:
+    #endif
       if ( (int)(--executing->cpu_time_budget) <= 0 ) {
         _Thread_Reset_timeslice();
         executing->cpu_time_budget = _Thread_Ticks_per_timeslice;
       }
       break;
 
-    case THREAD_CPU_BUDGET_ALGORITHM_CALLOUT:
-      if ( --executing->cpu_time_budget == 0 )
-        (*executing->budget_callout)( executing );
-      break;
+    #if defined(RTEMS_SCORE_THREAD_ENABLE_SCHEDULER_CALLOUT)
+      case THREAD_CPU_BUDGET_ALGORITHM_CALLOUT:
+	if ( --executing->cpu_time_budget == 0 )
+	  (*executing->budget_callout)( executing );
+	break;
+    #endif
   }
 }

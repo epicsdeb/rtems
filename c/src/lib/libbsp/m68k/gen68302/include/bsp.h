@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.21 2007/12/11 15:49:10 joel Exp $
+ *  $Id: bsp.h,v 1.23 2008/09/18 17:38:53 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -59,25 +59,11 @@ extern "C" {
 #define EXTERN extern
 #endif
 
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* miscellaneous stuff assumed to exist */
 
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 
 /* functions */
-
-void bsp_cleanup( void );
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

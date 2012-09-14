@@ -9,11 +9,11 @@
  *
  * To read information of the EEPROM via the I2C
  *
- * $Id: MVME5500I2C.c,v 1.5 2008/08/20 06:57:13 ralf Exp $
+ * $Id: MVME5500I2C.c,v 1.7 2009/11/30 04:24:25 ralf Exp $
  */
 
 #include <rtems/bspIo.h>	    /* printk */
-#include <rtems/stdint.h>           /* uint32_t */
+#include <stdint.h>           /* uint32_t */
 #include "bsp/GT64260TWSI.h"
 
 /* #define I2C_DEBUG*/
@@ -72,23 +72,23 @@ int I2Cread_eeprom(unsigned char I2cBusAddr,uint32_t devA2A1A0,uint32_t AddrByte
         }
       }
       break;
-    default: 
+    default:
       status=-1;
-      break;  
+      break;
   }
   if (status !=-1) {
 #ifdef I2C_DEBUG
      printk("\n");
 #endif
      /* read data from device */
-     for ( ; numBytes > 0; numBytes-- ) {      
+     for ( ; numBytes > 0; numBytes-- ) {
        if ( numBytes == 1) lastByte=1;
        if (GT64260TWSIread(pBuff,lastByte) == -1) return (-1);
 #ifdef I2C_DEBUG
        printk("%2x ", *pBuff);
        if ( (numBytes % 20)==0 ) printk("\n");
 #endif
-       pBuff++;	
+       pBuff++;
      }
 #ifdef I2C_DEBUG
      printk("\n");

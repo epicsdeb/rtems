@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.am,v 1.54 2008/07/27 07:10:37 ralf Exp $
+# $Id: Makefile.am,v 1.60 2010/03/25 20:26:51 thomas Exp $
 #
 
 ACLOCAL_AMFLAGS = -I ../../../aclocal
@@ -15,6 +15,10 @@ include_libcpudir = $(includedir)/libcpu
 
 include_libcpu_HEADERS = shared/include/powerpc-utility.h
 
+include_bspdir = $(includedir)/bsp
+
+include_bsp_HEADERS =
+
 EXTRA_DIST =
 
 noinst_PROGRAMS = new-exceptions/rtems-cpu.rel
@@ -25,19 +29,20 @@ new_exceptions_rtems_cpu_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
 
 if !mpc5xx
-include_libcpu_HEADERS += new-exceptions/raw_exception.h
-noinst_PROGRAMS += new-exceptions/raw_exception.rel
-new_exceptions_raw_exception_rel_SOURCES = new-exceptions/raw_exception.c \
-    new-exceptions/asm_utils.S \
-	new-exceptions/e500_raw_exc_init.c
-new_exceptions_raw_exception_rel_CPPFLAGS = $(AM_CPPFLAGS)
-new_exceptions_raw_exception_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+include_bsp_HEADERS += new-exceptions/bspsupport/vectors.h
 
 noinst_PROGRAMS += new-exceptions/exc_bspsupport.rel
 new_exceptions_exc_bspsupport_rel_SOURCES = \
+    new-exceptions/bspsupport/ppc-code-copy.c \
     new-exceptions/bspsupport/ppc_exc.S \
+    new-exceptions/bspsupport/ppc_exc_naked.S \
     new-exceptions/bspsupport/ppc_exc_hdl.c \
-    new-exceptions/bspsupport/vectors_init.c
+    new-exceptions/bspsupport/ppc_exc_initialize.c \
+    new-exceptions/bspsupport/ppc_exc_global_handler.c \
+    new-exceptions/bspsupport/ppc_exc_categories.c \
+    new-exceptions/bspsupport/ppc_exc_address.c \
+    new-exceptions/bspsupport/ppc_exc_prologue.c
+
 new_exceptions_exc_bspsupport_rel_CPPFLAGS = $(AM_CPPFLAGS)
 new_exceptions_exc_bspsupport_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
@@ -50,7 +55,6 @@ endif
 
 EXTRA_DIST += new-exceptions/bspsupport/vectors.h
 EXTRA_DIST += new-exceptions/bspsupport/irq_supp.h
-EXTRA_DIST += new-exceptions/bspsupport/ppc_exc_bspsupp.h
 EXTRA_DIST += new-exceptions/bspsupport/README
 EXTRA_DIST += new-exceptions/bspsupport/nest_irq_test.c
 EXTRA_DIST += new-exceptions/bspsupport/ppc_exc_test.c
@@ -105,8 +109,8 @@ endif
 ppc403_console_rel_CPPFLAGS = $(AM_CPPFLAGS)
 ppc403_console_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-include_HEADERS = 
-shared_cpuIdent_rel_SOURCES = shared/include/cpuIdent.c 
+include_HEADERS =
+shared_cpuIdent_rel_SOURCES = shared/include/cpuIdent.c
 shared_cpuIdent_rel_CPPFLAGS = $(AM_CPPFLAGS)
 shared_cpuIdent_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
@@ -237,7 +241,14 @@ noinst_PROGRAMS += mpc6xx/timer.rel
 mpc6xx_timer_rel_SOURCES = mpc6xx/timer/timer.c
 mpc6xx_timer_rel_CPPFLAGS = $(AM_CPPFLAGS)
 mpc6xx_timer_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+
+# mpc6xx/altivec
+noinst_PROGRAMS += mpc6xx/altivec.rel
+mpc6xx_altivec_rel_SOURCES = mpc6xx/altivec/vec_sup.c mpc6xx/altivec/vec_sup_asm.S
+mpc6xx_altivec_rel_CPPFLAGS = $(AM_CPPFLAGS)
+mpc6xx_altivec_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
+EXTRA_DIST      += mpc6xx/altivec/README
 
 if e500
 # mpc6xx/clock
@@ -320,12 +331,6 @@ mpc8260_console_generic_rel_SOURCES = mpc8260/console-generic/console-generic.c 
 mpc8260_console_generic_rel_CPPFLAGS = $(AM_CPPFLAGS)
 mpc8260_console_generic_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-# mpc8260/clock
-noinst_PROGRAMS += mpc8260/clock.rel
-mpc8260_clock_rel_SOURCES = mpc8260/clock/clock.c
-mpc8260_clock_rel_CPPFLAGS = $(AM_CPPFLAGS)
-mpc8260_clock_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
-
 # mpc8260/cpm
 include_mpc8260_HEADERS += mpc8260/include/cpm.h
 
@@ -357,11 +362,6 @@ endif
 if mpc83xx
 
 # Includes
-include_bspdir = $(includedir)/bsp
-
-include_bsp_HEADERS = new-exceptions/bspsupport/vectors.h \
-	new-exceptions/bspsupport/ppc_exc_bspsupp.h
-
 include_mpc83xxdir = $(includedir)/mpc83xx
 
 include_mpc83xx_HEADERS = mpc83xx/include/mpc83xx.h
@@ -407,38 +407,52 @@ endif
 if mpc55xx
 
 # Includes
-include_bspdir = $(includedir)/bsp
-
-include_bsp_HEADERS = new-exceptions/bspsupport/vectors.h \
-	new-exceptions/bspsupport/ppc_exc_bspsupp.h \
-	mpc55xx/include/irq.h
-
 include_mpc55xxdir = $(includedir)/mpc55xx
 
 include_mpc55xx_HEADERS = mpc55xx/include/regs.h \
 	mpc55xx/include/reg-defs.h \
 	mpc55xx/include/dspi.h \
 	mpc55xx/include/edma.h \
+	mpc55xx/include/emios.h \
 	mpc55xx/include/mpc55xx.h \
 	mpc55xx/include/esci.h \
+	mpc55xx/include/siu.h \
 	mpc55xx/include/watchdog.h
+
+include_bsp_HEADERS += mpc55xx/include/irq.h
 
 # IRQ
 noinst_PROGRAMS += mpc55xx/irq.rel
 mpc55xx_irq_rel_SOURCES = mpc55xx/irq/irq.c
 mpc55xx_irq_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
+# mpc6xx/timer
+noinst_PROGRAMS += mpc55xx/timer.rel
+mpc55xx_timer_rel_SOURCES = mpc6xx/timer/timer.c
+mpc55xx_timer_rel_CPPFLAGS = $(AM_CPPFLAGS)
+mpc55xx_timer_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+
 # FEC
 noinst_PROGRAMS += mpc55xx/fec.rel
 mpc55xx_fec_rel_SOURCES = mpc55xx/fec/fec.c
 mpc55xx_fec_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-# EMDA
+# eDMA
 noinst_PROGRAMS += mpc55xx/edma.rel
 mpc55xx_edma_rel_SOURCES = mpc55xx/edma/edma.c
 mpc55xx_edma_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
-# ESCI
+# eMIOS
+noinst_PROGRAMS += mpc55xx/emios.rel
+mpc55xx_emios_rel_SOURCES = mpc55xx/emios/emios.c
+mpc55xx_emios_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+
+# SIU
+noinst_PROGRAMS += mpc55xx/siu.rel
+mpc55xx_siu_rel_SOURCES = mpc55xx/siu/siu.c
+mpc55xx_siu_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+
+# eSCI
 noinst_PROGRAMS += mpc55xx/esci.rel
 mpc55xx_esci_rel_SOURCES = mpc55xx/esci/esci.c
 mpc55xx_esci_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)

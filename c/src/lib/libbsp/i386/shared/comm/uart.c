@@ -4,7 +4,7 @@
  * as far as this copyight notice is kept unchanged, but does not imply
  * an endorsement by T.sqware of the product in which it is included.
  *
- *  $Id: uart.c,v 1.16 2005/05/06 19:55:45 jennifer Exp $
+ *  $Id: uart.c,v 1.19 2010/04/12 16:34:31 ralf Exp $
  */
 
 #include <stdio.h>
@@ -405,7 +405,7 @@ BSP_uart_polled_write(int uart, int val)
 }
 
 void
-BSP_output_char_via_serial(int val)
+BSP_output_char_via_serial(char val)
 {
   BSP_uart_polled_write(BSPConsolePort, val);
   if (val == '\n') BSP_uart_polled_write(BSPConsolePort,'\r');
@@ -434,8 +434,8 @@ BSP_uart_polled_read(int uart)
   return (int)(val & 0xff);
 }
 
-unsigned
-BSP_poll_char_via_serial()
+int
+BSP_poll_char_via_serial(void)
 {
 	return BSP_uart_polled_read(BSPConsolePort);
 }
@@ -571,8 +571,8 @@ BSP_uart_termios_read_com2(int uart)
   return ( EOF );
 }
 
-int
-BSP_uart_termios_write_com1(int minor, const char *buf, int len)
+ssize_t
+BSP_uart_termios_write_com1(int minor, const char *buf, size_t len)
 {
   assert(buf != NULL);
 
@@ -602,11 +602,11 @@ BSP_uart_termios_write_com1(int minor, const char *buf, int len)
     uwrite(BSP_UART_COM1, IER, uart_data[BSP_UART_COM1].ier);
   }
 
-  return 0;
+  return 1;
 }
 
-int
-BSP_uart_termios_write_com2(int minor, const char *buf, int len)
+ssize_t
+BSP_uart_termios_write_com2(int minor, const char *buf, size_t len)
 {
   assert(buf != NULL);
 
@@ -636,7 +636,7 @@ BSP_uart_termios_write_com2(int minor, const char *buf, int len)
     uwrite(BSP_UART_COM2, IER, uart_data[BSP_UART_COM2].ier);
   }
 
-  return 0;
+  return 1;
 }
 
 void
@@ -736,7 +736,7 @@ BSP_uart_termios_isr_com1(void)
 }
 
 void
-BSP_uart_termios_isr_com2()
+BSP_uart_termios_isr_com2(void)
 {
   unsigned char buf[40];
   unsigned char val;

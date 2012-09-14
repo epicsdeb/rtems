@@ -12,7 +12,7 @@
  *  Based on start.S from mcf520elite BSP:
  *    Copyright (C) 2000 OKTET Ltd., St.-Petersburg, Russia
  *    Author: Victor V. Vengerov <vvv@oktet.ru>
- *	
+ *
  *  Based on work:
  *    David Fiddes, D.J@fiddes.surfaid.org
  *    http://www.calm.hw.ac.uk/davidf/coldfire/
@@ -25,7 +25,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.4 2007/03/12 11:18:16 joel Exp $
+ *  $Id: start.S,v 1.6 2009/11/29 14:59:40 ralf Exp $
  */
 
 #include <rtems/asm.h>
@@ -317,7 +317,7 @@ SYM(start):
 	move.l	#(INITIAL_STACK),sp	| Set up stack again (may be we are
 					| going here from monitor or with
 					| BDM interface assistance)
-	
+
 	/*
 	 * Remainder of the startup code is handled by C code
 	 */
@@ -351,13 +351,11 @@ SYM(start_csb360):
 	 * Right : Now we're ready to boot RTEMS
 	 */
 	clrl	d0			| Pass in null to all boot_card() params
- 	movel	d0,a7@-			| environp
-	movel	d0,a7@-			| argv
-	movel	d0,a7@-			| argc
+	movel	d0,a7@-			| command line
 	jsr	SYM(boot_card)		| Call C boot_card function to startup RTEMS
 
 
-	
+
 # Wait forever
 _stop:
 	nop
@@ -391,7 +389,7 @@ _avec2_int:
 
 _avec3_int:
 	nop
-	jmp	_unexp_int 
+	jmp	_unexp_int
 
 _avec4_int:
 	nop

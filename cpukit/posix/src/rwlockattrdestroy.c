@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rwlockattrdestroy.c,v 1.2 2007/12/17 16:19:14 joel Exp $
+ *  $Id: rwlockattrdestroy.c,v 1.3 2009/02/03 10:10:56 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -33,9 +33,9 @@ int pthread_rwlockattr_destroy(
   pthread_rwlockattr_t *attr
 )
 {
-  if ( !attr || attr->is_initialized == FALSE )
+  if ( !attr || attr->is_initialized == false )
     return EINVAL;
 
-  attr->is_initialized = FALSE;
+  attr->is_initialized = false;
   return 0;
 }

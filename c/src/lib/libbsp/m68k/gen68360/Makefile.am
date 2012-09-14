@@ -1,40 +1,48 @@
 ##
-## $Id: Makefile.am,v 1.34 2008/07/11 10:00:41 thomas Exp $
+## $Id: Makefile.am,v 1.42 2008/09/30 10:35:37 ralf Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
 include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 noinst_PROGRAMS =
 
 include_HEADERS += include/coverhd.h
 
-EXTRA_DIST = start/start.S
-start.$(OBJEXT): start/start.S
-	$(CPPASCOMPILE) -o $@ -c $<
+noinst_LIBRARIES = libbspstart.a
+libbspstart_a_SOURCES = start/start.S
 project_lib_DATA = start.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds startup/linkcmds.prom \
     startup/linkcmds.bootp
 
-startup_SOURCES = startup/alloc360.c startup/bspclean.c \
-    ../../shared/bsppredriverhook.c \
+noinst_LIBRARIES += libbsp.a
+libbsp_a_SOURCES =
+
+# startup
+libbsp_a_SOURCES += startup/alloc360.c ../../shared/bspclean.c \
+    ../../shared/bsppredriverhook.c ../../shared/bsppretaskinghook.c \
     ../../shared/bsplibc.c ../../shared/bsppost.c \
-    ../../m68k/shared/m68kpretaskinghook.c startup/bspstart.c \
+    ../../shared/bspgetworkarea.c ../../shared/bspstart.c \
     startup/init68360.c ../../shared/bootcard.c \
     ../../shared/sbrk.c ../../m68k/shared/setvec.c \
     ../../shared/gnatinstallhandler.c
-clock_SOURCES = clock/clock.c
-console_SOURCES = console/console.c ../../shared/dummy_printk_support.c
-timer_SOURCES = timer/timer.c
+# clock
+libbsp_a_SOURCES += clock/clock.c ../../../shared/clockdrv_shell.h
+# console
+libbsp_a_SOURCES += console/console.c ../../shared/dummy_printk_support.c
+# timer
+libbsp_a_SOURCES += timer/timer.c
 
 if HAS_NETWORKING
 network_CPPFLAGS = -D__INSIDE_RTEMS_BSD_TCPIP_STACK__
@@ -43,10 +51,6 @@ network_rel_SOURCES = network/network.c
 network_rel_CPPFLAGS = $(AM_CPPFLAGS) $(network_CPPFLAGS)
 network_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
-
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
-    $(timer_SOURCES)
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/shared/cache.rel \

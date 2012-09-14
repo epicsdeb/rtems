@@ -1,5 +1,12 @@
 /*
- *  $Id: pmacros.h,v 1.8 2008/02/01 00:45:08 joel Exp $
+ *  COPYRIGHT (c) 1989-2009.
+ *  On-Line Applications Research Corporation (OAR).
+ *
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: pmacros.h,v 1.12.2.1 2011/02/08 06:38:03 ralf Exp $
  */
 
 #ifndef __POSIX_TEST_MACROS_h
@@ -9,7 +16,6 @@
 #include <bsp.h>
 #endif
 #include <pthread.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -39,9 +45,9 @@
 #define TM_JULY        6
 #define TM_AUGUST      7
 #define TM_SEPTEMBER   8
-#define TM_OCTOBER    10
-#define TM_NOVEMBER   12
-#define TM_DECEMBER   12
+#define TM_OCTOBER     9
+#define TM_NOVEMBER   10
+#define TM_DECEMBER   11
 
 #ifndef tm_build_time
 #define tm_build_time( TM, WEEKDAY, MON, DAY, YR, HR, MIN, SEC ) \
@@ -64,10 +70,10 @@
     \
     tv.tv_sec = mktime( &tm ); \
     tv.tv_nsec = 0; \
-    assert( tv.tv_sec != -1 ); \
+    rtems_test_assert(  tv.tv_sec != -1 ); \
     \
     status = clock_settime( CLOCK_REALTIME, &tv ); \
-    assert( !status ); \
+    rtems_test_assert(  !status ); \
   } while ( 0 )
 
 #define print_current_time(s1, s2) \
@@ -77,7 +83,7 @@
     struct timespec _tv; \
     \
     _status = clock_gettime( CLOCK_REALTIME, &_tv ); \
-    assert( !_status ); \
+    rtems_test_assert(  !_status ); \
     \
     (void) ctime_r( &_tv.tv_sec, _time_buffer ); \
     _time_buffer[ strlen( _time_buffer ) - 1 ] = 0; \
@@ -86,6 +92,34 @@
   } while ( 0 )
 
 #define empty_line() puts( "" )
+
+#if SIZEOF_OFF_T == 8
+#define PRIdoff_t PRIo64
+#elif SIZEOF_OFF_T == 4
+#define PRIdoff_t PRIo32
+#else
+#error "unsupported size of off_t"
+#endif
+
+#if SIZEOF_BLKSIZE_T == 8
+#define PRIxblksize_t PRIx64
+#elif SIZEOF_BLKSIZE_T == 4
+#define PRIxblksize_t PRIx32
+#else
+/* Warn and fall back to "long" */
+#warning "unsupported size of blksize_t"
+#define PRIxblksize_t "lx"
+#endif
+
+#if SIZEOF_BLKSIZE_T == 8
+#define PRIxblkcnt_t PRIx64
+#elif SIZEOF_BLKSIZE_T == 4
+#define PRIxblkcnt_t PRIx32
+#else
+/* Warn and fall back to "long" */
+#warning "unsupported size of blkcnt_t"
+#define PRIxblkcnt_t "lx"
+#endif
 
 #endif
 

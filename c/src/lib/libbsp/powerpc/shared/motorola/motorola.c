@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: motorola.c,v 1.13.2.1 2009/02/11 16:37:14 joel Exp $
+ *  $Id: motorola.c,v 1.16.2.1 2011/07/20 16:39:44 joel Exp $
  */
 
 #include <bsp.h>
@@ -113,12 +113,12 @@ static struct _int_map mtx603_intmap[] = {
 
 static struct _int_map mvme23xx_intmap[] = {
 /* Raven Hostbridge; has int_pin == 0
-   {0,  0, 0, {{0, {-1,-1,-1,-1}}, 
+   {0,  0, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 */
 
 /* Winbond PCI/ISA 83c553; has int_pin == 0
-   {0, 11, 0, {{0, {-1,-1,-1,-1}}, 
+   {0, 11, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 */
 
@@ -156,12 +156,12 @@ static struct _int_map mvme23xx_intmap[] = {
 
 static struct _int_map mvme24xx_intmap[] = {
 /* Raven Hostbridge; has int_pin == 0
-   {0,  0, 0, {{0, {-1,-1,-1,-1}}, 
+   {0,  0, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 */
 
 /* Winbond PCI/ISA 83c553; has int_pin == 0
-   {0, 11, 0, {{0, {-1,-1,-1,-1}}, 
+   {0, 11, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 */
 
@@ -195,12 +195,12 @@ static struct _int_map mvme24xx_intmap[] = {
 
 static struct _int_map mvme27xx_intmap[] = {
 /* Raven Hostbridge; has int_pin == 0 */
-   {0,  0, 0, {{0, {-1,-1,-1,-1}}, 
+   {0,  0, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 
 
 /* Winbond PCI/ISA 83c553; has int_pin == 0 */
-   {0, 11, 0, {{0, {-1,-1,-1,-1}}, 
+   {0, 11, 0, {{0, {-1,-1,-1,-1}},
                NULL_PINMAP}},
 
    {0, 13, PCI_FIXUP_OPT_OVERRIDE_NAME,
@@ -296,8 +296,12 @@ typedef struct {
       int               (*swizzler)(int, int);
 } mot_info_t;
 
+/* NOTE: When adding boards here the 'motorolaBoard' enums MUST be
+ *       updated accordingly!
+ */
 static const mot_info_t mot_boards[] = {
-  {0x3E0, 0x00, PPC_750,     "MVME 2400", mvme24xx_intmap,prep_pci_swizzle},
+  {0x0E0, 0xF9, PPC_604,     "MVME 2400", mvme24xx_intmap,prep_pci_swizzle},
+  {0x3E0, 0x00, PPC_750,     "MVME 2400 (PPC 750)", mvme24xx_intmap,prep_pci_swizzle},
   {0x010, 0x00, PPC_UNKNOWN, "Genesis", NULL, NULL},
   {0x020, 0x00, PPC_UNKNOWN, "Powerstack (Series E)", NULL, NULL},
   {0x040, 0x00, PPC_UNKNOWN, "Blackhawk (Powerstack)", NULL, NULL},
@@ -345,7 +349,7 @@ prep_t checkPrepBoardType(RESIDUAL *res)
   return PREP_type;
 }
 
-motorolaBoard getMotorolaBoard()
+motorolaBoard getMotorolaBoard(void)
 {
 /*
  *  At least the MVME2100 does not have the CPU Type and Base Type Registers,
@@ -369,11 +373,11 @@ motorolaBoard getMotorolaBoard()
   for (entry = 0; mot_boards[entry].cpu_type != 0; entry++) {
     if ((mot_boards[entry].cpu_type & 0xff) != cpu_type)
       continue;
-    
+
     if ((mot_boards[entry].proc_type != PPC_UNKNOWN) &&
 	(mot_boards[entry].proc_type != proc_type))
       /*
-       * IMD: processor type does not match 
+       * IMD: processor type does not match
        * (here we distinguish a MVME2300 and a MVME2400)
        */
       continue;

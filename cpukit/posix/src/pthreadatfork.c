@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadatfork.c,v 1.5 2007/12/13 16:52:20 joel Exp $
+ *  $Id: pthreadatfork.c,v 1.6 2009/01/02 10:04:24 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,9 +28,9 @@
 #include <rtems/seterr.h>
 
 int pthread_atfork(
-  void (*prepare)(void),
-  void (*parent)(void),
-  void (*child)(void)
+  void (*prepare)(void) __attribute__((unused)),
+  void (*parent)(void) __attribute__((unused)),
+  void (*child)(void) __attribute__((unused))
 )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );

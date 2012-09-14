@@ -1,7 +1,7 @@
 /*
  * Use the last periodic interval timer (PIT3) as the system clock.
  *
- *  $Id: clock.c,v 1.1 2005/06/17 14:06:05 joel Exp $
+ *  $Id: clock.c,v 1.2 2008/09/30 05:10:03 ralf Exp $
  */
 
 #include <rtems.h>
@@ -60,4 +60,4 @@
                             MCF5235_PIT_PCSR_EN;                         \
     } while (0)
 
-#include "../../../shared/clockdrv_shell.c"
+#include "../../../shared/clockdrv_shell.h"

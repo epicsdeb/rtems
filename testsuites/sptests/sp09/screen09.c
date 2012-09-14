@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen09.c,v 1.14.2.1 2009/03/02 16:13:08 joel Exp $
+ *  $Id: screen09.c,v 1.19 2009/10/26 08:07:50 ralf Exp $
  */
 
 #include "system.h"
@@ -22,9 +22,8 @@ void Screen9()
 {
   void              *converted;
   rtems_status_code status;
-  rtems_isr_entry   old_service_routine;
 
-  #if ((CPU_SIMPLE_VECTORED_INTERRUPTS == FALSE) || \
+#if ((CPU_SIMPLE_VECTORED_INTERRUPTS == FALSE) || \
        defined(_C3x) || defined(_C4x))
     puts(
       "TA1 - rtems_interrupt_catch - "
@@ -33,7 +32,8 @@ void Screen9()
     puts(
       "TA1 - rtems_interrupt_catch - "
       "old isr RTEMS_INVALID_ADDRESS - SKIPPED" );
-  #else
+#else
+  rtems_isr_entry   old_service_routine;
     status = rtems_interrupt_catch(
       Service_routine,
       ISR_INTERRUPT_MAXIMUM_VECTOR_NUMBER + 10,
@@ -61,8 +61,9 @@ void Screen9()
       "rtems_interrupt_catch with invalid old isr pointer"
     );
     puts( "TA1 - rtems_interrupt_catch - old isr RTEMS_INVALID_ADDRESS" );
-  #endif
+#endif
 
+  /* send invalid id */
   status = rtems_signal_send( 100, RTEMS_SIGNAL_1 );
   fatal_directive_status(
     status,
@@ -71,6 +72,16 @@ void Screen9()
   );
   puts( "TA1 - rtems_signal_send - RTEMS_INVALID_ID" );
 
+  /* no signal in set */
+  status = rtems_signal_send( RTEMS_SELF, 0 );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_NUMBER,
+    "rtems_signal_send with no signals"
+  );
+  puts( "TA1 - rtems_signal_send - RTEMS_INVALID_NUMBER" );
+
+  /* no signal handler */
   status = rtems_signal_send( RTEMS_SELF, RTEMS_SIGNAL_16 );
   fatal_directive_status(
     status,
@@ -108,8 +119,22 @@ void Screen9()
     RTEMS_INVALID_ADDRESS,
     "rtems_port_create with illegal address"
   );
-  puts( "TA1 - rtems_port_create - RTEMS_INVALID_ADDRESS" );
+  puts( "TA1 - rtems_port_create - bad range - RTEMS_INVALID_ADDRESS" );
 #endif
+
+  status = rtems_port_create(
+     Port_name[ 1 ],
+     Internal_port_area,
+     External_port_area,
+     sizeof( Internal_port_area ),
+     NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_port_create null Id"
+  );
+  puts( "TA1 - rtems_port_create - null id - RTEMS_INVALID_ADDRESS" );
 
   status = rtems_port_create(
      Port_name[ 1 ],
@@ -151,7 +176,19 @@ void Screen9()
     RTEMS_INVALID_ID,
     "rtems_port_external_to_internal with illegal id"
   );
-  puts( "TA1 - rtems_port_external_to_internal - RTEMS_INVALID_ID" );
+
+  status = rtems_port_external_to_internal(
+    100,
+    Internal_port_area,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_port_external_to_internal with NULL param"
+  );
+  puts( "TA1 - rtems_port_external_to_internal - RTEMS_INVALID_ADDRESS" );
+
   status = rtems_port_internal_to_external(
     100,
     Internal_port_area,
@@ -163,4 +200,16 @@ void Screen9()
     "rtems_port_internal_to_external with illegal id"
   );
   puts( "TA1 - rtems_port_internal_to_external - RTEMS_INVALID_ID" );
+
+  status = rtems_port_internal_to_external(
+    100,
+    Internal_port_area,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_port_internal_to_external with NULL param"
+  );
+  puts( "TA1 - rtems_port_external_to_internal - RTEMS_INVALID_ADDRESS" );
 }

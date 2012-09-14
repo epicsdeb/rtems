@@ -8,12 +8,14 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: malloc_sbrk_helpers.c,v 1.2 2008/01/09 21:08:36 joel Exp $
+ *  $Id: malloc_sbrk_helpers.c,v 1.4 2010/04/02 07:05:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <unistd.h> /* sbrk */
 
 #include <rtems.h>
 #include <rtems/malloc.h>
@@ -89,7 +91,7 @@ void *malloc_sbrk_extend_and_allocate(
     return (void *) 0;
 
   if ( !_Protected_heap_Extend(
-          &RTEMS_Malloc_Heap, starting_address, the_size) ) {
+          RTEMS_Malloc_Heap, starting_address, the_size) ) {
     sbrk(-the_size);
     errno = ENOMEM;
     return (void *) 0;
@@ -97,7 +99,7 @@ void *malloc_sbrk_extend_and_allocate(
 
   MSBUMP(space_available, the_size);
 
-  return_this = _Protected_heap_Allocate( &RTEMS_Malloc_Heap, size );
+  return_this = _Protected_heap_Allocate( RTEMS_Malloc_Heap, size );
   return return_this;
 }
 

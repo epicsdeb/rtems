@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup ScoreProtHeap
+ *
+ * @brief Protected Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapallocate.c,v 1.1 2007/05/03 21:33:39 joel Exp $
+ *  $Id: pheapallocate.c,v 1.4 2009/11/30 13:05:29 thomas Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -16,16 +24,23 @@
 #include <rtems/system.h>
 #include <rtems/score/protectedheap.h>
 
-void *_Protected_heap_Allocate(
-  Heap_Control *the_heap,
-  size_t        size
+void *_Protected_heap_Allocate_aligned_with_boundary(
+  Heap_Control *heap,
+  uintptr_t     size,
+  uintptr_t     alignment,
+  uintptr_t     boundary
 )
 {
   void *p;
 
   _RTEMS_Lock_allocator();
-    p = _Heap_Allocate( the_heap, size );
+    p = _Heap_Allocate_aligned_with_boundary(
+      heap,
+      size,
+      alignment,
+      boundary
+    );
   _RTEMS_Unlock_allocator();
+
   return p;
 }
-

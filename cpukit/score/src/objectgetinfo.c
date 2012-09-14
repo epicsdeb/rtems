@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectgetinfo.c,v 1.5 2008/09/05 21:37:20 joel Exp $
+ *  $Id: objectgetinfo.c,v 1.7 2009/07/08 17:56:07 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -26,15 +26,18 @@ Objects_Information *_Objects_Get_information(
   Objects_Information *info;
   int the_class_api_maximum;
 
-  if ( !_Objects_Is_api_valid( the_api ) )
-    return NULL;
-
   if ( !the_class )
     return NULL;
 
+  /*
+   *  This call implicitly validates the_api so we do not call
+   *  _Objects_Is_api_valid above here.
+   */
   the_class_api_maximum = _Objects_API_maximum_class( the_api );
-  if ( the_class_api_maximum < 0 ||
-       the_class > (uint32_t) the_class_api_maximum )
+  if ( the_class_api_maximum == 0 )
+    return NULL;
+
+  if ( the_class > (uint32_t) the_class_api_maximum )
     return NULL;
 
   if ( !_Objects_Information_table[ the_api ] )

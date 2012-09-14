@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tasksetpriority.c,v 1.9 2008/08/30 22:52:12 joel Exp $
+ *  $Id: tasksetpriority.c,v 1.11 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -52,7 +52,7 @@
  */
 
 rtems_status_code rtems_task_set_priority(
-  Objects_Id           id,
+  rtems_id             id,
   rtems_task_priority  new_priority,
   rtems_task_priority *old_priority
 )
@@ -77,7 +77,7 @@ rtems_status_code rtems_task_set_priority(
         the_thread->real_priority = new_priority;
         if ( the_thread->resource_count == 0 ||
              the_thread->current_priority > new_priority )
-          _Thread_Change_priority( the_thread, new_priority, FALSE );
+          _Thread_Change_priority( the_thread, new_priority, false );
       }
       _Thread_Enable_dispatch();
       return RTEMS_SUCCESSFUL;

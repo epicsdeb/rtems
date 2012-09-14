@@ -115,6 +115,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #include <time.h>
 
 #define SPRINTF(x) sprintf x
@@ -341,32 +344,32 @@ p_fqname(const u_char *cp, const u_char *msg, FILE *file) {
  * C_ANY, but you can't have any records of that class in the database.)
  */
 const struct res_sym __p_class_syms[] = {
-	{C_IN,		"IN"},
-	{C_CHAOS,	"CHAOS"},
-	{C_HS,		"HS"},
-	{C_HS,		"HESIOD"},
-	{C_ANY,		"ANY"},
-	{C_NONE,	"NONE"},
-	{C_IN, 		(char *)0}
+	{C_IN,		"IN", 		NULL},
+	{C_CHAOS,	"CHAOS", 	NULL},
+	{C_HS,		"HS", 		NULL},
+	{C_HS,		"HESIOD", 	NULL},
+	{C_ANY,		"ANY", 		NULL},
+	{C_NONE,	"NONE",		NULL},
+	{C_IN, 		(char *)0,	NULL}
 };
 
 /*
  * Names of message sections.
  */
 const struct res_sym __p_default_section_syms[] = {
-	{ns_s_qd,	"QUERY"},
-	{ns_s_an,	"ANSWER"},
-	{ns_s_ns,	"AUTHORITY"},
-	{ns_s_ar,	"ADDITIONAL"},
-	{0,             (char *)0}
+	{ns_s_qd,	"QUERY",	NULL},
+	{ns_s_an,	"ANSWER", 	NULL},
+	{ns_s_ns,	"AUTHORITY",	NULL},
+	{ns_s_ar,	"ADDITIONAL",	NULL},
+	{0,             (char *)0,	NULL}
 };
 
 const struct res_sym __p_update_section_syms[] = {
-	{S_ZONE,	"ZONE"},
-	{S_PREREQ,	"PREREQUISITE"},
-	{S_UPDATE,	"UPDATE"},
-	{S_ADDT,	"ADDITIONAL"},
-	{0,             (char *)0}
+	{S_ZONE,	"ZONE",		NULL},
+	{S_PREREQ,	"PREREQUISITE",	NULL},
+	{S_UPDATE,	"UPDATE",	NULL},
+	{S_ADDT,	"ADDITIONAL",	NULL},
+	{0,             (char *)0,	NULL}
 };
 
 /*
@@ -579,14 +582,14 @@ precsize_aton(
 
 	cp = *strptr;
 
-	while (isdigit((int)*cp))
+	while (isdigit((unsigned char)*cp))
 		mval = mval * 10 + (*cp++ - '0');
 
 	if (*cp == '.') {		/* centimeters */
 		cp++;
-		if (isdigit((int)*cp)) {
+		if (isdigit((unsigned char)*cp)) {
 			cmval = (*cp++ - '0') * 10;
-			if (isdigit((int)*cp)) {
+			if (isdigit((unsigned char)*cp)) {
 				cmval += (*cp++ - '0');
 			}
 		}
@@ -620,44 +623,44 @@ latlon2ul(
 
 	cp = *latlonstrptr;
 
-	while (isdigit((int)*cp))
+	while (isdigit((unsigned char)*cp))
 		deg = deg * 10 + (*cp++ - '0');
 
-	while (isspace((int)*cp))
+	while (isspace((unsigned char)*cp))
 		cp++;
 
-	if (!(isdigit((int)*cp)))
+	if (!(isdigit((unsigned char)*cp)))
 		goto fndhemi;
 
-	while (isdigit((int)*cp))
+	while (isdigit((unsigned char)*cp))
 		min = min * 10 + (*cp++ - '0');
 
-	while (isspace((int)*cp))
+	while (isspace((unsigned char)*cp))
 		cp++;
 
-	if (!(isdigit((int)*cp)))
+	if (!(isdigit((unsigned char)*cp)))
 		goto fndhemi;
 
-	while (isdigit((int)*cp))
+	while (isdigit((unsigned char)*cp))
 		secs = secs * 10 + (*cp++ - '0');
 
 	if (*cp == '.') {		/* decimal seconds */
 		cp++;
-		if (isdigit((int)*cp)) {
+		if (isdigit((unsigned char)*cp)) {
 			secsfrac = (*cp++ - '0') * 100;
-			if (isdigit((int)*cp)) {
+			if (isdigit((unsigned char)*cp)) {
 				secsfrac += (*cp++ - '0') * 10;
-				if (isdigit((int)*cp)) {
+				if (isdigit((unsigned char)*cp)) {
 					secsfrac += (*cp++ - '0');
 				}
 			}
 		}
 	}
 
-	while (!isspace((int)*cp))	/* if any trailing garbage */
+	while (!isspace((unsigned char)*cp))	/* if any trailing garbage */
 		cp++;
 
-	while (isspace((int)*cp))
+	while (isspace((unsigned char)*cp))
 		cp++;
 
  fndhemi:
@@ -695,10 +698,10 @@ latlon2ul(
 
 	cp++;			/* skip the hemisphere */
 
-	while (!isspace((int)*cp))	/* if any trailing garbage */
+	while (!isspace((unsigned char)*cp))	/* if any trailing garbage */
 		cp++;
 
-	while (isspace((int)*cp))	/* move to next field */
+	while (isspace((unsigned char)*cp))	/* move to next field */
 		cp++;
 
 	*latlonstrptr = cp;
@@ -756,14 +759,14 @@ loc_aton(
 	if (*cp == '+')
 		cp++;
 
-	while (isdigit((int)*cp))
+	while (isdigit((unsigned char)*cp))
 		altmeters = altmeters * 10 + (*cp++ - '0');
 
 	if (*cp == '.') {		/* decimal meters */
 		cp++;
-		if (isdigit((int)*cp)) {
+		if (isdigit((unsigned char)*cp)) {
 			altfrac = (*cp++ - '0') * 10;
-			if (isdigit((int)*cp)) {
+			if (isdigit((unsigned char)*cp)) {
 				altfrac += (*cp++ - '0');
 			}
 		}
@@ -771,10 +774,10 @@ loc_aton(
 
 	alt = (10000000 + (altsign * (altmeters * 100 + altfrac)));
 
-	while (!isspace((int)*cp) && (cp < maxcp)) /* if trailing garbage or m */
+	while (!isspace((unsigned char)*cp) && (cp < maxcp)) /* if trailing garbage or m */
 		cp++;
 
-	while (isspace((int)*cp) && (cp < maxcp))
+	while (isspace((unsigned char)*cp) && (cp < maxcp))
 		cp++;
 
 	if (cp >= maxcp)
@@ -782,10 +785,10 @@ loc_aton(
 
 	siz = precsize_aton(&cp);
 	
-	while (!isspace((int)*cp) && (cp < maxcp))	/* if trailing garbage or m */
+	while (!isspace((unsigned char)*cp) && (cp < maxcp))	/* if trailing garbage or m */
 		cp++;
 
-	while (isspace((int)*cp) && (cp < maxcp))
+	while (isspace((unsigned char)*cp) && (cp < maxcp))
 		cp++;
 
 	if (cp >= maxcp)
@@ -793,10 +796,10 @@ loc_aton(
 
 	hp = precsize_aton(&cp);
 
-	while (!isspace((int)*cp) && (cp < maxcp))	/* if trailing garbage or m */
+	while (!isspace((unsigned char)*cp) && (cp < maxcp))	/* if trailing garbage or m */
 		cp++;
 
-	while (isspace((int)*cp) && (cp < maxcp))
+	while (isspace((unsigned char)*cp) && (cp < maxcp))
 		cp++;
 
 	if (cp >= maxcp)

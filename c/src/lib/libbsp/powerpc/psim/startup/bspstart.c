@@ -4,23 +4,22 @@
  *  The generic CPU dependent initialization has been performed
  *  before any of these are invoked.
  *
- *  COPYRIGHT (c) 1989-20089
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.33.2.1 2009/10/16 16:09:09 joel Exp $
+ *  $Id: bspstart.c,v 1.41 2009/11/15 22:37:19 strauman Exp $
  */
 
 #include <string.h>
 #include <fcntl.h>
 #include <bsp.h>
 #include <bsp/irq.h>
+#include <psim.h>
 #include <bsp/bootcard.h>
-#include <rtems/libio.h>
-#include <rtems/libcsupport.h>
 #include <rtems/bspIo.h>
 #include <rtems/powerpc/powerpc.h>
 
@@ -50,14 +49,16 @@ unsigned int BSP_bus_frequency;
 uint32_t   bsp_clicks_per_usec;
 
 /*
+ * Memory on this board.
+ */
+uint32_t BSP_mem_size = (uint32_t)RamSize;
+
+/*
  * Time base divisior (how many tick for 1 second).
  */
 unsigned int BSP_time_base_divisor;
 
-/*
- * system init stack
- */
-#define INIT_STACK_SIZE 0x1000
+extern unsigned long __rtems_end[];
 
 void BSP_panic(char *s)
 {
@@ -72,40 +73,23 @@ void _BSP_Fatal_error(unsigned int v)
 }
 
 /*
- *  This method returns the base address and size of the area which
- *  is to be allocated between the RTEMS Workspace and the C Program
- *  Heap.
- */
-void bsp_get_work_area(
-  void   **work_area_start,
-  size_t  *work_area_size,
-  void   **heap_start,
-  size_t  *heap_size
-)
-{
-  *work_area_start       = &end;
-  *work_area_size       = (void *)&RAM_END - (void *)&end;
-  *heap_start = BSP_BOOTCARD_HEAP_USES_WORK_AREA;
-  *heap_size = BSP_BOOTCARD_HEAP_SIZE_DEFAULT;
-}
-
-/*
  *  bsp_start
  *
  *  This routine does the bulk of the system initialization.
  */
-
 void bsp_start( void )
 {
-  extern unsigned long __rtems_end[];
-  uint32_t intrStackStart;
-  uint32_t intrStackSize;
+  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  uintptr_t intrStackStart;
+  uintptr_t intrStackSize;
 
   /*
-   * Note we can not get CPU identification dynamically, so
-   * force current_ppc_cpu.
+   * Note we can not get CPU identification dynamically.
+   * PVR has to be set to PPC_PSIM (0xfffe) from the device
+   * file.
    */
-  current_ppc_cpu = PPC_PSIM;
+
+  get_ppc_cpu_type();
 
   /*
    *  initialize the device driver parameters
@@ -117,23 +101,25 @@ void bsp_start( void )
   /*
    *  The simulator likes the exception table to be at 0xfff00000.
    */
-
   bsp_exceptions_in_RAM = FALSE;
 
   /*
    * Initialize the interrupt related settings.
    */
-  intrStackStart = (uint32_t) __rtems_end + INIT_STACK_SIZE;
+  intrStackStart = (uintptr_t) __rtems_end;
   intrStackSize = rtems_configuration_get_interrupt_stack_size();
 
   /*
    * Initialize default raw exception handlers.
    */
-  ppc_exc_initialize(
+  sc = ppc_exc_initialize(
     PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
     intrStackStart,
     intrStackSize
   );
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot initialize exceptions");
+  }
 
   /*
    * Initalize RTEMS IRQ system
@@ -144,12 +130,13 @@ void bsp_start( void )
    * Setup BATs and enable MMU
    */
   /* Memory */
-  setdbat(0, 0x0<<24, 0x0<<24, 1<<24, _PAGE_RW);
-  setibat(0, 0x0<<24, 0x0<<24, 1<<24,        0);
+  setdbat(0, 0x0<<24, 0x0<<24, 2<<24, _PAGE_RW);
+  setibat(0, 0x0<<24, 0x0<<24, 2<<24,        0);
   /* PCI    */
   setdbat(1, 0x8<<24, 0x8<<24, 1<<24,  IO_PAGE);
   setdbat(2, 0xc<<24, 0xc<<24, 1<<24,  IO_PAGE);
 
   _write_MSR(_read_MSR() | MSR_DR | MSR_IR);
   asm volatile("sync; isync");
+
 }

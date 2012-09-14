@@ -9,7 +9,7 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: config.h,v 1.5.4.1 2008/09/29 20:44:37 joel Exp $
+ *  $Id: config.h,v 1.6 2008/09/29 20:44:58 joel Exp $
  */
 
 

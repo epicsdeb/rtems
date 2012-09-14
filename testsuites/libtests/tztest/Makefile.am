@@ -1,11 +1,11 @@
 ##
-## $Id: Makefile.am,v 1.1 2007/03/13 19:31:29 joel Exp $
+## $Id: Makefile.am,v 1.2 2009/04/03 12:46:19 ralf Exp $
 ##
 
 MANAGERS = all
 
-rtems_tests_PROGRAMS = tztest.exe
-tztest_exe_SOURCES = init.c
+rtems_tests_PROGRAMS = tztest
+tztest_SOURCES = init.c
 
 dist_rtems_tests_DATA = tztest.scn
 
@@ -15,11 +15,11 @@ include $(top_srcdir)/../automake/leaf.am
 
 AM_CPPFLAGS += -I$(top_srcdir)/../support/include
 
-LINK_OBJS = $(tztest_exe_OBJECTS) $(tztest_exe_LDADD)
-LINK_LIBS = $(tztest_exe_LDLIBS)
+LINK_OBJS = $(tztest_OBJECTS) $(tztest_LDADD)
+LINK_LIBS = $(tztest_LDLIBS)
 
-tztest.exe$(EXEEXT): $(tztest_exe_OBJECTS) $(tztest_exe_DEPENDENCIES)
-	@rm -f tztest.exe$(EXEEXT)
+tztest$(EXEEXT): $(tztest_OBJECTS) $(tztest_DEPENDENCIES)
+	@rm -f tztest$(EXEEXT)
 	$(make-exe)
 
 include $(top_srcdir)/../automake/local.am

@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueueunlink.c,v 1.16 2008/02/06 23:54:54 joel Exp $
+ *  $Id: mqueueunlink.c,v 1.17 2009/02/03 10:10:49 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -66,7 +66,7 @@ int mq_unlink(
     _Objects_Get_index( the_mq_id )
   );
 
-  the_mq->linked = FALSE;
+  the_mq->linked = false;
   _POSIX_Message_queue_Namespace_remove( the_mq );
   _POSIX_Message_queue_Delete( the_mq );
 

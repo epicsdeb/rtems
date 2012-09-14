@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: newlibc_exit.c,v 1.4 2008/08/18 19:18:52 joel Exp $
+ *  $Id: newlibc_exit.c,v 1.9 2009/11/29 13:35:32 ralf Exp $
  *
  */
 
@@ -40,7 +40,7 @@ int _fwalk(struct _reent *ptr, int (*function) (FILE *) );
 
 /* do we think we are reentrant? */
 extern int             libc_reentrant;
-extern struct _reent   libc_global_reent __ATTRIBUTE_IMPURE_PTR__;
+extern struct _reent * const _global_impure_ptr __ATTRIBUTE_IMPURE_PTR__;
 
 /*
  * CYGNUS newlib routine that does atexit() processing and flushes
@@ -66,15 +66,15 @@ void libc_wrapup(void)
   _wrapup_reent(0);
    */
 
-  if (_REENT != &libc_global_reent) {
-      _wrapup_reent(&libc_global_reent);
+  if (_REENT != _global_impure_ptr) {
+      _wrapup_reent(_global_impure_ptr);
 #if 0
       /*  Don't reclaim this one, just in case we do printfs
        *  on the way out to ROM.
        */
       _reclaim_reent(&libc_global_reent);
 #endif
-      _REENT = &libc_global_reent;
+      _REENT = _global_impure_ptr;
   }
 
   /*
@@ -119,24 +119,30 @@ void libc_wrapup(void)
 
 #include <unistd.h>
 
-#if !defined(RTEMS_UNIX)
+/* FIXME: These defines are a blatant hack */
   #define EXIT_SYMBOL _exit
 
-  #if defined(__USE_INIT_FINI__)
-    extern void _fini( void );
+  #if defined(__AVR__)
+    #undef __USE_INIT_FINI__
   #endif
-#else
-  #define EXIT_SYMBOL exit
-#endif
+  #if defined(__USE_INIT_FINI__)
+    #if defined(__m32r__)
+      #define FINI_SYMBOL __fini
+    #else
+      #define FINI_SYMBOL _fini
+    #endif
+
+    extern void FINI_SYMBOL( void );
+  #endif
 
 void EXIT_SYMBOL(int status)
 {
   /*
-   *  If the toolset uses init/fini sections, then we need to 
+   *  If the toolset uses init/fini sections, then we need to
    *  run the global destructors now.
    */
   #if defined(__USE_INIT_FINI__)
-    _fini();
+    FINI_SYMBOL();
   #endif
 
   /*

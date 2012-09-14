@@ -3,17 +3,19 @@
  *  This include file contains information that is included in every
  *  function in the test set.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: system.h,v 1.18 2004/04/16 09:19:06 ralf Exp $
+ *  $Id: system.h,v 1.20 2009/10/26 13:58:56 ralf Exp $
  */
 
 #include <tmacros.h>
+
+#define PRIORITY_INHERIT_BASE_PRIORITY 5
 
 /* functions */
 
@@ -22,7 +24,7 @@ rtems_task Init(
 );
 
 void Priority_test_driver(
-  uint32_t   priority_base
+  rtems_task_priority priority_base
 );
 
 rtems_task Priority_task(

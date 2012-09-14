@@ -22,7 +22,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: start.S,v 1.7 2004/04/21 16:01:35 ralf Exp $
+ *  $Id: start.S,v 1.9 2009/04/28 06:25:48 ccj Exp $
  */
 
 #include <rtems/asm.h>
@@ -352,15 +352,12 @@ ZEROLOOPTEST:
 	cmpl	a1,a0			| Done?
 	bcs.s	ZEROLOOP		| No, skip
 	move	4(a7),d0
-	move	d0,_M68k_Ramsize        | Set Ram Size
 
 	/*
 	 * Right : Now we're ready to boot RTEMS
 	 */
 	clrl	d0			| Pass in null to all boot_card() params
- 	movel	d0,a7@-			| environp
-	movel	d0,a7@-			| argv
-	movel	d0,a7@-			| argc
+	movel	d0,a7@-			| command line
 	jsr	SYM(boot_card)		| Call C boot_card function to startup RTEMS
 
 # Wait forever

@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.h,v 1.35 2008/09/08 15:19:10 joel Exp $
+ *  $Id: cpu.h,v 1.39 2010/04/25 15:06:32 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_CPU_H
@@ -77,7 +77,13 @@ extern "C" {
  *  XXX
  */
 
-#define CPU_UNROLL_ENQUEUE_PRIORITY      TRUE
+#define CPU_UNROLL_ENQUEUE_PRIORITY      FALSE
+
+/*
+ *  Should this target use 16 or 32 bit object Ids?
+ *
+ */
+#define RTEMS_USE_16_BIT_OBJECT
 
 /*
  *  Does RTEMS manage a dedicated interrupt stack in software?
@@ -268,7 +274,7 @@ extern "C" {
  *  H8300 Specific Information:
  *
  *  XXX
- *  The port initially called a BSP dependent routine called 
+ *  The port initially called a BSP dependent routine called
  *  IDLE_Monitor.  The idle task body can be overridden by
  *  the BSP in newer versions of RTEMS.
  */
@@ -446,22 +452,6 @@ SCORE_EXTERN void               *_CPU_Interrupt_stack_low;
 SCORE_EXTERN void               *_CPU_Interrupt_stack_high;
 
 /*
- *  With some compilation systems, it is difficult if not impossible to
- *  call a high-level language routine from assembly language.  This
- *  is especially true of commercial Ada compilers and name mangling
- *  C++ ones.  This variable can be optionally defined by the CPU porter
- *  and contains the address of the routine _Thread_Dispatch.  This
- *  can make it easier to invoke that routine at the end of the interrupt
- *  sequence (if a dispatch is necessary).
- *
- *  H8300 Specific Information:
- *
- *  XXX
- */
-
-SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
-
-/*
  *  Nothing prevents the porter from declaring more CPU specific variables.
  *
  *  H8300 Specific Information:
@@ -494,7 +484,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  *  It is highly unlikely the H8300 will get used in a multiprocessor system.
  */
 
-#define CPU_MPCI_RECEIVE_SERVER_EXTRA_STACK 0 
+#define CPU_MPCI_RECEIVE_SERVER_EXTRA_STACK 0
 
 /*
  *  This defines the number of entries in the ISR_Vector_table managed
@@ -652,7 +642,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
  *
  *  H8300 Specific Information:
  *
- *  XXX  
+ *  XXX
  */
 
 #if defined(__H8300H__) || defined(__H8300S__)
@@ -662,7 +652,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
     asm volatile( "stc ccr, %0 ; orc #0x80,ccr " \
              : "=m" (__ccr) /* : "0" (__ccr) */ ); \
     (_isr_cookie) = __ccr; \
-  } while (0) 
+  } while (0)
 #else
 #define _CPU_ISR_Disable( _isr_cookie ) (_isr_cookie) = 0
 #endif
@@ -683,7 +673,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
   do { \
     unsigned char __ccr = (unsigned char) (_isr_cookie); \
     asm volatile( "ldc %0, ccr" :  : "m" (__ccr) ); \
-  } while (0) 
+  } while (0)
 #else
 #define _CPU_ISR_Enable( _isr_cookie )
 #endif
@@ -704,7 +694,7 @@ SCORE_EXTERN void           (*_CPU_Thread_dispatch_pointer)(void);
   do { \
     unsigned char __ccr = (unsigned char) (_isr_cookie); \
     asm volatile( "ldc %0, ccr ; orc #0x80,ccr " :  : "m" (__ccr) ); \
-  } while (0) 
+  } while (0)
 #else
 #define _CPU_ISR_Flash( _isr_cookie )
 #endif
@@ -772,12 +762,12 @@ uint32_t   _CPU_ISR_Get_level( void );
                                    _isr, _entry_point, _is_fp ) \
   /* Locate Me */ \
   do { \
-    uint32_t   _stack; \
+    uintptr_t   _stack; \
     \
     if ( (_isr) ) (_the_context)->ccr = CPU_CCR_INTERRUPTS_OFF; \
     else          (_the_context)->ccr = CPU_CCR_INTERRUPTS_ON; \
     \
-    _stack = ((uint32_t)(_stack_base)) + (_size) - 4; \
+    _stack = ((uintptr_t)(_stack_base)) + (_size) - 4; \
     *((proc_ptr *)(_stack)) = (_entry_point); \
      (_the_context)->er7     = (void *) _stack; \
      (_the_context)->er6     = (void *) _stack; \
@@ -862,8 +852,8 @@ uint32_t   _CPU_ISR_Get_level( void );
 
 #define _CPU_Fatal_halt( _error ) \
  	printk("Fatal Error %d Halted\n",_error); \
-	for(;;) 
-  
+	for(;;)
+
 
 /* end of Fatal Error manager macros */
 
@@ -991,21 +981,19 @@ uint32_t   _CPU_ISR_Get_level( void );
  *  XXX
  */
 
-void _CPU_Initialize(
-  void      (*thread_dispatch)
-);
+void _CPU_Initialize(void);
 
 /*
  *  _CPU_ISR_install_raw_handler
  *
- *  This routine installs a "raw" interrupt handler directly into the 
+ *  This routine installs a "raw" interrupt handler directly into the
  *  processor's vector table.
  *
  *  H8300 Specific Information:
  *
  *  XXX
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -1141,18 +1129,18 @@ void _CPU_Context_restore_fp(
  *
  *  This is the generic implementation.
  */
- 
+
 static inline uint32_t   CPU_swap_u32(
   uint32_t   value
 )
 {
   uint32_t   byte1, byte2, byte3, byte4, swapped;
- 
+
   byte4 = (value >> 24) & 0xff;
   byte3 = (value >> 16) & 0xff;
   byte2 = (value >> 8)  & 0xff;
   byte1 =  value        & 0xff;
- 
+
   swapped = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
   return( swapped );
 }

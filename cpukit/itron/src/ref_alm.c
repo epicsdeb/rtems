@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ref_alm.c,v 1.1 2007/04/17 20:32:12 joel Exp $
+ *  $Id: ref_alm.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,8 +25,8 @@
  */
 
 ER ref_alm(
-  T_RALM *pk_ralm,
-  HNO     almno
+  T_RALM *pk_ralm __attribute__((unused)),
+  HNO     almno __attribute__((unused))
 )
 {
   return E_OK;

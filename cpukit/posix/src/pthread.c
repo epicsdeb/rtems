@@ -1,24 +1,24 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthread.c,v 1.68 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: pthread.c,v 1.80.2.1 2011/07/31 22:40:43 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <pthread.h>
 #include <limits.h>
 
 #include <rtems/system.h>
+#include <rtems/config.h>
 #include <rtems/score/apiext.h>
 #include <rtems/score/stack.h>
 #include <rtems/score/thread.h>
@@ -31,18 +31,16 @@
 #include <rtems/posix/config.h>
 #include <rtems/posix/key.h>
 #include <rtems/posix/time.h>
+#include <rtems/score/timespec.h>
 
-/*PAGE
- *
+/*
  *  The default pthreads attributes structure.
  *
  *  NOTE: Be careful .. if the default attribute set changes,
  *        _POSIX_Threads_Initialize_user_threads will need to be examined.
- *
  */
-
 const pthread_attr_t _POSIX_Threads_Default_attributes = {
-  TRUE,                       /* is_initialized */
+  true,                       /* is_initialized */
   NULL,                       /* stackaddr */
   0,                          /* stacksize -- will be adjusted to minimum */
   PTHREAD_SCOPE_PROCESS,      /* contentionscope */
@@ -50,21 +48,24 @@ const pthread_attr_t _POSIX_Threads_Default_attributes = {
   SCHED_FIFO,                 /* schedpolicy */
   {                           /* schedparam */
     2,                        /* sched_priority */
-    0,                        /* ss_low_priority */
-    { 0L, 0 },                /* ss_replenish_period */
-    { 0L, 0 }                 /* ss_initial_budget */
+    #if defined(_POSIX_SPORADIC_SERVER) || \
+        defined(_POSIX_THREAD_SPORADIC_SERVER)
+      0,                        /* sched_ss_low_priority */
+      { 0L, 0 },                /* sched_ss_repl_period */
+      { 0L, 0 }                 /* sched_ss_init_budget */
+    #endif
   },
+  #if defined(_POSIX_THREAD_CPUTIME)
+    1,                        /* cputime_clock_allowed */
+  #endif
   PTHREAD_CREATE_JOINABLE,    /* detachstate */
-  1                           /* cputime_clock_allowed */
 };
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Sporadic_budget_TSR
  */
-
 void _POSIX_Threads_Sporadic_budget_TSR(
-  Objects_Id      id,
+  Objects_Id      id __attribute__((unused)),
   void           *argument
 )
 {
@@ -77,33 +78,42 @@ void _POSIX_Threads_Sporadic_budget_TSR(
 
   api = the_thread->API_Extensions[ THREAD_API_POSIX ];
 
-  ticks = _Timespec_To_ticks( &api->schedparam.ss_initial_budget );
-
-  if ( !ticks )
-    ticks = 1;
+  /* ticks is guaranteed to be at least one */
+  ticks = _Timespec_To_ticks( &api->schedparam.sched_ss_init_budget );
 
   the_thread->cpu_time_budget = ticks;
 
-  new_priority = _POSIX_Priority_To_core( api->ss_high_priority );
+  new_priority = _POSIX_Priority_To_core( api->schedparam.sched_priority );
   the_thread->real_priority = new_priority;
 
-  if ( the_thread->resource_count == 0 ||
-       the_thread->current_priority > new_priority )
-    _Thread_Change_priority( the_thread, new_priority, TRUE );
+  /*
+   *  If holding a resource, then do not change it.
+   */
+  #if 0
+    printk( "TSR %d %d %d\n", the_thread->resource_count,
+        the_thread->current_priority, new_priority );
+  #endif
+  if ( the_thread->resource_count == 0 ) {
+    /*
+     *  If this would make them less important, then do not change it.
+     */
+    if ( the_thread->current_priority > new_priority ) {
+      _Thread_Change_priority( the_thread, new_priority, true );
+      #if 0
+        printk( "raise priority\n" );
+      #endif
+    }
+  }
 
-  ticks = _Timespec_To_ticks( &api->schedparam.ss_replenish_period );
-
-  if ( !ticks )
-    ticks = 1;
+  /* ticks is guaranteed to be at least one */
+  ticks = _Timespec_To_ticks( &api->schedparam.sched_ss_repl_period );
 
   _Watchdog_Insert_ticks( &api->Sporadic_timer, ticks );
 }
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Sporadic_budget_callout
  */
-
 void _POSIX_Threads_Sporadic_budget_callout(
   Thread_Control *the_thread
 )
@@ -117,27 +127,41 @@ void _POSIX_Threads_Sporadic_budget_callout(
    *  This will prevent the thread from consuming its entire "budget"
    *  while at low priority.
    */
-
-
   the_thread->cpu_time_budget = 0xFFFFFFFF; /* XXX should be based on MAX_U32 */
 
-  new_priority = _POSIX_Priority_To_core( api->schedparam.ss_low_priority );
+  new_priority = _POSIX_Priority_To_core(api->schedparam.sched_ss_low_priority);
   the_thread->real_priority = new_priority;
 
- if ( the_thread->resource_count == 0 ||
-      the_thread->current_priority > new_priority )
-    _Thread_Change_priority( the_thread, new_priority, TRUE );
+  /*
+   *  If holding a resource, then do not change it.
+   */
+  #if 0
+    printk( "callout %d %d %d\n", the_thread->resource_count,
+	the_thread->current_priority, new_priority );
+  #endif
+  if ( the_thread->resource_count == 0 ) {
+    /*
+     *  Make sure we are actually lowering it. If they have lowered it
+     *  to logically lower than sched_ss_low_priority, then we do not want to
+     *  change it.
+     */
+    if ( the_thread->current_priority < new_priority ) {
+      _Thread_Change_priority( the_thread, new_priority, true );
+      #if 0
+        printk( "lower priority\n" );
+      #endif
+    }
+  }
 }
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Create_extension
  *
- *  XXX
+ *  This method is invoked for each thread created.
  */
 
 bool _POSIX_Threads_Create_extension(
-  Thread_Control *executing,
+  Thread_Control *executing __attribute__((unused)),
   Thread_Control *created
 )
 {
@@ -170,12 +194,17 @@ bool _POSIX_Threads_Create_extension(
   /*
    *  If the thread is not a posix thread, then all posix signals are blocked
    *  by default.
+   *
+   *  The check for class == 1 is debug.  Should never really happen.
    */
 
   /* XXX use signal constants */
   api->signals_pending = 0;
-  if ( _Objects_Get_API( created->Object.id ) == OBJECTS_POSIX_API &&
-       _Objects_Get_class( created->Object.id ) == 1 ) {
+  if ( _Objects_Get_API( created->Object.id ) == OBJECTS_POSIX_API
+       #if defined(RTEMS_DEBUG)
+         && _Objects_Get_class( created->Object.id ) == 1
+       #endif
+  ) {
     executing_api = _Thread_Executing->API_Extensions[ THREAD_API_POSIX ];
     api->signals_blocked = executing_api->signals_blocked;
   } else {
@@ -185,7 +214,7 @@ bool _POSIX_Threads_Create_extension(
   _Thread_queue_Initialize(
     &api->Join_List,
     THREAD_QUEUE_DISCIPLINE_FIFO,
-    STATES_WAITING_FOR_JOIN_AT_EXIT,
+    STATES_WAITING_FOR_JOIN_AT_EXIT | STATES_INTERRUPTIBLE_BY_SIGNAL,
     0
   );
 
@@ -199,13 +228,13 @@ bool _POSIX_Threads_Create_extension(
   return true;
 }
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Delete_extension
+ *
+ *  This method is invoked for each thread deleted.
  */
-
-User_extensions_routine _POSIX_Threads_Delete_extension(
-  Thread_Control *executing,
+void _POSIX_Threads_Delete_extension(
+  Thread_Control *executing __attribute__((unused)),
   Thread_Control *deleted
 )
 {
@@ -242,11 +271,11 @@ User_extensions_routine _POSIX_Threads_Delete_extension(
 }
 
 /*
- *
  *  _POSIX_Threads_Exitted_extension
+ *
+ *  This method is invoked each time a thread exits.
  */
-
-User_extensions_routine _POSIX_Threads_Exitted_extension(
+void _POSIX_Threads_Exitted_extension(
   Thread_Control *executing
 )
 {
@@ -258,32 +287,26 @@ User_extensions_routine _POSIX_Threads_Exitted_extension(
     pthread_exit( executing->Wait.return_argument );
 }
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Initialize_user_threads
  *
  *  This routine creates and starts all configured user
  *  initialzation threads.
- *
- *  Input parameters: NONE
- *
- *  Output parameters:  NONE
  */
-
 void _POSIX_Threads_Initialize_user_threads( void )
 {
   if ( _POSIX_Threads_Initialize_user_threads_p )
     (*_POSIX_Threads_Initialize_user_threads_p)();
 }
 
-/*PAGE
- *
+/*
  *  API Extension control structures
  */
-
 API_extensions_Control _POSIX_Threads_API_extensions = {
   { NULL, NULL },
-  NULL,                                     /* predriver */
+  #if defined(FUNCTIONALITY_NOT_CURRENTLY_USED_BY_ANY_API)
+    NULL,                                   /* predriver */
+  #endif
   _POSIX_Threads_Initialize_user_threads,   /* postdriver */
   _POSIX_signals_Post_switch_extension,     /* post switch */
 };
@@ -302,50 +325,26 @@ User_extensions_Control _POSIX_Threads_User_extensions = {
   }
 };
 
-/*PAGE
- *
+/*
  *  _POSIX_Threads_Manager_initialization
  *
  *  This routine initializes all threads manager related data structures.
- *
- *  Input parameters:
- *    maximum_pthreads - maximum configured pthreads
- *
- *  Output parameters:  NONE
  */
-
-void _POSIX_Threads_Manager_initialization(
-  uint32_t                            maximum_pthreads,
-  uint32_t                            number_of_initialization_threads,
-  posix_initialization_threads_table *user_threads
-
-)
+void _POSIX_Threads_Manager_initialization(void)
 {
-  _POSIX_Threads_Number_of_initialization_threads =
-                                           number_of_initialization_threads;
-  _POSIX_Threads_User_initialization_threads = user_threads;
-
-  /*
-   *  There may not be any POSIX initialization threads configured.
-   */
-
-#if 0
-  if ( user_threads == NULL || number_of_initialization_threads == 0 )
-    _Internal_error_Occurred( INTERNAL_ERROR_POSIX_API, TRUE, EINVAL );
-#endif
-
   _Objects_Initialize_information(
     &_POSIX_Threads_Information, /* object information table */
     OBJECTS_POSIX_API,           /* object API */
     OBJECTS_POSIX_THREADS,       /* object class */
-    maximum_pthreads,            /* maximum objects of this class */
+    Configuration_POSIX_API.maximum_threads,
+                                 /* maximum objects of this class */
     sizeof( Thread_Control ),
                                  /* size of this object's control block */
-    TRUE,                        /* TRUE if names for this object are strings */
-    _POSIX_PATH_MAX             /* maximum length of each object's name */
+    true,                        /* true if names for this object are strings */
+    _POSIX_PATH_MAX              /* maximum length of each object's name */
 #if defined(RTEMS_MULTIPROCESSING)
     ,
-    FALSE,                       /* TRUE if this is a global object class */
+    false,                       /* true if this is a global object class */
     NULL                         /* Proxy extraction support callout */
 #endif
   );
@@ -353,15 +352,12 @@ void _POSIX_Threads_Manager_initialization(
   /*
    *  Add all the extensions for this API
    */
-
   _User_extensions_Add_API_set( &_POSIX_Threads_User_extensions );
 
   _API_extensions_Add( &_POSIX_Threads_API_extensions );
-
 
   /*
    *  If we supported MP, then here we would ...
    *       Register the MP Process Packet routine.
    */
-
 }

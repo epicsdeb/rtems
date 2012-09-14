@@ -20,6 +20,8 @@
 #ifndef __GEN83xx_BSP_h
 #define __GEN83xx_BSP_h
 
+#include <bspopts.h>
+
 /*
  * MPC8313E Reference Design Board
  */
@@ -32,13 +34,9 @@
 #define CONFIG_MPC83XX
 #define CONFIG_HAS_ETH1
 
-/* We want to prompt for a reset and then reset the board */
-#define BSP_PRESS_KEY_FOR_RESET 1
-#define BSP_RESET_BOARD_AT_EXIT 1
-
 #endif /* MPC8313ERDB */
 
-#include <libcpu/powerpc-utility.h> 
+#include <libcpu/powerpc-utility.h>
 
 #include <bsp/hwreg_vals.h>
 
@@ -80,7 +78,6 @@ LINKER_SYMBOL(IMMRBAR);
 extern "C" {
 #endif
 
-#include "bspopts.h"
 
 #include <rtems.h>
 #include <rtems/console.h>
@@ -93,54 +90,24 @@ extern "C" {
 
 #include <bsp/u-boot.h>
 
-extern bd_t mpc83xx_uboot_board_info;
-
-extern const size_t mpc83xx_uboot_board_info_size;
+extern bd_t bsp_uboot_board_info;
+extern const size_t bsp_uboot_board_info_size;
 
 #endif /* HAS_UBOOT */
 
-/* miscellaneous stuff assumed to exist */
-
-/*
- * We need to decide how much memory will be non-cacheable. This
- * will mainly be memory that will be used in DMA (network and serial
- * buffers).
- */
-/*
- *  Stuff for Time Test 27
- */
-#define MUST_WAIT_FOR_INTERRUPT 0
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
 #define BSP_UART1_MINOR 0
 #define BSP_UART2_MINOR 1
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
 
 /*
  * indicate, that BSP has no IDE driver
  */
 #undef RTEMS_BSP_HAS_IDE_DRIVER
 
-/*
- * How many libio files we want
- */
-#define BSP_LIBIO_MAX_FDS       20
-
 /* misc macros */
 #define BSP_ARRAY_CNT(arr) (sizeof(arr)/sizeof(arr[0]))
 
 /* functions */
 
-void bsp_cleanup(void);
 rtems_status_code bsp_register_i2c(void);
 rtems_status_code bsp_register_spi(void);
 

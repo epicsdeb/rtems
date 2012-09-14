@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tod.inl,v 1.24 2008/08/19 08:32:59 ralf Exp $
+ *  $Id: tod.inl,v 1.25 2009/05/05 19:37:28 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_TOD_H
@@ -58,15 +58,19 @@ RTEMS_INLINE_ROUTINE void _TOD_Get_timeval(
   struct timeval *time
 )
 {
-  ISR_Level level;
+  ISR_Level       level;
   struct timespec now;
+  suseconds_t     useconds;
 
   _ISR_Disable(level);
     _TOD_Get( &now );
   _ISR_Enable(level);
 
+  useconds = (suseconds_t)now.tv_nsec;
+  useconds /= (suseconds_t)TOD_NANOSECONDS_PER_MICROSECOND;
+
   time->tv_sec  = now.tv_sec;
-  time->tv_usec = now.tv_nsec / TOD_NANOSECONDS_PER_MICROSECOND;
+  time->tv_usec = useconds;
 }
 
 /**@}*/

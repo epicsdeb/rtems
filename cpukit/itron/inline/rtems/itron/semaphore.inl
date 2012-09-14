@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: semaphore.inl,v 1.10 2008/09/04 16:04:00 ralf Exp $
+ *  $Id: semaphore.inl,v 1.11 2009/01/05 20:21:18 joel Exp $
  */
 
 #ifndef _RTEMS_ITRON_SEMAPHORE_H
@@ -176,8 +176,10 @@ RTEMS_INLINE_ROUTINE ER  _ITRON_Semaphore_Translate_core_semaphore_return_code (
       return E_TMOUT;
     case CORE_SEMAPHORE_MAXIMUM_COUNT_EXCEEDED:
       return E_QOVR;
-    case THREAD_STATUS_PROXY_BLOCKING:
-      return THREAD_STATUS_PROXY_BLOCKING;
+    #if defined(RTEMS_MULTIPROCESSING)
+      case THREAD_STATUS_PROXY_BLOCKING:
+        return THREAD_STATUS_PROXY_BLOCKING;
+    #endif
   }
   return E_OK;   /* unreached - only to remove warnings */
 }

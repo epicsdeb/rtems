@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: prwlocktimedwrlock.c,v 1.6 2008/09/04 15:23:12 ralf Exp $
+ *  $Id: prwlocktimedwrlock.c,v 1.10 2009/11/30 15:44:21 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,9 +43,9 @@ int pthread_rwlock_timedwrlock(
   POSIX_RWLock_Control                        *the_rwlock;
   Objects_Locations                            location;
   Watchdog_Interval                            ticks;
-  bool                                         do_wait;
+  bool                                         do_wait = true;
   POSIX_Absolute_timeout_conversion_results_t  status;
-  
+
   if ( !rwlock )
     return EINVAL;
 
@@ -57,18 +57,14 @@ int pthread_rwlock_timedwrlock(
    *  is valid or not.  If it isn't correct and in the future,
    *  then we do a polling operation and convert the UNSATISFIED
    *  status into the appropriate error.
+   *
+   *  If the status is POSIX_ABSOLUTE_TIMEOUT_INVALID,
+   *  POSIX_ABSOLUTE_TIMEOUT_IS_IN_PAST, or POSIX_ABSOLUTE_TIMEOUT_IS_NOW,
+   *  then we should not wait.
    */
   status = _POSIX_Absolute_timeout_to_ticks( abstime, &ticks );
-  switch (status) {
-    case POSIX_ABSOLUTE_TIMEOUT_INVALID:
-    case POSIX_ABSOLUTE_TIMEOUT_IS_IN_PAST:
-    case POSIX_ABSOLUTE_TIMEOUT_IS_NOW:
-      do_wait = FALSE;
-      break;
-    case POSIX_ABSOLUTE_TIMEOUT_IS_IN_FUTURE:
-      do_wait = TRUE;
-      break;
-  }
+  if ( status != POSIX_ABSOLUTE_TIMEOUT_IS_IN_FUTURE )
+    do_wait = false;
 
   the_rwlock = _POSIX_RWLock_Get( rwlock, &location );
   switch ( location ) {

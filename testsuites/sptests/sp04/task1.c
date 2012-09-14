@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2004/03/30 11:15:16 ralf Exp $
+ *  $Id: task1.c,v 1.19 2009/08/10 16:04:41 joel Exp $
  */
 
 #include "system.h"
@@ -23,8 +23,8 @@
 static void
 showTaskSwitches (void)
 {
-  int i;
-  int switches = taskSwitchLogIndex;
+  unsigned int i;
+  unsigned int switches = taskSwitchLogIndex;
 
   for (i = 0 ; i < switches ; i++) {
       put_name( Task_name[taskSwitchLog[i].taskIndex], FALSE );
@@ -52,14 +52,14 @@ rtems_task Task_1(
   status = rtems_task_suspend( Task_id[ 3 ] );
   directive_failed( status, "rtems_task_suspend of TA3" );
 
-  status = rtems_clock_get( RTEMS_CLOCK_GET_SECONDS_SINCE_EPOCH, &start_time );
-  directive_failed( status, "rtems_clock_get" );
+  status = rtems_clock_get_seconds_since_epoch( &start_time );
+  directive_failed( status, "rtems_clock_get_seconds_since_epoch" );
 
   puts( "TA1 - killing time" );
 
   for ( ; ; ) {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_SECONDS_SINCE_EPOCH, &end_time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_seconds_since_epoch( &end_time );
+    directive_failed( status, "rtems_clock_get_seconds_since_epoch" );
 
     if ( end_time > (start_time + 2) )
       break;
@@ -84,14 +84,14 @@ rtems_task Task_1(
       );
       directive_failed( status, "rtems_task_mode" );
 
-      status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-      directive_failed( status, "rtems_clock_get" );
+      status = rtems_clock_get_tod( &time );
+      directive_failed( status, "rtems_clock_get_tod" );
 
       old_seconds = time.second;
 
       for ( seconds = 0 ; seconds < 6 ; ) {
-        status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-        directive_failed( status, "rtems_clock_get" );
+        status = rtems_clock_get_tod( &time );
+        directive_failed( status, "rtems_clock_get_tod" );
 
         if ( time.second != old_seconds ) {
           old_seconds = time.second;
@@ -110,6 +110,11 @@ rtems_task Task_1(
 
       while ( !testsFinished );
       showTaskSwitches ();
+
+      puts( "TA1 - rtems_extension_delete - successful" );
+      status = rtems_extension_delete( Extension_id[1] );
+      directive_failed( status, "rtems_extension_delete" );
+
       puts( "*** END OF TEST 4 ***" );
       rtems_test_exit (0);
     }

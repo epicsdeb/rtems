@@ -1,6 +1,6 @@
 /*  timer.c
  *
- *  This file implements a benchmark timer using the General Purpose Timer.
+ *  This file implements a benchmark timer using the PPC Timebase
  *
  *  Notes: NONE
  *
@@ -11,13 +11,15 @@
  *  the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: timer.c,v 1.12 2008/09/05 12:11:47 ralf Exp $
+ *  $Id: timer.c,v 1.15 2010/03/25 20:26:51 thomas Exp $
  */
 
 #include <rtems/system.h>
 #include <assert.h>
 #include <rtems.h>
 #include <bsp.h>
+#include <libcpu/powerpc-utility.h>
+
 
 uint64_t   Timer_driver_Start_time;
 
@@ -40,7 +42,7 @@ int Timer_get_clicks_overhead(void)
 }
 
 /*
- * benchmark_timer_initialize 
+ * benchmark_timer_initialize
  */
 void benchmark_timer_initialize(void)
 {

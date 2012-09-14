@@ -1,14 +1,14 @@
 /*
  *  kill() support routine
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: killinfo.c,v 1.15 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: killinfo.c,v 1.23 2009/11/30 15:44:20 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -18,7 +18,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <errno.h>
-#include <assert.h>
 
 #include <rtems/system.h>
 #include <rtems/posix/pthread.h>
@@ -26,8 +25,22 @@
 #include <rtems/seterr.h>
 #include <rtems/score/isr.h>
 
-/*PAGE
- *
+/*
+ *  If you enable this, then you get printk() feedback on each path
+ *  and the input to the decision that lead to the decision.  Hopefully
+ *  this will help in debugging the algorithm that distributes process
+ *  signals to individual threads.
+ */
+
+/* #define DEBUG_SIGNAL_PROCESSING */
+#if defined(DEBUG_SIGNAL_PROCESSING)
+  #include <rtems/bspIo.h>
+  #define DEBUG_STEP(_x) printk(_x)
+#else
+  #define DEBUG_STEP(_x)
+#endif
+
+/*
  *  3.3.2 Send a Signal to a Process, P1003.1b-1993, p. 68
  *
  *  NOTE: Behavior of kill() depends on _POSIX_SAVED_IDS.
@@ -50,7 +63,7 @@ int killinfo(
   Objects_Information         *the_info;
   Objects_Control            **object_table;
   Thread_Control              *the_thread;
-  Thread_Control              *interested_thread;
+  Thread_Control              *interested;
   Priority_Control             interested_priority;
   Chain_Control               *the_chain;
   Chain_Node                  *the_node;
@@ -61,14 +74,12 @@ int killinfo(
   /*
    *  Only supported for the "calling process" (i.e. this node).
    */
-
   if ( pid != getpid() )
     rtems_set_errno_and_return_minus_one( ESRCH );
 
   /*
    *  Validate the signal passed.
    */
-
   if ( !sig )
     rtems_set_errno_and_return_minus_one( EINVAL );
 
@@ -78,17 +89,14 @@ int killinfo(
   /*
    *  If the signal is being ignored, then we are out of here.
    */
-
-  if ( _POSIX_signals_Vectors[ sig ].sa_handler == SIG_IGN ) {
+  if ( _POSIX_signals_Vectors[ sig ].sa_handler == SIG_IGN )
     return 0;
-  }
 
   /*
    *  P1003.1c/Draft 10, p. 33 says that certain signals should always
    *  be directed to the executing thread such as those caused by hardware
    *  faults.
    */
-
   if ( (sig == SIGFPE) || (sig == SIGILL) || (sig == SIGSEGV ) )
       return pthread_kill( pthread_self(), sig );
 
@@ -97,7 +105,6 @@ int killinfo(
   /*
    *  Build up a siginfo structure
    */
-
   siginfo = &siginfo_struct;
   siginfo->si_signo = sig;
   siginfo->si_code = SI_USER;
@@ -113,7 +120,6 @@ int killinfo(
    *  Is the currently executing thread interested?  If so then it will
    *  get it an execute it as soon as the dispatcher executes.
    */
-
   the_thread = _Thread_Executing;
 
   api = the_thread->API_Extensions[ THREAD_API_POSIX ];
@@ -123,28 +129,38 @@ int killinfo(
 
   /*
    *  Is an interested thread waiting for this signal (sigwait())?
+   *
+   *  There is no requirement on the order of threads pending on a sigwait().
    */
 
   /* XXX violation of visibility -- need to define thread queue support */
 
-  for( index=0 ;
-       index < TASK_QUEUE_DATA_NUMBER_OF_PRIORITY_HEADERS ;
-       index++ ) {
+  the_chain = &_POSIX_signals_Wait_queue.Queues.Fifo;
 
-    the_chain = &_POSIX_signals_Wait_queue.Queues.Priority[ index ];
+  for ( the_node = the_chain->first ;
+        !_Chain_Is_tail( the_chain, the_node ) ;
+        the_node = the_node->next ) {
 
-    for ( the_node = the_chain->first ;
-          !_Chain_Is_tail( the_chain, the_node ) ;
-          the_node = the_node->next ) {
+    the_thread = (Thread_Control *)the_node;
+    api = the_thread->API_Extensions[ THREAD_API_POSIX ];
 
-      the_thread = (Thread_Control *)the_node;
-      api = the_thread->API_Extensions[ THREAD_API_POSIX ];
+    #if defined(DEBUG_SIGNAL_PROCESSING)
+      printk( "Waiting Thread=%p option=0x%08x mask=0x%08x blocked=0x%08x\n",
+        the_thread, the_thread->Wait.option, mask, api->signals_blocked);
+    #endif
 
-      if ((the_thread->Wait.option & mask) || (~api->signals_blocked & mask)) {
-        goto process_it;
-      }
+    /*
+     * Is this thread is actually blocked waiting for the signal?
+     */
+    if (the_thread->Wait.option & mask)
+      goto process_it;
 
-    }
+    /*
+     * Is this thread is blocked waiting for another signal but has
+     * not blocked this one?
+     */
+    if (~api->signals_blocked & mask)
+      goto process_it;
   }
 
   /*
@@ -162,29 +178,28 @@ int killinfo(
    *
    *    + rtems internal threads do not receive signals.
    */
-
-  interested_thread = NULL;
+  interested = NULL;
   interested_priority = PRIORITY_MAXIMUM + 1;
 
-  for ( the_api = OBJECTS_CLASSIC_API;
-        the_api <= OBJECTS_APIS_LAST;
-        the_api++ ) {
+  for (the_api = OBJECTS_CLASSIC_API; the_api <= OBJECTS_APIS_LAST; the_api++) {
 
     /*
-     *  Thie can occur when no one is interested and ITRON is not configured.
+     *  This can occur when no one is interested and ITRON is not configured.
      */
     if ( !_Objects_Information_table[ the_api ] )
       continue;
 
     the_info = _Objects_Information_table[ the_api ][ 1 ];
 
-    /*
-     *  This cannot happen in the current (as of Dec 2007) implementation
-     *  of initialization but at some point, the object information
-     *  structure for a particular manager may not be installed.
-     */
-    if ( !the_info )
-      continue;
+    #if defined(RTEMS_DEBUG)
+      /*
+       *  This cannot happen in the current (as of June 2009) implementation
+       *  of initialization but at some point, the object information
+       *  structure for a particular manager may not be installed.
+       */
+      if ( !the_info )
+        continue;
+    #endif
 
     maximum = the_info->maximum;
     object_table = the_info->local_table;
@@ -195,82 +210,87 @@ int killinfo(
       if ( !the_thread )
         continue;
 
+      #if defined(DEBUG_SIGNAL_PROCESSING)
+        printk("\n 0x%08x/0x%08x %d/%d 0x%08x 1",
+          the_thread->Object.id,
+          ((interested) ? interested->Object.id : 0),
+          the_thread->current_priority, interested_priority,
+          the_thread->current_state
+        );
+      #endif
+
       /*
        *  If this thread is of lower priority than the interested thread,
        *  go on to the next thread.
        */
-
       if ( the_thread->current_priority > interested_priority )
         continue;
+      DEBUG_STEP("2");
 
       /*
        *  If this thread is not interested, then go on to the next thread.
        */
-
       api = the_thread->API_Extensions[ THREAD_API_POSIX ];
 
-      if ( !api || !_POSIX_signals_Is_interested( api, mask ) )
+      #if defined(RTEMS_DEBUG)
+        if ( !api )
+          continue;
+      #endif
+
+      if ( !_POSIX_signals_Is_interested( api, mask ) )
         continue;
+      DEBUG_STEP("3");
 
       /*
-       *  Now we know the thread under connsideration is interested.
+       *  Now we know the thread under consideration is interested.
        *  If the thread under consideration is of higher priority, then
        *  it becomes the interested thread.
+       *
+       *  NOTE: We initialized interested_priority to PRIORITY_MAXIMUM + 1
+       *        so we never have to worry about deferencing a NULL
+       *        interested thread.
        */
-
       if ( the_thread->current_priority < interested_priority ) {
-        interested_thread   = the_thread;
+        interested   = the_thread;
         interested_priority = the_thread->current_priority;
         continue;
       }
+      DEBUG_STEP("4");
 
       /*
        *  Now the thread and the interested thread have the same priority.
-       *  If the interested thread is ready, then we don't need to send it
-       *  to a blocked thread.
+       *  We have to sort through the combinations of blocked/not blocked
+       *  and blocking interruptibutable by signal.
+       *
+       *  If the interested thread is ready, don't think about changing.
        */
 
-      if ( _States_Is_ready( interested_thread->current_state ) )
-        continue;
+      if ( !_States_Is_ready( interested->current_state ) ) {
+        /* preferred ready over blocked */
+        DEBUG_STEP("5");
+        if ( _States_Is_ready( the_thread->current_state ) ) {
+          interested          = the_thread;
+          interested_priority = the_thread->current_priority;
+          continue;
+        }
 
-      /*
-       *  Now the interested thread is blocked.
-       *  If the thread we are considering is not, the it becomes the
-       *  interested thread.
-       */
-
-      if ( _States_Is_ready( the_thread->current_state ) ) {
-        interested_thread   = the_thread;
-        interested_priority = the_thread->current_priority;
-        continue;
-      }
-
-      /*
-       *  Now we know both threads are blocked.
-       *  If the interested thread is interruptible, then just use it.
-       */
-
-      /* XXX need a new states macro */
-      if ( interested_thread->current_state & STATES_INTERRUPTIBLE_BY_SIGNAL )
-        continue;
-
-      /*
-       *  Now both threads are blocked and the interested thread is not
-       *  interruptible.
-       *  If the thread under consideration is interruptible by a signal,
-       *  then it becomes the interested thread.
-       */
-
-      /* XXX need a new states macro */
-      if ( the_thread->current_state & STATES_INTERRUPTIBLE_BY_SIGNAL ) {
-        interested_thread   = the_thread;
-        interested_priority = the_thread->current_priority;
+        DEBUG_STEP("6");
+        /* prefer blocked/interruptible over blocked/not interruptible */
+        if ( !_States_Is_interruptible_by_signal(interested->current_state) ) {
+          DEBUG_STEP("7");
+          if ( _States_Is_interruptible_by_signal(the_thread->current_state) ) {
+            DEBUG_STEP("8");
+            interested          = the_thread;
+            interested_priority = the_thread->current_priority;
+            continue;
+          }
+        }
       }
     }
   }
 
-  if ( interested_thread ) {
-    the_thread = interested_thread;
+  if ( interested ) {
+    the_thread = interested;
     goto process_it;
   }
 
@@ -284,7 +304,6 @@ int killinfo(
    *    + sigprocmask() unblocks the signal, OR
    *    + sigaction() which changes the handler to SIG_IGN.
    */
-
   the_thread = NULL;
   goto post_process_signal;
 
@@ -293,16 +312,14 @@ int killinfo(
    *  thread needs to do the post context switch extension so it can
    *  evaluate the signals pending.
    */
-
 process_it:
 
   the_thread->do_post_task_switch_extension = true;
 
   /*
-   *  Returns TRUE if the signal was synchronously given to a thread
+   *  Returns true if the signal was synchronously given to a thread
    *  blocked waiting for the signal.
    */
-
   if ( _POSIX_signals_Unblock_thread( the_thread, sig, siginfo ) ) {
     _Thread_Enable_dispatch();
     return 0;
@@ -314,7 +331,6 @@ post_process_signal:
    *  We may have woken up a thread but we definitely need to post the
    *  signal to the process wide information set.
    */
-
   _POSIX_signals_Set_process_signals( mask );
 
   if ( _POSIX_signals_Vectors[ sig ].sa_flags == SA_SIGINFO ) {
@@ -322,6 +338,7 @@ post_process_signal:
     psiginfo = (POSIX_signals_Siginfo_node *)
                _Chain_Get( &_POSIX_signals_Inactive_siginfo );
     if ( !psiginfo ) {
+      _Thread_Enable_dispatch();
       rtems_set_errno_and_return_minus_one( EAGAIN );
     }
 
@@ -330,6 +347,7 @@ post_process_signal:
     _Chain_Append( &_POSIX_signals_Siginfo[ sig ], &psiginfo->Node );
   }
 
+  DEBUG_STEP("\n");
   _Thread_Enable_dispatch();
   return 0;
 }

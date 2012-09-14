@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved. 
 @c
-@c  $Id: stackchk.t,v 1.6 2008/09/09 07:33:46 ralf Exp $
+@c  $Id: stackchk.t,v 1.7 2008/09/17 19:30:29 joel Exp $
 @c
 
 @chapter Stack Bounds Checker
@@ -86,12 +86,12 @@ The application must include the stack bounds checker extension set
 in its set of Initial Extensions.  This set of extensions is
 defined as @code{STACK_CHECKER_EXTENSION}.  If using @code{<rtems/confdefs.h>}
 for Configuration Table generation, then all that is necessary is
-to define the macro @code{STACK_CHECKER_ON} before including 
+to define the macro @code{CONFIGURE_STACK_CHECKER_ENABLED} before including 
 @code{<rtems/confdefs.h>} as shown below:
 
 @example
 @group
-#define STACK_CHECKER_ON
+#define CONFIGURE_STACK_CHECKER_ENABLED
   ...
 #include <rtems/confdefs.h>
 @end group

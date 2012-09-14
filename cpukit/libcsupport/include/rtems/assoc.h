@@ -8,7 +8,7 @@
  *  one space to another (eg: our errno's to host errno's and v.v)
  *
  *
- *  $Id: assoc.h,v 1.10.2.1 2009/06/03 03:39:59 ralf Exp $
+ *  $Id: assoc.h,v 1.11 2009/06/03 03:38:38 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_ASSOC_H

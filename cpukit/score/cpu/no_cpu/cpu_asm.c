@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu_asm.c,v 1.15 2004/04/15 13:24:48 ralf Exp $
+ *  $Id: cpu_asm.c,v 1.18 2010/03/27 15:02:26 joel Exp $
  */
 
 /*
@@ -21,6 +21,10 @@
  *  and cpu.h should not be included in a "real" cpu_asm file.  An
  *  implementation in assembly should include "cpu_asm.h>
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/cpu.h>
@@ -44,7 +48,7 @@
  */
 
 void _CPU_Context_save_fp(
-  void **fp_context_ptr
+  Context_Control_fp **fp_context_ptr
 )
 {
 }
@@ -67,7 +71,7 @@ void _CPU_Context_save_fp(
  */
 
 void _CPU_Context_restore_fp(
-  void **fp_context_ptr
+  Context_Control_fp **fp_context_ptr
 )
 {
 }
@@ -116,7 +120,7 @@ void _CPU_Context_restore(
  *  XXX document implementation including references if appropriate
  */
 
-void _ISR_Handler()
+void _ISR_Handler(void)
 {
    /*
     *  This discussion ignores a lot of the ugly details in a real
@@ -173,7 +177,7 @@ void _ISR_Handler()
    *
    *  LABEL "exit interrupt (simple case):
    *  #if ( CPU_HAS_SOFTWARE_INTERRUPT_STACK == TRUE )
-   *    if outermost interrupt 
+   *    if outermost interrupt
    *      restore stack
    *  #endif
    *  prepare to get out of interrupt

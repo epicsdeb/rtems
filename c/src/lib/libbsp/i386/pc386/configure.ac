@@ -1,17 +1,17 @@
 ## Process this file with autoconf to produce a configure script.
-## 
-## $Id: configure.ac,v 1.29.2.1 2008/12/03 17:28:30 joel Exp $
+##
+## $Id: configure.ac,v 1.38.2.1 2011/02/02 15:14:39 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-lib-libbsp-i386-pc386],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
 RTEMS_CANONICAL_TARGET_CPU
-AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
+AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.11.1])
 RTEMS_BSP_CONFIGURE
 
-RTEMS_PROG_CC_FOR_TARGET([-ansi -fasm])
+RTEMS_PROG_CC_FOR_TARGET
 RTEMS_CANONICALIZE_TOOLS
 RTEMS_CHECK_TOOL(OBJCOPY,objcopy,:)
 RTEMS_PROG_CCAS
@@ -26,25 +26,23 @@ RTEMS_BSPOPTS_HELP([USE_COM1_AS_CONSOLE],
 
 RTEMS_BSPOPTS_SET([IDE_USE_PRIMARY_INTERFACE],[*],[1])
 RTEMS_BSPOPTS_HELP([IDE_USE_PRIMARY_INTERFACE],
-[Determines, whether RTEMS will try to use the primary IDE interface. 
+[Determines, whether RTEMS will try to use the primary IDE interface.
  Disable it, if:
- - you have no primary IDE interface 
- - or you have no disk attached to this interface  
+ - you have no primary IDE interface
+ - or you have no disk attached to this interface
  - or you do not want to access disks attached to this interface])
 
 RTEMS_BSPOPTS_SET([IDE_USE_SECONDARY_INTERFACE],[*],[0])
 RTEMS_BSPOPTS_HELP([IDE_USE_SECONDARY_INTERFACE],
-[Determines, whether RTEMS will try to use the secondary IDE interface. 
+[Determines, whether RTEMS will try to use the secondary IDE interface.
  Enable it, if:
- - you have a secondary IDE interface 
- - and you have at least one disk attached to this interface  
+ - you have a secondary IDE interface
+ - and you have at least one disk attached to this interface
  - and you do want to access disks attached to this interface])
 
-RTEMS_BSPOPTS_SET([BSP_PRESS_KEY_FOR_RESET],[*],[1])
-RTEMS_BSPOPTS_HELP([BSP_PRESS_KEY_FOR_RESET],
-[Determines, whether this BSP will wait for a key to be pressed 
- before rebooting the PC.  This is useful for unattended PC deployments
-])
+RTEMS_BSPOPTS_SET([BSP_VIDEO_80x50],[*],[0])
+RTEMS_BSPOPTS_HELP([BSP_VIDEO_80x50],
+[If defined, set the VGA display to 80x50.])
 
 RTEMS_BSPOPTS_SET([CLOCK_DRIVER_USE_TSC],[*],[0])
 RTEMS_BSPOPTS_HELP([CLOCK_DRIVER_USE_TSC],
@@ -92,6 +90,8 @@ AC_SUBST([RTEMS_ROOT],[${rtems_updir}'$(top_builddir)'])
 RTEMS_CONFIG_BUILD_SUBDIRS(tools)
 
 AC_SUBST(RTEMS_BSP)
+
+RTEMS_BSP_CLEANUP_OPTIONS(1, 1)
 
 # Explicitly list all Makefiles here
 AC_CONFIG_FILES([Makefile])

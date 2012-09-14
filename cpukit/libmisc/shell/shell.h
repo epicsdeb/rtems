@@ -13,7 +13,7 @@
  *   Thanks at:
  *    Chris Johns
  *
- *  $Id: shell.h,v 1.21 2008/09/01 11:28:56 ralf Exp $
+ *  $Id: shell.h,v 1.28 2009/07/22 15:17:37 joel Exp $
  */
 
 #ifndef __RTEMS_SHELL_H__
@@ -24,6 +24,7 @@
 #include <termios.h>
 #include <rtems/fs.h>
 #include <rtems/libio.h>
+#include <rtems/chain.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,23 +55,40 @@ extern "C" {
 #define RTEMS_SHELL_KEYS_F9          (16)
 #define RTEMS_SHELL_KEYS_F10         (17)
 
-typedef int (*rtems_shell_command_t)(int argc,char * argv[]);
+typedef bool (*rtems_shell_login_check_t)(
+  const char * /* user */,
+  const char * /* passphrase */
+);
+
+bool rtems_shell_login_prompt(
+  FILE *in,
+  FILE *out,
+  const char *device,
+  rtems_shell_login_check_t check
+);
+
+bool rtems_shell_login_check(
+  const char *user,
+  const char *passphrase
+);
+
+typedef int (*rtems_shell_command_t)(int argc, char **argv);
 
 struct rtems_shell_cmd_tt;
 typedef struct rtems_shell_cmd_tt rtems_shell_cmd_t;
 
 struct rtems_shell_cmd_tt {
-  char                  *name;
-  char                  *usage;
-  char                  *topic;
+  const char            *name;
+  const char            *usage;
+  const char            *topic;
   rtems_shell_command_t  command;
   rtems_shell_cmd_t     *alias;
   rtems_shell_cmd_t     *next;
 };
 
 typedef struct {
-  char            *name;
-  char            *alias;
+  const char *name;
+  const char *alias;
 } rtems_shell_alias_t;
 
 /*
@@ -79,41 +97,34 @@ typedef struct {
  */
 unsigned int rtems_shell_getchar(FILE *in);
 
-rtems_shell_cmd_t * rtems_shell_lookup_cmd(char * cmd);
+rtems_shell_cmd_t * rtems_shell_lookup_cmd(const char *cmd);
 
 rtems_shell_cmd_t *rtems_shell_add_cmd_struct(
   rtems_shell_cmd_t *shell_cmd
 );
 
 rtems_shell_cmd_t * rtems_shell_add_cmd(
-  char                  *cmd,
-  char                  *topic,
-  char                  *usage,
+  const char            *cmd,
+  const char            *topic,
+  const char            *usage,
   rtems_shell_command_t  command
 );
 
 rtems_shell_cmd_t * rtems_shell_alias_cmd(
-  char *cmd,
-  char *alias
+  const char *cmd,
+  const char *alias
 );
 
 int rtems_shell_make_args(
   char  *commandLine,
-  int   *argc_p, 
-  char **argv_p, 
+  int   *argc_p,
+  char **argv_p,
   int    max_args
-);
-
-int rtems_shell_scanline(
-  char *line,
-  int   size,
-  FILE *in,
-  FILE *out
 );
 
 int rtems_shell_cat_file(
   FILE *out,
-  char *name
+  const char *name
 );
 
 void rtems_shell_write_file(
@@ -122,8 +133,8 @@ void rtems_shell_write_file(
 );
 
 int rtems_shell_script_file(
-  int   argc,
-  char *argv[]
+  int    argc,
+  char **argv
 );
 
 /**
@@ -134,16 +145,18 @@ int rtems_shell_script_file(
  * @param task_stacksize The size of the stack. If 0 the default size is used.
  * @param task_priority The priority the shell runs at.
  * @param forever Repeat logins.
- * @param wait Caller should block until shell exits
+ * @param wait Caller should block until shell exits.
+ * @param login_check User login check function, NULL disables login checks.
  *
  */
 rtems_status_code rtems_shell_init(
-  char                *task_name,
-  uint32_t             task_stacksize,  /*0 default*/
-  rtems_task_priority  task_priority,
-  char                *devname,
-  int                  forever,
-  int                  wait
+  const char *task_name,
+  size_t task_stacksize,
+  rtems_task_priority task_priority,
+  const char *devname,
+  bool forever,
+  bool wait,
+  rtems_shell_login_check_t login_check
 );
 
 /**
@@ -160,36 +173,34 @@ rtems_status_code rtems_shell_init(
  * @param wait Wait for the script to finish.
  */
 rtems_status_code rtems_shell_script(
-  char                *task_name,
-  uint32_t             task_stacksize,  /*0 default*/
+  const char          *task_name,
+  size_t               task_stacksize,  /* 0 default*/
   rtems_task_priority  task_priority,
   const char          *input,
   const char          *output,
-  int                  output_append,
-  int                  wait,
-  int                  echo
+  bool                 output_append,
+  bool                 wait,
+  bool                 echo
 );
 
-/*
- *  Things that are useful to external entities developing commands and plugging
- *  them in.
+/**
+ *  Private environment associated with each shell instance.
  */
-int rtems_shell_str2int(char * s);
-
-typedef struct  {
-  rtems_name  magic; /* 'S','E','N','V': Shell Environment */
-  char       *devname;
-  char       *taskname;
-  /* user extensions */
-  bool        exit_shell; /* logout */
-  bool        forever   ; /* repeat login */
-  int         errorlevel;
-  int         echo;
-  char        cwd[256];
-  const char* input;
-  const char* output;
-  int         output_append;
-  rtems_id    wake_on_end;
+typedef struct {
+  /** 'S','E','N','V': Shell Environment */
+  rtems_name magic;
+  const char *devname;
+  const char *taskname;
+  bool exit_shell; /* logout */
+  bool forever; /* repeat login */
+  int errorlevel;
+  bool echo;
+  char cwd[256];
+  const char *input;
+  const char *output;
+  bool output_append;
+  rtems_id wake_on_end;
+  rtems_shell_login_check_t login_check;
 } rtems_shell_env_t;
 
 bool rtems_shell_main_loop(
@@ -207,7 +218,7 @@ extern rtems_shell_env_t *rtems_current_shell_env;
  * all possible file systems being included it would force the
  * networking stack into the applcation and this may not be
  * required.
- */ 
+ */
 struct rtems_shell_filesystems_tt;
 typedef struct rtems_shell_filesystems_tt rtems_shell_filesystems_t;
 
@@ -219,10 +230,11 @@ typedef int (*rtems_shell_filesystems_mounter_t)(
 );
 
 struct rtems_shell_filesystems_tt {
-  const char*                        name;
-  int                                driver_needed;
-  rtems_filesystem_operations_table* fs_ops;
-  rtems_shell_filesystems_mounter_t  mounter;
+  rtems_chain_node                         link;
+  const char                              *name;
+  int                                      driver_needed;
+  const rtems_filesystem_operations_table *fs_ops;
+  rtems_shell_filesystems_mounter_t        mounter;
 };
 
 /**
@@ -243,6 +255,35 @@ void rtems_shell_get_prompt(
   char              *prompt,
   size_t             size
 );
+
+/**
+ * Helper for the mount command.
+ *
+ * @param[in] driver The path to the driver.
+ * @param[in] path The path to mount on.
+ * @param[in] fs The file system definition.
+ * @param[in] options Special file system options.
+ */
+int rtems_shell_libc_mounter(
+  const char*                driver,
+  const char*                path,
+  rtems_shell_filesystems_t* fs,
+  rtems_filesystem_options_t options
+);
+
+/**
+ * Add a new file system mount configuration to the mount command.
+ *
+ * @param[in] fs The file system mount data.
+ */
+void rtems_shell_mount_add_fsys(rtems_shell_filesystems_t* fs);
+
+/**
+ * Delete file system mount configuration from the mount command.
+ *
+ * @param[in] fs The file system mount data to remove.
+ */
+void rtems_shell_mount_del_fsys(rtems_shell_filesystems_t* fs);
 
 #ifdef __cplusplus
 }

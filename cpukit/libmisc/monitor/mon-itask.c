@@ -1,7 +1,7 @@
 /*
  * RTEMS Monitor init task support
  *
- *  $Id: mon-itask.c,v 1.17 2008/09/01 09:35:34 ralf Exp $
+ *  $Id: mon-itask.c,v 1.20 2009/11/29 12:12:39 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,21 +38,20 @@ rtems_monitor_init_task_canonical(
 
 void *
 rtems_monitor_init_task_next(
-    void                  *object_info,
+    void                  *object_info __attribute__((unused)),
     rtems_monitor_init_task_t *canonical_init_task,
     rtems_id              *next_id
 )
 {
-    rtems_configuration_table *c = _Configuration_Table;
     rtems_initialization_tasks_table *itask;
     uint32_t   n = rtems_object_id_get_index(*next_id);
 
-    if (n >= c->RTEMS_api_configuration->number_of_initialization_tasks)
+    if (n >= Configuration_RTEMS_API.number_of_initialization_tasks)
         goto failed;
 
     _Thread_Disable_dispatch();
 
-    itask = c->RTEMS_api_configuration->User_initialization_tasks_table + n;
+    itask = Configuration_RTEMS_API.User_initialization_tasks_table + n;
 
     /*
      * dummy up a fake id and name for this item
@@ -72,7 +71,7 @@ failed:
 
 void
 rtems_monitor_init_task_dump_header(
-    bool verbose
+    bool verbose __attribute__((unused))
 )
 {
     fprintf(stdout,"\
@@ -102,7 +101,7 @@ rtems_monitor_init_task_dump(
     length += rtems_monitor_symbol_dump(&monitor_itask->entry, verbose);
 
     length += rtems_monitor_pad(25, length);
-    length += fprintf(stdout,"%" PRId32 " [0x%" PRIx32 "]", 
+    length += fprintf(stdout,"%" PRId32 " [0x%" PRIx32 "]",
       monitor_itask->argument, monitor_itask->argument);
 
     length += rtems_monitor_pad(39, length);

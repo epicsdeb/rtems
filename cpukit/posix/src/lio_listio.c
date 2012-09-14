@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: lio_listio.c,v 1.1 2007/12/13 16:52:20 joel Exp $
+ *  $Id: lio_listio.c,v 1.2 2009/01/02 10:04:23 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,10 +22,10 @@
 #include <rtems/seterr.h>
 
 int lio_listio(
-  int                    mode,
-  struct aiocb  * const  list[],
-  int                    nent,
-  struct sigevent       *sig
+  int                    mode __attribute__((unused)),
+  struct aiocb  * const  list[] __attribute__((unused)),
+  int                    nent __attribute__((unused)),
+  struct sigevent       *sig __attribute__((unused))
 )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );

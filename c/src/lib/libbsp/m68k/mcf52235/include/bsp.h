@@ -1,7 +1,7 @@
 /*
  *  mcf52235 BSP header file
  */
- 
+
 #ifndef _BSP_H
 #define _BSP_H
 
@@ -17,12 +17,14 @@ extern "C" {
 #include <rtems/iosupp.h>
 #include <rtems/bspIo.h>
 
+#define BSP_SMALL_MEMORY 1
+
 /***************************************************************************/
 /**  Hardware data structure headers                                      **/
 #include <mcf5223x/mcf5223x.h>
-    
+
 /* Declare base address of peripherals area */
-#define __IPSBAR ((vuint8 *) 0x40000000)    
+#define __IPSBAR ((vuint8 *) 0x40000000)
 
 /***************************************************************************/
 /**  Network driver configuration                                         **/
@@ -37,26 +39,9 @@ extern "C" {
 
 /* constants */
 
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
- 
-/*
- * NOTE: Use the standard Console driver entry
- */
- 
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-
 /* functions */
 
 uint32_t bsp_get_CPU_clock_speed(void);
-
-void bsp_cleanup(void);
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,

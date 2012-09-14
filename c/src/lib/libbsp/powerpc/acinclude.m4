@@ -2,6 +2,8 @@
 AC_DEFUN([RTEMS_CHECK_BSPDIR],
 [
   case "$1" in
+  beatnik )
+    AC_CONFIG_SUBDIRS([beatnik]);;
   ep1a )
     AC_CONFIG_SUBDIRS([ep1a]);;
   gen5200 )
@@ -24,6 +26,8 @@ AC_DEFUN([RTEMS_CHECK_BSPDIR],
     AC_CONFIG_SUBDIRS([mvme5500]);;
   psim )
     AC_CONFIG_SUBDIRS([psim]);;
+  qemuppc )
+    AC_CONFIG_SUBDIRS([qemuppc]);;
   score603e )
     AC_CONFIG_SUBDIRS([score603e]);;
   ss555 )

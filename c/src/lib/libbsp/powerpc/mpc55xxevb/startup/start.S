@@ -23,19 +23,21 @@
  *
  * @ingroup mpc55xx
  */
-   
+
 #include <libcpu/powerpc-utility.h>
 #include <mpc55xx/reg-defs.h>
-
-.section ".entry", "ax"  
+#include <bspopts.h>
+	
+.section ".entry", "ax"
 PUBLIC_VAR (start)
-start:
+.globl  fmpll_syncr_vals
+bam_rchw:
 /*
  * BAM
  */
 
 	/* BAM: RCHW */
-	.int 0x5a0000
+	.int 0x005a0000
 
 	/* BAM: Address of start instruction */
 	.int 0x8
@@ -43,7 +45,7 @@ start:
 /*
  * Enable time base
  */
-
+start:	
 	li r0, 0
 	mtspr TBWU, r0
 	mtspr TBWL, r0
@@ -55,6 +57,7 @@ start:
  * System clock
  */
 
+	LWI r3,fmpll_syncr_vals
 	bl SYM (mpc55xx_fmpll_reset_config)
 
 /*
@@ -80,8 +83,10 @@ start:
 	/* Config internal flash */
 	bl SYM (mpc55xx_flash_config)
 
+#if DATA_CACHE_ENABLE || INSTRUCTION_CACHE_ENABLE
 	/* FIXME: Config cache */
 	bl config_cache
+#endif /* DATA_CACHE_ENABLE || INSTRUCTION_CACHE_ENABLE */
 
 /*
  * TODO, FIXME: Enable cache in the MMU for the SRAM
@@ -117,7 +122,7 @@ start:
 	tlbwe
 
 /*
- * Zero RAM
+ * Zero RAM (needed to get proper ECC)
  */
 
 	/* Addresses */
@@ -125,11 +130,11 @@ start:
 	LA r4, bsp_ram_end
 
 	/* Assert: Proper alignment of destination start */
-	andi. r6, r3, 0x37
+	andi. r6, r3, 0x3f
 	bne twiddle
 
 	/* Assert: Proper alignment of destination end */
-	andi. r6, r4, 0x37
+	andi. r6, r4, 0x3f
 	bne twiddle
 
 	/* Data size = destination end - destination start */
@@ -179,14 +184,6 @@ start:
 /*
  * Prepare high level initialization
  */
-	LA r3, bsp_ram_start
-	LA r4, ppc_exc_vector_base
-	stw r3, 0(r4)
-
-	/* Set global BSP clock speed variable */
-	bl SYM (mpc55xx_get_system_clock)
-	LA r4, bsp_clock_speed
-	stw r3, 0(r4)
 
 	/* Create NULL */
 	li r0, 0
@@ -207,11 +204,9 @@ start:
  * Start RTEMS
  */
 
-	/* Clear argc, argv and envp */
+	/* Clear command line */
 	xor r3, r3, r3
-	xor r4, r4, r4
-	xor r5, r5, r5
-	
+
 	/* Start RTEMS */
 	bl SYM (boot_card)
 
@@ -257,7 +252,7 @@ no_chache_invalidation_abort:
 
 	/* Wait? */
 	bne check_cache_invalidation
- 
+
 	/* Enable cache */
 	LWI r6, L1CSR0_SETTINGS
 	mfspr r5, L1CSR0
@@ -267,7 +262,7 @@ no_chache_invalidation_abort:
 	mtspr L1CSR0, r5
 
 	/* Return */
-	blr   
+	blr
 
-twiddle:				
+twiddle:
 	b	twiddle

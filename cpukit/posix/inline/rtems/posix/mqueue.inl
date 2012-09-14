@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueue.inl,v 1.16 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: mqueue.inl,v 1.17 2009/01/05 20:26:01 joel Exp $
  */
  
 #ifndef _RTEMS_POSIX_MQUEUE_H
@@ -105,12 +105,15 @@ RTEMS_INLINE_ROUTINE POSIX_Message_queue_Control *_POSIX_Message_queue_Get (
  */
  
 RTEMS_INLINE_ROUTINE POSIX_Message_queue_Control_fd *_POSIX_Message_queue_Get_fd (
-  Objects_Id         id,
+  mqd_t              id,
   Objects_Locations *location
 )
 {
-  return (POSIX_Message_queue_Control_fd *)
-    _Objects_Get( &_POSIX_Message_queue_Information_fds, id, location );
+  return (POSIX_Message_queue_Control_fd *) _Objects_Get(
+    &_POSIX_Message_queue_Information_fds,
+    (Objects_Id)id,
+    location
+  );
 }
  
 /*PAGE

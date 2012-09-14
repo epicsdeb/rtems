@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: dpmemcreate.c,v 1.9 2005/01/18 09:03:43 ralf Exp $
+ *  $Id: dpmemcreate.c,v 1.11 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -48,12 +48,12 @@ rtems_status_code rtems_port_create(
   void         *internal_start,
   void         *external_start,
   uint32_t      length,
-  Objects_Id   *id
+  rtems_id     *id
 )
 {
   register Dual_ported_memory_Control *the_port;
 
-  if ( !rtems_is_name_valid( name) )
+  if ( !rtems_is_name_valid( name ) )
     return RTEMS_INVALID_NAME;
 
   if ( !id )

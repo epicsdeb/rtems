@@ -1,28 +1,44 @@
 /*
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.3 2008/01/23 15:35:41 joel Exp $
+ *  $Id: init.c,v 1.10 2009/11/30 03:33:23 ralf Exp $
  */
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#if HAVE_SYS_MMAN_H
+/* POSIX mandates mprotect in sys/mman.h, but newlib doesn't have this */
+#include <sys/mman.h>
+#endif
+#include <pthread.h>
 
 #define CONFIGURE_INIT
 #include "system.h"
 #include "tmacros.h"
 
 #include <aio.h>
-#include <sys/types.h>
 #include <time.h>
 #include <devctl.h>
 #include <unistd.h>
 #include <sched.h>
 
+#if !HAVE_DECL_MPROTECT
+extern int mprotect(const void *addr, size_t len, int prot);
+#endif
+#if !HAVE_DECL_PTHREAD_ATFORK
+extern int pthread_atfork(void (*prepare)(void), void (*parent)(void), void (*child)(void));
+#endif
+
+void check_enosys(int status);
+
 void check_enosys(int status)
 {
-  if ( (status == -1) && (errno == ENOSYS) ) 
+  if ( (status == -1) && (errno == ENOSYS) )
     return;
   puts( "ERROR -- did not return ENOSYS as expected" );
   rtems_test_exit(0);
@@ -80,47 +96,20 @@ void *POSIX_Init(
   sc = clock_setenable_attr( 0, 0 );
   check_enosys( sc );
 
-  puts( "clock_gettime - CLOCK_THREAD_CPUTIME -- ENOSYS" );
-  #if defined(_POSIX_THREAD_CPUTIME)
-    {
-      struct timespec tp;
-      sc = clock_gettime( CLOCK_THREAD_CPUTIME, &tp );
-      check_enosys( sc );
-    }
-  #endif
-
-  puts( "clock_settime - CLOCK_PROCESS_CPUTIME -- ENOSYS" );
-  #if defined(_POSIX_CPUTIME)
-    {
-      struct timespec tp;
-      sc = clock_settime( CLOCK_PROCESS_CPUTIME, &tp );
-      check_enosys( sc );
-    }
-  #endif
-
-  puts( "clock_settime - CLOCK_THREAD_CPUTIME -- ENOSYS" );
-  #if defined(_POSIX_THREAD_CPUTIME)
-    {
-      struct timespec tp;
-      sc = clock_settime( CLOCK_THREAD_CPUTIME, &tp );
-      check_enosys( sc );
-    }
-  #endif
-
   puts( "devctl -- ENOSYS" );
   sc = devctl( 0, NULL, 0, NULL );
   check_enosys( sc );
 
   puts( "execl -- ENOSYS" );
-  sc = execl( NULL, NULL );
+  sc = execl( NULL, NULL, (char*)0 );
   check_enosys( sc );
 
   puts( "execle -- ENOSYS" );
-  sc = execle( NULL, NULL );
+  sc = execle( NULL, NULL, (char*)0, NULL );
   check_enosys( sc );
 
   puts( "execlp -- ENOSYS" );
-  sc = execlp( NULL, NULL );
+  sc = execlp( NULL, NULL, (char*)0 );
   check_enosys( sc );
 
   puts( "execv -- ENOSYS" );
@@ -174,6 +163,13 @@ void *POSIX_Init(
   puts( "mprotect -- stub implementation - OK" );
   sc = mprotect( NULL, 0, 0 );
   posix_service_failed( sc, "mprotect" );
+
+  puts( "vfork -- stub implementation - OK" );
+  sc = vfork();
+  if ( sc != -1 ) {
+    puts( "vfork did not return -1" );
+    rtems_test_exit( 0 );
+  }
 
   puts( "*** END OF POSIX TEST ENOSYS ***" );
   rtems_test_exit( 0 );

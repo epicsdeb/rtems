@@ -8,14 +8,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.13 2008/09/08 15:25:08 joel Exp $
+ *  $Id: task1.c,v 1.15 2009/10/30 13:18:33 ralf Exp $
  */
 
 #include "system.h"
@@ -34,7 +34,7 @@ rtems_task Test_task(
   size_t            size;
   char              receive_buffer[16];
 
-  status = rtems_task_wake_after( TICKS_PER_SECOND );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
   directive_failed( status, "rtems_task_wake_after" );
 
   puts( "Getting QID of message queue" );
@@ -64,7 +64,7 @@ rtems_task Test_task(
     puts( "Flushing remote empty queue" );
     status = rtems_message_queue_flush( Queue_id[ 1 ], &count );
     directive_failed( status, "rtems_message_queue_flush" );
-    printf( "%d messages were flushed on the remote queue\n", count );
+    printf( "%" PRIu32 " messages were flushed on the remote queue\n", count );
 
     puts( "Send messages to be flushed from remote queue" );
     status = rtems_message_queue_send( Queue_id[ 1 ], buffer1, 16 );
@@ -73,7 +73,7 @@ rtems_task Test_task(
     puts( "Flushing remote queue" );
     status = rtems_message_queue_flush( Queue_id[ 1 ], &count );
     directive_failed( status, "rtems_message_queue_flush" );
-    printf( "%d messages were flushed on the remote queue\n", count );
+    printf( "%" PRIu32 " messages were flushed on the remote queue\n", count );
 
     puts( "Waiting for message queue to be deleted" );
     status = rtems_message_queue_receive(
@@ -95,7 +95,7 @@ rtems_task Test_task(
     Send_messages();
 
     puts( "Delaying for 5 seconds" );
-    status = rtems_task_wake_after( 5*TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 5*rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
 
     puts( "Deleting Message queue" );

@@ -5,7 +5,7 @@
  *  Computer Programmer's Reference Guide (MVME187PG/D2) with the April
  *  1993 supplements/addenda (MVME187PG/D2A1).
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
@@ -15,7 +15,7 @@
  *  Modifications of respective RTEMS file:
  *  Copyright (c) 1998, National Research Council of Canada
  *
- *  $Id: bsp.h,v 1.21 2007/12/11 15:49:30 joel Exp $
+ *  $Id: bsp.h,v 1.24 2009/08/21 17:59:05 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -32,14 +32,6 @@ extern "C" {
 #include <rtems/console.h>
 #include <rtems/iosupp.h>
 #include <rtems/bspIo.h>
-
-/*
- *  confdefs.h overrides for this BSP:
- *   - termios serial ports (defaults to 1)
- *   - Interrupt stack space is not minimum if defined.
- */
-
-#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 4
 
 #include <mvme16x_hw.h>
 
@@ -304,8 +296,6 @@ typedef volatile struct cd2401_regs_ {
 
 /* BSP-wide functions */
 
-void bsp_cleanup( void );
-
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,
   rtems_vector_number vector,
@@ -319,20 +309,6 @@ m68k_isr_entry set_vector(
 #undef EXTERN
 #define EXTERN extern
 #endif
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-/* miscellaneous stuff assumed to exist */
 
 extern m68k_isr_entry M68Kvec[];   /* vector table address */
 

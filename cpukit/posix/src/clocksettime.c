@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: clocksettime.c,v 1.10 2008/02/01 00:44:15 joel Exp $
+ *  $Id: clocksettime.c,v 1.10.4.1 2011/05/19 15:32:44 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,6 +22,8 @@
 #include <rtems/score/tod.h>
 
 #include <rtems/seterr.h>
+
+#include "posixtime.h"
 
 /*PAGE
  *
@@ -45,11 +47,11 @@ int clock_settime(
     _Thread_Enable_dispatch();
   }
 #ifdef _POSIX_CPUTIME
-  else if ( clock_id == CLOCK_PROCESS_CPUTIME )
+  else if ( clock_id == CLOCK_PROCESS_CPUTIME_ID )
     rtems_set_errno_and_return_minus_one( ENOSYS );
 #endif
 #ifdef _POSIX_THREAD_CPUTIME
-  else if ( clock_id == CLOCK_THREAD_CPUTIME )
+  else if ( clock_id == CLOCK_THREAD_CPUTIME_ID )
     rtems_set_errno_and_return_minus_one( ENOSYS );
 #endif
   else

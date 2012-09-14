@@ -29,14 +29,14 @@
  *      i-cubed limited makes no representations about the suitability
  *      of this software for any purpose.
  *
- *  $Id: dlentry.S,v 1.1 2008/07/14 08:45:02 thomas Exp $
+ *  $Id: dlentry.S,v 1.4 2010/03/27 20:41:04 thomas Exp $
  *
  *  derived from "helas403/dlentry.S":
  *
  *  Further changes to derive for the PPC405CR/GP/GPr/EX/EXr
  *  by Michael Hamel ADInstruments Ltd 2008
  *
- * 
+ *
  *  Id: dlentry.S,v 1.2 2000/08/02 16:30:57 joel Exp
  */
 
@@ -77,7 +77,7 @@
 			PUBLIC_VAR (start)
 			PUBLIC_VAR (download_entry)
 			PUBLIC_VAR (__rtems_entry_point)
-		
+
 SYM(start):
 SYM(download_entry):
 SYM(__rtems_entry_point):
@@ -90,7 +90,7 @@ SYM(__rtems_entry_point):
 /*---------------------------------------------------------------------------
  * Parameters from linker
  *--------------------------------------------------------------------------*/
- 
+
 base_addr:
 toc_pointer:
 		.long	s.got
@@ -120,10 +120,10 @@ text_length:
 
 			/* Initialise procesor registers generally */
 			bl		init405
-			
+
 			/* Clear .bss and .sbss */
 			bl		bssclr
-			
+
 			/*-------------------------------------------------------------------
 			 * C_setup.
 			 *------------------------------------------------------------------*/
@@ -136,12 +136,9 @@ text_length:
 			stw		r3, 12(r1)
 
 			bl		__eabi				/* Initialise EABI: sets up r2 & r13 */
-			
-			lis		r5,environ@ha
-			la		r5,environ@l(r5)	/* environp */
-			li		r4, 0			/* argv */
-			li		r3, 0			/* argc */
-			
+
+			li		r3, 0			/* command line */
+
 			b       SYM (boot_card) 	 /* call the first C routine */
 
 /*---------------------------------------------------------------------------
@@ -173,11 +170,11 @@ clear_sbss:	stwu	r0,4(r2)
  * Generic 405 register setup
  *--------------------------------------------------------------------------*/
 init405:
-			li		r0, 0	
+			li		r0, 0
 			mtmsr	r0
 			mticcr	r0
 			mtdccr	r0
-						
+
 			li		r3,0x7FFC	# 405EX-specific
 			mtsgr	r3			# Clear guarded mode on all storage except PCIe region
 
@@ -199,13 +196,13 @@ dcloop:		dccci	0,r3		# invalidate line
 			mtdcwr	r0			# Select write-back caching
 			lis		r3,0xC000	# Enable 0000 0000 to 0FFF FFFF
 			# mtdccr	r3			# Enable data cache
-			
+
 			mtevpr	r0
 			mtesr	r0
 			mtxer	r0
-			
+
 			lwarx   r3,r0,r0		# get some data/set resv bit
-			stwcx.	r3,r0,r0		# store out and clear resv bit	
+			stwcx.	r3,r0,r0		# store out and clear resv bit
 
 			lis		r3,0xDEAD
 			ori		r3,r3,0xBEEF	# Make distintive uninitialised value

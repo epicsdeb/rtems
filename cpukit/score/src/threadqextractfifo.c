@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadqextractfifo.c,v 1.8 2008/01/22 18:28:53 joel Exp $
+ *  $Id: threadqextractfifo.c,v 1.9 2008/12/31 03:36:04 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,7 +43,7 @@
  */
 
 void _Thread_queue_Extract_fifo(
-  Thread_queue_Control *the_thread_queue,
+  Thread_queue_Control *the_thread_queue __attribute__((unused)),
   Thread_Control       *the_thread
 )
 {

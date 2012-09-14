@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regiongetfreeinfo.c,v 1.5 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regiongetfreeinfo.c,v 1.9 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -45,12 +45,12 @@
  */
 
 rtems_status_code rtems_region_get_free_information(
-  Objects_Id              id,
+  rtems_id                id,
   Heap_Information_block *the_info
 )
 {
   Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
+  rtems_status_code        return_status;
   register Region_Control *the_region;
 
   if ( !the_info )
@@ -78,6 +78,7 @@ rtems_status_code rtems_region_get_free_information(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

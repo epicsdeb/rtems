@@ -11,14 +11,14 @@
  *         This code ignores the O_RDONLY/O_WRONLY/O_RDWR flag at open
  *         time.
  *
- *  COPYRIGHT (c) 1989-2007.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: mqueuecreatesupp.c,v 1.18 2008/01/23 22:57:43 joel Exp $
+ *  $Id: mqueuecreatesupp.c,v 1.22 2009/08/06 19:26:56 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -67,8 +67,7 @@ int _POSIX_Message_queue_Create_support(
   size_t                         n;
 
   n = strnlen( name_arg, NAME_MAX );
-  if ( n > NAME_MAX )
-    return ENAMETOOLONG;
+  /* length of name has already been validated */
 
   _Thread_Disable_dispatch();
 
@@ -78,7 +77,6 @@ int _POSIX_Message_queue_Create_support(
    *  compatibility.  See README.mqueue for an example program we
    *  think will print out the defaults.  Report anything you find with it.
    */
-
   if ( attr_ptr == NULL ) {
     attr.mq_maxmsg  = 10;
     attr.mq_msgsize = 16;
@@ -103,33 +101,33 @@ int _POSIX_Message_queue_Create_support(
   }
 
   the_mq->process_shared  = pshared;
-  the_mq->named = TRUE;
+  the_mq->named = true;
   the_mq->open_count = 1;
-  the_mq->linked = TRUE;
+  the_mq->linked = true;
 
   /*
    * Make a copy of the user's string for name just in case it was
    * dynamically constructed.
    */
-
-  name = _Workspace_Allocate(n);
+  name = _Workspace_Allocate(n+1);
   if (!name) {
     _POSIX_Message_queue_Free( the_mq );
     _Thread_Enable_dispatch();
     rtems_set_errno_and_return_minus_one( ENOMEM );
   }
-  strcpy( name, name_arg );
+  strncpy( name, name_arg, n+1 );
 
-  /* XXX
-   *
-   *  Note that thread blocking discipline should be based on the
+  /*
+   *  NOTE: That thread blocking discipline should be based on the
    *  current scheduling policy.
+   *
+   *  Joel: Cite POSIX or OpenGroup on above statement so we can determine
+   *        if it is a real requirement.
    */
-
   the_mq_attr = &the_mq->Message_queue.Attributes;
   the_mq_attr->discipline = CORE_MESSAGE_QUEUE_DISCIPLINES_FIFO;
 
-  if ( ! _CORE_message_queue_Initialize(
+  if ( !_CORE_message_queue_Initialize(
            &the_mq->Message_queue,
            the_mq_attr,
            attr.mq_maxmsg,

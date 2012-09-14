@@ -16,7 +16,7 @@
 --  the file LICENSE in this distribution or at
 --  http://www.rtems.com/license/LICENSE.
 --
---  $Id: timer_driver.ads,v 1.3.6.1 2008/09/29 20:44:37 joel Exp $
+--  $Id: timer_driver.ads,v 1.5 2008/09/29 20:44:57 joel Exp $
 --
 
 with RTEMS;

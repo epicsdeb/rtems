@@ -1,7 +1,7 @@
 /*
  *  Linker script for CSB350 AU1100 based board
  *
- *  $Id: linkcmds,v 1.4 2008/03/03 23:06:53 joel Exp $
+ *  $Id: linkcmds,v 1.9 2010/04/29 17:29:27 joel Exp $
  */
 
 /*    . = 0x80020000; */
@@ -10,15 +10,19 @@
  * Declare some sizes.
  */
 
-_StackSize = DEFINED(_StackSize) ? _StackSize : 0x4000;
-
 _sdram_base = DEFINED(_sdram_base) ? _sdram_base : 0x80400000;
 _sdram_size = DEFINED(_sdram_size) ? _sdram_size : 12M;
+
+/* standard items provided by RTEMS linkcmds files */
+RamBase = _sdram_base;
+RamSize = _sdram_size;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
+_StackSize = DEFINED(_StackSize) ? _StackSize : 0x4000;
 
 
 MEMORY
 {
-   ram      : ORIGIN = 0x80400000, LENGTH = 4M
+   ram      : ORIGIN = 0x80400000, LENGTH = 12M
 }
 
 SECTIONS
@@ -33,6 +37,7 @@ SECTIONS
       *(.gnu.linkonce.t*)
       *(.mips16.fn.*)
       *(.mips16.call.*)
+      *(.reginfo*)
       PROVIDE (__runtime_reloc_start = .);
       *(.rel.sdata)
       *(.rel.dyn)
@@ -159,7 +164,6 @@ SECTIONS
   {
     _bss_start = . ;
     *(.bss .bss.* .gnu.linkonce.b.*)
-    *(.reginfo)
     *(COMMON)
     . = ALIGN (64);
     _stack_limit = .;
@@ -170,7 +174,7 @@ SECTIONS
     end = .;
     _end = .;
     . = ALIGN (1024);
-    _bss_free_start = .;
+    WorkAreaBase = .;
     
   } >ram   
 

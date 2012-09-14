@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio_init.c,v 1.1 2007/03/26 22:31:31 joel Exp $
+ *  $Id: libio_init.c,v 1.5 2010/05/14 04:04:25 ccj Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -37,7 +37,6 @@
  *  File descriptor Table Information
  */
 
-extern uint32_t    rtems_libio_number_iops;
 rtems_id           rtems_libio_semaphore;
 rtems_libio_t     *rtems_libio_iops;
 rtems_libio_t     *rtems_libio_iop_freelist;
@@ -51,7 +50,7 @@ rtems_libio_t     *rtems_libio_iop_freelist;
 void rtems_libio_init( void )
 {
     rtems_status_code rc;
-    int i;
+    uint32_t i;
     rtems_libio_t *iop;
 
     if (rtems_libio_number_iops > 0)
@@ -62,9 +61,9 @@ void rtems_libio_init( void )
             rtems_fatal_error_occurred(RTEMS_NO_MEMORY);
 
         iop = rtems_libio_iop_freelist = rtems_libio_iops;
-	for (i = 0 ; i < (rtems_libio_number_iops - 1) ; i++, iop++)
-		iop->data1 = iop + 1;
-	iop->data1 = NULL;
+        for (i = 0 ; (i + 1) < rtems_libio_number_iops ; i++, iop++)
+          iop->data1 = iop + 1;
+        iop->data1 = NULL;
     }
 
   /*
@@ -86,5 +85,6 @@ void rtems_libio_init( void )
    *  Initialize the base file system infrastructure.
    */
 
-  rtems_filesystem_initialize();
+  if (rtems_fs_init_helper)
+     (* rtems_fs_init_helper)();
 }

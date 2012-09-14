@@ -6,10 +6,10 @@
  *  The license and distribution terms for this file may be
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
- * 
+ *
  *  Modified for mvme3100 by T. Straumann, 2007.
  *
- *  $Id: start.S,v 1.2 2008/03/06 01:13:43 strauman Exp $
+ *  $Id: start.S,v 1.6 2009/11/30 04:34:37 ralf Exp $
  *
  */
 
@@ -45,7 +45,7 @@ __rtems_entry_point:
 	 * mapping a possible larger area as memory (not-guarded, caching-enabled)
 	 * than actual physical memory is available.
 	 * In case of speculative loads this may cause 'memory-select' errors
-	 * which seem to raise 'core_fault_in' (found no description in 
+	 * which seem to raise 'core_fault_in' (found no description in
 	 * the manual but I experienced this problem).
 	 * Such errors (if HID1[RFXE] is clear) may *stall* execution
 	 * leading to mysterious 'hangs'.
@@ -73,21 +73,15 @@ __rtems_entry_point:
 	mr	r6,r28
 	mr	r7,r27
 	bl	save_boot_params
-	/*
-	 * stack = &__rtems_end + 4096
-	 */
-	addis	r9,r0, __rtems_end+(4096-PPC_MINIMUM_STACK_FRAME_SIZE)@ha
-	addi	r9,r9, __rtems_end+(4096-PPC_MINIMUM_STACK_FRAME_SIZE)@l
+	addis	r9,r0, (__stack-PPC_MINIMUM_STACK_FRAME_SIZE)@ha
+	addi	r9,r9, (__stack-PPC_MINIMUM_STACK_FRAME_SIZE)@l
 	/* align down to 16-bytes */
 	li  r5, (CPU_STACK_ALIGNMENT - 1)
 	andc r1, r9, r5
 	/*
-	 * We are now in a environment that is totally independent from 
+	 * We are now in a environment that is totally independent from
 	 * bootloader setup.
 	 */
-	lis	r5,environ@ha
-	la	r5,environ@l(r5)	/* environp */
-	li	r4, 0			/* argv */
-	li	r3, 0			/* argc */
+    /* pass result of 'save_boot_params' to 'boot_card' in R3 */
 	bl	boot_card
 	/* point of no return: reset board here ? */

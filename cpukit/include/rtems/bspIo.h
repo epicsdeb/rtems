@@ -6,10 +6,10 @@
  *  COPYRIGHT (c) 1998 valette@crf.canon.fr
  *
  *  The license and distribution terms for this file may be
- *  found in found in the file LICENSE in this distribution or at
+ *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspIo.h,v 1.7 2007/09/06 22:51:25 joel Exp $
+ *  $Id: bspIo.h,v 1.10.2.1 2011/05/25 14:17:49 ralf Exp $
  */
 #ifndef _RTEMS_BSPIO_H
 #define _RTEMS_BSPIO_H
@@ -25,7 +25,7 @@ extern "C" {
  * functionnality described after the next command.
  */
 typedef void 	(*BSP_output_char_function_type) 	(char c);
-typedef char 	(*BSP_polling_getchar_function_type) 	(void);
+typedef int 	(*BSP_polling_getchar_function_type) 	(void);
 
 extern 	BSP_output_char_function_type 		BSP_output_char;
 extern 	BSP_polling_getchar_function_type 	BSP_poll_char;
@@ -38,8 +38,20 @@ extern 	BSP_polling_getchar_function_type 	BSP_poll_char;
  */
 #include <stdarg.h>
 
+/**
+ *  This method polls for a key in the simplest possible fashion
+ *  from whatever the debug console device is.
+ *
+ *  @return If a character is available, it is returned.  Otherwise
+ *          this method returns -1.
+ *
+ *  @note This method uses the BSP_poll_char pointer to a BSP
+ *        provided method.
+ */
+extern int getchark(void);
 extern void vprintk(const char *fmt, va_list ap);
 extern void printk(const char *fmt, ...);
+extern void putk(const char *s);
 
 /*
  *  This routine is passed into RTEMS reporting functions
@@ -50,7 +62,7 @@ extern void printk(const char *fmt, ...);
  *  as they see fit.
  */
 extern int printk_plugin(void *context, const char *fmt, ...);
- 
+
 /*
  *  Type definition for function which can be plugged in to
  *  certain reporting routines to redirect the output

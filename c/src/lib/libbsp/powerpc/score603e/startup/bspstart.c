@@ -5,14 +5,14 @@
  *  The generic CPU dependent initialization has been performed
  *  before any of these are invoked.
  *
- *  COPYRIGHT (c) 1989-2009.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspstart.c,v 1.22.2.3 2009/10/16 16:22:26 joel Exp $
+ *  $Id: bspstart.c,v 1.36 2010/04/28 20:25:23 joel Exp $
  */
 
 #include <string.h>
@@ -22,6 +22,7 @@
 #include <rtems/libcsupport.h>
 #include <rtems/bspIo.h>
 #include <libcpu/cpuIdent.h>
+#include <bsp/irq.h>
 
 #define DEBUG 0
 
@@ -33,12 +34,12 @@ unsigned int BSP_heap_start;
 /*
  * PCI Bus Frequency
  */
-unsigned int BSP_bus_frequency;  
+unsigned int BSP_bus_frequency;
 
 /*
  * processor clock frequency
  */
-unsigned int BSP_processor_frequency; 
+unsigned int BSP_processor_frequency;
 
 /*
  * Time base divisior (how many tick for 1 second).
@@ -48,17 +49,17 @@ unsigned int BSP_processor_frequency;
 unsigned int BSP_time_base_divisor = 3960;
 
 /*
- * system init stack
- */
-#define INIT_STACK_SIZE 0x1000
-
-extern unsigned long __rtems_end[];
-
-
-/*
  *  Driver configuration parameters
  */
 uint32_t   bsp_clicks_per_usec;
+
+/*
+ * Memory on this board.
+ */
+extern char RamSize[];
+uint32_t BSP_mem_size;
+
+extern unsigned long __rtems_end[];
 
 void BSP_panic(char *s)
 {
@@ -76,41 +77,7 @@ void _BSP_Fatal_error(unsigned int v)
  *  Use the shared implementations of the following routines
  */
 
-void bsp_postdriver_hook(void);
 void bsp_libc_init( void *, uint32_t, int );
-
-/*PAGE
- *
- *  bsp_pretasking_hook
- *
- *  BSP pretasking hook.  Called just before drivers are initialized.
- *  Used to setup libc and install any BSP extensions.
- */
-
-void bsp_pretasking_hook(void)
-{
-  extern int end;
-  uint32_t         heap_start;
-  uint32_t         heap_size;
-
-  heap_start = (BSP_heap_start + CPU_ALIGNMENT - 1) & ~(CPU_ALIGNMENT-1);
-  heap_size = (uint32_t) &RAM_END;
-  heap_size = heap_size - heap_start - Configuration.work_space_size;
-  heap_size &= 0xfffffff0;  /* keep it as a multiple of 16 bytes */
-  
-
-  #if DEBUG
-    printk("bsp_pretasking_hook: Set Heap start 0x%x size 0x%x\n", heap_start, heap_size);
-  #endif
-
-  #if DEBUG
-    printk("bsp_pretasking_hook: bsp_libc_init\n");
-  #endif
-  bsp_libc_init((void *) heap_start, heap_size, 0);
-  #if DEBUG
-    printk("bsp_pretasking_hook: End of routine\n");
-  #endif
-}
 
 /*PAGE
  *
@@ -119,8 +86,8 @@ void bsp_pretasking_hook(void)
  *  Before drivers are setup initialize interupt vectors.
  */
 
-void init_RTC();
-void initialize_PMC();
+void init_RTC(void);
+void initialize_PMC(void);
 
 void bsp_predriver_hook(void)
 {
@@ -150,7 +117,7 @@ void bsp_predriver_hook(void)
  *  initialize_PMC
  */
 
-void initialize_PMC() {
+void initialize_PMC(void) {
   volatile uint32_t     *PMC_addr;
   uint32_t               data;
 
@@ -184,27 +151,6 @@ void initialize_PMC() {
 
 /*PAGE
  *
- *  bsp_postdriver_hook
- *
- *  Standard post driver hook plus some BSP specific stuff.
- */
-
-void bsp_postdriver_hook(void)
-{
-  extern void open_dev_console(void);
-  #if DEBUG
-    printk("bsp_postdriver_hook: open_dev_console\n");
-  #endif
-  open_dev_console();
-  #if DEBUG
-    printk("bsp_postdriver_hook: Finished procedure\n");
-  #endif
-}
-
-void bsp_set_trap_vectors( void );
-
-/*PAGE
- *
  *  bsp_start
  *
  *  This routine does the bulk of the system initialization.
@@ -212,13 +158,12 @@ void bsp_set_trap_vectors( void );
 
 void bsp_start( void )
 {
-  unsigned char *work_space_start;
-  unsigned int  msr_value = 0x0000;
-  uint32_t      intrStackStart;
-  uint32_t      intrStackSize;
-  volatile uint32_t         *ptr;
-  ppc_cpu_id_t myCpu;
-  ppc_cpu_revision_t myCpuRevision;
+  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  unsigned int         msr_value = 0x0000;
+  uintptr_t            intrStackStart;
+  uintptr_t            intrStackSize;
+  ppc_cpu_id_t         myCpu;
+  ppc_cpu_revision_t   myCpuRevision;
 
   rtems_bsp_delay( 1000 );
 
@@ -229,18 +174,12 @@ void bsp_start( void )
     printk("bsp_start: Zero out lots of memory\n");
   #endif
 
-  memset(
-    &end,
-    0,
-    (unsigned char *)&RAM_END - (unsigned char *) &end
-  );
-
   BSP_processor_frequency = 266000000;
   BSP_bus_frequency       =  66000000;
 
   /*
    * Get CPU identification dynamically. Note that the get_ppc_cpu_type()
-   * function store the result in global variables so that it can be used 
+   * function store the result in global variables so that it can be used
    * later...
    */
   myCpu         = get_ppc_cpu_type();
@@ -251,42 +190,30 @@ void bsp_start( void )
   /*
    * Initialize the interrupt related settings.
    */
-  intrStackStart = (uint32_t) __rtems_end + INIT_STACK_SIZE;
+  intrStackStart = (uintptr_t) __rtems_end;
   intrStackSize = rtems_configuration_get_interrupt_stack_size();
-  BSP_heap_start = intrStackStart + intrStackSize;
   printk("Interrupt Stack Start: 0x%x Size: 0x%x  Heap Start: 0x%x\n",
     intrStackStart, intrStackSize, BSP_heap_start
   );
 
+  BSP_mem_size = (uint32_t) RamSize;
+  printk("BSP_mem_size: %p\n", RamSize );
+
   /*
    * Initialize default raw exception handlers.
    */
-  ppc_exc_initialize(
+  sc = ppc_exc_initialize(
     PPC_INTERRUPT_DISABLE_MASK_DEFAULT,
     intrStackStart,
     intrStackSize
   );
+  if (sc != RTEMS_SUCCESSFUL) {
+    BSP_panic("cannot initialize exceptions");
+  }
 
   msr_value = 0x2030;
   _CPU_MSR_SET( msr_value );
-
-  _CPU_MSR_SET( msr_value );
-
-  /*
-   *  Need to "allocate" the memory for the RTEMS Workspace and
-   *  tell the RTEMS configuration where it is.  This memory is
-   *  not malloc'ed.  It is just "pulled from the air".
-   */
-  work_space_start =
-    (unsigned char *)&RAM_END - rtems_configuration_get_work_space_size();
-  printk("Work Space Start: 0x%x\n", work_space_start );
-
-  if ( work_space_start <= (unsigned char *)&end ) {
-    printk( "bspstart: Not enough RAM!!!\n" );
-    bsp_cleanup();
-  }
-
-  Configuration.work_space_start = work_space_start;
+  asm volatile("sync; isync");
 
   /*
    *  initialize the device driver parameters
@@ -294,7 +221,7 @@ void bsp_start( void )
   #if DEBUG
     printk("bsp_start: set clicks poer usec\n");
   #endif
-  bsp_clicks_per_usec = 66 / 4;  /* XXX get from linkcmds */
+  bsp_clicks_per_usec = 66 / 4;
 
   #if ( PPC_USE_DATA_CACHE )
     #if DEBUG
@@ -310,11 +237,11 @@ void bsp_start( void )
   /*
    * Initalize RTEMS IRQ system
    */
-  #if DEBUG  
+  #if DEBUG
     printk("bspstart: Call BSP_rtems_irq_mng_init\n");
   #endif
   BSP_rtems_irq_mng_init(0);
-  
+
   #if DEBUG
     printk("bsp_start: end BSPSTART\n");
     ShowBATS();

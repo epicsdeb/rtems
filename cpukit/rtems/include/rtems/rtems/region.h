@@ -14,20 +14,18 @@
  *     - return a segment to a region
  */
 
-/*  COPYRIGHT (c) 1989-2008.
+/*  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: region.h,v 1.24 2008/06/06 18:03:45 joel Exp $
+ *  $Id: region.h,v 1.35 2009/12/15 18:26:41 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_REGION_H
 #define _RTEMS_RTEMS_REGION_H
-
-#include <stddef.h>
 
 #include <rtems/score/object.h>
 #include <rtems/score/threadq.h>
@@ -40,14 +38,16 @@
 #include <rtems/rtems/types.h>
 
 /**
- *  @defgroup ClassicRegion Classic API Region
+ *  @defgroup ClassicRegion Regions
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */
 /**@{*/
 
 /**
- *  This constant is defined to extern most of the time when using 
+ *  This constant is defined to extern most of the time when using
  *  this header file.  However by defining it to nothing, the data
  *  declared in this header file can be instantiated.  This is done
  *  in a single per manager file.
@@ -66,53 +66,14 @@ extern "C" {
  */
 
 typedef struct {
-  /**
-   * This field is the object management portion of a Region instance.
-   */
   Objects_Control       Object;
-
-  /**
-   * This is the set of threads blocked waiting on memory.
-   */
-  Thread_queue_Control  Wait_queue;
-
-  /**
-   * This is the physical starting address of the Region area.
-   */
-  void                 *starting_address;
-
-  /**
-   * This is the physical length (in bytes) of the Region memory.
-   */
-  uint32_t              length;
-
-  /**
-   * This is the physical page size (in bytes) of each allocated segment.
-   */
-  uint32_t              page_size;
-
-  /**
-   * This is the maximum segment size (in bytes) that can ever be allocated
-   * from this Region.  It is calculated at creation time.
-   */
-  uint32_t              maximum_segment_size;
-
-  /**
-   *  This is the Classic API attribute provided to the create directive.
-   *  It is translated into behavioral attributes on the SuperCore Heap
-   *  instance.
-   */
+  Thread_queue_Control  Wait_queue;            /* waiting threads        */
+  void                 *starting_address;      /* physical start addr    */
+  uintptr_t             length;                /* physical length(bytes) */
+  uintptr_t             page_size;             /* in bytes               */
+  uintptr_t             maximum_segment_size;  /* in bytes               */
   rtems_attribute       attribute_set;
-
-  /**
-   * This is the number of blocks currently allocated from this Region.
-   */
-  uint32_t              number_of_used_blocks;
-
-  /**
-   * This is the Heap instance which implements the core functionality
-   * of a Region instance.
-   */
+  uint32_t              number_of_used_blocks; /* blocks allocated       */
   Heap_Control          Memory;
 }  Region_Control;
 
@@ -127,9 +88,7 @@ RTEMS_REGION_EXTERN Objects_Information _Region_Information;
  *
  *  This routine performs the initialization necessary for this manager.
  */
-void _Region_Manager_initialization(
-  uint32_t   maximum_regions
-);
+void _Region_Manager_initialization(void);
 
 /**
  *  @brief rtems_region_create
@@ -145,10 +104,10 @@ void _Region_Manager_initialization(
 rtems_status_code rtems_region_create(
   rtems_name          name,
   void               *starting_address,
-  uint32_t            length,
-  uint32_t            page_size,
-  rtems_attribute  attribute_set,
-  Objects_Id         *id
+  uintptr_t           length,
+  uintptr_t           page_size,
+  rtems_attribute     attribute_set,
+  rtems_id           *id
 );
 
 /**
@@ -160,9 +119,9 @@ rtems_status_code rtems_region_create(
  *  the memory starting at starting_address.
  */
 rtems_status_code rtems_region_extend(
-  Objects_Id          id,
+  rtems_id            id,
   void               *starting_address,
-  uint32_t            length
+  uintptr_t           length
 );
 
 /**
@@ -175,7 +134,7 @@ rtems_status_code rtems_region_extend(
  */
 rtems_status_code rtems_region_ident(
   rtems_name    name,
-  Objects_Id   *id
+  rtems_id     *id
 );
 
 /**
@@ -186,7 +145,7 @@ rtems_status_code rtems_region_ident(
  *  this region.
  */
 rtems_status_code rtems_region_get_information(
-  Objects_Id              id,
+  rtems_id                id,
   Heap_Information_block *the_info
 );
 
@@ -194,11 +153,11 @@ rtems_status_code rtems_region_get_information(
  *  @brief rtems_region_get_free_information
  *
  *  This routine implements the rtems_region_get_free_information directive.
- *  This directive returns information about the free blocks in the 
+ *  This directive returns information about the free blocks in the
  *  heap associated with this region.
  */
 rtems_status_code rtems_region_get_free_information(
-  Objects_Id              id,
+  rtems_id                id,
   Heap_Information_block *the_info
 );
 
@@ -209,7 +168,7 @@ rtems_status_code rtems_region_get_free_information(
  *  region indicated by ID is deleted.
  */
 rtems_status_code rtems_region_delete(
-  Objects_Id id
+  rtems_id   id
 );
 
 /**
@@ -224,11 +183,11 @@ rtems_status_code rtems_region_delete(
  *  immediately is based on the no_wait option in the option_set.
  */
 rtems_status_code rtems_region_get_segment(
-  Objects_Id         id,
-  uint32_t           size,
+  rtems_id           id,
+  uintptr_t          size,
   rtems_option       option_set,
   rtems_interval     timeout,
-  void              **segment
+  void             **segment
 );
 
 /**
@@ -238,9 +197,9 @@ rtems_status_code rtems_region_get_segment(
  *  returns the size in bytes of the specified user memory area.
  */
 rtems_status_code rtems_region_get_segment_size(
-  Objects_Id         id,
+  rtems_id           id,
   void              *segment,
-  size_t            *size
+  uintptr_t         *size
 );
 
 /**
@@ -255,7 +214,7 @@ rtems_status_code rtems_region_get_segment_size(
  *  satisfied.
  */
 rtems_status_code rtems_region_return_segment(
-  Objects_Id  id,
+  rtems_id    id,
   void       *segment
 );
 
@@ -280,10 +239,10 @@ rtems_status_code rtems_region_return_segment(
  *  segment.
  */
 rtems_status_code rtems_region_resize_segment(
-  Objects_Id  id,
+  rtems_id    id,
   void       *segment,
-  size_t      size,
-  size_t     *old_size
+  uintptr_t   size,
+  uintptr_t  *old_size
 );
 
 #ifndef __RTEMS_APPLICATION__
@@ -313,8 +272,8 @@ extern void _Region_Process_queue(Region_Control *the_region);
 
 #define _Region_Debug_Walk( _the_region, _source ) \
   do { \
-    if ( _Debug_Is_enabled( RTEMS_DEBUG_REGION ) ) \
-      _Heap_Walk( &(_the_region)->Memory, _source, FALSE ); \
+    if ( rtems_debug_is_enabled( RTEMS_DEBUG_REGION ) ) \
+      _Heap_Walk( &(_the_region)->Memory, _source, false ); \
   } while ( 0 )
 
 #else

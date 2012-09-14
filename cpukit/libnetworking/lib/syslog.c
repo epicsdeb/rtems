@@ -1,8 +1,12 @@
 /*
  * RTEMS version of syslog and associated routines
  *
- * $Id: syslog.c,v 1.4 2005/07/06 09:56:57 ralf Exp $
+ * $Id: syslog.c,v 1.6 2010/03/28 05:44:42 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems.h>
 #include <stdio.h>
@@ -57,7 +61,7 @@ vsyslog (int pri, const char *fmt, va_list ap)
 		pri &= LOG_PRIMASK|LOG_FACMASK;
 	}
 
-	if (!LOG_MASK(LOG_PRI(pri)) & LogMask)
+	if (!(LOG_MASK(LOG_PRI(pri)) & LogMask))
 		return;
 
 	if ((pri & LOG_FACMASK) == 0)

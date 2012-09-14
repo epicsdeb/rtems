@@ -7,14 +7,14 @@
  *  This include file contains the table of user defined configuration
  *  parameters specific for the ITRON API.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: config.h,v 1.5 2005/01/28 11:07:14 ralf Exp $
+ *  $Id: config.h,v 1.6 2008/12/17 22:12:23 joel Exp $
  */
 
 #ifndef _RTEMS_ITRON_CONFIG_H
@@ -57,6 +57,14 @@ typedef struct {
   int                                 number_of_initialization_tasks;
   itron_initialization_tasks_table   *User_initialization_tasks_table;
 } itron_api_configuration_table;
+
+/**
+ *  @brief ITRON API Configuration Table
+ *
+ *  This is the ITRON API Configuration Table expected to be generated
+ *  by confdefs.h.
+ */
+extern itron_api_configuration_table Configuration_ITRON_API;
 
 #ifdef __cplusplus
 }

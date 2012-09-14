@@ -9,7 +9,7 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: start.S,v 1.4 2007/11/06 22:50:42 joel Exp $
+ *  $Id: start.S,v 1.7 2010/04/07 21:49:20 joel Exp $
 */
 
 /* Some standard definitions...*/
@@ -31,14 +31,14 @@
 .code	32
 .globl  _start
 _start:
-        /* 
+        /*
          * Since I don't plan to return to the bootloader,
          * I don't have to save the registers.
          *
-         * I'll just set the CPSR for SVC mode, interrupts 
+         * I'll just set the CPSR for SVC mode, interrupts
          * off, and ARM instructions.
          */
-        
+
         /* --- Initialize stack pointer registers */
         /* Enter IRQ mode and set up the IRQ stack pointer */
         mov     r0, #(PSR_MODE_IRQ | PSR_I | PSR_F)     /* No interrupts */
@@ -60,11 +60,11 @@ _start:
         mov     r0, #(PSR_MODE_ABT | PSR_I | PSR_F)     /* No interrupts */
         bic	r0, r0, #PSR_T
         msr     cpsr, r0
-        bic	r0, r0, #PSR_T        
+        bic	r0, r0, #PSR_T
         ldr     r1, =_abt_stack_size
         ldr     sp, =_abt_stack
         add     sp, sp, r1
-        
+
         /* Set up the SVC stack pointer last and stay in SVC mode */
         mov     r0, #(PSR_MODE_SVC | PSR_I | PSR_F)     /* No interrupts */
         bic	r0, r0, #PSR_T
@@ -72,18 +72,18 @@ _start:
         ldr     r1, =_svc_stack_size
         ldr     sp, =_svc_stack
         add     sp, sp, r1
-        sub     sp, sp, #0x64   
-              
-        /* 
+        sub     sp, sp, #0x64
+
+        /*
          * Initialize the exception vectors. This includes the
-         * exceptions vectors (0x00000000-0x0000001c), and the 
+         * exceptions vectors (0x00000000-0x0000001c), and the
          * pointers to the exception handlers (0x00000020-0x0000003c).
          */
         mov     r0, #0
         adr     r1, vector_block
         ldmia   r1!, {r2-r9}
         stmia   r0!, {r2-r9}
-        
+
         ldmia   r1!, {r2-r9}
         stmia   r0!, {r2-r9}
 
@@ -92,22 +92,23 @@ _start:
         ldr     r1, =_bss_end_
         ldr     r0, =_bss_start_
 
-_bss_init:        
+_bss_init:
         mov     r2, #0
         cmp     r0, r1
         strlot  r2, [r0], #4
-        blo     _bss_init        /* loop while r0 < r1 */ 
+        blo     _bss_init        /* loop while r0 < r1 */
 
 
-#ifdef __thumb__
         /* Now we are prepared to start the BSP's C code */
+        mov     r0, #0
+#ifdef __thumb__
 	ldr	r3, =boot_card
         bx      r3
 #else
         bl      boot_card
 
 
-        /* 
+        /*
          * Theoretically, we could return to what started us up,
          * but we'd have to have saved the registers and stacks.
          * Instead, we'll just reset.
@@ -167,8 +168,8 @@ FIQ_Handler:
 
 
 
-        
-/* 
+
+/*
  * This is the exception vector table and the pointers to
  * the functions that handle the exceptions. It's a total
  * of 16 words (64 bytes)
@@ -176,7 +177,7 @@ FIQ_Handler:
 
  /*******************************************************
 
-vector_block:   
+vector_block:
         ldr     pc, Reset_Handler
         ldr     pc, Undefined_Handler
         ldr     pc, SWI_Handler
@@ -188,7 +189,7 @@ vector_block:
 
 Reset_Handler:          b       bsp_reset
 Undefined_Handler:      b       Undefined_Handler
-SWI_Handler:            b       SWI_Handler 
+SWI_Handler:            b       SWI_Handler
 Prefetch_Handler:       b       Prefetch_Handler
 Abort_Handler:          b       Abort_Handler
                         nop

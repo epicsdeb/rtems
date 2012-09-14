@@ -12,15 +12,15 @@
  *  http://www.rtems.com/license/LICENSE.
  *
  *
- *  $Id: clockdrv.c,v 1.6 2007/12/11 15:46:05 joel Exp $
+ *  $Id: clockdrv.c,v 1.10 2010/04/30 13:15:49 sh Exp $
 */
 #include <rtems.h>
 #include <bsp.h>
-#include <irq.h>
+#include <bsp/irq.h>
 #include <lpc22xx.h>
 #include <rtems/bspIo.h>  /* for printk */
 
-/* this is defined in ../../../shared/clockdrv_shell.c */
+/* this is defined in ../../../shared/clockdrv_shell.h */
 rtems_isr Clock_isr(rtems_vector_number vector);
 static void clock_isr_on(const rtems_irq_connect_data *unused);
 static void clock_isr_off(const rtems_irq_connect_data *unused);
@@ -29,20 +29,19 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq);
 /* Replace the first value with the clock's interrupt name. */
 rtems_irq_connect_data clock_isr_data = {LPC22xx_INTERRUPT_TIMER0,
                                          (rtems_irq_hdl)Clock_isr,
+					 NULL,
                                          clock_isr_on,
                                          clock_isr_off,
-                                         clock_isr_is_on,
-                                         3,     /* unused for ARM cpus */
-                                         0 };   /* unused for ARM cpus */
+                                         clock_isr_is_on};
 
-/* If you follow the code, this is never used, so any value 
+/* If you follow the code, this is never used, so any value
  * should work
  */
 #define CLOCK_VECTOR 0
 
 
 
- /*use the /shared/clockdrv_shell.c code template */
+/* use the /shared/clockdrv_shell.h code template */
 
 /**
  * When we get the clock interrupt
@@ -72,16 +71,16 @@ rtems_irq_connect_data clock_isr_data = {LPC22xx_INTERRUPT_TIMER0,
  *   - enable it
  *   - clear any pending interrupts
  *
- * Since you may want the clock always running, you can 
+ * Since you may want the clock always running, you can
  * enable interrupts here. If you do so, the clock_isr_on(),
- * clock_isr_off(), and clock_isr_is_on() functions can be 
+ * clock_isr_off(), and clock_isr_is_on() functions can be
  * NOPs.
  */
- 
+
   /* set timer to generate interrupt every rtems_configuration_get_microseconds_per_tick()
    * MR0/(LPC22xx_Fpclk/(PR0+1)) = 10/1000 = 0.01s
-   */			
-	
+   */
+
 #define Clock_driver_support_initialize_hardware() \
   do { \
 	T0TCR &= 0; 	 /* disable and clear timer 0, set to  */ \
@@ -95,7 +94,7 @@ rtems_irq_connect_data clock_isr_data = {LPC22xx_INTERRUPT_TIMER0,
    } while (0)
 
 /**
- * Do whatever you need to shut the clock down and remove the 
+ * Do whatever you need to shut the clock down and remove the
  * interrupt handler. Since this normally only gets called on
  * RTEMS shutdown, you may not need to do anything other than
  * remove the ISR.
@@ -110,12 +109,12 @@ rtems_irq_connect_data clock_isr_data = {LPC22xx_INTERRUPT_TIMER0,
 uint32_t bsp_clock_nanoseconds_since_last_tick(void)
 {
 	uint32_t clicks;
-	
+
 	clicks = T0TC;  /*T0TC is the 32bit time counter 0*/
-	
+
 	return (uint32_t) (rtems_configuration_get_microseconds_per_tick() - clicks) * 1000;
 }
-	
+
 #define Clock_driver_nanoseconds_since_last_tick bsp_clock_nanoseconds_since_last_tick
 
 
@@ -155,5 +154,5 @@ static int clock_isr_is_on(const rtems_irq_connect_data *irq)
 
 
 /* Make sure to include this, and only at the end of the file */
-#include "../../../../libbsp/shared/clockdrv_shell.c"
+#include "../../../../libbsp/shared/clockdrv_shell.h"
 

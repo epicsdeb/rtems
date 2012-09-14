@@ -17,7 +17,7 @@
  *
  * http://www.rtems.com/license/LICENSE.
  * 
- *  $Id: linkcmds,v 1.9 2008/03/03 23:06:26 joel Exp $
+ *  $Id: linkcmds,v 1.11 2008/09/16 22:16:04 joel Exp $
  */
 
 /*
@@ -26,17 +26,21 @@
  *      number used there is not constant.  If this happens to you, edit
  *      the lines marked XXX below to use a constant value.
  */
+
+/*
+ * Declare system clock frequency.
+ */
+_SYS_CLOCK_FREQUENCY = DEFINED(_SYS_CLOCK_FREQUENCY) ?
+                               _SYS_CLOCK_FREQUENCY : 54000000;
+
 /*
  * Declare size of heap.
  * A heap size of 0 means "Use all available memory for the heap".
  * Initial stack located in on-chip SRAM and not declared there.
  */
-_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x0;
-
-/*
- * Declare system clock frequency.
- */
-_SYS_CLOCK_FREQUENCY = DEFINED(_SYS_CLOCK_FREQUENCY) ? _SYS_CLOCK_FREQUENCY : 54000000;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
+RamBase = DEFINED(RamBase) ? RamBase : 0x30000000;
+RamSize = DEFINED(RamSize) ? RamSize : 0x00100000;
 
 /*
  * Setup the memory map of the MCF5206eLITE evaluation board
@@ -63,8 +67,8 @@ SECTIONS
    * Dynamic RAM
    */
   ram : {
-          _RamBase = .;
-          __RamBase = .;
+          RamBase = .;
+          RamBase = .;
           /* Reserve space for interrupt table */
           . += 0x400;
   } >ram 
@@ -163,8 +167,8 @@ SECTIONS
     
     clear_end = .;
 
-    _WorkspaceBase = .;
-    __WorkspaceBase = .;
+    WorkAreaBase = .;
+    WorkAreaBase = .;
 
   } > ram
 

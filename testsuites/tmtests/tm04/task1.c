@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.16 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.18 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -15,7 +14,7 @@
 
 rtems_id         Semaphore_id;
 rtems_id         Task_id[OPERATION_COUNT+1];
-uint32_t   task_count;
+uint32_t         task_count;
 rtems_id         Highest_id;
 
 rtems_task Low_tasks(
@@ -26,11 +25,15 @@ rtems_task High_task(
   rtems_task_argument argument
 );
 
+rtems_task Highest_task(
+  rtems_task_argument argument
+);
+
 rtems_task Restart_task(
   rtems_task_argument argument
 );
 
-void test_init();
+void test_init(void);
 
 rtems_task Init(
   rtems_task_argument argument
@@ -48,10 +51,10 @@ rtems_task Init(
   directive_failed( status, "rtems_task_delete of RTEMS_SELF" );
 }
 
-void test_init()
+void test_init(void)
 {
   rtems_status_code status;
-  uint32_t    index;
+  int               index;
 
   task_count = OPERATION_COUNT;
 
@@ -102,7 +105,7 @@ rtems_task Highest_task(
 
     status = rtems_task_set_priority(
       RTEMS_CURRENT_PRIORITY,
-      254,
+      RTEMS_MAXIMUM_PRIORITY - 1u,
       &old_priority
     );
     directive_failed( status, "rtems_task_set_priority" );
@@ -215,19 +218,19 @@ rtems_task High_task(
   for ( index=1 ; index <= OPERATION_COUNT ; index++ ) {
     status = rtems_task_create(
       name,
-      250,
+      RTEMS_MAXIMUM_PRIORITY - 4u,
       RTEMS_MINIMUM_STACK_SIZE,
       RTEMS_NO_PREEMPT,
       RTEMS_DEFAULT_ATTRIBUTES,
       &Task_id[ index ]
     );
-    directive_failed( status, "rtems_task_create LOOP" );
+    directive_failed( status, "rtems_task_create LOOP 1" );
 
     status = rtems_task_start( Task_id[ index ], Restart_task, 0 );
-    directive_failed( status, "rtems_task_start LOOP" );
+    directive_failed( status, "rtems_task_start LOOP 1" );
 
     status = rtems_task_suspend( Task_id[ index ] );
-    directive_failed( status, "rtems_task_suspend LOOP" );
+    directive_failed( status, "rtems_task_suspend LOOP 1" );
   }
 
   benchmark_timer_initialize();
@@ -262,16 +265,16 @@ rtems_task High_task(
   for ( index=1 ; index <= OPERATION_COUNT ; index++ ) {
     status = rtems_task_create(
       name,
-      250,
+      RTEMS_MAXIMUM_PRIORITY - 4u,
       RTEMS_MINIMUM_STACK_SIZE,
       RTEMS_DEFAULT_MODES,
       RTEMS_DEFAULT_ATTRIBUTES,
       &Task_id[ index ]
     );
-    directive_failed( status, "rtems_task_create LOOP" );
+    directive_failed( status, "rtems_task_create LOOP 2" );
 
     status = rtems_task_start( Task_id[ index ], Restart_task, 0 );
-    directive_failed( status, "rtems_task_start LOOP" );
+    directive_failed( status, "rtems_task_start LOOP 2" );
   }
 
   benchmark_timer_initialize();

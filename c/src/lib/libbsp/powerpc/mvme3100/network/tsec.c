@@ -1,17 +1,17 @@
-/* 
+/*
  * Authorship
  * ----------
  * This software ('mvme3100' RTEMS BSP) was created by
  *
  *     Till Straumann <strauman@slac.stanford.edu>, 2005-2007,
  * 	   Stanford Linear Accelerator Center, Stanford University.
- * 
+ *
  * Acknowledgement of sponsorship
  * ------------------------------
  * The 'mvme3100' BSP was produced by
  *     the Stanford Linear Accelerator Center, Stanford University,
  * 	   under Contract DE-AC03-76SFO0515 with the Department of Energy.
- * 
+ *
  * Government disclaimer of liability
  * ----------------------------------
  * Neither the United States nor the United States Department of Energy,
@@ -20,18 +20,18 @@
  * completeness, or usefulness of any data, apparatus, product, or process
  * disclosed, or represents that its use would not infringe privately owned
  * rights.
- * 
+ *
  * Stanford disclaimer of liability
  * --------------------------------
  * Stanford University makes no representations or warranties, express or
  * implied, nor assumes any liability for the use of this software.
- * 
+ *
  * Stanford disclaimer of copyright
  * --------------------------------
  * Stanford University, owner of the copyright, hereby disclaims its
  * copyright and all other rights in this software.  Hence, anyone may
- * freely use it for any purpose without restriction.  
- * 
+ * freely use it for any purpose without restriction.
+ *
  * Maintenance of notices
  * ----------------------
  * In the interest of clarity regarding the origin and status of this
@@ -40,9 +40,9 @@
  * or distributed by the recipient and are to be affixed to any copy of
  * software made or distributed by the recipient that contains a copy or
  * derivative of this software.
- * 
+ *
  * ------------------ SLAC Software Notices, Set 4 OTT.002a, 2004 FEB 03
- */ 
+ */
 
 #include <rtems.h>
 #include <rtems/error.h>
@@ -198,6 +198,10 @@ void tsec_dump_rring(struct tsec_private *mp);
 #define EV_IS_PHY(ev)			( (ev) & 2 )
 #endif
 
+#ifndef MAXEBERRS
+#define MAXEBERRS 10
+#endif
+
 #define EV_IS_ANY(ev)			( (ev) & ((1<<EV_PER_UNIT) - 1) )
 
 #define EV_MSK                  ( ( 1 << (EV_PER_UNIT * TSEC_NUM_DRIVER_SLOTS) ) - 1)
@@ -219,7 +223,7 @@ void tsec_dump_rring(struct tsec_private *mp);
 /*
  * Misuse reserved bit 4 to flag link interrupts
  * (which are totally external to the TSEC).
- * Because reading the MII is so slow we don't 
+ * Because reading the MII is so slow we don't
  * want to poll MII unnecessarily from RX/TX ISRs
  */
 #define TSEC_LINK_INTR							(1<<(31- 4))
@@ -232,14 +236,23 @@ void tsec_dump_rring(struct tsec_private *mp);
 #define TSEC_IEVENT_TXF							(1<<(31-11))
 #define TSEC_IEVENT_LC							(1<<(31-13))
 #define TSEC_IEVENT_CRLXDA						(1<<(31-14))
-#define TSEC_IEVENT_XFUN						(1<<(31-15))	
+#define TSEC_IEVENT_XFUN						(1<<(31-15))
 #define TSEC_IEVENT_RXB							(1<<(31-16))
 #define TSEC_IEVENT_GRSC						(1<<(31-23))
 #define TSEC_IEVENT_RXF							(1<<(31-24))
 #define TSEC_IEVENT_ALL							(-1)
 
-#define TSEC_TXIRQ	( TSEC_IEVENT_TXE | TSEC_IEVENT_TXF )
-#define TSEC_RXIRQ	( TSEC_IEVENT_RXF | TSEC_IEVENT_BABR | TSEC_IEVENT_EBERR )
+#if TSEC_TXIRQ != ( TSEC_IEVENT_TXE | TSEC_IEVENT_TXF )
+#error "mismatch in definition: TSEC_TXIRQ"
+#endif
+
+#if TSEC_RXIRQ != ( TSEC_IEVENT_RXF | TSEC_IEVENT_BABR | TSEC_IEVENT_EBERR )
+#error "mismatch in definition: TSEC_RXIRQ"
+#endif
+
+#if TSEC_LKIRQ != TSEC_LINK_INTR
+#error "mismatch in definition: TSEC_LKIRQ"
+#endif
 
 #define TSEC_IMASK							0x014
 #define TSEC_IMASK_BABREN						(1<<(31- 0))
@@ -255,7 +268,7 @@ void tsec_dump_rring(struct tsec_private *mp);
 #define TSEC_IMASK_TXFEN						(1<<(31-11))
 #define TSEC_IMASK_LCEN							(1<<(31-13))
 #define TSEC_IMASK_CRLXDAEN						(1<<(31-14))
-#define TSEC_IMASK_XFUNEN						(1<<(31-15))	
+#define TSEC_IMASK_XFUNEN						(1<<(31-15))
 #define TSEC_IMASK_RXBEN						(1<<(31-16))
 #define TSEC_IMASK_GRSCEN						(1<<(31-23))
 #define TSEC_IMASK_RXFEN						(1<<(31-24))
@@ -332,7 +345,7 @@ void tsec_dump_rring(struct tsec_private *mp);
 #define TSEC_IPGIFG							0x508
 #define TSEC_HAFDUP							0x50c
 #define TSEC_MAXFRM							0x510
-#define TSEC_MIIMCFG						0x520 /* TSEC only */	
+#define TSEC_MIIMCFG						0x520 /* TSEC only */
 #define TSEC_MIIMCOM						0x524 /* TSEC only */
 #define TSEC_MIIMCOM_SCAN						(1<<(31-30))
 #define TSEC_MIIMCOM_READ						(1<<(31-31))
@@ -523,7 +536,7 @@ static inline void	st_be32(volatile uint32_t *a, uint32_t v)
 
 #ifdef	SW_COHERENCY
 #error 	"SW_COHERENCY not implemented"
-/* Note: maintaining BD coherency in software is not trivial 
+/* Note: maintaining BD coherency in software is not trivial
  *       because BDs are smaller than a cache line;
  *       we cannot pad a BD to the length of a cache line because
  *       the TSEC assumes BDs layed out sequentially in memory.
@@ -531,7 +544,7 @@ static inline void	st_be32(volatile uint32_t *a, uint32_t v)
  *       line either because the manual says that the length
  *       field of a TX BD must not be zero.
  *
- *       We probably would need MMU resources to map BDs 
+ *       We probably would need MMU resources to map BDs
  *       as non-cachable.
  *
  *       Maintaining buffer coherency would be easier:
@@ -650,7 +663,7 @@ struct tsec_private {
 									  * connected to mii bus of 1st controller.
 									  */
 	unsigned        phy;             /* Phy address on mii bus                   */
-	unsigned        unit;            /* Driver instance (one-based               */ 
+	unsigned        unit;            /* Driver instance (one-based               */
 	int				isfec;           /* Set if a FEC (not TSEC) controller       */
 	struct tsec_softc *sc;           /* Pointer to BSD driver struct             */
 	TSEC_BD			*ring_area;      /* Not necessarily aligned                  */
@@ -664,6 +677,8 @@ struct tsec_private {
 	void			**rx_ring_user;  /* Array of user pointers (1 per BD)        */
 	unsigned		rx_tail;         /* Where we left off scanning for full bufs */
 	unsigned		rx_ring_size;
+	void            (*isr)(void*);
+	void            *isr_arg;
 	void			(*cleanup_txbuf) /* Callback to cleanup TX ring              */
 	                  (void*, void*, int);
 	void			*cleanup_txbuf_arg;
@@ -674,6 +689,7 @@ struct tsec_private {
 	void			*consume_rxbuf_arg;
 	rtems_id		tid;             /* driver task ID                           */
 	uint32_t		irq_mask;
+	uint32_t		irq_mask_cache;
 	uint32_t		irq_pending;
 	rtems_event_set	event;           /* Task synchronization events              */
 	struct {                         /* Statistics                               */
@@ -685,6 +701,8 @@ struct tsec_private {
 		unsigned	packet;
 		unsigned	odrops;
 		unsigned	repack;
+		unsigned	eberrs;
+		unsigned	dmarst;
 	}               stats;
 	uint16_t		mc_refcnt[NUM_MC_HASHES];
 };
@@ -715,12 +733,12 @@ typedef struct tsec_bsp_config {
 /********** Global Variables ********************/
 
 /* You may override base addresses
- * externally - but you must  
+ * externally - but you must
  * then also define TSEC_NUM_DRIVER_SLOTS.
  */
 #ifndef TSEC_CONFIG
 
-static TsecBspConfig tsec_config[] = 
+static TsecBspConfig tsec_config[] =
 {
 	{
 		base:     BSP_8540_CCSR_BASE         + 0x24000,
@@ -884,9 +902,11 @@ FEC_Enet_Base b = mp->base;
 	 * the PHY ISR is not hooked yet and there can be no
 	 * interrupts...
 	 */
-	if ( tsec_mtx ) 
+	if ( tsec_mtx )
 #endif
 	phy_dis_irq_at_phy( mp );
+
+	mp->irq_mask_cache = 0;
 
 	/* Follow the manual resetting the chip */
 
@@ -904,7 +924,7 @@ FEC_Enet_Base b = mp->base;
 
 	/* wait for > 8ms */
 	rtems_task_wake_after(1);
-	
+
 	/* set GRS if not already stopped */
 	if ( ! (TSEC_DMACTRL_GRS & fec_rd(b, TSEC_DMACTRL)) ) {
 		/* Make sure GRSC is clear */
@@ -933,7 +953,7 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
 
 	xxx.on     = noop;
 	xxx.off    = noop;
-	xxx.isOn   = nopf; 
+	xxx.isOn   = nopf;
 	xxx.handle = mp;
 
 	if ( irq_mask & TSEC_TXIRQ ) {
@@ -951,7 +971,7 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
 		if ( (line = TSEC_CONFIG[unit-1].rirq) < 0 && ! installed ) {
 			/* have no dedicated RX IRQ line; install TX ISR if not already done */
 			line = TSEC_CONFIG[unit-1].xirq;
-		} 
+		}
 		xxx.name = line;
 		xxx.hdl  = tsec_risr;
 		if ( ! (install ?
@@ -965,7 +985,7 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
 	if ( (line = TSEC_CONFIG[unit-1].eirq) < 0 && ! installed ) {
 		/* have no dedicated RX IRQ line; install TX ISR if not already done */
 		line = TSEC_CONFIG[unit-1].xirq;
-	} 
+	}
 	xxx.name = line;
 	xxx.hdl  = tsec_eisr;
 	if ( ! (install ?
@@ -996,8 +1016,8 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
  *		by BSP_tsec_send_buf() earlier. The callback is passed 'cleanup_txbuf_arg'
  *		and a flag indicating whether the send had been successful.
  *		The driver no longer accesses 'user_buf' after invoking this callback.
- *		CONTEXT: This callback is executed either by BSP_tsec_swipe_tx() or 
- *		BSP_tsec_send_buf(), BSP_tsec_init_hw(), BSP_tsec_stop_hw() (the latter 
+ *		CONTEXT: This callback is executed either by BSP_tsec_swipe_tx() or
+ *		BSP_tsec_send_buf(), BSP_tsec_init_hw(), BSP_tsec_stop_hw() (the latter
  *		ones calling BSP_tsec_swipe_tx()).
  *	void *cleanup_txbuf_arg:
  *		Closure argument that is passed on to 'cleanup_txbuf()' callback;
@@ -1015,7 +1035,7 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
  *				 instead of handing it out to 'consume_rxbuf()'.
  *		CONTEXT: Called when initializing the RX ring (BSP_tsec_init_hw()) or when
  *				 swiping it (BSP_tsec_swipe_rx()).
- *		
+ *
  *
  *	void (*consume_rxbuf)(void *user_buf, void *consume_rxbuf_arg, int len);
  *		Pointer to user-supplied callback to pass a received buffer back to
@@ -1046,18 +1066,21 @@ install_remove_isrs(int install, struct tsec_private *mp, uint32_t irq_mask)
  *		Interrupts to enable. OR of flags from above.
  *
  */
-struct tsec_private *
-BSP_tsec_setup(
+
+static struct tsec_private *
+tsec_setup_internal(
 	int		 unit,
 	rtems_id driver_tid,
-	void (*cleanup_txbuf)(void *user_buf, void *cleanup_txbuf_arg, int error_on_tx_occurred), 
-	void *cleanup_txbuf_arg,
-	void *(*alloc_rxbuf)(int *p_size, uintptr_t *p_data_addr),
-	void (*consume_rxbuf)(void *user_buf, void *consume_rxbuf_arg, int len),
-	void *consume_rxbuf_arg,
-	int		rx_ring_size,
-	int		tx_ring_size,
-	int		irq_mask
+	void     (*isr)(void *),
+	void *   isr_arg,
+	void     (*cleanup_txbuf)(void *user_buf, void *cleanup_txbuf_arg, int error_on_tx_occurred),
+	void *   cleanup_txbuf_arg,
+	void *   (*alloc_rxbuf)(int *p_size, uintptr_t *p_data_addr),
+	void     (*consume_rxbuf)(void *user_buf, void *consume_rxbuf_arg, int len),
+	void *   consume_rxbuf_arg,
+	int		 rx_ring_size,
+	int		 tx_ring_size,
+	int		 irq_mask
 )
 {
 struct tsec_private *mp;
@@ -1128,7 +1151,7 @@ struct ifnet         *ifp;
 						M_DEVBUF,
 						M_WAIT );
 	assert( mp->tx_ring_user );
-	
+
 	mp->rx_ring_user = mp->tx_ring_user + mp->tx_ring_size;
 
 	/* Initialize TX ring */
@@ -1166,21 +1189,32 @@ struct ifnet         *ifp;
 	}
 
 #ifndef TSEC_CONFIG_NO_PHY_REGLOCK
-	/* lazy init of mutex (non thread-safe! - we assume initialization
-	 * of 1st IF is single-threaded)
-	 */
 	if ( ! tsec_mtx ) {
-		rtems_status_code sc;
+		rtems_status_code     sc;
+		rtems_id              new_mtx;
+		rtems_interrupt_level l;
 		sc = rtems_semaphore_create(
 				rtems_build_name('t','s','e','X'),
 				1,
-				RTEMS_SIMPLE_BINARY_SEMAPHORE | RTEMS_PRIORITY | RTEMS_INHERIT_PRIORITY | RTEMS_DEFAULT_ATTRIBUTES,
+				RTEMS_BINARY_SEMAPHORE | RTEMS_PRIORITY | RTEMS_INHERIT_PRIORITY | RTEMS_DEFAULT_ATTRIBUTES,
 				0,
-				&tsec_mtx);
+				&new_mtx);
 		if ( RTEMS_SUCCESSFUL != sc ) {
 			rtems_error(sc,DRVNAME": creating mutex\n");
 			rtems_panic("unable to proceed\n");
 		}
+		rtems_interrupt_disable( l );
+			if ( ! tsec_mtx ) {
+				tsec_mtx = new_mtx;
+				new_mtx  = 0;
+			}
+		rtems_interrupt_enable( l );
+
+		if ( new_mtx ) {
+			/* another task was faster installing the mutex */
+			rtems_semaphore_delete( new_mtx );
+		}
+
 	}
 #endif
 
@@ -1194,6 +1228,69 @@ struct ifnet         *ifp;
 	ifp->if_init = (void*)(-1);
 
 	return mp;
+}
+
+struct tsec_private *
+BSP_tsec_setup(
+	int		 unit,
+	rtems_id driver_tid,
+	void     (*cleanup_txbuf)(void *user_buf, void *cleanup_txbuf_arg, int error_on_tx_occurred),
+	void *   cleanup_txbuf_arg,
+	void *   (*alloc_rxbuf)(int *p_size, uintptr_t *p_data_addr),
+	void     (*consume_rxbuf)(void *user_buf, void *consume_rxbuf_arg, int len),
+	void *   consume_rxbuf_arg,
+	int		 rx_ring_size,
+	int		 tx_ring_size,
+	int		 irq_mask
+)
+{
+	if ( irq_mask && ! driver_tid ) {
+		printk(DRVNAME": must supply a TID if irq_mask not zero\n");
+		return 0;
+	}
+	return tsec_setup_internal(
+								unit,
+								driver_tid,
+								0, 0,
+								cleanup_txbuf, cleanup_txbuf_arg,
+								alloc_rxbuf,
+								consume_rxbuf, consume_rxbuf_arg,
+								rx_ring_size,
+								tx_ring_size,
+								irq_mask
+							   );
+}
+
+struct tsec_private *
+BSP_tsec_setup_1(
+	int		 unit,
+	void     (*isr)(void*),
+	void *   isr_arg,
+	void     (*cleanup_txbuf)(void *user_buf, void *cleanup_txbuf_arg, int error_on_tx_occurred),
+	void *   cleanup_txbuf_arg,
+	void *   (*alloc_rxbuf)(int *p_size, uintptr_t *p_data_addr),
+	void     (*consume_rxbuf)(void *user_buf, void *consume_rxbuf_arg, int len),
+	void *   consume_rxbuf_arg,
+	int		 rx_ring_size,
+	int		 tx_ring_size,
+	int		 irq_mask
+)
+{
+	if ( irq_mask && ! isr ) {
+		printk(DRVNAME": must supply a ISR if irq_mask not zero\n");
+		return 0;
+	}
+	return tsec_setup_internal(
+								unit,
+								0,
+								isr, isr_arg,
+								cleanup_txbuf, cleanup_txbuf_arg,
+								alloc_rxbuf,
+								consume_rxbuf, consume_rxbuf_arg,
+								rx_ring_size,
+								tx_ring_size,
+								irq_mask
+							   );
 }
 
 void
@@ -1238,7 +1335,7 @@ int media = IFM_MAKEWORD(0, 0, 0, 0);
 /*
  * Initialize interface hardware
  *
- * 'mp'			handle obtained by from BSP_tsec_setup(). 
+ * 'mp'			handle obtained by from BSP_tsec_setup().
  * 'promisc'	whether to set promiscuous flag.
  * 'enaddr'		pointer to six bytes with MAC address. Read
  *				from the device if NULL.
@@ -1246,11 +1343,10 @@ int media = IFM_MAKEWORD(0, 0, 0, 0);
 void
 BSP_tsec_init_hw(struct tsec_private *mp, int promisc, unsigned char *enaddr)
 {
-FEC_Enet_Base         b = mp->base;
-unsigned              i;
-uint32_t              v;
-int                   sz;
-rtems_interrupt_level l;
+FEC_Enet_Base b = mp->base;
+unsigned      i;
+uint32_t      v;
+int           sz;
 
 	BSP_tsec_stop_hw(mp);
 
@@ -1270,7 +1366,7 @@ rtems_interrupt_level l;
 		}
 		if ( data_area & (RX_BUF_ALIGNMENT-1) )
 			rtems_panic(DRVNAME": RX buffers must be %i-byte aligned", RX_BUF_ALIGNMENT);
-			
+
 		bd_wrbuf( &mp->rx_ring[i], data_area );
 		st_be16 ( &mp->rx_ring[i].len, sz        );
 		bd_setfl( &mp->rx_ring[i], TSEC_RXBD_E | TSEC_RXBD_I );
@@ -1287,6 +1383,7 @@ rtems_interrupt_level l;
 	/* clear and disable IRQs */
 	fec_wr( b, TSEC_IEVENT, TSEC_IEVENT_ALL );
 	fec_wr( b, TSEC_IMASK,  TSEC_IMASK_NONE );
+	mp->irq_mask_cache = 0;
 
 	/* bring other regs. into a known state */
 	fec_wr( b, TSEC_EDIS,   0 );
@@ -1316,7 +1413,7 @@ rtems_interrupt_level l;
 		 */
 		fec_wr( b, TSEC_TXIC, 0);
 	}
-	fec_wr( b, TSEC_OSTBD,                     0 );	
+	fec_wr( b, TSEC_OSTBD,                     0 );
 	fec_wr( b, TSEC_RCTRL, (promisc ? TSEC_RCTRL_PROM : 0) );
 	fec_wr( b, TSEC_RSTAT,       TSEC_RSTAT_QHLT );
 	if ( !mp->isfec ) {
@@ -1387,24 +1484,17 @@ rtems_interrupt_level l;
 	 *   (slow MII)
 	 */
 
-	/* disable PHY irq at PIC (fast) */
-	phy_dis_irq( mp );
-	/* enable PHY irq (MII operation, slow) */
-	phy_en_irq_at_phy (mp );
-	
-	/* globally disable */
-	rtems_interrupt_disable( l );
-	
-	/* enable TSEC IRQs */
-	fec_wr( mp->base, TSEC_IMASK, mp->irq_mask );
-	/* enable PHY irq at PIC */
-	phy_en_irq( mp );
+	if ( (TSEC_LINK_INTR & mp->irq_mask) ) {
+		/* disable PHY irq at PIC (fast) */
+		phy_dis_irq( mp );
+		/* enable PHY irq (MII operation, slow) */
+		phy_en_irq_at_phy (mp );
+	}
 
-	/* globally reenable */
-	rtems_interrupt_enable( l );
+	BSP_tsec_enable_irq_mask( mp, mp->irq_mask );
 }
 
-static uint8_t
+static void
 hash_prog(struct tsec_private *mp, uint32_t tble, const uint8_t *enaddr, int accept)
 {
 uint8_t  s;
@@ -1496,6 +1586,8 @@ FEC_Enet_Base b;
 	fprintf(f, "TX  IRQS: %u\n", mp->stats.xirqs);
 	fprintf(f, "RX  IRQS: %u\n", mp->stats.rirqs);
 	fprintf(f, "ERR IRQS: %u\n", mp->stats.eirqs);
+	fprintf(f, "bus errs: %u\n", mp->stats.eberrs);
+	fprintf(f, "dmawhack: %u\n", mp->stats.dmarst);
 	fprintf(f, "LNK IRQS: %u\n", mp->stats.lirqs);
 	fprintf(f, "maxchain: %u\n", mp->stats.maxchain);
 	fprintf(f, "xpackets: %u\n", mp->stats.packet);
@@ -1547,7 +1639,7 @@ unsigned i;
 		/* should be OK to clear all ownership flags */
 		for ( i=0; i<mp->tx_ring_size; i++ ) {
 			bd_clrfl( &mp->tx_ring[i], TSEC_TXBD_R );
-		}	
+		}
 		BSP_tsec_swipe_tx(mp);
 #if DEBUG > 0
 		tsec_dump_tring(mp);
@@ -1751,7 +1843,7 @@ startover:
 #endif
 									bd_wrbuf( bd, 0 );
 									bd_clrfl( bd, TSEC_TXBD_R | TSEC_TXBD_L );
-									
+
 									mp->tx_avail++;
 							}
 							mp->tx_avail++;
@@ -1788,7 +1880,7 @@ startover:
 					if ( d == t ) {
 						tsec_dump_tring(mp);
 						printf("l %i, d %i, t %i, nmbs %i\n", l,d,t, nmbs);
-					} else 
+					} else
 					assert( d != t                        );
 					assert( ! bd_rdbuf( &mp->tx_ring[d] ) );
 #endif
@@ -1865,7 +1957,7 @@ void					*newbuf;
 int						sz;
 uint16_t                len;
 uintptr_t               baddr;
-	
+
 	i     = mp->rx_tail;
 	bd    = mp->rx_ring + i;
 	flags = bd_rdfl( bd );
@@ -1910,7 +2002,7 @@ uintptr_t               baddr;
 
 		rval++;
 
-		i  = NEXT_RXI( mp, i ); 
+		i  = NEXT_RXI( mp, i );
 		bd = mp->rx_ring + i;
 		flags = bd_rdfl( bd );
 	}
@@ -1930,7 +2022,7 @@ union {
 	uint16_t s[2];
 	uint8_t  c[4];
 } x;
-	st_le32( (volatile uint32_t *)(eaddr+2), fec_rd(mp->base, TSEC_MACSTNADDR1) ); 
+	st_le32( (volatile uint32_t *)(eaddr+2), fec_rd(mp->base, TSEC_MACSTNADDR1) );
 	x.u = fec_rd(mp->base, TSEC_MACSTNADDR2);
 	st_le16( (volatile uint16_t *)(eaddr), x.s[0]);
 }
@@ -2108,24 +2200,24 @@ int rval;
  *
  * Therefore, we take the following approach:
  *
- *   ISR masks all interrupts on the TSEC, acks/clears them
+ *   ISR masks interrupts on the TSEC, acks/clears them
  *   and stores the acked irqs in the device struct where
- *   it is picked up by BSP_tsec_ack_irqs().
- *   Since all interrupts are disabled until the daemon
- *   re-enables them after calling BSP_tsec_ack_irqs()
- *   no interrupts are lost.
+ *   it is picked up by BSP_tsec_ack_irq_mask().
  *
- * BUT:  NO isr (including PHY isrs) MUST INTERRUPT ANY
- *       OTHER ONE, i.e., they all must have the same
- *       priority. Otherwise, integrity of the cached
- *       irq_pending variable may be compromised.
  */
 
-static inline void
-tsec_dis_irqs( struct tsec_private *mp)
+static inline uint32_t
+tsec_dis_irqs(struct tsec_private *mp, uint32_t mask)
 {
-	phy_dis_irq( mp );
-	fec_wr( mp->base, TSEC_IMASK, TSEC_IMASK_NONE );
+uint32_t rval;
+
+	rval = mp->irq_mask_cache;
+	if ( (TSEC_LINK_INTR & mask & mp->irq_mask_cache) )
+		phy_dis_irq( mp );
+	mp->irq_mask_cache = rval & ~mask;
+	fec_wr( mp->base, TSEC_IMASK, (mp->irq_mask_cache & ~TSEC_LINK_INTR) );
+
+	return rval;
 }
 
 static inline uint32_t
@@ -2133,11 +2225,16 @@ tsec_dis_clr_irqs(struct tsec_private *mp)
 {
 uint32_t      rval;
 FEC_Enet_Base b = mp->base;
-	tsec_dis_irqs( mp );
-	rval = fec_rd( b, TSEC_IEVENT);
-	fec_wr( b, TSEC_IEVENT, rval );
+
+	rval  = fec_rd( b, TSEC_IEVENT);
+
 	/* Make sure we mask out the link intr */
-	return rval & ~TSEC_LINK_INTR;
+	rval &= ~TSEC_LINK_INTR;
+
+	tsec_dis_irqs( mp, rval );
+	fec_wr( b, TSEC_IEVENT, rval );
+
+	return rval;
 }
 
 /*
@@ -2147,71 +2244,134 @@ FEC_Enet_Base b = mp->base;
 
 static void tsec_xisr(rtems_irq_hdl_param arg)
 {
-struct tsec_private *mp = (struct tsec_private *)arg;
+struct tsec_private   *mp = (struct tsec_private *)arg;
+rtems_interrupt_level l;
 
-	mp->irq_pending |= tsec_dis_clr_irqs( mp );
+	rtems_interrupt_disable( l );
+		mp->irq_pending |= tsec_dis_clr_irqs( mp );
+	rtems_interrupt_enable( l );
 
 	mp->stats.xirqs++;
 
-	rtems_event_send( mp->tid, mp->event );
+	if ( mp->isr )
+		mp->isr( mp->isr_arg );
+	else
+		rtems_event_send( mp->tid, mp->event );
 }
 
 static void tsec_risr(rtems_irq_hdl_param arg)
 {
-struct tsec_private *mp = (struct tsec_private *)arg;
+struct tsec_private   *mp = (struct tsec_private *)arg;
+rtems_interrupt_level l;
 
-	mp->irq_pending |= tsec_dis_clr_irqs( mp );
+	rtems_interrupt_disable( l );
+		mp->irq_pending |= tsec_dis_clr_irqs( mp );
+	rtems_interrupt_enable( l );
 
 	mp->stats.rirqs++;
 
-	rtems_event_send( mp->tid, mp->event );
+	if ( mp->isr )
+		mp->isr( mp->isr_arg );
+	else
+		rtems_event_send( mp->tid, mp->event );
 }
 
 static void tsec_eisr(rtems_irq_hdl_param arg)
 {
-struct tsec_private *mp = (struct tsec_private *)arg;
+struct tsec_private   *mp = (struct tsec_private *)arg;
+rtems_interrupt_level l;
+uint32_t              pending;
 
-	mp->irq_pending |= tsec_dis_clr_irqs( mp );
+	rtems_interrupt_disable( l );
+		/* make local copy since ISR may ack and clear mp->pending;
+		 * also, we want the fresh bits not the ORed state including
+		 * the past...
+		 */
+		mp->irq_pending |= (pending = tsec_dis_clr_irqs( mp ));
+	rtems_interrupt_enable( l );
 
 	mp->stats.eirqs++;
 
-	rtems_event_send( mp->tid, mp->event );
+	if ( mp->isr )
+		mp->isr( mp->isr_arg );
+	else
+		rtems_event_send( mp->tid, mp->event );
+
+	if ( (TSEC_IEVENT_TXE & pending) ) {
+		if ( (TSEC_IEVENT_EBERR & pending) && ++mp->stats.eberrs > MAXEBERRS ) {
+			printk(DRVNAME" BAD error: max # of DMA bus errors reached\n");
+		} else {
+			/* Restart DMA -- do we have to clear DMACTRL[GTS], too ?? */
+			fec_wr( mp->base, TSEC_TSTAT, TSEC_TSTAT_THLT );
+			mp->stats.dmarst++;
+		}
+	}
 }
 
 static void tsec_lisr(rtems_irq_hdl_param arg)
 {
-struct tsec_private *mp = (struct tsec_private *)arg;
+struct tsec_private   *mp = (struct tsec_private *)arg;
+rtems_interrupt_level l;
 
 	if ( phy_irq_pending( mp ) ) {
 
-		tsec_dis_irqs( mp );
-
-		mp->irq_pending |= TSEC_LINK_INTR;
+		rtems_interrupt_disable( l );
+			tsec_dis_irqs( mp, TSEC_LINK_INTR );
+			mp->irq_pending |= TSEC_LINK_INTR;
+		rtems_interrupt_enable( l );
 
 		mp->stats.lirqs++;
 
-		rtems_event_send( mp->tid, mp->event );
+		if ( mp->isr )
+			mp->isr( mp->isr_arg );
+		else
+			rtems_event_send( mp->tid, mp->event );
 	}
 }
 
 /* Enable interrupts at device */
 void
-BSP_tsec_enable_irqs(struct tsec_private *mp)
+BSP_tsec_enable_irq_mask(struct tsec_private *mp, uint32_t mask)
 {
 rtems_interrupt_level l;
+
+	mask &= mp->irq_mask;
+
 	rtems_interrupt_disable( l );
-	fec_wr( mp->base, TSEC_IMASK, mp->irq_mask );
-	phy_en_irq( mp );
+	if ( (TSEC_LINK_INTR & mask) && ! (TSEC_LINK_INTR & mp->irq_mask_cache) )
+		phy_en_irq( mp );
+	mp->irq_mask_cache |= mask;
+	fec_wr( mp->base, TSEC_IMASK, (mp->irq_mask_cache & ~TSEC_LINK_INTR) );
 	rtems_interrupt_enable( l );
 }
 
+void
+BSP_tsec_enable_irqs(struct tsec_private *mp)
+{
+	BSP_tsec_enable_irq_mask(mp, -1);
+}
+
 /* Disable interrupts at device */
+uint32_t
+BSP_tsec_disable_irq_mask(struct tsec_private *mp, uint32_t mask)
+{
+uint32_t              rval;
+rtems_interrupt_level l;
+
+	rtems_interrupt_disable( l );
+		rval = tsec_dis_irqs(mp, mask);
+	rtems_interrupt_enable( l );
+
+	return rval;
+}
+
 void
 BSP_tsec_disable_irqs(struct tsec_private *mp)
 {
 rtems_interrupt_level l;
+
 	rtems_interrupt_disable( l );
-	tsec_dis_irqs( mp );
+		tsec_dis_irqs(mp, -1);
 	rtems_interrupt_enable( l );
 }
 
@@ -2220,19 +2380,17 @@ rtems_interrupt_level l;
  * RETURNS: interrupts that were raised.
  */
 uint32_t
-BSP_tsec_ack_irqs(struct tsec_private *mp)
+BSP_tsec_ack_irq_mask(struct tsec_private *mp, uint32_t mask)
 {
 uint32_t              rval;
+rtems_interrupt_level l;
 
-	/* no need to disable interrupts because
-	 * this should only be called after receiving
-	 * a RTEMS event posted by the ISR which
-	 * already shut off interrupts.
-	 */
-	rval = mp->irq_pending;
-	mp->irq_pending = 0;
+	rtems_interrupt_disable( l );
+		rval = mp->irq_pending;
+		mp->irq_pending &= ~ mask;
+	rtems_interrupt_enable( l );
 
-	if ( (rval & TSEC_LINK_INTR) ) {
+	if ( (rval & TSEC_LINK_INTR & mask) ) {
 		/* interacting with the PHY is slow so
 		 * we do it only if we have to...
 		 */
@@ -2240,6 +2398,12 @@ uint32_t              rval;
 	}
 
 	return rval & mp->irq_mask;
+}
+
+uint32_t
+BSP_tsec_ack_irqs(struct tsec_private *mp)
+{
+	return BSP_tsec_ack_irq_mask(mp, -1);
 }
 
 /* Retrieve the driver daemon TID that was passed to
@@ -2260,7 +2424,7 @@ BSP_tsec_getp(unsigned index)
 	return & theTsecEths[index].pvt;
 }
 
-/* 
+/*
  *
  * Example driver task loop (note: no synchronization of
  * buffer access shown!).
@@ -2278,7 +2442,7 @@ BSP_tsec_getp(unsigned index)
  *      if ( irqs & BSP_TSEC_IRQ_RX ) {
  *			BSP_tsec_swipe_rx(handle); / * alloc_rxbuf() and consume_rxbuf() executed * /
  *		}
- *		BSP_tsec_enable_irqs(handle);
+ *		BSP_tsec_enable_irq_mask(handle, -1);
  *    } while (1);
  *
  */
@@ -2321,7 +2485,7 @@ unsigned long	l,o;
 
 	m->m_len   = m->m_pkthdr.len = l;
 	*psz       = m->m_len;
-	*paddr     = mtod(m, unsigned long); 
+	*paddr     = mtod(m, unsigned long);
 
 	return (void*) m;
 }
@@ -2348,7 +2512,7 @@ struct mbuf    *m = buf;
 
 			ifp->if_ipackets++;
 			ifp->if_ibytes  += m->m_pkthdr.len;
-			
+
 			/* send buffer upwards */
 			if (0) {
 				/* Low-level debugging */
@@ -2517,7 +2681,7 @@ int					f;
   		case SIOCSIFMEDIA:
 			error = BSP_tsec_media_ioctl(&sc->pvt, cmd, &ifr->ifr_media);
 		break;
- 
+
  		case SIOCADDMULTI:
  		case SIOCDELMULTI:
 			error = (cmd == SIOCADDMULTI)
@@ -2609,7 +2773,7 @@ rtems_event_set		evs;
 				if ( (TSEC_RXIRQ & x) )
 					BSP_tsec_swipe_rx(&sc->pvt);
 
-				BSP_tsec_enable_irqs(&sc->pvt);
+				BSP_tsec_enable_irq_mask(&sc->pvt, -1);
 			}
 		}
 	}
@@ -2690,7 +2854,7 @@ struct	ifnet		*ifp;
 		/*
 		 * While nonzero, the 'if->if_timer' is decremented
 		 * (by the networking code) at a rate of IFNET_SLOWHZ (1hz) and 'if_watchdog'
-		 * is called when it expires. 
+		 * is called when it expires.
 		 * If either of those fields is 0 the feature is disabled.
 		 */
 		ifp->if_watchdog		= tsec_watchdog;
@@ -2806,7 +2970,7 @@ struct	ifnet		*ifp;
 #define PHY_IRQS ( BCM54xx_IRQ_LNK | BCM54xx_IRQ_SPD | BCM54xx_IRQ_DUP )
 
 
-static void 
+static void
 phy_en_irq_at_phy( struct tsec_private *mp )
 {
 uint32_t ecr;
@@ -2818,7 +2982,7 @@ uint32_t ecr;
 	REGUNLOCK();
 }
 
-static void 
+static void
 phy_dis_irq_at_phy( struct tsec_private *mp )
 {
 uint32_t ecr;
@@ -2873,10 +3037,12 @@ STATIC int phy_irq_dis_level = 0;
  * tsec + phy isrs must have the same priority) or
  * from a IRQ-protected section of code
  */
+
 static void
 phy_en_irq(struct tsec_private *mp)
 {
-	if ( ! ( --phy_irq_dis_level ) ) {
+	phy_irq_dis_level &= ~(1<<mp->unit);
+	if ( 0 == phy_irq_dis_level ) {
 		BSP_enable_irq_at_pic( BSP_PHY_IRQ );
 	}
 }
@@ -2885,9 +3051,8 @@ phy_en_irq(struct tsec_private *mp)
 static void
 phy_dis_irq(struct tsec_private *mp)
 {
-	if ( !(phy_irq_dis_level++) ) {
-		BSP_disable_irq_at_pic( BSP_PHY_IRQ );
-	}
+	phy_irq_dis_level |= (1<<mp->unit);
+	BSP_disable_irq_at_pic( BSP_PHY_IRQ );
 }
 
 static int
@@ -2967,7 +3132,7 @@ void cleanup_txbuf_test(void *u, void *a, int err)
 {
 	printf("cleanup_txbuf_test (releasing buf 0x%8p)\n", u);
 	free(u);
-	if ( err ) 
+	if ( err )
 		printf("cleanup_txbuf_test: an error was detected\n");
 }
 
@@ -2993,7 +3158,7 @@ uintptr_t d = (uintptr_t)ALIGNTO(user_buf,RX_BUF_ALIGNMENT);
 
 	/* PRIxPTR is still broken */
 	printf("consuming rx buf 0x%8p (data@ 0x%08"PRIx32")\n",user_buf, (uint32_t)d);
-	if ( len > 32 ) 
+	if ( len > 32 )
 	   len = 32;
 	if ( len < 0 )
 		printf("consume_rxbuf_test: ERROR occurred: 0x%x\n", len);
@@ -3016,7 +3181,7 @@ void * tsec_up()
 struct tsec_private *tsec =
 	BSP_tsec_setup( 1, 0,
 		cleanup_txbuf_test, 0,
-		alloc_rxbuf_test, 
+		alloc_rxbuf_test,
 		consume_rxbuf_test, 0,
 		 2,
 		 2,

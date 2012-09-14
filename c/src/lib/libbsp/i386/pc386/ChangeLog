@@ -1,3 +1,161 @@
+2011-07-14	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1833/bsps
+	* ne2000/ne2000.c: Addition of multicast support disabled broadcast
+	reception. Patch also includes support to work on big endian CPUs.
+
+2011-04-11	Keith Robertson <kjrobert at alumni dot uwaterloo dot ca>
+
+	* ne2000/ne2000.c: Add multicast support. Patch submitted to mailing
+	list 2005-12-21.
+
+2011-03-07	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1756/bsps
+	* timer/timer.c: Retry on timer calibration loop failure.
+
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2010-05-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* timer/timer.c: Now runs on 486 and below again. Reformatted.
+
+2010-04-30	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for generic interrupt support
+	changes.
+
+2010-04-12	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c, console/ps2_mouse.c: Reflect termios API
+	changes.
+
+2010-04-10	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* make/custom/pc386.cfg: EXEEXT is not defined in application Makefile
+	support. All other BSPs just use .exe directly on objcopy commands.
+	This makes it consistent and allows external examples (network demos,
+	examples-v2, etc to link.
+
+2010-03-26	Chris Johns <chrisj@rtems.org>
+
+	* make/custom/pc386.cfg: Revert the PR1495 change.
+
+2010-03-10	Gedare Bloom <gedare@gwu.edu>
+
+	PR 1495/bsp
+	* clock/ckinit.c, make/custom/pc386.cfg: Calling
+	rtems_clock_get_uptime() in a tight loop sometimes showed time moving
+	backwards.
+
+2009-12-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Add BSP_HAS_FRAME_BUFFER.
+
+2009-12-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* clock/ckinit.c: Fix warning.
+
+2009-12-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c: Make bsp_mem_size available for page table
+	initialization.
+
+2009-12-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h, startup/bspgetworkarea.c: Rework bsp_size_memory() to
+	ensure that multiboot information regarding memory size is used as
+	the primary source. This was broken in the move to supporting a
+	unified workspace. It worked this way in 4.9 so this was a
+	regression.
+
+2009-12-09	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c: Add debug printk's.
+	* startup/linkcmds: Using "-Wl,--defsym -Wl,RamSize=0x1000000"
+	results in _RamSize being defined.  Handle this properly.
+
+
+
+2009-12-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: BSP should not define
+	CONFIGURE_NUMBER_OF_TERMIOS_PORTS.
+
+2009-11-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* ne2000/ne2000.c: Logic on defaulting port number was inverted when
+	adding command line arguments.
+
+2009-11-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* console/console.c: Fixed compiler warning.
+
+2009-11-05	Till Straumann <strauman@slac.stanford.edu>
+
+	* start/start.S, console/console.c: Separated code
+	that switched console and printk port based on info
+	gathered from the commandline and/or a BSP provided
+	routine into new BSP_console_select() which is called
+	from 'start.S' so that early messages make it to the
+	redirected printk port.
+
+2009-10-28	Till Straumann <strauman@slac.stanford.edu>
+
+	* start/start.S: Make sure initial stack is aligned
+	to CPU_STACK_ALIGNMENT before calling C-code.
+
+2009-10-27	Till Straumann <strauman@slac.stanford.edu>
+
+	* include/bsp.h, console/console.c: Provide weak-alias
+	hook so that the application may choose the console.
+
+2009-10-21	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/pc386.cfg: Remove RTEMS_BSP_FAMILY.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-10-15	Chris Johns <chrisj@rtems.org>
+
+	* ne2000/ne2000.c: Add --ne2k-irq and --ne2k-port boot command
+	line configure options.
+
+	* ide/ide.c: Fix a bug which left 4 words in the buffer of the
+	disk. Some devices do not follow the standard and terminate the
+	command which a new command occurs and/or low data ready when data
+	is still to be read.
+	
+2009-10-15	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* make/custom/pc386.cfg: New (relocated from /make/custom).
+	* make/custom/pc386dx.cfg: New (relocated from /make/custom).
+	* make/custom/pc486.cfg: New (relocated from /make/custom).
+	* make/custom/pc586.cfg: New (relocated from /make/custom).
+	* make/custom/pc686.cfg: New (relocated from /make/custom).
+
+2009-10-10	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am: Added interrupt server.
+
+2009-10-08	Chris Johns <chrisj@rtems.org>
+
+	* ide/ide.c: Fixed more IDE driver bugs. The driver can transfer
+	64K in a single write on my test PC and qemu with this driver. The
+	driver only checks the data ready bit at the start of each 512
+	block being transfered. This has speed the transfer loop up. Fixed
+	the timing so the BSP timer is used until RTEMS has started.
+
+2009-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* console/console.c, console/serial_mouse.c: Reflect
+	termios_baud_to_number having been renamed to
+	rtems_termios_baud_to_number.
+
 2009-09-15	Till Straumann <strauman@slac.stanford.edu>
 
 	PR 1344/bsps:
@@ -5,9 +163,113 @@
 	TSC handler was used when 8254 was requested and vice versa.
 	Also, nanosecond handler was never installed to RTEMS clock.
 
-2008-12-08	Ralf Corsépius <ralf.corsepius@rtems.org>
+2009-09-15	Ralf Corsépius <ralf.corsepius@rtems.org>
 
-	* bsp_specs: Backport from CVS-HEAD.
+	* configure.ac: Remove RTEMS_BSP_BOOTCARD_OPTIONS.
+
+ 2009-08-22	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* console/fb_vga.c: improved read/write
+
+2009-08-21	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* pc386/console/fb_vga.c: added read/write functionality; added thread
+	safety to prevent multiple open() operations of the frame buffer device.
+
+2009-08-21	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* include/bsp.h: Eliminate BSPs defining NUMBER_OF_TERMIOS_PORTS.
+	Should be automatically handled by confdefs.h or the application.
+
+2009-08-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/tm27.h: Remove references to rtems_interrupt_catch since this
+	archiecture does not use Simple Vectored Interrupt model.
+
+2009-08-03	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* console/fb_vga.c: changed the reference to mw_fb.h into fb.h
+
+2009-07-29	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* Makefile.am, preinstall.am, console/fb_vga.c: Switch to using
+	frame_buffer_ naming. Joel cleaned up formatting and removed tabs
+	that were there long before Roxana touched this file.
+	* console/fb_vga.h: Removed.
+
+2009-07-24	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* console/fb_vga.c: divided fb_screeninfo structure into
+	fb_var_screeninfo and fb_fix_screeninfo; same with get_screen_info
+
+2009-07-21	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* console/fb_vga.c: replaced the ioctl structures with linux
+	framebuffer equivalents
+
+2009-07-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Rename BSP_BOOTCARD_OPTIONS to
+	RTEMS_BSP_BOOTCARD_OPTIONS. Add RTEMS_BSP_CLEANUP_OPTIONS so all BSPs
+	have the same options.
+
+2009-07-01	Sebastian Huber <sebastian.huber@embedded-brains.de>
+
+	* Makefile.am, preinstall.am: Update for generic interrupt support.
+
+2009-06-17	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console/ps2_mouse.c: Fix inconsistent spacing.
+
+2009-06-12	Chris Johns <chrisj@rtems.org>	
+
+	* ide/ide.c: Format the data output in DEBUG mode.
+
+2009-05-30	Chris Johns <chrisj@rtems.org>
+
+	* ide/ide.c: Add initialisation code to reset the IDE devices and
+	to probe them and display their model numbers. Also add code to
+	display the probing to aid bring up new hardware.
+
+	* ide/idecfg.c: Add the --ide-show command to show probing type
+	accessing when finding devices on the configured IDE buses.
+
+2009-05-29	Roxana Leontie <roxana.leontie@gmail.com>
+
+	* Makefile.am, preinstall.am: Install tty_drv.h
+
+2009-05-08	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c: Switch from ssize_t to uintptr_t for
+	bsp_get_work_area() since the work area is larger than a single
+	allocatable object.
+
+2009-05-06	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* console/console.c, console/inch.c, ide/ide.c: Fixed warnings.
+
+2009-04-28	Chris Johns <chrisj@rtems.org>
+
+	* Makefile.am: Add bspcmdline.c.
+	* include/bsp.h: Add boot command line interfaces.
+	* start/start.c: Save the multiboot command line. Pass the command
+	line to boot_card.
+	* start/start.S: Update for boot_card command line change.
+	* startup/bspstart.c: Initialise the command line.
+	* startup/bspcmdline.c: New.
+	* console/console.c, ide/idecfg.c: Add boot command line support.
+	* ide/ide.cfg: Add prints for errors to help resolve problems.
+
+2009-02-11	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac, start/start16.S: Remove duplicate configure option and
+	add support for the configure time variable BSP_VIDEO_80x50.
+
+2008-12-04	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* bsp_specs: Move -e start from *link to *startfile to avoid warning
+	for undefined entry symbol when linking relocatables with binutils
+	2.19.
 
 2008-12-04	Joel Sherrill <joel.sherrill@OARcorp.com>
 
@@ -21,6 +283,90 @@
 	* configure.ac, clock/ckinit.c, timer/timer.c: Add use of TSC for
 	nanoseconds granularity. i8254 is very slow on some systems. TSC use
 	is auto-detected by default.
+
+2008-12-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c: Remove debug prints.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* startup/bspgetworkarea.c: Fix botched edit.
+
+2008-10-02	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspgetworkarea.c: Change size_t to ssize_t on
+	bsp_get_work_area(). On 16-bit architectures, size_t can be 16-bits
+	which would limit the work area to 64K.
+
+2008-10-02	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	* Makefile.am: Turn = into +=.
+
+2008-10-01	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate bsp.am. Build startup files as side-effect 
+	of building libbspstart.a, using automake-rules.
+
+2008-09-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* clock/ckinit.c: include "../../../shared/clockdrv_shell.h".
+	* Makefile.am: Reflect changes above.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Eliminate *_SOURCES.
+
+2008-09-29	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Move noinst_LIBRARIES = libbsp.a before its
+	components.
+
+2008-09-26	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cleanup ../../shared/include/bootcard.h handling.
+
+2008-09-24	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* Makefile.am: Cosmetics.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.ac: Make letting boot_card() handle work area allocation
+	mandatory. Rename RTEMS_BSP_BOOTCARD_HANDLES_RAM_ALLOCATION to
+	BSP_BOOTCARD_OPTIONS.
+
+2008-09-23	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspclean.c: Removed.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspreset.c: New file.
+
+2008-09-22	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, console/inch.c, console/keyboard.c,
+	include/bsp.h: Use standardized bsp_cleanup() which can optionally
+	print a message, poll for user to press key, and call bsp_reset().
+	Using this eliminates the various bsp_cleanup() implementations which
+	had their own implementation and variety of string constants.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* Makefile.am, configure.ac, startup/bspstart.c, startup/linkcmds: Add
+	bsp_get_work_area() implementation and use more of the BSP
+	Initialization Framework.
+	* startup/bspgetworkarea.c: New file.
+
+2008-09-18	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* include/bsp.h: Eliminate definitions of BSP_LIBIO_MAX_FDS since this
+	is NOT used anywhere.
+
+2008-09-16	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* startup/bspstart.c: Remove unnecessary includes of
+	rtems/libcsupport.h and rtems/libio.h.
 
 2008-09-06	Ralf Corsépius <ralf.corsepius@rtems.org>
 

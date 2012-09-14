@@ -1,15 +1,15 @@
 ## Process this file with autoconf to produce a configure script.
 ## 
-## $Id: configure.ac,v 1.25 2006/12/02 06:04:55 ralf Exp $
+## $Id: configure.ac,v 1.26.2.1 2011/02/02 15:17:57 ralf Exp $
 
-AC_PREREQ(2.60)
+AC_PREREQ([2.68])
 AC_INIT([rtems-c-src-tests],[_RTEMS_VERSION],[http://www.rtems.org/bugzilla])
 AC_CONFIG_SRCDIR([PROBLEMS])
 RTEMS_TOP([..],[])
 
 RTEMS_CANONICAL_TARGET_CPU
 
-AM_INIT_AUTOMAKE([no-define foreign 1.10])
+AM_INIT_AUTOMAKE([no-define foreign 1.11.1])
 AM_MAINTAINER_MODE
 
 RTEMS_ENABLE_TESTS
@@ -35,12 +35,9 @@ esac
 
 if test "$enable_tests" = "yes"; then
   # do functionality tests first, then performance tests
-  AC_CONFIG_SUBDIRS(libtests sptests)
+  AC_CONFIG_SUBDIRS(libtests sptests psxtests)
   if test "$rtems_cv_RTEMS_MULTIPROCESSING" = "yes"; then
     AC_CONFIG_SUBDIRS(mptests)
-  fi
-  if test "$rtems_cv_RTEMS_POSIX_API" = "yes"; then
-    AC_CONFIG_SUBDIRS(psxtests)
   fi
   if test "$rtems_cv_RTEMS_ITRON_API" = "yes"; then
     AC_CONFIG_SUBDIRS(itrontests)

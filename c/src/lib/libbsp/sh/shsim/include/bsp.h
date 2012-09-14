@@ -18,7 +18,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- * $Id: bsp.h,v 1.15 2007/12/11 15:48:25 joel Exp $
+ * $Id: bsp.h,v 1.20 2009/08/17 21:18:53 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -34,13 +34,17 @@ extern "C" {
 
 #include <bspopts.h>
 
+#define BSP_SMALL_MEMORY 1
+
 /*
  * FIXME: One of these would be enough.
  */
-#include <gdbsci.h>
 #include <rtems/devnull.h>
 
 /* Constants */
+
+Thread clock_driver_sim_idle_body(uintptr_t);
+#define BSP_IDLE_TASK_BODY clock_driver_sim_idle_body
 
 /*
  *  Simple spin delay in microsecond units for device drivers.
@@ -56,34 +60,8 @@ extern "C" {
  * Defined in the linker script 'linkcmds'
  */
 
-extern uint32_t         HeapStart ;
-extern uint32_t         HeapEnd ;
-extern uint32_t         WorkSpaceStart ;
-extern uint32_t         WorkSpaceEnd ;
-
 extern void *CPU_Interrupt_stack_low ;
 extern void *CPU_Interrupt_stack_high ;
-
-/* miscellaneous stuff assumed to exist */
-
-extern void bsp_cleanup( void );
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * Redefine CONSOLE_DRIVER_TABLE_ENTRY to redirect /dev/console
- */
-#undef CONSOLE_DRIVER_TABLE_ENTRY
-#define CONSOLE_DRIVER_TABLE_ENTRY \
-  BSP_CONSOLE_DRIVER_TABLE_ENTRY, \
-  { console_initialize, console_open, console_close, \
-      console_read, console_write, console_control }
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
 
 #ifdef __cplusplus
 }

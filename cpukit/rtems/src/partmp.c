@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: partmp.c,v 1.17 2008/09/04 17:45:00 ralf Exp $
+ *  $Id: partmp.c,v 1.18 2009/01/06 05:05:03 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -193,7 +193,7 @@ void _Partition_MP_Process_packet (
                   &_Partition_Information,
                   the_packet->name,
                   the_packet->Prefix.id,
-                  TRUE
+                  true
                 );
 
       _MPCI_Return_packet( the_packet_prefix );

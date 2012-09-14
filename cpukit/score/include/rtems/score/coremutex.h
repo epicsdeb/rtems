@@ -1,4 +1,4 @@
-/** 
+/**
  *  @file  rtems/score/coremutex.h
  *
  *  This include file contains all the constants and structures associated
@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coremutex.h,v 1.36.2.1 2009/05/28 20:38:22 joel Exp $
+ *  $Id: coremutex.h,v 1.39.2.2 2011/11/09 18:44:00 joel Exp $
  */
 
 #ifndef _RTEMS_SCORE_COREMUTEX_H
@@ -71,7 +71,7 @@ typedef enum {
    */
   CORE_MUTEX_DISCIPLINES_PRIORITY_CEILING
 }   CORE_mutex_Disciplines;
-  
+
 /**
  *  @brief Mutex method return statuses
  *
@@ -178,7 +178,7 @@ typedef struct {
    *  be when attempting to acquire the mutex when it is already locked.
    */
   CORE_mutex_Nesting_behaviors lock_nesting_behavior;
-  /** When this field is TRUE, then only the thread that locked the mutex
+  /** When this field is true, then only the thread that locked the mutex
    *  is allowed to unlock it.
    */
   bool                         only_owner_release;
@@ -193,9 +193,9 @@ typedef struct {
 }   CORE_mutex_Attributes;
 
 #ifdef __RTEMS_STRICT_ORDER_MUTEX__
-/*@beief Core Mutex Lock_Chain Struct
+/*@brief Core Mutex Lock_Chain Struct
  *
- * The following defines the control block used to manage lock chain of 
+ * The following defines the control block used to manage lock chain of
  * priority inheritance mutex.
  */
   typedef struct{
@@ -245,7 +245,7 @@ typedef struct {
   /** This field is used to manipulate the priority inheritance mutex queue*/
   CORE_mutex_order_list   queue;
 #endif
-  
+
 }   CORE_mutex_Control;
 
 /**
@@ -271,7 +271,7 @@ CORE_mutex_Status _CORE_mutex_Initialize(
  *  @brief Seize Mutex with Quick Success Path
  *
  *  This routine attempts to receive a unit from the_mutex.
- *  If a unit is available or if the wait flag is FALSE, then the routine
+ *  If a unit is available or if the wait flag is false, then the routine
  *  returns.  Otherwise, the calling task is blocked until a unit becomes
  *  available.
  *
@@ -310,7 +310,7 @@ RTEMS_INLINE_ROUTINE int _CORE_mutex_Seize_interrupt_trylock_body(
   /**
    *  The default is to favor speed and inlining this definitely saves
    *  a few instructions.  This is very important for mutex performance.
-   *  
+   *
    *  @param[in] _mutex will attempt to lock
    *  @param[in] _level_p is the interrupt level holder
    */
@@ -342,23 +342,23 @@ void _CORE_mutex_Seize_interrupt_blocking(
  *
  *  @param[in] _the_mutex is the mutex to attempt to lock
  *  @param[in] _id is the Id of the owning API level Semaphore object
- *  @param[in] _wait is TRUE if the thread is willing to wait
+ *  @param[in] _wait is true if the thread is willing to wait
  *  @param[in] _timeout is the maximum number of ticks to block
  *  @param[in] _level is a temporary variable used to contain the ISR
  *         disable level cookie
  *
  *  @note If the mutex is called from an interrupt service routine,
  *        with context switching disabled, or before multitasking,
- *        then a fatal error is generated. 
+ *        then a fatal error is generated.
  *
  *  The logic on this routine is as follows:
  *
  *  * If incorrect system state
- *      return an error 
+ *      return an error
  *  * If mutex is available without any contention or blocking
  *      obtain it with interrupts disabled and returned
  *  * If the caller is willing to wait
- *      then they are blocked. 
+ *      then they are blocked.
  */
 
 #define _CORE_mutex_Seize_body( \
@@ -370,12 +370,12 @@ void _CORE_mutex_Seize_interrupt_blocking(
        ) { \
         _Internal_error_Occurred( \
            INTERNAL_ERROR_CORE, \
-           FALSE, \
+           false, \
            INTERNAL_ERROR_MUTEX_OBTAIN_FROM_BAD_STATE \
            ); \
     } \
-    if ( _CORE_mutex_Seize_interrupt_trylock( _the_mutex, &_level ) ) {  \
-      if ( !_wait ) { \
+    if ( _CORE_mutex_Seize_interrupt_trylock( _the_mutex, &(_level) ) ) {  \
+      if ( !(_wait) ) { \
         _ISR_Enable( _level ); \
         _Thread_Executing->Wait.return_code = \
           CORE_MUTEX_STATUS_UNSATISFIED_NOWAIT; \
@@ -395,7 +395,7 @@ void _CORE_mutex_Seize_interrupt_blocking(
  *
  *  @param[in] _the_mutex is the mutex to attempt to lock
  *  @param[in] _id is the Id of the owning API level Semaphore object
- *  @param[in] _wait is TRUE if the thread is willing to wait
+ *  @param[in] _wait is true if the thread is willing to wait
  *  @param[in] _timeout is the maximum number of ticks to block
  *  @param[in] _level is a temporary variable used to contain the ISR
  *         disable level cookie

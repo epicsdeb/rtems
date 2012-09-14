@@ -31,8 +31,12 @@
  */
 
 /*
- * $Id: raw_usrreq.c,v 1.7 2008/09/01 04:56:33 ralf Exp $
+ * $Id: raw_usrreq.c,v 1.9 2010/03/28 05:50:29 ralf Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <sys/param.h>
 #include <rtems/bsd/sys/queue.h>
@@ -42,7 +46,7 @@
 #include <sys/protosw.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
-#include <sys/errno.h>
+#include <errno.h>
 
 #include <net/if.h>
 #include <net/route.h>

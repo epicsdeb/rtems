@@ -7,7 +7,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: empty.c,v 1.8 2003/09/04 18:53:55 joel Exp $
+ *  $Id: empty.c,v 1.10 2009/10/26 07:40:22 ralf Exp $
  */
 
 #include "system.h"
@@ -30,11 +30,15 @@ rtems_asr Asr_handler(
 {
 }
 
-rtems_task task_func() {}
+rtems_task task_func(void)
+{
+}
 
-void null_func() {}
+void null_func(void)
+{
+}
 
-rtems_status_code Empty_directive()
+rtems_status_code Empty_directive(void)
 {
   return( RTEMS_SUCCESSFUL );
 }

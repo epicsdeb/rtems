@@ -8,36 +8,35 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: dormant.c,v 1.4 2004/04/15 13:22:06 ralf Exp $
+ *  $Id: dormant.c,v 1.7 2009/12/08 17:52:47 joel Exp $
  */
 
-#include <assert.h>
 #include "system.h"
 
-void Dormant_task()
+void Dormant_task(void)
 {
   puts( "DORMANT - ext_tsk - going to DORMANT state" );
   ext_tsk( );
 
   puts( "ERROR==>ext_tsk of DORMANT returned" );
-  assert(0);
+  rtems_test_assert(0);
 }
 
 
-void Non_Dormant_task()
+void Non_Dormant_task(void)
 {
   ER       status;
 
   while (TRUE) {
     puts( "NON-DORMANT - Sleep for 2 minutes" );
-    status = rtems_task_wake_after( 120*TICKS_PER_SECOND );
+    status = rtems_task_wake_after( 120*rtems_clock_get_ticks_per_second() );
     directive_failed( status, "rtems_task_wake_after" );
   }
 }

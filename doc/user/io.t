@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: io.t,v 1.24.2.1 2008/11/20 15:22:29 joel Exp $
+@c  $Id: io.t,v 1.25 2008/11/20 15:11:26 joel Exp $
 @c
 
 @chapter I/O Manager

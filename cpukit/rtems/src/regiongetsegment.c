@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regiongetsegment.c,v 1.11 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regiongetsegment.c,v 1.17 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -46,18 +46,18 @@
  */
 
 rtems_status_code rtems_region_get_segment(
-  Objects_Id         id,
-  uint32_t           size,
+  rtems_id           id,
+  uintptr_t          size,
   rtems_option       option_set,
   rtems_interval     timeout,
   void              **segment
 )
 {
-  Thread_Control          *executing;
-  Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
-  register Region_Control *the_region;
-  void                    *the_segment;
+  Thread_Control     *executing;
+  Objects_Locations   location;
+  rtems_status_code   return_status;
+  Region_Control     *the_region;
+  void               *the_segment;
 
   if ( !segment )
     return RTEMS_INVALID_ADDRESS;
@@ -88,13 +88,9 @@ rtems_status_code rtems_region_get_segment(
             the_region->number_of_used_blocks += 1;
             *segment = the_segment;
             return_status = RTEMS_SUCCESSFUL;
-          }
-
-          else if ( _Options_Is_no_wait( option_set ) ) {
+          } else if ( _Options_Is_no_wait( option_set ) ) {
             return_status = RTEMS_UNSATISFIED;
-          }
-
-          else {
+          } else {
             /*
              *  Switch from using the memory allocation mutex to using a
              *  dispatching disabled critical section.  We have to do this
@@ -125,6 +121,7 @@ rtems_status_code rtems_region_get_segment(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

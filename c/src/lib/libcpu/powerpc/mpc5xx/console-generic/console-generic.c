@@ -14,7 +14,7 @@
  *  MPC5xx port sponsored by Defence Research and Development Canada - Suffield
  *  Copyright (C) 2004, Real-Time Systems Inc. (querbach@realtime.bc.ca)
  *
- *  Derived from 
+ *  Derived from
  *    c/src/lib/libcpu/powerpc/mpc8xx/console_generic/console_generic.c:
  *  Author: Jay Monkman (jmonkman@frasca.com)
  *  Copyright (C) 1998 by Frasca International, Inc.
@@ -38,7 +38,7 @@
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: console-generic.c,v 1.7 2008/04/23 21:51:42 joel Exp $
+ *  $Id: console-generic.c,v 1.10 2010/04/28 17:17:59 joel Exp $
  */
 
 #include <stdlib.h>
@@ -49,7 +49,7 @@
 #include <rtems/bspIo.h>   /* for printk */
 #include <mpc5xx.h>
 #include <mpc5xx/console.h>
-#include <libcpu/irq.h>
+#include <bsp/irq.h>
 
 
 /*
@@ -84,15 +84,17 @@ static struct termios default_termios = {
   { 0 }					/* control characters */
 };
 
-  
+
+extern uint32_t bsp_clock_speed;
+
 /*
  * Termios callback functions
  */
 
 int
 m5xx_uart_firstOpen(
-  int major, 
-  int minor, 
+  int major,
+  int minor,
   void *arg
 )
 {
@@ -109,7 +111,7 @@ m5xx_uart_firstOpen(
 
 int
 m5xx_uart_lastClose(
-  int major, 
+  int major,
   int minor,
   void* arg
 )
@@ -129,7 +131,7 @@ m5xx_uart_pollRead(
 {
   volatile m5xxSCIRegisters_t *regs = sci_descs[minor].regs;
   int c = -1;
-  
+
   if ( regs ) {
     while ( (regs->scsr & QSMCM_SCI_RDRF) == 0 )
       ;
@@ -139,11 +141,10 @@ m5xx_uart_pollRead(
   return c;
 }
 
-int 
-m5xx_uart_write(
+ssize_t m5xx_uart_write(
   int minor,
   const char *buf,
-  int len
+  size_t len
 )
 {
   volatile m5xxSCIRegisters_t *regs = sci_descs[minor].regs;
@@ -153,24 +154,25 @@ m5xx_uart_write(
   return 0;
 }
 
-int
-m5xx_uart_pollWrite(
+ssize_t m5xx_uart_pollWrite(
   int minor,
   const char *buf,
-  int len
+  size_t len
 )
 {
   volatile m5xxSCIRegisters_t *regs = sci_descs[minor].regs;
+  size_t retval = len;
 
   while ( len-- ) {
     while ( (regs->scsr & QSMCM_SCI_TDRE) == 0 )
       ;
     regs->scdr = *buf++;
   }
-  return 0;
+
+  return retval;
 }
 
-int 
+int
 m5xx_uart_setAttributes(
   int minor,
   const struct termios *t
@@ -179,43 +181,20 @@ m5xx_uart_setAttributes(
   uint16_t sccr0 = sci_descs[minor].regs->sccr0;
   uint16_t sccr1 = sci_descs[minor].regs->sccr1;
   int baud;
-  
+
   /*
    * Check that port number is valid
    */
-  if ( (minor < SCI1_MINOR) || (minor > SCI2_MINOR) ) 
+  if ( (minor < SCI1_MINOR) || (minor > SCI2_MINOR) )
     return RTEMS_INVALID_NUMBER;
 
   /* Baud rate */
-  switch (t->c_cflag & CBAUD) {
-    default:      baud = -1;      break;
-    case B50:     baud = 50;      break;
-    case B75:     baud = 75;      break;
-    case B110:    baud = 110;     break;
-    case B134:    baud = 134;     break;
-    case B150:    baud = 150;     break;
-    case B200:    baud = 200;     break;
-    case B300:    baud = 300;     break;
-    case B600:    baud = 600;     break;
-    case B1200:   baud = 1200;    break;
-    case B1800:   baud = 1800;    break;
-    case B2400:   baud = 2400;    break;
-    case B4800:   baud = 4800;    break;
-    case B9600:   baud = 9600;    break;
-    case B19200:  baud = 19200;   break;
-    case B38400:  baud = 38400;   break;
-    case B57600:  baud = 57600;   break;
-    case B115200: baud = 115200;  break;
-    case B230400: baud = 230400;  break;
-    case B460800: baud = 460800;  break;
-  }
+  baud = rtems_termios_baud_to_number( t->c_cflag & CBAUD );
   if (baud > 0) {
-    extern uint32_t bsp_clock_speed;
     sccr0 &= ~QSMCM_SCI_BAUD(-1);
-    sccr0 |= 
-      QSMCM_SCI_BAUD((bsp_clock_speed + (16 * baud)) / (32 * baud));
+    sccr0 |= QSMCM_SCI_BAUD((bsp_clock_speed + (16 * baud)) / (32 * baud));
   }
-     
+
   /* Number of data bits -- not available with MPC5xx SCI */
   switch ( t->c_cflag & CSIZE ) {
     case CS5:     break;
@@ -236,7 +215,7 @@ m5xx_uart_setAttributes(
     sccr1 |= QSMCM_SCI_PE;
   else
     sccr1 &= ~QSMCM_SCI_PE;
-  
+
   if ( t->c_cflag & PARODD )
     sccr1 |= QSMCM_SCI_PT;
   else
@@ -248,29 +227,29 @@ m5xx_uart_setAttributes(
     sccr1 |= QSMCM_SCI_RE;
   else
     sccr1 &= ~QSMCM_SCI_RE;
-    
+
   /* Write hardware registers */
   sci_descs[minor].regs->sccr0 = sccr0;
   sci_descs[minor].regs->sccr1 = sccr1;
-  
+
   return RTEMS_SUCCESSFUL;
 }
 
 
-/* 
+/*
  * Interrupt handling.
  */
 static void
 m5xx_sci_interrupt_handler (rtems_irq_hdl_param unused)
 {
   int minor;
-  
+
   for ( minor = 0; minor < NUM_PORTS; minor++ ) {
     sci_desc *desc = &sci_descs[minor];
     int sccr1 = desc->regs->sccr1;
     int scsr = desc->regs->scsr;
-        
-    /* 
+
+    /*
      * Character received?
      */
     if ((sccr1 & QSMCM_SCI_RIE) && (scsr & QSMCM_SCI_RDRF)) {
@@ -306,14 +285,14 @@ m5xx_uart_initialize (int minor)
   /*
    * Check that minor number is valid.
    */
-  if ( (minor < SCI1_MINOR) || (minor > SCI2_MINOR) ) 
+  if ( (minor < SCI1_MINOR) || (minor > SCI2_MINOR) )
     return;
 
   /*
    * Configure and enable receiver and transmitter.
    */
   m5xx_uart_setAttributes(minor, &default_termios);
-   
+
   /*
    * Connect interrupt if not yet done.
    */
@@ -325,7 +304,7 @@ m5xx_uart_initialize (int minor)
     irq_data.on   = m5xx_sci_nop;	/* can't enable both channels here */
     irq_data.off  = m5xx_sci_nop;	/* can't disable both channels here */
     irq_data.isOn = m5xx_sci_isOn;
-    
+
     if (!CPU_install_rtems_irq_handler (&irq_data)) {
       printk("Unable to connect SCI Irq handler\n");
       rtems_fatal_error_occurred(1);

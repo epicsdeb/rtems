@@ -20,8 +20,8 @@ two paragraphs in the transferred software.
 COPYRIGHT IDT CORPORATION 1996
 LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 
-  $Id: start.S,v 1.1 2006/03/16 17:41:28 ralf Exp $
-*/ 
+  $Id: start.S,v 1.4 2010/04/24 21:45:43 joel Exp $
+*/
 
 /*************************************************************************
 **
@@ -35,12 +35,9 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 #include <rtems/mips/idtcpu.h>
 #include <rtems/asm.h>
 
-/* The following include file was deprecated */
-/* #include <idtmon.h>	*/
+	.extern	mon_flush_cache
 
-	.extern	mon_flush_cache		
-
-#if 0	
+#if 0
 	.extern _fdata,4		/* this is defined by the linker */
 	.extern _edata,4		/* this is defined by the linker */
 	.extern _idata,4		/* this is defined by the linker */
@@ -55,11 +52,11 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 #define HARD_CODED_MEM_SIZE	0x1000000	/* RBTX4938 has 16 megabytes of RAM */
 #define PMON_VECTOR 0xbfc00500
 
-#define TMP_STKSIZE  1024 
+#define TMP_STKSIZE  1024
 
 /*
-** P_STACKSIZE is the size of the Prom Stack. 
-** the prom stack grows downward 
+** P_STACKSIZE is the size of the Prom Stack.
+** the prom stack grows downward
 */
 #define	P_STACKSIZE	0x2000   /* sets stack size to 8k */
 
@@ -74,7 +71,7 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 **		c) Clear all IntMask Enables
 **		d) Set kernel/disabled mode
 **	2)  Initialize Cause Register
-**		a)  clear software interrupt bits       
+**		a)  clear software interrupt bits
 **	3)  Determine FPU installed or not
 **		if not, clear CoProcessor 1 usable bit
 **	4)  Initialize data areas. Clear bss area.
@@ -86,15 +83,15 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 **	9)  Flush Instruction and Data caches
 ** 	10)  If there is a Translation Lookaside Buffer, Clear the TLB
 ** 	11)  Execute initialization code if the IDT/c library is to be used
-** 
+**
 ** 	12)  Jump to user's "main()"
 ** 	13)  Jump to promexit
 **
-**	IDT/C 5.x defines _R3000, IDT/C 6.x defines _R4000 internally. 
+**	IDT/C 5.x defines _R3000, IDT/C 6.x defines _R4000 internally.
 **	This is used to mark code specific to R3xxx or R4xxx processors.
-**	IDT/C 6.x defines __mips to be the ISA level for which we're 
-**	generating code. This is used to make sure the stack etc. is 
-**	double word aligned, when using -mips3 (default) or -mips2, 
+**	IDT/C 6.x defines __mips to be the ISA level for which we're
+**	generating code. This is used to make sure the stack etc. is
+**	double word aligned, when using -mips3 (default) or -mips2,
 **	when compiling with IDT/C6.x
 **
 ***************************************************************************/
@@ -117,10 +114,10 @@ FRAME(start,sp,0,ra)
 	mtc0	v0,C0_CONFIG
 
 /*
-**	check to see if a fpu is really plugged in 
+**	check to see if a fpu is really plugged in
 */
 	li	t3,0xaaaa5555		/*  put a's and 5's in t3	*/
-	mtc1	t3,fp0			/* try to write them into fp0   */	
+	mtc1	t3,fp0			/* try to write them into fp0   */
 	mtc1	zero,fp1		/* try to write zero in fp	*/
 	mfc1	t0,fp0
 	mfc1	t1,fp1
@@ -138,7 +135,7 @@ FRAME(start,sp,0,ra)
 
 	mtc0	v0, C0_SR		/* reset status register */
 2:
-	la  	gp, _gp			/* Initialize gp register (pointer to "small" data)*/			
+	la  	gp, _gp			/* Initialize gp register (pointer to "small" data)*/
 
 #if 0
 					/* Initialize data sections from "rom" copy */
@@ -158,7 +155,7 @@ FRAME(start,sp,0,ra)
 	la	v1,end 			/* end of bss */
 4:	sw	zero,0(v0)
 	bltu	v0,v1,4b
-	add	v0,4 
+	add	v0,4
 
 
 /************************************************************************
@@ -171,7 +168,7 @@ FRAME(start,sp,0,ra)
 **
 *************************************************************************/
 	/* For MIPS 3, we need to be sure that the stack is aligned on a
-	 * double word boundary. 
+	 * double word boundary.
 	 */
 	andi	t0, v0, 0x7
 	beqz	t0, 11f   /* Last three bits Zero, already aligned */
@@ -183,16 +180,16 @@ FRAME(start,sp,0,ra)
 	add	v1, v0, TMP_STKSIZE 	/* end of bss + length of tmp stack */
 	sub	v1, v1, (4*4)		/* overhead */
 	move	sp, v1			/* set sp to top of stack */
-4:	sw	zero, 0(v0)  
+4:	sw	zero, 0(v0)
 	bltu	v0, v1, 4b		/* clear out temp stack */
-	add	v0, 4 
-	
-/* 	jal	init_exc_vecs */		/* install exception handlers */ 
+	add	v0, 4
+
+/* 	jal	init_exc_vecs */		/* install exception handlers */
 /*	nop */				/* MUST do before memory probes */
 
 					/* Force processor into uncached space during memory/cache probes */
 	la	v0, 5f
-	li	v1, K1BASE		
+	li	v1, K1BASE
 	or	v0, v1
 	j	v0
 	nop
@@ -214,7 +211,7 @@ FRAME(start,sp,0,ra)
 	move	v0, a0			/* mem_size */
 
 	/* For MIPS 3, we need to be sure that the stack (and hence v0
-	 * here) is aligned on a double word boundary. 
+	 * here) is aligned on a double word boundary.
 	 */
 	andi	t0, v0, 0x7
 	beqz	t0, 12f   /* Last three bits Zero, already aligned */
@@ -226,9 +223,9 @@ FRAME(start,sp,0,ra)
 
 /**************************************************************************
 **
-**  Permanent Stack - now know top of memory, put permanent stack there	
+**  Permanent Stack - now know top of memory, put permanent stack there
 **
-***************************************************************************/ 
+***************************************************************************/
 
 	la	t2, _fbss		/* cache mode as linked */
 	and	t2, 0xF0000000		/* isolate segment */
@@ -242,9 +239,9 @@ FRAME(start,sp,0,ra)
 	move	v1, v0
 	subu	v1, P_STACKSIZE 	/* clear requested stack size */
 
-7:	sw	zero, 0(v1)		/* clear P_STACKSIZE  stack */ 
+7:	sw	zero, 0(v1)		/* clear P_STACKSIZE  stack */
 	bltu	v1,v0,7b
-	add	v1, 4 
+	add	v1, 4
 
 
 /* Invalidate data cache*/
@@ -284,12 +281,12 @@ FRAME(start,sp,0,ra)
 2:	mtc0	t2, C0_CONFIG		/* set C0_Config */
 	nop
 
-/* Lock first 4k of PMON into instruction cache. This includes interrupt service code which 
+/* Lock first 4k of PMON into instruction cache. This includes interrupt service code which
  we don't want to run out of slow flash device. */
 
 	la	t0,0x9fc00000
 	li	t1, 0x1000
-	
+
 	move	t3, t0
 	addu	t1, t0, t1
 1:	bge	t0, t1, 2f
@@ -312,14 +309,13 @@ FRAME(start,sp,0,ra)
 
 /*
 ** Clear Translation Lookaside Buffer (TLB)
-*/ 
+*/
 	jal	init_tlb		/* clear the tlb */
 
 /*
 ** End of CPU initialization, ready to start kernel
 */
-	move	a0,zero		/* Set argc passed to main */
-	move	a1,zero		/* Set argv passed to main */
+	move	a0,zero		/* Set command line passed to boot_card */
 	jal	boot_card
 	nop
 
@@ -330,7 +326,7 @@ FRAME(start,sp,0,ra)
 1:
 	beq	zero,zero,1b
 	nop
-	
+
 ENDFRAME(start)
 
 /*
@@ -348,7 +344,7 @@ FRAME(_sys_exit,sp,0,ra)
 13:
 	b	13b				# but loop back just in-case
 	nop
-	
+
 ENDFRAME(_sys_exit)
 
 

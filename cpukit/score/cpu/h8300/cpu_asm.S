@@ -3,31 +3,38 @@
  *   Copyright Comnet Technologies Ltd 1999
  *
  *  Based on example code and other ports with this copyright:
- *  
+ *
  *  COPYRIGHT (c) 1989-1999.
  *  On-Line Applications Research Corporation (OAR).
- *  
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
- *  
- *  $Id: cpu_asm.S,v 1.6.6.1 2009/03/12 14:19:37 joel Exp $
+ *
+ *  $Id: cpu_asm.S,v 1.11 2010/03/27 15:01:35 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 
 ;.equ	RUNCONTEXT_ARG,	 er0
 ;.equ	HEIRCONTEXT_ARG, er1
 	
-/*      
+/*
  *  Make sure we tell the assembler what type of CPU model we are
  *  being compiled for.
- */ 
+ */
 
 #if defined(__H8300H__)
         .h8300h
 #endif
-#if defined(__H8300S__) 
+#if defined(__H8300S__)
         .h8300s
+#endif
+#if defined(__H8300SX__)
+        .h8300sx
 #endif
         .text
 
@@ -48,7 +55,7 @@
 
 __CPU_Context_switch:
 	/* Save Context */
-#if defined(__H8300H__) || defined(__H8300S__)
+#if defined(__H8300H__) || defined(__H8300S__) || defined(__H8300SX__)
 	stc.w	ccr,@(0:16,er0)
 	mov.l	er7,@(2:16,er0)
 	mov.l	er6,@(6:16,er0)
@@ -77,7 +84,7 @@ restore:
 
 __CPU_Context_restore:
 	
-#if defined(__H8300H__) || defined(__H8300S__)
+#if defined(__H8300H__) || defined(__H8300S__) || defined(__H8300SX__)
 	mov.l	er0,er1
 	jmp		@restore:24
 #endif
@@ -100,7 +107,7 @@ __CPU_Context_restore:
 
 	
 __ISR_Handler:
-#if defined(__H8300H__) || defined(__H8300S__)
+#if defined(__H8300H__) || defined(__H8300S__) || defined(__H8300SX__)
 	mov.l	er1,@-er7
 	mov.l	er2,@-er7
 	mov.l	er3,@-er7
@@ -118,7 +125,7 @@ __ISR_Handler:
 nested:
 	mov.l	er6,@-er7	; save sp so pop regardless of nest level
 	
-;; Inc  system counters 
+;; Inc  system counters
 	mov.l	@__ISR_Nest_level,er1
 	inc.l	#1,er1
 	mov.l	er1,@__ISR_Nest_level
@@ -197,7 +204,7 @@ exit:
 
 _ISR_Dispatch:
 	
-#if defined(__H8300H__) || defined(__H8300S__)
+#if defined(__H8300H__) || defined(__H8300S__) || defined(__H8300SX__)
 	jsr		@__Thread_Dispatch
 	mov		@er7+,er6
 	mov		@er7+,er5

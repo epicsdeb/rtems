@@ -7,14 +7,14 @@
  *  at system shutdown unless special arrangements to copy the data to
  *  some type of non-volailte storage are made by the application.
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: memfile.c,v 1.27.2.1 2009/03/09 14:12:58 joel Exp $
+ *  $Id: memfile.c,v 1.32.2.1 2010/08/27 17:43:18 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -214,9 +214,9 @@ int memfile_ioctl(
  *  This routine processes the lseek() system call.
  */
 
-off_t memfile_lseek(
+rtems_off64_t memfile_lseek(
   rtems_libio_t   *iop,
-  off_t            offset,
+  rtems_off64_t    offset,
   int              whence
 )
 {
@@ -251,7 +251,7 @@ off_t memfile_lseek(
 
 int memfile_ftruncate(
   rtems_libio_t        *iop,
-  off_t                 length
+  rtems_off64_t         length
 )
 {
   IMFS_jnode_t   *the_jnode;
@@ -399,14 +399,16 @@ MEMFILE_STATIC int IMFS_memfile_remove_block(
    unsigned int   block
 )
 {
-  block_p *block_entry_ptr;
+  block_p *block_ptr;
   block_p  ptr;
 
-  block_entry_ptr = IMFS_memfile_get_block_pointer( the_jnode, block, 0 );
-  ptr = *block_entry_ptr;
-  *block_entry_ptr = 0;
-
-  memfile_free_block( ptr );
+  block_ptr = IMFS_memfile_get_block_pointer( the_jnode, block, 0 );
+  assert( block_ptr );
+  if ( block_ptr ) {
+    ptr = *block_ptr;
+    *block_ptr = 0;
+    memfile_free_block( ptr );
+  }
 
   return 1;
 }
@@ -844,7 +846,7 @@ fprintf(stdout, "write %d in %d: %*s\n", to_copy, block, to_copy, src );
     copied += to_copy;
   }
 
-  IMFS_atime_mtime_update( the_jnode );
+  IMFS_mtime_ctime_update( the_jnode );
 
   return copied;
 }
@@ -1046,7 +1048,7 @@ fflush(stdout);
       return 0;
 
     p2 = (block_p *)p1[ doubly ];
-    if ( !p )
+    if ( !p2 )
       return 0;
 
     return (block_p *)&p2[ singly ];
@@ -1105,7 +1107,8 @@ fflush(stdout);
  */
 
 int memfile_rmnod(
-  rtems_filesystem_location_info_t      *pathloc       /* IN */
+  rtems_filesystem_location_info_t  *parent_pathloc,  /* IN */
+  rtems_filesystem_location_info_t  *pathloc          /* IN */
 )
 {
   IMFS_jnode_t *the_jnode;

@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: aio_suspend.c,v 1.1.2.1 2009/01/02 09:53:09 ralf Exp $
+ *  $Id: aio_suspend.c,v 1.3 2009/01/02 10:04:23 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -22,9 +22,9 @@
 #include <rtems/seterr.h>
 
 int aio_suspend(
-  const struct aiocb  * const list[],
-  int                     nent,
-  const struct timespec  *timeout
+  const struct aiocb  * const list[] __attribute__((unused)),
+  int                     nent __attribute__((unused)),
+  const struct timespec  *timeout __attribute__((unused))
 )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );

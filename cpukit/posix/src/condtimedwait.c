@@ -1,5 +1,5 @@
 /*
- *  $Id: condtimedwait.c,v 1.6 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: condtimedwait.c,v 1.8 2009/05/03 23:10:02 joel Exp $
  */
 
 /*
@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: condtimedwait.c,v 1.6 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: condtimedwait.c,v 1.8 2009/05/03 23:10:02 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -56,10 +56,11 @@ int pthread_cond_timedwait(
       return EINVAL;
     case POSIX_ABSOLUTE_TIMEOUT_IS_IN_PAST:
     case POSIX_ABSOLUTE_TIMEOUT_IS_NOW:
-      already_timedout = TRUE;
+      already_timedout = true;
       break;
     case POSIX_ABSOLUTE_TIMEOUT_IS_IN_FUTURE:
-      already_timedout = FALSE;
+    default:  /* only to silence warnings */
+      already_timedout = false;
       break;
   }
 

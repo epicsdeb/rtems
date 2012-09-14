@@ -3,14 +3,14 @@
  *
  *  NOTE:
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: rtemsapi.c,v 1.16 2007/05/21 23:19:20 joel Exp $
+ *  $Id: rtemsapi.c,v 1.18 2008/12/17 20:21:40 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -54,47 +54,29 @@ Objects_Information *_RTEMS_Objects[ OBJECTS_RTEMS_CLASSES_LAST + 1 ];
  *  XXX
  */
 
-void _RTEMS_API_Initialize(
-  rtems_configuration_table *configuration_table
-)
+void _RTEMS_API_Initialize(void)
 {
-  rtems_api_configuration_table *api_configuration;
-
-  api_configuration = configuration_table->RTEMS_api_configuration;
-
+  /*
+   * Install our API Object Management Table and initialize the
+   * various managers.
+   */
   _Objects_Information_table[OBJECTS_CLASSIC_API] = _RTEMS_Objects;
 
-  _Attributes_Handler_initialization();
+  #if defined(RTEMS_MULTIPROCESSING)
+    _Multiprocessing_Manager_initialization();
+  #endif
 
-  _Interrupt_Manager_initialization();
-
-#if defined(RTEMS_MULTIPROCESSING)
-  _Multiprocessing_Manager_initialization();
-#endif
-
-  _RTEMS_tasks_Manager_initialization( api_configuration->maximum_tasks );
-
-  _Timer_Manager_initialization( api_configuration->maximum_timers );
-
+  _RTEMS_tasks_Manager_initialization();
+  _Timer_Manager_initialization();
   _Signal_Manager_initialization();
-
   _Event_Manager_initialization();
-
-  _Message_queue_Manager_initialization(
-    api_configuration->maximum_message_queues
-  );
-
-  _Semaphore_Manager_initialization( api_configuration->maximum_semaphores );
-
-  _Partition_Manager_initialization( api_configuration->maximum_partitions );
-
-  _Region_Manager_initialization( api_configuration->maximum_regions );
-
-  _Dual_ported_memory_Manager_initialization( api_configuration->maximum_ports);
-
-  _Rate_monotonic_Manager_initialization( api_configuration->maximum_periods );
-
-  _Barrier_Manager_initialization( api_configuration->maximum_barriers );
+  _Message_queue_Manager_initialization();
+  _Semaphore_Manager_initialization();
+  _Partition_Manager_initialization();
+  _Region_Manager_initialization();
+  _Dual_ported_memory_Manager_initialization();
+  _Rate_monotonic_Manager_initialization();
+  _Barrier_Manager_initialization();
 }
 
 /* end of file */

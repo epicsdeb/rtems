@@ -16,7 +16,7 @@
  *  Modified to support the MPC750.
  *  Modifications Copyright (c) 1999 Eric Valette valette@crf.canon.fr
  *
- *  $Id: c_clock.c,v 1.22 2008/09/05 22:06:53 joel Exp $
+ *  $Id: c_clock.c,v 1.24 2009/11/30 05:07:54 ralf Exp $
  */
 
 #include <rtems/system.h>
@@ -28,6 +28,7 @@
 #include <libcpu/cpuIdent.h>
 #include <libcpu/spr.h>
 #include <rtems/bspIo.h>                /* for printk() */
+#include <libcpu/powerpc-utility.h>
 
 #include <bspopts.h>   /* for CLOCK_DRIVER_USE_FAST_IDLE */
 
@@ -53,7 +54,7 @@ uint32_t   Clock_Decrementer_value;
 /*
  * These are set by clock driver during its init
  */
- 
+
 rtems_device_major_number rtems_clock_major = ~0;
 rtems_device_minor_number rtems_clock_minor;
 
@@ -213,12 +214,12 @@ void Clock_exit( void )
 {
   (void) BSP_disconnect_clock_handler ();
 }
- 
+
 uint32_t Clock_driver_nanoseconds_since_last_tick(void)
 {
   uint32_t clicks, tmp;
 
-  PPC_Get_decrementer( clicks ); 
+  PPC_Get_decrementer( clicks );
 
   /*
    * Multiply by 1000 here separately from below so we do not overflow
@@ -256,7 +257,7 @@ rtems_interrupt_level l,tcr;
   Clock_Decrementer_value = (BSP_bus_frequency/BSP_time_base_divisor)*
             (rtems_configuration_get_microseconds_per_tick()/1000);
 
-  /* set the decrementer now, prior to installing the handler 
+  /* set the decrementer now, prior to installing the handler
    * so no interrupts will happen in a while.
    */
   PPC_Set_decrementer( (unsigned)-1 );
@@ -297,7 +298,7 @@ rtems_interrupt_level l,tcr;
     rtems_fatal_error_occurred(1);
   }
   /* make major/minor avail to others such as shared memory driver */
- 
+
   rtems_clock_major = major;
   rtems_clock_minor = minor;
 

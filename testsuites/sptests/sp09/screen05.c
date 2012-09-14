@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen05.c,v 1.15.2.1 2009/03/02 16:13:08 joel Exp $
+ *  $Id: screen05.c,v 1.19 2009/11/30 03:33:24 ralf Exp $
  */
 
 #include "system.h"
@@ -22,6 +22,7 @@ void Screen5()
 {
   rtems_status_code status;
 
+  /* invalid name */
   status = rtems_semaphore_create(
     0,
     1,
@@ -36,6 +37,22 @@ void Screen5()
   );
   puts( "TA1 - rtems_semaphore_create - RTEMS_INVALID_NAME" );
 
+  /* NULL Id parameter */
+  status = rtems_semaphore_create(
+    Semaphore_name[ 1 ],
+    1,
+    RTEMS_DEFAULT_ATTRIBUTES,
+    RTEMS_NO_PRIORITY,
+    NULL
+  );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_semaphore_create with NULL param"
+  );
+  puts( "TA1 - rtems_semaphore_create - RTEMS_INVALID_ADDRESS" );
+
+  /* OK */
   status = rtems_semaphore_create(
     Semaphore_name[ 1 ],
     1,
@@ -104,7 +121,7 @@ void Screen5()
   status = rtems_semaphore_create(
     Semaphore_name[ 1 ],
     1,
-    RTEMS_INHERIT_PRIORITY | RTEMS_PRIORITY_CEILING | 
+    RTEMS_INHERIT_PRIORITY | RTEMS_PRIORITY_CEILING |
       RTEMS_BINARY_SEMAPHORE | RTEMS_PRIORITY,
     10,
     &Junk_id
@@ -174,7 +191,7 @@ void Screen5()
   );
   puts( "TA1 - rtems_semaphore_delete - RTEMS_INVALID_ID" );
 
-  status = rtems_semaphore_delete( 0x010100 );
+  status = rtems_semaphore_delete( rtems_build_id( 1, 0, 0, 0 ) );
   fatal_directive_status(
     status,
     RTEMS_INVALID_ID,

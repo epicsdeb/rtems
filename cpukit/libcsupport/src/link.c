@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: link.c,v 1.15 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: link.c,v 1.17 2009/09/15 09:29:55 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -37,7 +37,8 @@ int link(
    * Get the node we are linking to.
    */
 
-  result = rtems_filesystem_evaluate_path( existing, 0, &existing_loc, true );
+  result = rtems_filesystem_evaluate_path( existing, strlen( existing ),
+                                           0, &existing_loc, true );
   if ( result != 0 )
      return -1;
 
@@ -94,7 +95,7 @@ int link(
 #include <reent.h>
 
 int _link_r(
-  struct _reent *ptr,
+  struct _reent *ptr __attribute__((unused)),
   const char    *existing,
   const char    *new
 )

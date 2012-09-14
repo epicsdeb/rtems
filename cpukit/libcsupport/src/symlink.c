@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: symlink.c,v 1.11 2004/04/15 13:24:45 ralf Exp $
+ *  $Id: symlink.c,v 1.12 2009/03/30 17:05:23 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -29,6 +29,11 @@ int symlink(
   int                                 result;
 
   rtems_filesystem_get_start_loc( sympath, &i, &loc );
+
+  if ( !loc.ops->evalformake_h ) {
+    rtems_set_errno_and_return_minus_one( ENOTSUP );
+  }
+
   result = (*loc.ops->evalformake_h)( &sympath[i], &loc, &name_start );
   if ( result != 0 )
     return -1;

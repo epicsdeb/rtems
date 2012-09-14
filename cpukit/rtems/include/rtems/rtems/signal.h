@@ -18,14 +18,16 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: signal.h,v 1.16 2008/04/18 20:08:08 joel Exp $
+ *  $Id: signal.h,v 1.18 2009/12/15 18:26:41 humph Exp $
  */
 
 #ifndef _RTEMS_RTEMS_SIGNAL_H
 #define _RTEMS_RTEMS_SIGNAL_H
 
 /**
- *  @defgroup ClassicSignal Classic API Signal
+ *  @defgroup ClassicSignal Signals
+ *
+ *  @ingroup ClassicRTEMS
  *
  *  This encapsulates functionality which XXX
  */
@@ -67,7 +69,7 @@ rtems_status_code rtems_signal_catch(
  *  sends the signal_set to the task specified by ID.
  */
 rtems_status_code rtems_signal_send(
-  Objects_Id             id,
+  rtems_id         id,
   rtems_signal_set signal_set
 );
 

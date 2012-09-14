@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_debug.c,v 1.13 2008/07/03 01:37:38 ccj Exp $
+ *  $Id: imfs_debug.c,v 1.14 2008/10/14 15:06:25 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -95,6 +95,11 @@ void IMFS_print_jnode(
 
     case IMFS_SYM_LINK:
       fprintf(stdout, " links not printed\n" );
+      assert(0);
+      break;
+
+    case IMFS_FIFO:
+      fprintf(stdout, " FIFO not printed\n" );
       assert(0);
       break;
 

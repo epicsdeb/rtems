@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: act_cyc.c,v 1.1 2007/04/17 20:32:12 joel Exp $
+ *  $Id: act_cyc.c,v 1.2 2009/01/01 15:13:07 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -25,7 +25,7 @@
  */
 
 ER act_cyc(
-  HNO   cycno,
+  HNO   cycno __attribute__((unused)),
   UINT  cycact
 )
 {

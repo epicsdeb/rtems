@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: tqdata.inl,v 1.23 2008/09/04 17:38:26 ralf Exp $
+ *  $Id: tqdata.inl,v 1.24 2008/12/22 09:22:17 ralf Exp $
  */
 
 #ifndef _RTEMS_SCORE_TQDATA_H
@@ -41,9 +41,9 @@ RTEMS_INLINE_ROUTINE uint32_t   _Thread_queue_Header_number (
 }
 
 /**
- *  This function returns TRUE if the_priority indicates that the
+ *  This function returns true if the_priority indicates that the
  *  enqueue search should start at the front of this priority
- *  group chain, and FALSE if the search should start at the rear.
+ *  group chain, and false if the search should start at the rear.
  */
 
 RTEMS_INLINE_ROUTINE bool _Thread_queue_Is_reverse_search (

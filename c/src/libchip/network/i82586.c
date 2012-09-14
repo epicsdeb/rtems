@@ -173,6 +173,15 @@ Mode of operation:
 #include "i82586reg.h"
 #include "i82586var.h"
 
+#if defined(ALIGNBYTES) && defined(ALIGN)
+/* FIXME: Redefine because some versions of 
+ * RTEMS newlib and the BSDs ship a broken ALIGN */
+#undef ALIGN
+#define ALIGN(p)	(((uintptr_t)(p) + ALIGNBYTES) & ~ALIGNBYTES)
+#else
+#define ALIGN(p)	(p)
+#endif
+
 /*
  * A global way to change all async cmd requests at once. For RTEMS and running
  * as tasks I wanted to see if the tx race condition is effected by this.
@@ -228,7 +237,7 @@ static void print_rbd (struct ie_softc *, int);
 #define min(l,r) ((l) < (r) ? (l) : (r))
 #define max(l,r) ((l) > (r) ? (l) : (r))
 
-#define delay(p) rtems_task_wake_after (TOD_MICROSECONDS_TO_TICKS (p))
+#define delay(p) rtems_task_wake_after (RTEMS_MICROSECONDS_TO_TICKS (p))
 
 #define i82586_WAKE_EVENT RTEMS_EVENT_1
 #define i82586_TX_EVENT   RTEMS_EVENT_2
@@ -246,7 +255,7 @@ char *bitmask_snprintf(unsigned long value, const char *format, char *buf, int b
   while (*format)
   {
     if (value & 0x80000000)
-      while (isalnum(*format))
+      while (isalnum((unsigned char)*format))
         *b++ = *format;
     else
       *b++ = '0';
@@ -1508,7 +1517,7 @@ setup_simple_command(struct ie_softc *sc, int cmd, int cmdbuf)
 static void
 ie_run_tdr(struct ie_softc *sc, int cmd)
 {
-  int result;
+  uint32_t result;
 
   setup_simple_command(sc, IE_CMD_TDR, cmd);
   sc->ie_bus_write16(sc, IE_CMD_TDR_TIME(cmd), 0);
@@ -1530,13 +1539,13 @@ ie_run_tdr(struct ie_softc *sc, int cmd)
   else if (result & IE_TDR_XCVR)
     printf("%s: transceiver problem\n", sc->arpcom.ac_if.if_name);
   else if (result & IE_TDR_OPEN)
-    printf("%s: TDR detected incorrect termination %d clocks away\n",
+    printf("%s: TDR detected incorrect termination %" PRId32 " clocks away\n",
            sc->arpcom.ac_if.if_name, result & IE_TDR_TIME);
   else if (result & IE_TDR_SHORT)
-    printf("%s: TDR detected a short circuit %d clocks away\n",
+    printf("%s: TDR detected a short circuit %" PRId32 " clocks away\n",
            sc->arpcom.ac_if.if_name, result & IE_TDR_TIME);
   else
-    printf("%s: TDR returned unknown status 0x%x\n",
+    printf("%s: TDR returned unknown status 0x%" PRIx32 "\n",
            sc->arpcom.ac_if.if_name, result);
 }
 
@@ -1719,7 +1728,7 @@ ie_cfg_setup(struct ie_softc *sc, int cmd, int promiscuous, int manchester)
   *IE_CMD_CFG_IFS(buf)       = 0x60;
   *IE_CMD_CFG_SLOT_LOW(buf)  = 0;
   *IE_CMD_CFG_SLOT_HIGH(buf) = 0xf2;
-  *IE_CMD_CFG_PROMISC(buf)   = !!promiscuous | manchester << 2;
+  *IE_CMD_CFG_PROMISC(buf)   = (!!promiscuous) | (manchester << 2);
   *IE_CMD_CFG_CRSCDT(buf)    = 0;
   *IE_CMD_CFG_MINLEN(buf)    = 64;
   *IE_CMD_CFG_JUNK(buf)      = 0xff;

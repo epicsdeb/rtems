@@ -8,19 +8,19 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: _free_r.c,v 1.1 2007/12/18 20:36:40 joel Exp $
+ *  $Id: _free_r.c,v 1.3 2009/09/30 05:15:00 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifdef RTEMS_NEWLIB
+#if defined(RTEMS_NEWLIB) && !defined(HAVE__FREE_R)
 #include <sys/reent.h>
 #include <stdlib.h>
 
 void _free_r(
-  struct _reent *ignored,
+  struct _reent *ignored __attribute__((unused)),
   void          *ptr
 )
 {

@@ -1,3 +1,63 @@
+2011-02-02	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Require autoconf-2.68, automake-1.11.1.
+
+2009-10-30	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* mp03/task1.c, mp10/init.c, mp13/task1.c: Use
+	rtems_clock_get_ticks_per_second() instead of the obsoleted
+	TICKS_PER_SECOND.
+
+2009-10-30	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* mp01/init.c, mp02/init.c, mp02/task1.c, mp03/init.c,
+	mp04/init.c, mp05/init.c, mp06/init.c, mp07/init.c,
+	mp08/init.c, mp09/init.c, mp09/task1.c, mp10/init.c,
+	mp11/init.c, mp12/init.c, mp13/init.c, mp14/init.c:
+	Use PRI*32 to print uint32_ts.
+	* mp04/task1.c: Include "tmacros.h".
+	Use PRIxrtems_task_priority to print rtems_task_prioritys.
+	Use PRI*32 to print uint32_ts.
+	* mp05/asr.c: Include "tmacros.h". 
+	Use PRIxrtems_signal_set to print rtems_signal_set's.
+
+2009-10-20	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* configure.ac: Don't add -ansi -fasm to CFLAGS.
+
+2009-08-12	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* mp01/task1.c, mp02/task1.c, mp03/task1.c, mp05/task1.c, mp06/task1.c,
+	mp07/task1.c, mp08/task1.c, mp09/recvmsg.c, mp09/sendmsg.c,
+	mp09/task1.c, mp10/init.c, mp12/init.c, mp13/init.c, mp13/task1.c,
+	mp13/task2.c, mp14/evtask1.c, mp14/init.c: Eliminate test routines
+	TICKS_PER_SECOND and get_ticks_per_second() in favor of new
+	rtems_clock_get_ticks_per_second().
+
+2009-08-10	Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* mp01/task1.c, mp01/node1/mp01-node1.scn, mp01/node2/mp01-node2.scn:
+	Convert calls to legacy routine rtems_clock_get( RTEMS_CLOCK_GET_TOD,
+	..) to rtems_clock_get_tod(..).
+
+2009-04-03	Ralf Corsépius <ralf.corsepius@rtems.org>
+
+	* mp01/node1/Makefile.am, mp01/node2/Makefile.am,
+	mp02/node1/Makefile.am, mp02/node2/Makefile.am,
+	mp03/node1/Makefile.am, mp03/node2/Makefile.am,
+	mp04/node1/Makefile.am, mp04/node2/Makefile.am,
+	mp05/node1/Makefile.am, mp05/node2/Makefile.am,
+	mp06/node1/Makefile.am, mp06/node2/Makefile.am,
+	mp07/node1/Makefile.am, mp07/node2/Makefile.am,
+	mp08/node1/Makefile.am, mp08/node2/Makefile.am,
+	mp09/node1/Makefile.am, mp09/node2/Makefile.am,
+	mp10/node1/Makefile.am, mp10/node2/Makefile.am,
+	mp11/node1/Makefile.am, mp11/node2/Makefile.am,
+	mp12/node1/Makefile.am, mp12/node2/Makefile.am,
+	mp13/node1/Makefile.am, mp13/node2/Makefile.am,
+	mp14/node1/Makefile.am, mp14/node2/Makefile.am:
+	Eliminate _exe_/.exe.
+
 2008-09-08	Joel Sherrill <joel.sherrill@oarcorp.com>
 
 	* mp09/recvmsg.c, mp09/task1.c, mp10/task1.c, mp13/task1.c,

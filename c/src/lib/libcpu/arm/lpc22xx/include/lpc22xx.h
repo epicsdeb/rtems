@@ -2,18 +2,18 @@
  * Philips LPC22XX/LPC21xx Register definitions
  *
  * Copyright (c) 2006 by Ray <rayx.cn@gmail.com>
- *	
+ *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: lpc22xx.h,v 1.3 2007/05/01 19:16:04 joel Exp $
+ *  $Id: lpc22xx.h,v 1.5 2009/11/30 04:59:43 ralf Exp $
  */
 #ifndef __LPC22XX_H__
 #define __LPC22XX_H__
 
-#include <rtems/stdint.h>
+#include <stdint.h>
 
 /* EXTERNAL MEMORY CONTROLLER (EMC) */
 #define BCFG0           (*((volatile unsigned int *) 0xFFE00000))       /* lpc22xx only */
@@ -318,7 +318,7 @@
 #define CAN5TDA3        (*((volatile unsigned long *) 0xE0054058))      /* lpc2119\lpc2129\lpc2292\lpc2294 only */
 #define CAN5TDB3        (*((volatile unsigned long *) 0xE005405C))      /* lpc2119\lpc2129\lpc2292\lpc2294 only */
 
-#ifdef CONFIG_ARCH_LPC22xx 
+#ifdef CONFIG_ARCH_LPC22xx
 #define CAN6MOD         (*((volatile unsigned long *) 0xE0058000))      /* lpc2292\lpc2294 only */
 #define CAN6CMR         (*((volatile unsigned long *) 0xE0058004))      /* lpc2292\lpc2294 only */
 #define CAN6GSR         (*((volatile unsigned long *) 0xE0058008))      /* lpc2292\lpc2294 only */
@@ -455,7 +455,7 @@
 
 /*
 	Register define for constant
-*/	
+*/
 #define	REG_U0RBR				0xE000C000
 #define REG_U1RBR				0xE0010000
 

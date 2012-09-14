@@ -130,6 +130,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <termios.h>
+#include <rtems/termiostypes.h>
 #include <bsp.h>                /* Must be before libio.h */
 #include <rtems/libio.h>
 
@@ -152,10 +153,10 @@ int cd2401_lastClose( int major, int minor, void *arg );
 int cd2401_setAttributes( int minor, const struct termios *t );
 int cd2401_startRemoteTx( int minor );
 int cd2401_stopRemoteTx( int minor );
-int cd2401_write( int minor, const char *buf, int len );
+ssize_t cd2401_write( int minor, const char *buf, size_t len );
 int cd2401_drainOutput( int minor );
 int _167Bug_pollRead( int minor );
-int _167Bug_pollWrite( int minor, const char *buf, int len );
+ssize_t _167Bug_pollWrite( int minor, const char *buf, size_t len );
 
 /* Printk function */
 static void _BSP_output_char( char c );
@@ -229,12 +230,12 @@ rtems_isr_entry Prev_modem_isr;     /* Previous modem/timer isr */
   unsigned long i = 20000;  /* In case clock is off */
   rtems_interval ticks_per_second, start_ticks, end_ticks, current_ticks;
 
-  rtems_clock_get( RTEMS_CLOCK_GET_TICKS_PER_SECOND, &ticks_per_second );
-  rtems_clock_get( RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &start_ticks );
+  ticks_per_second = rtems_clock_get_ticks_per_second();
+  start_ticks = rtems_clock_get_ticks_since_boot();
   end_ticks = start_ticks + delay;
 
   do {
-    rtems_clock_get(RTEMS_CLOCK_GET_TICKS_SINCE_BOOT, &current_ticks);
+    current_ticks = rtems_clock_get_ticks_since_boot();
   } while ( --i && (current_ticks <= end_ticks) );
 
   CD2401_RECORD_DELAY_INFO(( start_ticks, end_ticks, current_ticks, i ));
@@ -825,8 +826,8 @@ int cd2401_setAttributes(
   /* Determine what the line parameters should be */
 
   /* baud rates */
-  out_baud = termios_baud_to_number(t->c_cflag & CBAUD);
-  in_baud  = termios_baud_to_number(t->c_cflag & CBAUD);
+  out_baud = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
+  in_baud  = rtems_termios_baud_to_number(t->c_cflag & CBAUD);
 
   /* Number of bits per char */
   csize = 0x07; /* to avoid a warning */
@@ -1133,10 +1134,10 @@ int cd2401_stopRemoteTx(
  *  console_write(). The processor is necessarily at interrupt level 1 in
  *  cd2401_tx_isr().
  */
-int cd2401_write(
+ssize_t cd2401_write(
   int minor,
   const char *buf,
-  int len
+  size_t len
 )
 {
   cd2401->car = minor;              /* Select channel */
@@ -1172,7 +1173,7 @@ int cd2401_write(
   cd2401->ier |= 0x01;
 
   /* Return something */
-  return RTEMS_SUCCESSFUL;
+  return len;
 }
 
 #if 0
@@ -1286,10 +1287,10 @@ int _167Bug_pollRead(
  *
  *  CANNOT BE COMBINED WITH INTERRUPT DRIVEN I/O!
  */
-int _167Bug_pollWrite(
+ssize_t _167Bug_pollWrite(
   int minor,
   const char *buf,
-  int len
+  size_t len
 )
 {
   const char *endbuf = buf + len;
@@ -1303,7 +1304,7 @@ int _167Bug_pollWrite(
     :: "a" (endbuf), "a" (buf), "d" (minor) );
 
   /* Return something */
-  return RTEMS_SUCCESSFUL;
+  return len;
 }
 
 /*

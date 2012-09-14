@@ -1,5 +1,12 @@
 /*
- *  $Id: getuid.c,v 1.2 2004/04/18 06:05:34 ralf Exp $
+ *  COPYRIGHT (c) 1989-2010.
+ *  On-Line Applications Research Corporation (OAR).
+ *
+ *  The license and distribution terms for this file may be
+ *  found in the file LICENSE in this distribution or at
+ *  http://www.rtems.com/license/LICENSE.
+ *
+ *  $Id: getuid.c,v 1.2.8.1 2011/05/25 14:17:51 ralf Exp $
  */
 
 #if HAVE_CONFIG_H

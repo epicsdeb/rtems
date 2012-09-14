@@ -1,11 +1,12 @@
 ##
-## $Id: Makefile.am,v 1.13.2.1 2008/09/29 01:47:53 ralf Exp $
+## $Id: Makefile.am,v 1.21 2008/10/02 16:38:50 joel Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am
-include $(top_srcdir)/../../bsp.am
+
+include_bspdir = $(includedir)/bsp
 
 dist_project_lib_DATA = bsp_specs
 
@@ -13,28 +14,31 @@ include_HEADERS = include/bsp.h
 include_HEADERS += include/tm27.h
 
 nodist_include_HEADERS = include/bspopts.h
+nodist_include_bsp_HEADERS = ../../shared/include/bootcard.h
 DISTCLEANFILES = include/bspopts.h
 
-include_bspdir = $(includedir)/bsp
-
-include_HEADERS += include/coverhd.h
+include_HEADERS += ../../shared/include/coverhd.h
 include_bsp_HEADERS = irq/irq.h
 
 EXTRA_DIST = times
 
 dist_project_lib_DATA += startup/linkcmds
 
-pclock_SOURCES = clock/p_clock.c
-console_SOURCES = console/console.c
-startup_SOURCES = ../../shared/bspclean.c ../../shared/bsplibc.c \
+noinst_LIBRARIES = libbsp.a
+libbsp_a_SOURCES =
+
+# pclock
+libbsp_a_SOURCES += clock/p_clock.c
+# console
+libbsp_a_SOURCES += console/console.c
+# startup
+libbsp_a_SOURCES += ../../shared/bspclean.c ../../shared/bsplibc.c \
     ../../shared/bsppost.c ../../shared/bsppredriverhook.c \
     startup/bspstart.c ../../shared/bootcard.c startup/iss555.c \
-    ../../shared/sbrk.c ../../shared/gnatinstallhandler.c startup/start.S
-tm27supp_SOURCES = startup/tm27supp.c
-
-noinst_LIBRARIES = libbsp.a
-libbsp_a_SOURCES = $(pclock_SOURCES) $(console_SOURCES) $(startup_SOURCES) \
-    $(tm27supp_SOURCES)
+    ../../shared/sbrk.c ../../shared/gnatinstallhandler.c startup/start.S \
+    ../../shared/bsppretaskinghook.c ../../shared/bspgetworkarea.c
+# tm27supp
+libbsp_a_SOURCES += startup/tm27supp.c
 
 libbsp_a_LIBADD = \
     ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \

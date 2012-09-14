@@ -9,7 +9,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: threadevaluatemode.c,v 1.5 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: threadevaluatemode.c,v 1.6 2008/12/22 05:52:32 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -45,9 +45,9 @@ bool _Thread_Evaluate_mode( void )
 
   if ( !_States_Is_ready( executing->current_state ) ||
        ( !_Thread_Is_heir( executing ) && executing->is_preemptible ) ) {
-    _Context_Switch_necessary = TRUE;
-    return TRUE;
+    _Context_Switch_necessary = true;
+    return true;
   }
 
-  return FALSE;
+  return false;
 }

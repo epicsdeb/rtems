@@ -1,19 +1,13 @@
 /*
- *  $Id: getgroups.c,v 1.2 2004/04/15 13:24:45 ralf Exp $
+ *  $Id: getgroups.c,v 1.4 2009/09/30 04:46:31 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <limits.h>
-#include <errno.h>
-#include <string.h>
 #include <sys/types.h>
-
-#include <rtems/system.h>
-#include <rtems/score/object.h>
-#include <rtems/seterr.h>
+#include <unistd.h>
 
 /*PAGE
  *
@@ -21,8 +15,8 @@
  */
 
 int getgroups(
-  int    gidsetsize,
-  gid_t  grouplist[]
+  int    gidsetsize __attribute__((unused)),
+  gid_t  grouplist[] __attribute__((unused))
 )
 {
   return 0;  /* no supplemental group ids */

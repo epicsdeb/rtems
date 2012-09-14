@@ -1,4 +1,4 @@
-dnl $Id: bsp-configure.m4,v 1.5 2006/11/15 14:34:00 ralf Exp $
+dnl $Id: bsp-configure.m4,v 1.6 2009/09/15 14:48:00 ralf Exp $
 
 dnl RTEMS_BSP_CONFIGURE
 dnl Common macro to be included by all bsp-configure.acs
@@ -34,4 +34,6 @@ echo "#endif /* __BSP_OPTIONS_H */"                   >>$tmp/config.h
   RTEMS_PROJECT_ROOT
 
   RTEMS_CHECK_MULTIPROCESSING
+
+  RTEMS_BSP_BOOTCARD_OPTIONS
 ])

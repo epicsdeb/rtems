@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.29.2.1 2009/02/11 16:20:10 joel Exp $
+## $Id: Makefile.am,v 1.33 2010/04/05 17:11:47 joel Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../aclocal
@@ -108,12 +108,34 @@ if mcf5223x
 ## mcf5223x/include
 include_mcf5223xdir = $(includedir)/mcf5223x
 include_mcf5223x_HEADERS = mcf5223x/include/mcf5223x.h
+
+## mcf5223x/cache
+noinst_PROGRAMS += mcf5223x/cachepd.rel
+mcf5223x_cachepd_rel_SOURCES = mcf5223x/cache/cachepd.c
+mcf5223x_cachepd_rel_CPPFLAGS = $(AM_CPPFLAGS)
+mcf5223x_cachepd_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
+endif
+
+if mcf5225x
+## mcf5225x/include
+include_mcf5225xdir = $(includedir)/mcf5225x
+include_mcf5225x_HEADERS = mcf5225x/include/mcf5225x.h
+# Network
+if HAS_NETWORKING
+include_mcf5225x_HEADERS += mcf5225x/include/fec.h
+endif ## HAS_NETWORKING
 endif
 
 if mcf5235
 ## mcf5235/include
 include_mcf5235dir = $(includedir)/mcf5235
 include_mcf5235_HEADERS = mcf5235/include/mcf5235.h
+
+## mcf5235/cache
+noinst_PROGRAMS += mcf5235/cachepd.rel
+mcf5235_cachepd_rel_SOURCES = mcf5235/cache/cachepd.c
+mcf5235_cachepd_rel_CPPFLAGS = $(AM_CPPFLAGS)
+mcf5235_cachepd_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
 if mcf532x
@@ -156,6 +178,16 @@ if mcf548x
 ## mcf548x/include
 include_mcf548xdir = $(includedir)/mcf548x
 include_mcf548x_HEADERS = mcf548x/include/mcf548x.h
+
+## mcf548x/mcdma
+noinst_PROGRAMS += mcf548x/mcdma.rel
+include_mcf548x_HEADERS +=  mcf548x/mcdma/MCD_progCheck.h mcf548x/mcdma/MCD_dma.h \
+                            mcf548x/mcdma/MCD_tasksInit.h mcf548x/mcdma/mcdma_glue.h
+mcf548x_mcdma_rel_SOURCES = mcf548x/mcdma/MCD_dmaApi.c mcf548x/mcdma/MCD_tasksInit.c \
+                            mcf548x/mcdma/MCD_tasks.c  mcf548x/mcdma/mcdma_glue.c
+
+mcf548x_mcdma_rel_CPPFLAGS = $(AM_CPPFLAGS)
+mcf548x_mcdma_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 endif
 
 include $(srcdir)/preinstall.am

@@ -50,7 +50,7 @@ __RCSID("$NetBSD: utils.c,v 1.29 2005/10/15 18:22:18 christos Exp $");
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/utime.h>
+#include <utime.h>
 
 #include <err.h>
 #include <errno.h>
@@ -85,9 +85,11 @@ set_utimes(const char *file, struct stat *fs)
 }
 
 int
-copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
+copy_file(rtems_shell_cp_globals* cp_globals __attribute__((unused)), FTSENT *entp, int dne)
 {
-	static char buf[MAXBSIZE];
+#define MAX_READ max_read
+  int max_read;
+	char* buf;
 	struct stat *fs;
 	ssize_t wcount;
 	size_t wresid;
@@ -98,12 +100,23 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 	char *p;
 #endif
 
+	fs = entp->fts_statp;
+
+  max_read = fs->st_blksize;
+  if (max_read < (8 * 1024))
+    max_read = 8 * 1024;
+  buf = malloc (max_read);
+  if (!buf)
+  {
+		warn("no memory");
+    return (1);
+  }
+
 	if ((from_fd = open(entp->fts_path, O_RDONLY, 0)) == -1) {
 		warn("%s", entp->fts_path);
+    (void)free(buf);
 		return (1);
 	}
-
-	fs = entp->fts_statp;
 
 	/*
 	 * If the file exists and we're interactive, verify with the user.
@@ -119,22 +132,24 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 			if (vflag)
 				printf("%s not overwritten\n", to.p_path);
 			(void)close(from_fd);
+      (void)free(buf);
 			return (0);
 		} else if (iflag) {
-			(void)fprintf(stderr, "overwrite %s? %s", 
+			(void)fprintf(stderr, "overwrite %s? %s",
 					to.p_path, YESNO);
 			checkch = ch = getchar();
 			while (ch != '\n' && ch != EOF)
 				ch = getchar();
 			if (checkch != 'y' && checkch != 'Y') {
 				(void)close(from_fd);
+        (void)free(buf);
 				(void)fprintf(stderr, "not overwritten\n");
 				return (1);
 			}
 		}
-		
+
 		if (fflag) {
-		    /* remove existing destination file name, 
+		    /* remove existing destination file name,
 		     * create a new file  */
 		    (void)unlink(to.p_path);
 				if (!lflag)
@@ -154,6 +169,7 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 	if (to_fd == -1) {
 		warn("%s", to.p_path);
 		(void)close(from_fd);
+    (void)free(buf);
 		return (1);
 	}
 
@@ -204,7 +220,7 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 #endif
 		{
 			wtotal = 0;
-			while ((rcount = read(from_fd, buf, MAXBSIZE)) > 0) {
+			while ((rcount = read(from_fd, buf, MAX_READ)) > 0) {
 				for (bufp = buf, wresid = rcount; ;
 			    	bufp += wcount, wresid -= wcount) {
 					wcount = write(to_fd, bufp, wresid);
@@ -239,7 +255,7 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 		}
 	}
 	(void)close(from_fd);
-	
+
 	/*
 	 * Don't remove the target even after an error.  The target might
 	 * not be a regular file, or its attributes might be important,
@@ -258,13 +274,14 @@ copy_file(rtems_shell_cp_globals* cp_globals, FTSENT *entp, int dne)
 			rval = 1;
 		}
 	}
+  (void)free(buf);
 	return (rval);
 }
 
 int
 copy_link(rtems_shell_cp_globals* cp_globals, FTSENT *p, int exists)
 {
-	int len;
+	ssize_t len;
 	char llink[PATH_MAX];
 
 	if ((len = readlink(p->fts_path, llink, sizeof(llink) - 1)) == -1) {
@@ -384,12 +401,12 @@ setfile(rtems_shell_cp_globals* cp_globals, struct stat *fs, int fd)
 			rval = 1;
 		}
 #endif
-  
+
 	return (rval);
 }
 
 int
-preserve_fd_acls(int source_fd, int dest_fd)
+preserve_fd_acls(int source_fd __attribute__((unused)), int dest_fd __attribute__((unused)))
 {
 #if 0
 	struct acl *aclp;
@@ -415,7 +432,7 @@ preserve_fd_acls(int source_fd, int dest_fd)
 }
 
 int
-preserve_dir_acls(struct stat *fs, char *source_dir, char *dest_dir)
+preserve_dir_acls(struct stat *fs __attribute__((unused)), char *source_dir __attribute__((unused)), char *dest_dir __attribute__((unused)))
 {
 #if 0
 	acl_t (*aclgetf)(const char *, acl_type_t);

@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup ScoreProtHeap
+ *
+ * @brief Protected Heap Handler implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -6,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pheapgetblocksize.c,v 1.3 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: pheapgetblocksize.c,v 1.8 2009/09/06 15:24:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -19,13 +27,13 @@
 bool _Protected_heap_Get_block_size(
   Heap_Control        *the_heap,
   void                *starting_address,
-  size_t              *size
+  uintptr_t           *size
 )
 {
-  bool    status;
+  bool status;
 
   _RTEMS_Lock_allocator();
-    status = _Heap_Size_of_user_area( the_heap, starting_address, size );
+    status = _Heap_Size_of_alloc_area( the_heap, starting_address, size );
   _RTEMS_Unlock_allocator();
   return status;
 }

@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coresemseize.c,v 1.11 2008/09/05 21:54:20 joel Exp $
+ *  $Id: coresemseize.c,v 1.14 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,16 +28,14 @@
 #include <rtems/score/thread.h>
 #include <rtems/score/threadq.h>
 
-/*PAGE
- *
- *  _CORE_semaphore_Seize
- *
+#if defined(RTEMS_SCORE_CORESEM_ENABLE_SEIZE_BODY)
+/*
  *  This routine attempts to allocate a core semaphore to the calling thread.
  *
  *  Input parameters:
  *    the_semaphore - pointer to semaphore control block
  *    id            - id of object to wait on
- *    wait          - TRUE if wait is allowed, FALSE otherwise
+ *    wait          - true if wait is allowed, false otherwise
  *    timeout       - number of ticks to wait (0 means forever)
  *
  *  Output parameters:  NONE
@@ -66,7 +64,7 @@ void _CORE_semaphore_Seize(
     return;
   }
 
-  /* 
+  /*
    *  If the semaphore was not available and the caller was not willing
    *  to block, then return immediately with a status indicating that
    *  the semaphore was not available and the caller never blocked.
@@ -87,3 +85,4 @@ void _CORE_semaphore_Seize(
   _ISR_Enable( level );
   _Thread_queue_Enqueue( &the_semaphore->Wait_queue, timeout );
 }
+#endif

@@ -32,12 +32,14 @@
  */
 
 /*
- *  $Id: ttyname.c,v 1.9.6.1 2008/12/02 18:51:09 joel Exp $
+ *  $Id: ttyname.c,v 1.12 2010/03/11 19:14:41 joel Exp $
  */
 
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifndef HAVE_TTYNAME
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -53,7 +55,7 @@
 #include <rtems/libio_.h>
 #include <rtems/seterr.h>
 
-static char ttyname_buf[sizeof (_PATH_DEV) + MAXNAMLEN] = _PATH_DEV;
+static char ttyname_buf[sizeof (_PATH_DEV) + MAXNAMLEN];
 
 /*
  *  ttyname_r() - POSIX 1003.1b 4.7.2 - Demetermine Terminal Device Name
@@ -82,6 +84,9 @@ int ttyname_r(
   if ((dp = opendir (_PATH_DEV)) == NULL)
     rtems_set_errno_and_return_minus_one(EBADF);
 
+  /* Place the base directory in the path. */
+  strncpy (name, _PATH_DEV, namesize);
+
   for (rval = NULL; (dirp = readdir (dp)) != NULL ;)
     {
       if (dirp->d_ino != sb.st_ino)
@@ -98,7 +103,7 @@ int ttyname_r(
 }
 
 /*
- *  ttyname() - POSIX 1003.1b 4.7.2 - Demetermine Terminal Device Name
+ *  ttyname() - POSIX 1003.1b 4.7.2 - Determine Terminal Device Name
  */
 
 char *ttyname(
@@ -109,3 +114,5 @@ char *ttyname(
     return ttyname_buf;
   return NULL;
 }
+
+#endif

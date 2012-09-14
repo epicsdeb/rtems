@@ -3,7 +3,7 @@
  * Rob Savoye.  Other ideas came from Joel Sherrill for the RTEMS linkcmds
  * file (this is basically a mixture of the two).
  *
- *  $Id: linkcmds,v 1.17 2008/03/03 23:06:25 joel Exp $
+ *  $Id: linkcmds,v 1.19 2008/09/16 22:16:03 joel Exp $
  */
 
 /*
@@ -20,9 +20,9 @@ MEMORY
 /*
  * Declare some sizes.
  */
-_RamBase = DEFINED(_RamBase) ? _RamBase : 0x0;
-_RamSize = DEFINED(_RamSize) ? _RamSize : 2M;
-_HeapSize = DEFINED(_HeapSize) ? _HeapSize : 0x10000;
+RamBase = DEFINED(RamBase) ? RamBase : 0x0;
+RamSize = DEFINED(RamSize) ? RamSize : 2M;
+HeapSize = DEFINED(HeapSize) ? HeapSize : 0x0;
 _StackSize = DEFINED(_StackSize) ? _StackSize : 0x1000;
 
 SECTIONS
@@ -136,7 +136,7 @@ SECTIONS
                 _stack_init = .;
                 _clear_end = .;
 
-                _WorkspaceBase = .;
+                WorkAreaBase = .;
         } >ram
 
   /* Stabs debugging sections.  */

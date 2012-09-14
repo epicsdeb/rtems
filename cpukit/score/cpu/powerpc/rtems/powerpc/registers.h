@@ -12,7 +12,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: registers.h,v 1.26 2008/08/16 04:06:34 ralf Exp $
+ *  $Id: registers.h,v 1.29 2009/12/04 05:24:33 ralf Exp $
  */
 
 #ifndef _RTEMS_POWERPC_REGISTERS_H
@@ -43,7 +43,7 @@
 /* Bit encodings for Hardware Implementation Register (HID0)
    on PowerPC 603, 604, etc. processors (not 601). */
 
-/* WARNING: HID0/HID1 are *truely* implementation dependent! 
+/* WARNING: HID0/HID1 are *truely* implementation dependent!
  *          you *cannot* rely on the same bits to be present,
  *          at the same place or even in the same register
  *          on different CPU familys.
@@ -169,6 +169,8 @@ n:
 #define RPA	982
 #define SDR1	25	/* MMU hash base register */
 #define DAR	19	/* Data Address Register */
+#define DEAR_BOOKE 61
+#define DEAR_405 981
 #define SPR0	272	/* Supervisor Private Registers */
 #define SPRG0   272
 #define SPR1	273
@@ -310,6 +312,33 @@ lidate */
 #define BOOKE_TCR_WPEXT_MASK	(0xf<<17)
 #define BOOKE_TCR_FPEXT(x)	(((x)&0xf)<<13)
 #define BOOKE_TCR_FPEXT_MASK	(0xf<<13)
+
+#define BOOKE_PID 48
+
+/* Freescale Book E Implementation Standards (EIS): MMU Control and Status */
+
+#define FREESCALE_EIS_MAS0 624
+#define FREESCALE_EIS_MAS1 625
+#define FREESCALE_EIS_MAS2 626
+#define FREESCALE_EIS_MAS3 627
+#define FREESCALE_EIS_MAS4 628
+#define FREESCALE_EIS_MAS5 629
+#define FREESCALE_EIS_MAS6 630
+#define FREESCALE_EIS_MAS7 944
+#define FREESCALE_EIS_MMUCFG 1015
+#define FREESCALE_EIS_MMUCSR0 1012
+#define FREESCALE_EIS_PID0 48
+#define FREESCALE_EIS_PID1 633
+#define FREESCALE_EIS_PID2 634
+#define FREESCALE_EIS_TLB0CFG 688
+#define FREESCALE_EIS_TLB1CFG 689
+
+/* Freescale Book E Implementation Standards (EIS): L1 Cache */
+
+#define FREESCALE_EIS_L1CFG0 515
+#define FREESCALE_EIS_L1CFG1 516
+#define FREESCALE_EIS_L1CSR0 1010
+#define FREESCALE_EIS_L1CSR1 1011
 
 /**
  * @brief Default value for the interrupt disable mask.

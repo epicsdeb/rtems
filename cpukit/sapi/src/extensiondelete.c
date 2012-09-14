@@ -1,6 +1,12 @@
-/*
- *  Extension Manager -- rtems_extension_delete
+/**
+ * @file
  *
+ * @ingroup ClassicUserExtensions
+ *
+ * @brief User Extensions Implementation.
+ */
+
+/*
  *  COPYRIGHT (c) 1989-2007.
  *  On-Line Applications Research Corporation (OAR).
  *
@@ -8,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: extensiondelete.c,v 1.5 2007/12/19 20:55:55 joel Exp $
+ *  $Id: extensiondelete.c,v 1.7 2009/11/29 13:51:52 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -21,22 +27,8 @@
 #include <rtems/score/thread.h>
 #include <rtems/extension.h>
 
-/*PAGE
- *
- *  rtems_extension_delete
- *
- *  This directive allows a thread to delete a extension.
- *
- *  Input parameters:
- *    id - extension id
- *
- *  Output parameters:
- *    RTEMS_SUCCESSFUL - if successful
- *    error code - if unsuccessful
- */
-
 rtems_status_code rtems_extension_delete(
-  Objects_Id id
+  rtems_id id
 )
 {
   Extension_Control   *the_extension;

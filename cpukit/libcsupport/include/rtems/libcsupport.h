@@ -14,24 +14,23 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libcsupport.h,v 1.21 2008/09/01 11:42:19 ralf Exp $
+ *  $Id: libcsupport.h,v 1.25 2009/10/14 16:13:05 ralf Exp $
  */
 
 #ifndef _RTEMS_RTEMS_LIBCSUPPORT_H
 #define _RTEMS_RTEMS_LIBCSUPPORT_H
 
+#include <sys/types.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-#include <sys/types.h>
-
 void RTEMS_Malloc_Initialize(
-  void   *start,
-  size_t  length,
-  size_t  sbrk_amount
+  void *heap_begin,
+  uintptr_t heap_size,
+  size_t sbrk_amount
 );
 
 extern void malloc_dump(void);
@@ -45,33 +44,28 @@ extern void open_dev_console(void);
 /*
  *  Prototypes required to install newlib reentrancy user extension
  */
-bool libc_create_hook(
+bool newlib_create_hook(
   rtems_tcb *current_task,
   rtems_tcb *creating_task
 );
 
-#if defined(RTEMS_UNIX) && !defined(hpux)
-  rtems_extension libc_begin_hook(rtems_tcb *current_task);
-  #define __RTEMS_NEWLIB_BEGIN libc_begin_hook
-#else
-  #define __RTEMS_NEWLIB_BEGIN 0
-#endif
+#define __RTEMS_NEWLIB_BEGIN 0
 
-rtems_extension libc_delete_hook(
+void newlib_delete_hook(
   rtems_tcb *current_task,
   rtems_tcb *deleted_task
 );
 
 #define RTEMS_NEWLIB_EXTENSION \
 { \
-  libc_create_hook,                            /* rtems_task_create  */ \
-  0,                                           /* rtems_task_start   */ \
-  0,                                           /* rtems_task_restart */ \
-  libc_delete_hook,                            /* rtems_task_delete  */ \
-  0,                                           /* task_switch  */ \
-  __RTEMS_NEWLIB_BEGIN,                        /* task_begin   */ \
-  0,                                           /* task_exitted */ \
-  0                                            /* fatal        */ \
+  newlib_create_hook,     /* rtems_task_create  */ \
+  0,                      /* rtems_task_start   */ \
+  0,                      /* rtems_task_restart */ \
+  newlib_delete_hook,     /* rtems_task_delete  */ \
+  0,                      /* task_switch  */ \
+  __RTEMS_NEWLIB_BEGIN,   /* task_begin   */ \
+  0,                      /* task_exitted */ \
+  0                       /* fatal        */ \
 }
 
 #ifdef __cplusplus

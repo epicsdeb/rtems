@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: regiongetinfo.c,v 1.8 2007/11/27 17:38:11 humph Exp $
+ *  $Id: regiongetinfo.c,v 1.13 2009/12/15 18:26:41 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -43,12 +43,12 @@
  */
 
 rtems_status_code rtems_region_get_information(
-  Objects_Id              id,
+  rtems_id                id,
   Heap_Information_block *the_info
 )
 {
   Objects_Locations        location;
-  rtems_status_code        return_status = RTEMS_INTERNAL_ERROR;
+  rtems_status_code        return_status;
   register Region_Control *the_region;
 
   if ( !the_info )
@@ -60,11 +60,8 @@ rtems_status_code rtems_region_get_information(
     switch ( location ) {
 
       case OBJECTS_LOCAL:
-        if ( _Heap_Get_information( &the_region->Memory, the_info ) !=
-             HEAP_GET_INFORMATION_SUCCESSFUL )
-          return_status = RTEMS_INVALID_ADDRESS;
-        else
-          return_status = RTEMS_SUCCESSFUL;
+        _Heap_Get_information( &the_region->Memory, the_info );
+        return_status = RTEMS_SUCCESSFUL;
         break;
 
 #if defined(RTEMS_MULTIPROCESSING)
@@ -73,6 +70,7 @@ rtems_status_code rtems_region_get_information(
 #endif
 
       case OBJECTS_ERROR:
+      default:
         return_status = RTEMS_INVALID_ID;
         break;
     }

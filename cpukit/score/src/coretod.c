@@ -2,14 +2,14 @@
  *  Time of Day (TOD) Handler
  */
 
-/*  COPYRIGHT (c) 1989-2007.
+/*  COPYRIGHT (c) 1989-2008.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: coretod.c,v 1.20 2007/04/05 21:17:27 joel Exp $
+ *  $Id: coretod.c,v 1.24 2008/12/22 05:52:31 ralf Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -28,27 +28,20 @@
  *
  *  This routine initializes the time of day handler.
  *
- *  Input parameters:
- *    microseconds_per_tick - microseconds between clock ticks
+ *  Input parameters:  NONE
  *
  *  Output parameters: NONE
  */
 
-void _TOD_Handler_initialization(
-  uint32_t   microseconds_per_tick
-)
+void _TOD_Handler_initialization(void)
 {
-  _TOD_Microseconds_per_tick = microseconds_per_tick;
-
   /* POSIX format TOD (timespec) */
-  _TOD_Now.tv_sec  = TOD_SECONDS_1970_THROUGH_1988;
-  _TOD_Now.tv_nsec = 0;
+  _Timestamp_Set( &_TOD_Now, TOD_SECONDS_1970_THROUGH_1988, 0 );
 
   /* Uptime (timespec) */
-  _TOD_Uptime.tv_sec  = 0;
-  _TOD_Uptime.tv_nsec = 0;
+  _Timestamp_Set_to_zero( &_TOD_Uptime );
 
   /* TOD has not been set */
-  _TOD_Is_set = FALSE;
+  _TOD_Is_set = false;
   _TOD_Activate();
 }

@@ -11,7 +11,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bsp.h,v 1.22 2007/12/11 15:48:42 joel Exp $
+ *  $Id: bsp.h,v 1.24 2008/09/18 17:43:39 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -36,26 +36,7 @@ extern "C" {
   { \
   }
 
-/* Constants */
-
-#define RAM_START 0
-#define RAM_END   0x100000
-
-/*
- *  Device Driver Table Entries
- */
-
-/*
- * NOTE: Use the standard Console driver entry
- */
-
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
 /* functions */
-
-void bsp_cleanup( void );
 
 no_cpu_isr_entry set_vector(                    /* returns old vector */
   rtems_isr_entry     handler,                  /* isr routine        */

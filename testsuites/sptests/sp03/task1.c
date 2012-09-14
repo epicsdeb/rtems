@@ -15,7 +15,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.8 2003/09/04 18:53:47 joel Exp $
+ *  $Id: task1.c,v 1.9 2009/08/10 14:49:50 joel Exp $
  */
 
 #include "system.h"
@@ -36,8 +36,8 @@ rtems_task Task_1(
   print_time( " sets clock: ", &time, "\n" );
 
   while( FOREVER ) {
-    status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
-    directive_failed( status, "rtems_clock_get" );
+    status = rtems_clock_get_tod( &time );
+    directive_failed( status, "rtems_clock_get_tod" );
 
     put_name( Task_name[ 1 ], FALSE );
     print_time( " going to sleep:  ", &time, "\n" );

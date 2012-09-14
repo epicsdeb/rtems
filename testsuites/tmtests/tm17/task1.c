@@ -1,13 +1,12 @@
 /*
- *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: task1.c,v 1.15 2008/08/31 17:21:46 joel Exp $
+ *  $Id: task1.c,v 1.17 2009/05/09 21:24:06 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -28,21 +27,25 @@ rtems_task Last_task(
   rtems_task_argument argument
 );
 
+int operation_count = OPERATION_COUNT;
+
 rtems_task Init(
   rtems_task_argument argument
 )
 {
   rtems_task_entry  task_entry;
-  uint32_t    index;
+  int               index;
   rtems_status_code status;
 
   Print_Warning();
 
   puts( "\n\n*** TIME TEST 17 ***" );
 
-  Task_priority = 254;
+  Task_priority = RTEMS_MAXIMUM_PRIORITY - 1u;
+  if ( OPERATION_COUNT > RTEMS_MAXIMUM_PRIORITY - 2u )
+    operation_count =  (int) (RTEMS_MAXIMUM_PRIORITY - 2u);
 
-  for( index = 0; index <= OPERATION_COUNT ; index++ ) {
+  for( index = 0; index < operation_count ; index++ ) {
     status = rtems_task_create(
       rtems_build_name( 'T', 'I', 'M', 'E' ),
       Task_priority,
@@ -53,9 +56,9 @@ rtems_task Init(
     );
     directive_failed( status, "rtems_task_create loop" );
 
-    if ( index == OPERATION_COUNT ) task_entry = Last_task;
-    else if ( index == 0 )          task_entry = First_task;
-    else                            task_entry = Middle_tasks;
+    if ( index == operation_count-1 ) task_entry = Last_task;
+    else if ( index == 0 )            task_entry = First_task;
+    else                              task_entry = Middle_tasks;
 
     status = rtems_task_start( Task_id[ index ], task_entry, 0 );
     directive_failed( status, "rtems_task_start loop" );
@@ -104,19 +107,19 @@ rtems_task Last_task(
   rtems_task_argument argument
 )
 {
-  uint32_t   index;
+  int index;
 
   end_time = benchmark_timer_read();
 
   benchmark_timer_initialize();
-    for ( index=1 ; index <= OPERATION_COUNT ; index++ )
+    for ( index=1 ; index < operation_count ; index++ )
       (void) benchmark_timer_empty_function();
   overhead = benchmark_timer_read();
 
   put_time(
     "rtems_task_set_priority: preempts caller",
     end_time,
-    OPERATION_COUNT,
+    operation_count - 1u,
     overhead,
     CALLING_OVERHEAD_TASK_SET_PRIORITY
   );

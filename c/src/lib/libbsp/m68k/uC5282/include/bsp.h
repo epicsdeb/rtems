@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  */
- 
+
 #ifndef _BSP_H
 #define _BSP_H
 
@@ -50,25 +50,6 @@ extern int rtems_fec_driver_attach (struct rtems_bsdnet_ifconfig *config, int at
 /* define which port the console should use - all other ports are then defined as general purpose */
 #define CONSOLE_PORT        0
 
-/* externals */
-
-/* constants */
-
-/* miscellaneous stuff assumed to exist */
-
-/*
- *  Device Driver Table Entries
- */
- 
-/*
- * NOTE: Use the standard Console driver entry
- */
- 
-/*
- * NOTE: Use the standard Clock driver entry
- */
-
-
 /* functions */
 
 typedef struct {
@@ -83,14 +64,12 @@ typedef struct {
 
 uint32_t bsp_get_CPU_clock_speed(void);
 rtems_status_code bsp_allocate_interrupt(int level, int priority);
-int bsp_reset(int flags);
+int bsp_sysReset(int flags);
 int bsp_program(bsp_mnode_t *chain, int flags);
 unsigned const char *bsp_gethwaddr(int a);
 const char *bsp_getbenv(const char *a);
 int bsp_flash_erase_range(volatile unsigned short *flashptr, int start, int end);
 int bsp_flash_write_range(volatile unsigned short *flashptr, bsp_mnode_t *chain, int offset);
-
-void bsp_cleanup(void);
 
 m68k_isr_entry set_vector(
   rtems_isr_entry     handler,
@@ -152,8 +131,33 @@ int BSP_vme2local_adrs(unsigned am, unsigned long vmeaddr, unsigned long *plocal
  *  So we prototype it and define the constant confdefs.h expects
  *  to configure a BSP specific one.
  */
-Thread _BSP_Thread_Idle_body(uint32_t);
-#define BSP_IDLE_TASK_BODY _BSP_Thread_Idle_body
+void *bsp_idle_thread( uintptr_t ignored );
+#define BSP_IDLE_TASK_BODY bsp_idle_thread
+
+/*
+ * SRAM. The BSP uses SRAM for maintaining some clock-driver data
+ *       and for ethernet descriptors (and the initial stack during
+ *       early boot).
+ */
+
+typedef struct mcf5282BufferDescriptor_ {
+    volatile uint16_t   status;
+    uint16_t			length;
+    volatile void      *buffer;
+} mcf5282BufferDescriptor_t;
+
+extern struct {
+	uint32_t                  idle_counter;
+	uint32_t                  filtered_idle;
+	uint32_t                  max_idle_count;
+	uint32_t                  pitc_per_tick;
+	uint32_t                  nsec_per_pitc;
+	uint32_t                  pad[3]; /* align to 16-bytes for descriptors */
+	mcf5282BufferDescriptor_t fec_descriptors[];
+	/* buffer descriptors are allocated from here */
+
+    /* initial stack is at top of SRAM (start.S)  */
+} __SRAMBASE;
 
 #ifdef __cplusplus
 }

@@ -14,12 +14,11 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.7 2008/09/05 22:05:15 joel Exp $
+ *  $Id: ckinit.c,v 1.8 2008/09/16 19:03:32 joel Exp $
  */
 
 #include <stdlib.h>
 #include <bsp.h>
-#include <rtems/libio.h>
 #include <mrm332.h>
 
 #define CLOCK_VECTOR   MRM_PIV

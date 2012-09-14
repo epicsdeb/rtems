@@ -8,7 +8,7 @@
  *      should still work OK.
  *
  *  Conversion to MIPS port by Alan Cudmore <alanc@linuxstart.com> and
- *           Joel Sherrill <joel@OARcorp.com>. 
+ *           Joel Sherrill <joel@OARcorp.com>.
  *
  *    These changes made the code conditional on standard cpp predefines,
  *    merged the mips1 and mips3 code sequences as much as possible,
@@ -29,7 +29,7 @@
  *             copies, and that the name of Transition Networks not be used in
  *             advertising or publicity pertaining to distribution of the
  *             software without specific, written prior permission.
- *             Transition Networks makes no representations about the 
+ *             Transition Networks makes no representations about the
  *             suitability of this software for any purpose.
  *
  *  COPYRIGHT (c) 1989-2001.
@@ -39,29 +39,30 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cpu.c,v 1.29 2008/07/31 14:55:48 joel Exp $
+ *  $Id: cpu.c,v 1.35 2010/04/25 21:37:46 joel Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <rtems/system.h>
 #include <rtems/score/isr.h>
 #include <rtems/score/wkspace.h>
 
-
-
-
-/* 
-** Exception stack frame pointer used in cpu_asm to pass the exception stack frame 
+/*
+** Exception stack frame pointer used in cpu_asm to pass the exception stack frame
 ** address to the context switch code.
 */
 #if (__mips == 1) || (__mips == 32)
 typedef uint32_t ESF_PTR_TYPE;
-#elif (__mips == 3) 
+#elif (__mips == 3)
 typedef uint64_t ESF_PTR_TYPE;
 #else
 #error "unknown MIPS ISA"
 #endif
 
-ESF_PTR_TYPE __exceptionStackFrame = 0; 
+ESF_PTR_TYPE __exceptionStackFrame = 0;
 
 
 
@@ -70,12 +71,10 @@ ESF_PTR_TYPE __exceptionStackFrame = 0;
  *
  *  This routine performs processor dependent initialization.
  *
- *  INPUT PARAMETERS:
- *    thread_dispatch - address of disptaching routine
+ *    thread_dispatch - address of dispatching routine
  */
-void _CPU_Initialize(
-  void      (*thread_dispatch)      /* ignored on this CPU */
-)
+
+void _CPU_Initialize(void)
 {
   /*
    *  If there is not an easy way to initialize the FP context
@@ -126,12 +125,12 @@ void _CPU_ISR_Set_level( uint32_t   new_level )
 {
   unsigned int sr, srbits;
 
-  /* 
-  ** mask off the int level bits only so we can 
+  /*
+  ** mask off the int level bits only so we can
   ** preserve software int settings and FP enable
   ** for this thread.  Note we don't force software ints
   ** enabled when changing level, they were turned on
-  ** when this task was created, but may have been turned 
+  ** when this task was created, but may have been turned
   ** off since, so we'll just leave them alone.
   */
 
@@ -160,7 +159,7 @@ void _CPU_ISR_Set_level( uint32_t   new_level )
     mips_set_sr(sr);                 * first disable ie bit (recommended) *
   }
 */
- 
+
 #elif __mips == 1
   mips_set_sr( (sr & ~SR_IEC) );
   srbits = sr & ~(0xfc00 | SR_IEC);
@@ -186,7 +185,7 @@ void _CPU_ISR_Set_level( uint32_t   new_level )
  *  Output parameters:  NONE
  *
  */
- 
+
 void _CPU_ISR_install_raw_handler(
   uint32_t    vector,
   proc_ptr    new_handler,
@@ -252,6 +251,49 @@ void _CPU_Install_interrupt_stack( void )
 /* we don't support this yet */
 }
 
+/*
+ *  _CPU_Context_Initialize
+ *
+ *  This kernel routine initializes the basic non-FP context area associated
+ *  with each thread.
+ *
+ *  Input parameters:
+ *    the_context  - pointer to the context area
+ *    stack_base   - address of memory for the SPARC
+ *    size         - size in bytes of the stack area
+ *    new_level    - interrupt level for this context area
+ *    entry_point  - the starting execution point for this this context
+ *    is_fp        - TRUE if this context is associated with an FP thread
+ *
+ *  Output parameters: NONE
+ */
+void _CPU_Context_Initialize(
+  Context_Control  *the_context,
+  uintptr_t        *stack_base,
+  uint32_t          size,
+  uint32_t          new_level,
+  void             *entry_point,
+  bool              is_fp
+)
+{
+  uintptr_t             stack_tmp;
+  __MIPS_REGISTER_TYPE  intlvl = new_level & 0xff;
+
+  stack_tmp  = (uintptr_t)stack_base;
+  stack_tmp += ((size) - CPU_STACK_ALIGNMENT);
+  stack_tmp &= (__MIPS_REGISTER_TYPE) ~(CPU_STACK_ALIGNMENT - 1);
+
+  the_context->sp = (__MIPS_REGISTER_TYPE) stack_tmp;
+  the_context->fp = (__MIPS_REGISTER_TYPE) stack_tmp;
+  the_context->ra = (__MIPS_REGISTER_TYPE) (uintptr_t)entry_point;
+  the_context->c0_sr =
+    ((intlvl==0)? (mips_interrupt_mask() | 0x300 | _INTON):
+      ( ((intlvl<<9) & mips_interrupt_mask()) | 0x300 |
+      ((intlvl & 1)?_INTON:0)) ) |
+      SR_CU0 | ((is_fp)?SR_CU1:0) | _EXTRABITS;
+}
+
+
 /*PAGE
  *
  *  _CPU_Internal_threads_Idle_thread_body
@@ -269,7 +311,7 @@ void _CPU_Install_interrupt_stack( void )
  *     hook with caution.
  */
 
-void *_CPU_Thread_Idle_body( uint32_t ignored )
+void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
 #if (__mips == 3) || (__mips == 32)
    for( ; ; )

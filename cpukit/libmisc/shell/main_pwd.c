@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: main_pwd.c,v 1.4 2008/02/27 21:52:16 joel Exp $
+ *  $Id: main_pwd.c,v 1.5 2009/01/02 13:01:21 ralf Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -24,8 +24,8 @@
 #include "internal.h"
 
 int rtems_shell_main_pwd(
-  int   argc,
-  char *argv[]
+  int   argc __attribute__((unused)),
+  char *argv[] __attribute__((unused))
 )
 {
   char dir[1024];

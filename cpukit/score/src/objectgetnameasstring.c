@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectgetnameasstring.c,v 1.8 2008/02/04 17:16:37 joel Exp $
+ *  $Id: objectgetnameasstring.c,v 1.12 2010/03/12 16:26:16 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -17,10 +17,8 @@
 #include <rtems/score/object.h>
 #include <rtems/score/thread.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
 #include <inttypes.h>
-
 
 /*
  *  This method objects the name of an object and returns its name
@@ -67,9 +65,12 @@ char *_Objects_Get_name_as_string(
 
     case OBJECTS_LOCAL:
 
-      if ( information->is_string ) {
-        s = the_object->name.name_p;
-      } else {
+      #if defined(RTEMS_SCORE_OBJECT_ENABLE_STRING_NAMES)
+        if ( information->is_string ) {
+          s = the_object->name.name_p;
+        } else
+      #endif
+      {
         uint32_t  u32_name = (uint32_t) the_object->name.name_u32;
 
         lname[ 0 ] = (u32_name >> 24) & 0xff;
@@ -83,7 +84,7 @@ char *_Objects_Get_name_as_string(
       d = name;
       if ( s ) {
         for ( i=0 ; i<(length-1) && *s ; i++, s++, d++ ) {
-          *d = (isprint(*s)) ? *s : '*';
+          *d = (isprint((unsigned char)*s)) ? *s : '*';
         }
       }
       *d = '\0';

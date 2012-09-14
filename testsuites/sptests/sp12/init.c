@@ -11,14 +11,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: init.c,v 1.13 2008/02/01 00:45:11 joel Exp $
+ *  $Id: init.c,v 1.15 2009/05/10 14:39:46 joel Exp $
  */
 
 #define CONFIGURE_INIT
@@ -79,14 +79,14 @@ rtems_task Init(
   Priority_test_driver( 0 );
 
   puts( "INIT - Backward priority queue test" );
-  Priority_test_driver( 32 );
+  Priority_test_driver( (RTEMS_MAXIMUM_PRIORITY / 2u) + 1u );
 
 rtems_test_pause();
 
   puts( "INIT - Binary Semaphore and Priority Inheritance Test" );
 
   status = rtems_semaphore_delete( Semaphore_id[ 2 ] );
-  directive_failed( status, "rtems_semaphore_delete of SM2" );
+  directive_failed( status, "rtems_semaphore_delete of SM2 #1" );
 
   puts( "INIT - rtems_semaphore_create - allocated binary semaphore" );
   status = rtems_semaphore_create(
@@ -104,7 +104,7 @@ rtems_test_pause();
 
   puts( "INIT - rtems_semaphore_delete - allocated binary semaphore" );
   status = rtems_semaphore_delete( Semaphore_id[ 2 ] );
-  directive_failed( status, "rtems_semaphore_delete of SM2" );
+  directive_failed( status, "rtems_semaphore_delete of SM2 #2" );
 
   status = rtems_semaphore_create(
     Semaphore_name[ 2 ],
@@ -115,12 +115,12 @@ rtems_test_pause();
   );
   directive_failed( status, "rtems_semaphore_create of priority inherit SM2" );
 
-  Priority_test_driver( 64 );
+  Priority_test_driver( PRIORITY_INHERIT_BASE_PRIORITY );
 
 rtems_test_pause();
 
   status = rtems_semaphore_delete( Semaphore_id[ 2 ] );
-  directive_failed( status, "rtems_semaphore_delete of SM2" );
+  directive_failed( status, "rtems_semaphore_delete of SM2 #3" );
 
   status = rtems_semaphore_create(
     Semaphore_name[ 2 ],

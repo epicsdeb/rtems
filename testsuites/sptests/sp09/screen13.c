@@ -6,14 +6,14 @@
  *
  *  Output parameters:  NONE
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: screen13.c,v 1.10 2003/09/04 18:53:48 joel Exp $
+ *  $Id: screen13.c,v 1.14 2009/10/27 07:51:51 ralf Exp $
  */
 
 #include "system.h"
@@ -70,17 +70,17 @@ void Screen13()
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_set - ", &time, " - RTEMS_SUCCESSFUL\n" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
+  status = rtems_clock_get_tod( &time );
   directive_failed( status, "rtems_clock_set" );
-  print_time( "TA1 - rtems_clock_get - ", &time, " - RTEMS_SUCCESSFUL\n" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, " - RTEMS_SUCCESSFUL\n" );
 
   build_time( &time, 12, 31, 1999, 23, 59, 59, 0 );
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_set - ", &time, " - RTEMS_SUCCESSFUL\n" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
+  status = rtems_clock_get_tod( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_get - ", &time, " - RTEMS_SUCCESSFUL\n" );
 
@@ -88,26 +88,26 @@ void Screen13()
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_set - ", &time, " - RTEMS_SUCCESSFUL\n" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
+  status = rtems_clock_get_tod( &time );
   directive_failed( status, "rtems_clock_set" );
-  print_time( "TA1 - rtems_clock_get - ", &time, " - RTEMS_SUCCESSFUL\n" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, " - RTEMS_SUCCESSFUL\n" );
 
   build_time( &time, 12, 31, 2099, 23, 59, 59, 0 );
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_set - ", &time, " - RTEMS_SUCCESSFUL\n" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
+  status = rtems_clock_get_tod( &time );
   directive_failed( status, "rtems_clock_set" );
-  print_time( "TA1 - rtems_clock_get - ", &time, " - RTEMS_SUCCESSFUL\n" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, " - RTEMS_SUCCESSFUL\n" );
 
   build_time( &time, 12, 31, 1991, 23, 59, 59, 0 );
   status = rtems_clock_set( &time );
   directive_failed( status, "rtems_clock_set" );
   print_time( "TA1 - rtems_clock_set - ", &time, " - RTEMS_SUCCESSFUL\n" );
-  status = rtems_task_wake_after( 1 * TICKS_PER_SECOND );
-  status = rtems_clock_get( RTEMS_CLOCK_GET_TOD, &time );
+  status = rtems_task_wake_after( rtems_clock_get_ticks_per_second() );
+  status = rtems_clock_get_tod( &time );
   directive_failed( status, "rtems_clock_set" );
-  print_time( "TA1 - rtems_clock_get - ", &time, " - RTEMS_SUCCESSFUL\n" );
+  print_time( "TA1 - rtems_clock_get_tod - ", &time, " - RTEMS_SUCCESSFUL\n" );
 }
