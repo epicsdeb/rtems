@@ -77,8 +77,6 @@ install-stamp:
 	# i386
 	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386 DESTDIR=$(CURDIR)/debian/tmp install
 
-	mv debian/tmp/usr/bin/bin2boot debian/tmp/usr/bin/i386-rtems4.9-bin2boot
-
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
 	dh install --after dh_auto_install

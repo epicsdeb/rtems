@@ -4,7 +4,7 @@ usr/bin/install-if-change
 usr/bin/packhex
 usr/bin/rtems-bin2c
 usr/bin/unhex
-usr/bin/i386-rtems4.10-bin2boot
+usr/bin/bin2boot usr/bin/i386-rtems4.10-bin2boot
 usr/make/README
 usr/make/*.cfg
 usr/make/compilers
