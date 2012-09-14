@@ -9,7 +9,7 @@ NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 BMAKEFLAGS += -j$(NUMJOBS)
 endif
 
-RTEMS_VER ?=4.9
+RTEMS_VER ?=4.10
 
 powerpc_BSPS=mvme2100 mvme2307 mvme3100 mvme5500
 i386_BSPS=pc386

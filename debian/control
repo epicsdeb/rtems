@@ -3,7 +3,7 @@ Section: devel
 Priority: extra
 Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
 Build-Depends: debhelper (>= 7), autotools-dev,
-               gcc-i386-rtems4.9, gcc-powerpc-rtems4.9
+               gcc-i386-rtems4.10, gcc-powerpc-rtems4.10
 Standards-Version: 3.8.0
 Homepage: http://www.rtems.com
 
@@ -17,7 +17,7 @@ Description: Base RTEMS support
 Package: rtems-i386
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         rtems-common (= ${binary:Version}), gcc-i386-rtems4.9
+         rtems-common (= ${binary:Version}), gcc-i386-rtems4.10
 Description: Base RTEMS i386 support
  i386 specific RTEMS files which are not related to
  a specific BSP.
@@ -32,7 +32,7 @@ Description: RTEMS 386 PC support
 Package: rtems-powerpc
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         rtems-common (= ${binary:Version}), gcc-powerpc-rtems4.9
+         rtems-common (= ${binary:Version}), gcc-powerpc-rtems4.10
 Description: Base RTEMS PowerPC support
  PowerPC specific RTEMS files which are not related to
  a specific BSP.
