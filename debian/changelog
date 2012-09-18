@@ -1,3 +1,13 @@
+rtems (4.10.2-2) unstable; urgency=low
+
+  * Fix install of  i386-rtems4.10-bin2boot
+  * store some introspection info about the build
+    rtems-common: /usr/share/rtems-common/series - contains "4.10"
+    rtems-common: /usr/share/rtems-common/archs  - contains "i386 powerpc"
+    rtems-<arch>: /usr/share/rtems-<arch>/bsps   - contains "bsp1 bsp2 ..."
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Tue, 18 Sep 2012 10:40:58 -0400
+
 rtems (4.10.2-1) unstable; urgency=low
 
   * New RTEMS version
