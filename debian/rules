@@ -71,6 +71,17 @@ install: build install-stamp
 install-stamp:
 	dh install --before dh_auto_install
 
+	# Write some info helpful to dependent packages
+	install -d $(CURDIR)/debian/rtems-common/usr/share/rtems-common
+	echo "$(RTEMS_VER)" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/series
+	echo "i386 powerpc" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/archs
+
+	install -d $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386
+	echo "$(i386_BSPS)" > $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386/bsps
+
+	install -d $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc
+	echo "$(powerpc_BSPS)" > $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc/bsps
+
 	# powerpc
 	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
 
