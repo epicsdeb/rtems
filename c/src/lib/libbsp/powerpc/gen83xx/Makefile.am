@@ -58,6 +58,7 @@ startup_SOURCES = ../../shared/bsplibc.c \
         ../shared/uboot_getenv.c
 
 clock_SOURCES = ../shared/clock/clock.c
+tod_SOURCES = ../../shared/tod.c ../shared/tod/todcfg.c
 
 include_bsp_HEADERS = include/irq.h \
 	include/irq-config.h \
@@ -87,7 +88,7 @@ endif
 noinst_LIBRARIES = libbsp.a
 libbsp_a_SOURCES = $(startup_SOURCES) $(clock_SOURCES) $(console_SOURCES) \
     $(irq_SOURCES) $(mpc83xx_regs_SOURCES) \
-    $(bsp_i2c_SOURCES) $(bsp_spi_SOURCES)
+    $(bsp_i2c_SOURCES) $(bsp_spi_SOURCES) $(tod_SOURCES)
 
 libbsp_a_LIBADD = ../../../libcpu/@RTEMS_CPU@/shared/cpuIdent.rel \
 	../../../libcpu/@RTEMS_CPU@/shared/cache.rel \
