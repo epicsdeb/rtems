@@ -48,6 +48,7 @@ startup_SOURCES = ../../shared/bsplibc.c \
 	../../shared/bsppretaskinghook.c \
 	../../shared/sbrk.c \
 	../../shared/gnatinstallhandler.c \
+	../shared/uboot_dump_bdinfo.c \
 	../shared/src/tictac.c \
 	startup/cpuinit.c \
 	startup/bspstart.c \

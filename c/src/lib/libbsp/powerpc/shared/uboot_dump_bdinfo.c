@@ -21,7 +21,7 @@
  *  as more CPU models are supported.
  */
 #if defined(HAS_UBOOT)
-  #if !defined(CONFIG_MPC5xxx)
+  #if !defined(CONFIG_MPC5xxx) && !defined(CONFIG_MPC83XX)
     #error "dumpUBootDBInfo: unsupported configuration!!"
   #endif
 
