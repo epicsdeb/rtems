@@ -217,6 +217,10 @@ rtems_device_driver console_initialize(
     rtems_fatal_error_occurred(status);
   }
   if ( Console_Port_Tbl[Console_Port_Minor].pDeviceFns->deviceInitialize ) {
+#if defined(UEIPAC83XX)
+      /* Use U-Boot provided Baud rate */
+      Console_Port_Tbl [Console_Port_Minor].pDeviceParams = mpc83xx_uboot_board_info.bi_baudrate;
+#endif
     Console_Port_Tbl[Console_Port_Minor]
       .pDeviceFns->deviceInitialize(Console_Port_Minor);
     Console_Is_Initialized = true;
