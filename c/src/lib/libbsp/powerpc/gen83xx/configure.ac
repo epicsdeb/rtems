@@ -7,6 +7,8 @@ AC_INIT([rtems-c-src-lib-libbsp-powerpc-gen83xx],[_RTEMS_VERSION],[http://www.rt
 AC_CONFIG_SRCDIR([bsp_specs])
 RTEMS_TOP(../../../../../..)
 
+AC_PATH_PROG(CP,cp)
+
 RTEMS_CANONICAL_TARGET_CPU
 AM_INIT_AUTOMAKE([no-define nostdinc foreign 1.10])
 RTEMS_BSP_CONFIGURE
