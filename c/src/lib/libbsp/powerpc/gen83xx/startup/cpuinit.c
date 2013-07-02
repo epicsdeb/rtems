@@ -288,6 +288,21 @@ void cpu_init( void)
   SET_DBAT( 3, dbat.batu, dbat.batl);
 #endif /* MPC8313ERDB */
 
+#if defined(UEIPAC83XX)
+  /* Local Bus Controller (LBC) */
+  calc_dbat_regvals(
+    &dbat,
+    0xa0000000,
+    0x00100000,
+    false,
+    true,
+    false,
+    true,
+    BPP_RW
+  );
+  SET_DBAT( 3, dbat.batu, dbat.batl);
+#endif /* UEIPAC83XX */
+
   /* Read MSR */
   msr = ppc_machine_state_register();
 

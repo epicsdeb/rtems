@@ -35,6 +35,7 @@ project_lib_DATA += rtems_crti.$(OBJEXT)
 
 dist_project_lib_DATA += startup/linkcmds \
                          startup/linkcmds.base \
+                         startup/linkcmds.ueipac83xx \
                          startup/linkcmds.mpc8313erdb \
                          startup/linkcmds.mpc8349eamds \
                          startup/linkcmds.hsc_cm01

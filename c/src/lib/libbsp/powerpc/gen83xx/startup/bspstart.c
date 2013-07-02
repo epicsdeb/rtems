@@ -173,6 +173,13 @@ void bsp_start( void)
     BSP_panic( "Cannot intitialize interrupt support\n");
   }
 
+#ifdef UEIPAC83XX
+  /* fixup local bus config as per UEI Linux driver */
+  /* Program OR2: address asserted 2 clocks earlier than CS and WE , 6WS */
+  mpc83xx.lbc.bor[2].optionsr = 0xfff00f60;
+  sync();
+#endif
+
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Exit from bspstart\n");
 #endif

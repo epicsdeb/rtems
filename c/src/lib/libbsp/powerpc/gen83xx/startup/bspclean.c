@@ -32,7 +32,7 @@ extern int bsp_uart_pollRead(int minor);
 
 void bsp_reset(void)
 {
-  #ifdef MPC8313ERDB
+#if defined(MPC8313ERDB) || defined(UEIPAC83XX)
     _ISR_Set_level( 0 );
 
     /* Set Reset Protection Register (RPR) to "RSTE" */
@@ -48,11 +48,11 @@ void bsp_reset(void)
 
     /* Set Software Hard Reset in the Reset Control Register (RCR) */
     mpc83xx.res.rcr = 0x00000002;
-  #else /* MPC8313ERDB */
+  #else /* MPC8313ERDB || UEIPAC83XX */
 
     /* Do nothing */
 
-  #endif /* MPC8313ERDB */
+  #endif /* MPC8313ERDB || UEIPAC83XX */
 }
 
 void bsp_cleanup(void)

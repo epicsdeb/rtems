@@ -24,7 +24,7 @@
  * MPC8313E Reference Design Board
  */
 
-#ifdef MPC8313ERDB
+#if defined(MPC8313ERDB) || defined(UEIPAC83XX)
 
 #define HAS_UBOOT
 
@@ -36,7 +36,7 @@
 #define BSP_PRESS_KEY_FOR_RESET 1
 #define BSP_RESET_BOARD_AT_EXIT 1
 
-#endif /* MPC8313ERDB */
+#endif /* MPC8313ERDB or UEIPAC83XX */
 
 #include <libcpu/powerpc-utility.h> 
 

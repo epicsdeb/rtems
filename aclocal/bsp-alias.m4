@@ -34,6 +34,7 @@ AC_DEFUN([_RTEMS_BSP_ALIAS],
     mpc8349eamds) $2=gen83xx          ;; # MPC8349 based board
     hsc_cm01)     $2=gen83xx          ;; # MPC8349 based board
     mpc8313erdb)  $2=gen83xx          ;; # MPC83XX based board
+    ueipac83xx)   $2=gen83xx          ;; # MPC8347 based board
     rtl22xx_t)    $2=rtl22xx          ;; # rtl22xx bsp in thumb mode
     simcpu32)     $2=sim68000         ;; # BSVC CPU32 variant
     simsh7032)    $2=shsim            ;; # SH7032 simulator

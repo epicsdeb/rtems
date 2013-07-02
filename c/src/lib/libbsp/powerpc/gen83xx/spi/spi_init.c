@@ -21,7 +21,7 @@
 #include <bsp/irq.h>
 #include <bsp.h>
 
-#if defined( MPC8313ERDB)
+#if defined(MPC8313ERDB) || defined(UEIPAC83XX)
 
 #include <libchip/spi-sd-card.h>
 
@@ -64,7 +64,7 @@ static rtems_status_code bsp_spi_sel_addr
 \*=========================================================================*/
 {
 
-#if defined( MPC8313ERDB)
+#if defined( MPC8313ERDB) || defined(UEIPAC83XX)
 
   /* Check address */
   if (addr > 0) {
@@ -138,7 +138,7 @@ static rtems_status_code bsp_spi_send_start_dummy
 \*=========================================================================*/
 {
 
-#if defined( MPC8313ERDB)
+#if defined( MPC8313ERDB) || defined(UEIPAC83XX)
 
   /* SCS (inactive high) */
   mpc83xx.gpio [0].gpdat |= 0x20000000;
@@ -186,7 +186,7 @@ static rtems_status_code bsp_spi_send_stop
   printk("bsp_spi_send_stop called... ");
 #endif
 
-#if defined( MPC8313ERDB)
+#if defined( MPC8313ERDB) || defined(UEIPAC83XX)
 
   /* SCS (inactive high) */
   mpc83xx.gpio [0].gpdat |= 0x20000000;
@@ -243,7 +243,7 @@ static mpc83xx_spi_desc_t bsp_spi_bus_desc = {
   }
 };
 
-#ifdef MPC8313ERDB
+#ifdef MPC8313ERDB || defined(UEIPAC83XX)
 
 #include <libchip/spi-sd-card.h>
 
@@ -270,7 +270,7 @@ sd_card_driver_entry sd_card_driver_table [1] = { {
         }
 };
 
-#endif /* MPC8313ERDB */
+#endif /* MPC8313ERDB || defined(UEIPAC83XX) */
 
 
 /*=========================================================================*\
@@ -307,7 +307,7 @@ rtems_status_code bsp_register_spi
    * init port pins used to address/select SPI devices
    */
 
-#if defined( MPC8313ERDB)
+#if defined( MPC8313ERDB) || defined(UEIPAC83XX)
 
   /*
    * Configured as master (direct connection to SD card)
@@ -371,7 +371,7 @@ rtems_status_code bsp_register_spi
   }
   spi_busno = (unsigned) ret_code;
 
-#if defined( MPC8313ERDB)
+#if defined( MPC8313ERDB) || defined(UEIPAC83XX)
 
   /* Register SD Card driver */
   ret_code = rtems_libi2c_register_drv(

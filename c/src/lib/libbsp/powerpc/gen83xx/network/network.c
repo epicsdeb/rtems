@@ -29,17 +29,13 @@
 #define TSEC_IFMODE_RGMII 0
 #define TSEC_IFMODE_GMII  1
 
-#if defined( MPC8313ERDB)
+#if defined(MPC8313ERDB) || defined(HSC_CM01) || defined(UEIPACK83XX)
 
 #define TSEC_IFMODE TSEC_IFMODE_RGMII
 
 #elif defined( MPC8349EAMDS)
 
 #define TSEC_IFMODE TSEC_IFMODE_GMII
-
-#elif defined( HSC_CM01)
-
-#define TSEC_IFMODE TSEC_IFMODE_RGMII
 
 #else
 
