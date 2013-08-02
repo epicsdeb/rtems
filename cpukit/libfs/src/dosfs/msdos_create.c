@@ -8,7 +8,7 @@
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.com/license/LICENSE.
  *
- * @(#) $Id: msdos_create.c,v 1.13 2008/07/29 02:21:14 ccj Exp $
+ * @(#) $Id: msdos_create.c,v 1.13.2.1 2010/03/16 21:28:07 ccj Exp $
  *
  */
 #if HAVE_CONFIG_H
@@ -85,7 +85,7 @@ msdos_creat_node(
     if ( time_ret == -1 )
         return -1;
 
-    msdos_date_unix2dos(time_ret, &time_val, &date);
+    msdos_date_unix2dos(time_ret, &date, &time_val);
     *MSDOS_DIR_WRITE_TIME(new_node) = CT_LE_W(time_val);
     *MSDOS_DIR_WRITE_DATE(new_node) = CT_LE_W(date);
 

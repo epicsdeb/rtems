@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: imfs_stat.c,v 1.11 2004/04/17 08:34:41 ralf Exp $
+ *  $Id: imfs_stat.c,v 1.11.6.1 2011/06/10 18:17:21 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -63,6 +63,8 @@ int IMFS_stat(
   buf->st_atime = the_jnode->stat_atime;
   buf->st_mtime = the_jnode->stat_mtime;
   buf->st_ctime = the_jnode->stat_ctime;
+
+  buf->st_blksize = imfs_rq_memfile_bytes_per_block;
 
   return 0;
 }

@@ -8,7 +8,7 @@
  *  found in found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: irq_asm.S,v 1.8.6.2 2009/05/18 17:45:21 joel Exp $
+ *  $Id: irq_asm.S,v 1.8.6.3 2011/04/04 16:45:01 joel Exp $
  */
 
 #include <rtems/asm.h>
@@ -120,6 +120,13 @@ nested:
 	 */
 	movl	  ebp, esp
 	popl	  ebp
+
+        /*
+         * GCC versions starting with 4.3 no longer place the cld
+         * instruction before string operations.  We  need to ensure
+         * it is set correctly for ISR handlers.
+         */
+        cld
 
 	/*
 	 * restore the original i8259 masks

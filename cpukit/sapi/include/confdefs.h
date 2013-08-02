@@ -33,7 +33,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: confdefs.h,v 1.108.2.5 2009/10/15 18:56:17 joel Exp $
+ *  $Id: confdefs.h,v 1.108.2.6 2010/11/16 19:14:29 joel Exp $
  */
 
 #ifndef __CONFIGURATION_TEMPLATE_h
@@ -938,6 +938,7 @@ extern rtems_configuration_table        Configuration;
 
   #define CONFIGURE_MEMORY_PER_TASK_FOR_POSIX_API \
     _Configure_From_workspace( \
+      CONFIGURE_MINIMUM_TASK_STACK_SIZE + \
       sizeof (POSIX_API_Control) + \
      (sizeof (void *) * (CONFIGURE_MAXIMUM_POSIX_KEYS)) \
     )

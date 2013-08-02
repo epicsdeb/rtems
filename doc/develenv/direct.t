@@ -1,9 +1,9 @@
 @c
-@c  COPYRIGHT (c) 1989-2007.
+@c  COPYRIGHT (c) 1989-2010.
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: direct.t,v 1.7 2007/11/29 16:02:42 humph Exp $
+@c  $Id: direct.t,v 1.7.2.1 2010/12/16 20:42:22 joel Exp $
 @c
 
 @chapter Directory Structure
@@ -689,10 +689,6 @@ recent RTEMS releases.
 @item $@{RTEMS_ROOT@}/doc/started/
 This directory contains the source code for the 
 @cite{Getting Started with RTEMS for C/C++ Users} manual.
-
-@item $@{RTEMS_ROOT@}/doc/started_ada/
-This directory contains the source code for the 
-@cite{Getting Started with RTEMS for Ada Users} manual.
 
 @item $@{RTEMS_ROOT@}/doc/tools/
 This directory contains the source code for the tools

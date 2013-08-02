@@ -270,7 +270,7 @@ VpdBufRec          vpdData [] = {
 	myCpuRevision = get_ppc_cpu_revision();
 
 	printk("Welcome to %s\n", _RTEMS_version);
-	printk("BSP: %s, CVS Release ($Name: rtems-4-9-3 $)\n", "mvme3100");
+	printk("BSP: %s, CVS Release ($Name: rtems-4-9-6 $)\n", "mvme3100");
 
 	/*
 	 * the initial stack  has aready been set to this value in start.S

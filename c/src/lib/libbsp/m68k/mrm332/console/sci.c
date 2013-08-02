@@ -33,7 +33,7 @@
 *
 * Note:     See bsp.h,confdefs.h,system.h for installing drivers into RTEMS.
 *
-* $Id: sci.c,v 1.12 2008/08/19 10:23:15 ralf Exp $
+* $Id: sci.c,v 1.12.2.1 2011/03/22 14:14:34 joel Exp $
 *
 *****************************************************************************/
 
@@ -235,7 +235,7 @@ BSP_polling_getchar_function_type  BSP_poll_char   = NULL;
 /* cvs id string so you can use the unix ident command on the object */
 
 #ifdef ID_STRINGS
-static const char SciIdent[]="$Id: sci.c,v 1.12 2008/08/19 10:23:15 ralf Exp $";
+static const char SciIdent[]="$Id: sci.c,v 1.12.2.1 2011/03/22 14:14:34 joel Exp $";
 #endif
 
 
@@ -556,8 +556,8 @@ int   SciInterruptOpen(
 /*  SciSetBaud(115200);                         set the baud rate */
 /*  SciSetBaud( 57600);                         set the baud rate */
 /*  SciSetBaud( 38400);                         set the baud rate */
-    SciSetBaud( 19200);                      /* set the baud rate */
-/*  SciSetBaud(  9600);                         set the baud rate */
+/*  SciSetBaud( 19200);                         set the baud rate */
+    SciSetBaud(  9600);                      /* set the baud rate */
 
     SciSetParity(SCI_PARITY_NONE);              /* set parity to none */
 
@@ -681,8 +681,8 @@ int   SciSetAttributes(
 
     if (!baud_requested)
     {
-/*        baud_requested = B9600;                   default to 9600 baud */
-        baud_requested = B19200;                 /* default to 19200 baud */
+        baud_requested = B9600;                /* default to 9600 baud */
+       /* baud_requested = B19200;                default to 19200 baud */
     }
 
     sci_rate = termios_baud_to_number( baud_requested );
@@ -783,8 +783,8 @@ int   SciPolledOpen(
 /*  SciSetBaud(115200);                            set the baud rate */
 /*  SciSetBaud( 57600);                            set the baud rate */
 /*  SciSetBaud( 38400);                            set the baud rate */
-  SciSetBaud( 19200);                         /* set the baud rate */
-/*  SciSetBaud(  9600);                            set the baud rate */
+/*  SciSetBaud( 19200);                          * set the baud rate */
+    SciSetBaud(  9600);                         /* set the baud rate */
 
     SciSetParity(SCI_PARITY_NONE);              /* set no parity */
 

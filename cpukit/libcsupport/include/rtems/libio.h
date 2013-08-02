@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio.h,v 1.53.2.1 2009/03/09 14:12:57 joel Exp $
+ *  $Id: libio.h,v 1.53.2.2 2010/08/27 17:33:22 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_LIBIO_H
@@ -530,7 +530,7 @@ static inline rtems_device_minor_number rtems_filesystem_dev_minor_t(
  * Verifies that the permission flag is valid.
  */
 #define rtems_libio_is_valid_perms( _perm )     \
- (~ ((~RTEMS_LIBIO_PERMS_RWX) & _perm ))
+ (((~RTEMS_LIBIO_PERMS_RWX) & _perm ) == 0)
 
 
 /*

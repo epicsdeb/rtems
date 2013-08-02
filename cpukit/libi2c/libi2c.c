@@ -1,4 +1,4 @@
-/* $Id: libi2c.c,v 1.11.2.1 2008/09/24 14:31:37 joel Exp $ */
+/* $Id: libi2c.c,v 1.11.2.2 2010/06/21 16:27:23 joel Exp $ */
 
 /* libi2c Implementation */
 
@@ -395,11 +395,13 @@ rtems_libi2c_register_bus (const char *name, rtems_libi2c_bus_t * bus)
   /* check */
   if ('/' != *nmcpy) {
     safe_printf ( DRVNM "Bad name: must be an absolute path starting with '/'\n");
+    free( nmcpy );
     return -RTEMS_INVALID_NAME;
   }
   /* file must not exist */
   if (!stat (nmcpy, &sbuf)) {
     safe_printf ( DRVNM "Bad name: file exists already\n");
+    free( nmcpy );
     return -RTEMS_INVALID_NAME;
   }
 
@@ -412,6 +414,7 @@ rtems_libi2c_register_bus (const char *name, rtems_libi2c_bus_t * bus)
   if (i) {
     safe_printf ( DRVNM "Get %s status failed: %s\n",
              nmcpy, strerror(errno));
+    free( nmcpy );
     return -RTEMS_INVALID_NAME;
   }
   /* should be a directory since name terminates in '/' */
@@ -419,11 +422,13 @@ rtems_libi2c_register_bus (const char *name, rtems_libi2c_bus_t * bus)
 
   if (!libmutex) {
     safe_printf ( DRVNM "Library not initialized\n");
+    free( nmcpy );
     return -RTEMS_NOT_DEFINED;
   }
 
   if (bus == NULL || bus->size < sizeof (*bus)) {
     safe_printf ( DRVNM "No bus-ops or size too small -- misconfiguration?\n");
+    free( nmcpy );
     return -RTEMS_NOT_CONFIGURED;
   }
 

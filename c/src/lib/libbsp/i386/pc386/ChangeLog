@@ -1,3 +1,30 @@
+2011-07-14	Till Straumann <strauman@slac.stanford.edu>
+
+	PR 1833/bsps
+	* ne2000/ne2000.c: Addition of multicast support disabled broadcast
+	reception. Patch also includes support to work on big endian CPUs.
+
+2011-04-11	Keith Robertson <kjrobert at alumni dot uwaterloo dot ca>
+
+	* ne2000/ne2000.c: Add multicast support. Patch submitted to mailing
+	list 2005-12-21.
+
+2011-03-07	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1756/bsps
+	* timer/timer.c: Retry on timer calibration loop failure.
+
+2010-11-23	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* Makefile.am, preinstall.am: Add <bsp/tty_drv.h> to the set of
+	installed .h files.
+
+2010-03-10	Gedare Bloom <gedare@gwu.edu>
+
+	PR 1495/bsp
+	* clock/ckinit.c: Calling rtems_clock_get_uptime() in a tight loop
+	sometimes showed time moving backwards.
+
 2009-09-15	Till Straumann <strauman@slac.stanford.edu>
 
 	PR 1344/bsps:

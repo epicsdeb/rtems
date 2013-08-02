@@ -1,5 +1,5 @@
 @c
-@c  $Id: rtems.texi.in,v 1.6 2007/01/15 09:14:41 ralf Exp $
+@c  $Id: rtems.texi.in,v 1.6.4.1 2010/12/16 20:54:33 joel Exp $
 @c
 
 @set RTEMSHTTPSITE		www.rtems.com
@@ -11,4 +11,3 @@
 @set RTEMSPREFIX		@RTEMSPREFIX@
 @set RTEMSAPI			@RTEMSAPI@
 @set RTEMSRPMPREFIX		@RTEMSRPMPREFIX@
-@set RTEMSRPMGROUP		@RTEMSRPMGROUP@

@@ -1,3 +1,54 @@
+2011-02-09	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* setup.def, common/cpright.texi: Update dates.
+
+2010-12-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* Makefile.am, configure.ac, common/cpright.texi, common/rtems.texi.in,
+	cpu_supplement/.cvsignore, started/Makefile.am, started/binaries.t,
+	started/buildc.t, started/buildrt.t, started/intro.t,
+	started/nextstep.t, started/nt.t, started/require.t,
+	started/sample.t, started/started.texi: Major update which includes
+	removal of references to specific tool versions and patches.
+	* started/tversions.texi.in: Removed.
+
+2010-12-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	* Makefile.am, configure.ac, develenv/direct.t: Remove Getting Started
+	with GNAT/RTEMS.
+	* started_ada/.cvsignore, started_ada/Makefile.am,
+	started_ada/buildada.t, started_ada/gdb.t, started_ada/intro.t,
+	started_ada/require.t, started_ada/sample.t,
+	started_ada/started_ada.texi, started_ada/tversions.texi: Removed.
+
+2010-11-11	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1716/doc
+	* user/concepts.t: print_name example used a variable which did not
+	match the name of the passed in parameter.
+
+2010-11-01	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1714/doc
+	* user/datatypes.t: Add missing description of rtems_status_codes.
+
+2010-06-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1568/doc
+	* user/intr.t: Fix list of services callable from ISR.
+
+2010-05-18	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1520/doc
+	* user/part.t: Partition create discussion said it returned the number
+	of buffers created but it does not.
+
+2010-01-11	Marc Pignat <marc.pignat@hevs.ch>
+
+	PR 1490/doc
+	* user/clock.t: Fix typo. rtems_clock_get_ticks_per_second not
+	rtems_clock_get_ticks_per_seconds.
+
 2009-07-02	Joel Sherrill <joel.sherrill@OARcorp.com>
 
 	* user/region.t: Fix typos where semaphore referenced instead of region
