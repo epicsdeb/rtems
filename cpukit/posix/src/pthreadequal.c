@@ -10,7 +10,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadequal.c,v 1.10 2008/04/28 18:12:42 joel Exp $
+ *  $Id: pthreadequal.c,v 1.10.2.1 2011/03/08 22:15:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -51,7 +51,7 @@ int pthread_equal(
    *  Validate the first id and return 0 if it is not valid
    */
 
-  (void) _POSIX_Threads_Get( t1, &location );
+  (void) _Thread_Get( t1, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:
@@ -60,7 +60,7 @@ int pthread_equal(
        *  Validate the second id and return 0 if it is not valid
        */
 
-      (void) _POSIX_Threads_Get( t2, &location );
+      (void) _Thread_Get( t2, &location );
       switch ( location ) {
 
         case OBJECTS_LOCAL:

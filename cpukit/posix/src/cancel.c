@@ -6,7 +6,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: cancel.c,v 1.16 2008/09/04 15:23:11 ralf Exp $
+ *  $Id: cancel.c,v 1.16.2.1 2011/03/08 22:15:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -46,7 +46,7 @@ int pthread_cancel(
   if ( _ISR_Is_in_progress() )
     return EPROTO;
 
-  the_thread = _POSIX_Threads_Get( thread, &location );
+  the_thread = _Thread_Get( thread, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:

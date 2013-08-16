@@ -16,7 +16,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995.
  *  European Space Agency.
  *
- *  $Id: bsp.h,v 1.29 2007/12/11 15:46:15 joel Exp $
+ *  $Id: bsp.h,v 1.29.2.1 2011/04/25 19:39:48 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -51,15 +51,6 @@ struct rtems_bsdnet_ifconfig;
 extern int rtems_erc32_sonic_driver_attach (struct rtems_bsdnet_ifconfig *config);
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"sonic1"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_erc32_sonic_driver_attach
-
-/*
- *  Simple spin delay in microsecond units for device drivers.
- *  This is very dependent on the clock speed of the target.
- */
-
-extern void Clock_delay(uint32_t         microseconds);
-
-#define delay( microseconds ) Clock_delay(microseconds)
 
 /* Constants */
 

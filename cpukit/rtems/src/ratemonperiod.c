@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ratemonperiod.c,v 1.17.2.3 2009/11/10 23:27:01 joel Exp $
+ *  $Id: ratemonperiod.c,v 1.17.2.5 2009/12/11 22:03:35 humph Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -135,15 +135,15 @@ void _Rate_monotonic_Update_statistics(
       /* Grab CPU usage when the thread got switched in */
       used = _Thread_Executing->cpu_time_used;
 
-      /* partial period, cpu usage info reset while executing.  Throw away */
-      if (_Timespec_Less_than( &used, &the_period->owner_executed_at_period))
-        return;
-
       /* How much time time since last context switch */
       _Timespec_Subtract(&_Thread_Time_of_last_context_switch, &uptime, &ran);
 
       /* executed += ran */
       _Timespec_Add_to( &used, &ran );
+
+      /* partial period, cpu usage info reset while executing.  Throw away */
+      if (_Timespec_Less_than( &used, &the_period->owner_executed_at_period))
+        return;
 
        /* executed = current cpu usage - value at start of period */
       _Timespec_Subtract( 
@@ -334,7 +334,7 @@ rtems_status_code rtems_rate_monotonic_period(
           /*
            *  Update statistics from the concluding period
            */
-          _Rate_monotonic_Initiate_statistics( the_period );
+          _Rate_monotonic_Update_statistics( the_period );
 
           _ISR_Enable( level );
 

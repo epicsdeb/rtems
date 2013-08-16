@@ -9,7 +9,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: pthreadgetschedparam.c,v 1.8 2007/11/30 20:34:13 humph Exp $
+ *  $Id: pthreadgetschedparam.c,v 1.8.2.1 2011/03/08 22:15:07 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -36,7 +36,7 @@ int pthread_getschedparam(
   if ( !policy || !param  )
     return EINVAL;
 
-  the_thread = _POSIX_Threads_Get( thread, &location );
+  the_thread = _Thread_Get( thread, &location );
   switch ( location ) {
 
     case OBJECTS_LOCAL:

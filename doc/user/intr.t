@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: intr.t,v 1.25.2.1 2009/02/27 16:02:34 joel Exp $
+@c  $Id: intr.t,v 1.25.2.2 2010/06/16 19:34:19 joel Exp $
 @c
 
 @chapter Interrupt Manager
@@ -194,11 +194,26 @@ implementation error to use RTEMS_SELF from an ISR.
 @item Interrupt Management
 
 @itemize -
-@item  rtems_interrupt_enable
+@item rtems_interrupt_enable
 @item rtems_interrupt_disable
 @item rtems_interrupt_flash
 @item rtems_interrupt_is_in_progress
 @item rtems_interrupt_catch
+@end itemize
+
+@item Clock Management
+
+@itemize
+@item rtems_clock_set
+@item rtems_clock_get
+@item rtems_clock_get_tod
+@item rtems_clock_get_tod_timeval
+@item rtems_clock_get_seconds_since_epoch
+@item rtems_clock_get_ticks_per_second
+@item rtems_clock_get_ticks_since_boot
+@item rtems_clock_get_uptime
+@item rtems_clock_set_nanoseconds_extension
+@item rtems_clock_tick
 @end itemize
 
 @item Message, Event, and Signal Management

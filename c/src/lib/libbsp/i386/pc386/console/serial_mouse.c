@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/serial_mouse.c,v 1.13 2008/08/19 19:34:08 joel Exp $
+ * $Header: /usr1/CVS/rtems/c/src/lib/libbsp/i386/pc386/console/Attic/serial_mouse.c,v 1.13 2008/08/19 19:34:08 joel Exp $
  *
  * MODULE DESCRIPTION:
  * This module implements the RTEMS drivers for the PC serial ports

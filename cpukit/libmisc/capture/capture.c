@@ -1,6 +1,6 @@
 /*
   ------------------------------------------------------------------------
-  $Id: capture.c,v 1.14 2008/09/01 11:28:56 ralf Exp $
+  $Id: capture.c,v 1.14.2.1 2011/01/21 19:40:37 joel Exp $
   ------------------------------------------------------------------------
 
   Copyright Objective Design Systems Pty Ltd, 2002
@@ -916,7 +916,9 @@ rtems_capture_switch_task (rtems_tcb* current_task,
     rtems_capture_task_t* ct;
     rtems_capture_task_t* ht;
 
-    if (_States_Is_transient (current_task->current_state))
+
+    if (_States_Is_transient (current_task->current_state)
+     || _States_Is_dormant (current_task->current_state))
     {
       rtems_id ct_id = current_task->Object.id;
 

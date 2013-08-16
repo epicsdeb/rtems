@@ -13,7 +13,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: leon.h,v 1.7 2007/09/06 00:01:30 joel Exp $
+ *  $Id: leon.h,v 1.7.4.1 2011/03/04 14:07:19 joel Exp $
  */
  
 #ifndef _INCLUDE_LEON_h
@@ -245,11 +245,11 @@ extern int LEON3_Cpu_Index;
   } while (0)
  
 #define LEON_Is_interrupt_pending( _source ) \
-  (LEON3_IrqCtrl_Regs.ipend & (1 << (_source)))
+  (LEON3_IrqCtrl_Regs->ipend & (1 << (_source)))
  
 #define LEON_Is_interrupt_masked( _source ) \
   do {\
-     (LEON3_IrqCtrl_Regs.mask[LEON3_Cpu_Index] & (1 << (_source))); \
+     (LEON3_IrqCtrl_Regs->mask[LEON3_Cpu_Index] & (1 << (_source))); \
    } while (0)
 
  

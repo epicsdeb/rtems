@@ -1,5 +1,5 @@
 ##
-## $Id: Makefile.am,v 1.41.2.1 2008/09/24 07:32:19 ralf Exp $
+## $Id: Makefile.am,v 1.41.2.2 2010/11/23 18:41:53 joel Exp $
 ##
 
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
@@ -26,7 +26,7 @@ SUBDIRS = . tools
 
 include_bspdir = $(includedir)/bsp
 include_bsp_HEADERS = ../../i386/shared/irq/irq.h \
-    ../../i386/shared/irq/irq_asm.h
+    ../../i386/shared/irq/irq_asm.h ../../i386/shared/comm/tty_drv.h
 
 include_HEADERS += include/crt.h
 nodist_include_HEADERS += ../../shared/include/coverhd.h

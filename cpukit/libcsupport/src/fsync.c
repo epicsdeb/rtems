@@ -1,14 +1,14 @@
 /*
  *  fsync() - POSIX 1003.1b 6.6.1 - Synchronize the State of a File
  *
- *  COPYRIGHT (c) 1989-1999.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: fsync.c,v 1.11 2003/09/04 18:54:13 joel Exp $
+ *  $Id: fsync.c,v 1.11.6.1 2011/07/24 20:26:14 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -29,7 +29,6 @@ int fsync(
   rtems_libio_check_fd( fd );
   iop = rtems_libio_iop( fd );
   rtems_libio_check_is_open(iop);
-  rtems_libio_check_permissions( iop, LIBIO_FLAGS_WRITE );
 
   /*
    *  Now process the fsync().

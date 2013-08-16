@@ -12,7 +12,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: libio_.h,v 1.28.2.1 2009/06/03 03:40:06 ralf Exp $
+ *  $Id: libio_.h,v 1.28.2.2 2011/07/24 20:26:13 joel Exp $
  */
 
 #ifndef _RTEMS_RTEMS_LIBIO__H
@@ -124,18 +124,29 @@ extern rtems_libio_t *rtems_libio_iop_freelist;
   } while (0)
 
 /*
+ *  rtems_libio_check_permissions_with_error
+ *
+ *  Macro to check if a file descriptor is open for this operation.
+ *  On failure, return the user specified error.
+ */
+
+#define rtems_libio_check_permissions_with_error(_iop, _flag, _errno) \
+  do {                                                      \
+      if (((_iop)->flags & (_flag)) == 0) {                 \
+            rtems_set_errno_and_return_minus_one( _errno ); \
+            return -1;                                      \
+      }                                                     \
+  } while (0)
+
+/*
  *  rtems_libio_check_permissions
  *
  *  Macro to check if a file descriptor is open for this operation.
+ *  On failure, return EINVAL
  */
 
-#define rtems_libio_check_permissions(_iop, _flag)    \
-  do {                                                \
-      if (((_iop)->flags & (_flag)) == 0) {           \
-            rtems_set_errno_and_return_minus_one( EINVAL ); \
-            return -1;                                \
-      }                                               \
-  } while (0)
+#define rtems_libio_check_permissions(_iop, _flag) \
+   rtems_libio_check_permissions_with_error(_iop, _flag, EINVAL )
 
 /*
  *  rtems_filesystem_freenode

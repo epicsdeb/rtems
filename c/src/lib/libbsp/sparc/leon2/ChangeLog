@@ -1,3 +1,21 @@
+2011-07-21	Jorge Lopez <jorge.lopez.trescastro@esa.int>
+
+	PR 1766/bsps
+	* clock/ckinit.c: Add missing read of Timer_Counter_1.
+
+2011-04-25	Jennifer Averett <jennifer.averett@OARcorp.com>
+
+	PR 1783/bsps
+	* include/bsp.h: Remove dead prototypes of Clock_delay() and delay().
+	Neither had bodies.
+
+2011-03-04	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1748/bsps
+	* clock/ckinit.c: When the clock tick generates an interrupt WHILE we
+	have interrupts disabled doing a get TOD or uptime, the get
+	nanoseconds handler was returning a bogusly large number.
+
 2009-03-09	Antoine Lacroix <antoine.lacroix at sodern.fr>
 
 	PR 1391/bsps

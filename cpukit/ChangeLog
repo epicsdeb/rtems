@@ -1,3 +1,123 @@
+2011-07-24	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1839/filesystem
+	* libcsupport/include/rtems/libio_.h, libcsupport/src/fchdir.c,
+	libcsupport/src/fdatasync.c, libcsupport/src/fpathconf.c,
+	libcsupport/src/fsync.c, libcsupport/src/read.c,
+	libcsupport/src/readv.c, libcsupport/src/write.c,
+	libcsupport/src/writev.c: Some calls did not return proper status for
+	permission errors or incorrectly permissions at all.
+
+2011-07-19	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1838/filesystem
+	* libcsupport/src/fchmod.c: fchmod() does not need a writeable file
+	descriptor.
+
+2011-07-14      Gene Smith <gene.smith@siemens.com>
+
+	PR 1381/networking
+	* netinet/ip_output.c: If a null or unreachable gateway is
+	specified either statically in networkconfig.h or from dhcp/bootp,
+	sendto() fails on multicast send with errno "118 Host is unreachable".
+	The failure occurs in networking file ip_output.c since it currently
+	requires all multicasts to have a valid route to the outside world.
+
+2011-06-10	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1812/filesystem
+	* libfs/src/imfs/imfs_stat.c: stat() implementation for IMFS did not
+	set st_blksize field. Set it based upon user configuration.
+
+2011-04-04	Sebastien Bourdeauducq <sebastien.bourdeauducq@gmail.com>
+
+	PR 1722/networking
+	* ftpd/ftpd.c: FTPD fails to parse correctly FTP commands relating to
+	filenames with spaces in them.
+
+2011-03-08	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1759/cpukit
+	* posix/src/cancel.c, posix/src/pthreaddetach.c,
+	posix/src/pthreadequal.c, posix/src/pthreadgetschedparam.c,
+	posix/src/pthreadjoin.c, posix/src/pthreadkill.c: Some POSIX pthread
+	services did not support using Classic API Task Ids.
+
+2011-03-03	Chris Johns <chrisj@rtems.org>
+
+	PR 1749/filesystem
+	* libcsupport/src/mknod.c: Fix the incorrect handling of the file type
+	in the mode value o reject invalid types as per the standard.
+
+2011-01-21	Eric Norum <wenorum@lbl.gov>
+
+	* libmisc/capture/capture.c: Avoid using TCB of task just deleted.
+
+2010-11-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1718/cpukit
+	* sapi/include/confdefs.h: POSIX threads are allocated twice the
+	minimum stack space by default. confdefs.h only accounts for one
+	minimum -- not the 2x factor.
+
+2010-11-16	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1717/cpukit
+	* libcsupport/src/gxx_wrappers.c: Free memory on error.
+
+2010-08-27	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1693/filesystem
+	* libfs/src/imfs/memfile.c: IMFS_memfile_get_block_pointer() was
+	checking incorrect pointer and thus had dead code.
+
+2010-08-27	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1692/filesystem
+	* libcsupport/include/rtems/libio.h, libfs/src/imfs/imfs_eval.c: Fix
+	implementation and use of rtems_libio_is_valid_perms().
+
+2010-06-21	Peter Dufault <dufault@hda.com>
+
+	PR 1570/cpukit
+	* posix/src/semtimedwait.c: This routine is supposed to return -1/errno
+	NOT the status directly.
+
+2010-06-21	Joel Sherrill <joel.sherrilL@OARcorp.com>
+
+	PR 1554/cpukit
+	Coverity Id 17
+	* libi2c/libi2c.c: Fix memory leak on error.
+
+2010-03-17	Chris Johns <chrisj@rtems.org>
+
+	* libfs/src/dosfs/msdos_create.c: Fix the date/time call order to
+	'msdos_date_unix2dos'.
+
+2009-12-11	Glenn Humphrey <glenn.humphrey@OARcorp.com>
+
+	PR 1481/cpukit
+	* rtems/src/ratemonperiod.c: Moved check for cpu usage being smaller
+	than when period initiated.
+
+2009-12-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1482
+	* posix/src/timersettime.c: Exit dispatching critical section.
+
+2009-12-10	Joel Sherrill <joel.sherrill@OARcorp.com>
+
+	PR 1480/cpukit
+	* rtems/src/ratemonperiod.c: Use _Rate_monotonic_Update_statistics()
+	when period is expired, not _Rate_monotonic_Initiate_statistics().
+	The cound of missed periods was never updated.
+
+2009-12-07	Cindy Cicalese <cicalese@mitre.org>
+
+	PR 1477/cpukit
+	* score/src/objectsetname.c: Ensure destination is NULL terminated.
+	String copy was not getting the NULL.
+
 2009-11-11	Jennifer Averett <jennifer.averett@OARcorp.com>
 
 	PR 1471/cpukit

@@ -3,7 +3,7 @@
 @c  On-Line Applications Research Corporation (OAR).
 @c  All rights reserved.
 @c
-@c  $Id: clock.t,v 1.24 2008/08/24 17:44:25 joel Exp $
+@c  $Id: clock.t,v 1.24.2.1 2010/01/11 16:17:44 joel Exp $
 @c
 
 @chapter Clock Manager
@@ -563,7 +563,7 @@ system date and time to application specific specifications.
 @ifset is-C
 @findex rtems_clock_get_ticks_per_second
 @example
-rtems_interval rtems_clock_get_ticks_per_seconds(void);
+rtems_interval rtems_clock_get_ticks_per_second(void);
 @end example
 @end ifset
 

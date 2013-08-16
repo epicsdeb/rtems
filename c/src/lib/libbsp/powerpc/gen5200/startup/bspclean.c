@@ -8,7 +8,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: bspclean.c,v 1.8 2008/09/03 15:39:03 thomas Exp $
+ *  $Id: bspclean.c,v 1.8.2.1 2010/03/10 16:39:01 joel Exp $
  */
 
 #include <rtems.h>
@@ -45,9 +45,9 @@ void bsp_cleanup( void )
     /*
      * Now reset the CPU
      */
-    _ISR_Set_level( 0 );
-
     mpc5200.gpt[0].count_in = 0xf;
     mpc5200.gpt[0].emsel = 0x9004;
+
+    while(1) ;
   #endif 
 }

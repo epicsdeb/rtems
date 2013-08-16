@@ -6,7 +6,7 @@
  *  The tick frequency is directly programmed to the configured number of
  *  microseconds per tick.
  *
- *  COPYRIGHT (c) 1989-2006.
+ *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  Modified for LEON3 BSP.
@@ -17,7 +17,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: ckinit.c,v 1.13 2008/05/07 17:40:52 joel Exp $
+ *  $Id: ckinit.c,v 1.13.2.2 2011/07/24 19:45:39 joel Exp $
  */
 
 #include <bsp.h>
@@ -97,16 +97,18 @@ static int clkirq;
 uint32_t bsp_clock_nanoseconds_since_last_tick(void)
 {
   uint32_t clicks;
-  if ( !LEON3_Timer_Regs )
-    return 0;
+  uint32_t usecs;
 
   clicks = LEON3_Timer_Regs->timer[0].value;
-
-  /* Down counter */
-  return (uint32_t)
-     (rtems_configuration_get_microseconds_per_tick() - clicks) * 1000;
+  if ( LEON_Is_interrupt_pending( clkirq ) ) {
+    usecs = (2*rtems_configuration_get_microseconds_per_tick() - clicks);
+  } else {
+    usecs = (rtems_configuration_get_microseconds_per_tick() - clicks);
+  }
+  return usecs * 1000;
 }
 
-#define Clock_driver_nanoseconds_since_last_tick bsp_clock_nanoseconds_since_last_tick
+#define Clock_driver_nanoseconds_since_last_tick \
+        bsp_clock_nanoseconds_since_last_tick
 
 #include "../../../shared/clockdrv_shell.c"

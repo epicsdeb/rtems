@@ -1,12 +1,12 @@
 /*
- *  COPYRIGHT (c) 1989-2008.
+ *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: objectsetname.c,v 1.3 2008/09/04 17:39:55 ralf Exp $
+ *  $Id: objectsetname.c,v 1.3.2.1 2009/12/07 17:27:07 joel Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -53,6 +53,7 @@ bool _Objects_Set_name(
     }
 
     strncpy( d, name, length );
+    d[ length ] = '\0';
     the_object->name.name_p = d;
   } else {
     the_object->name.name_u32 =  _Objects_Build_name(

@@ -14,7 +14,7 @@
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.com/license/LICENSE.
  *
- *  $Id: memfile.c,v 1.27.2.1 2009/03/09 14:12:58 joel Exp $
+ *  $Id: memfile.c,v 1.27.2.2 2010/08/27 17:43:01 joel Exp $
  */
 
 #if HAVE_CONFIG_H
@@ -1046,7 +1046,7 @@ fflush(stdout);
       return 0;
 
     p2 = (block_p *)p1[ doubly ];
-    if ( !p )
+    if ( !p2 )
       return 0;
 
     return (block_p *)&p2[ singly ];

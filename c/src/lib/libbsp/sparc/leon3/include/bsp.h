@@ -16,7 +16,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995. 
  *  European Space Agency.
  *
- *  $Id: bsp.h,v 1.10 2007/12/11 15:46:19 joel Exp $
+ *  $Id: bsp.h,v 1.10.2.1 2011/04/25 19:40:17 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -74,14 +74,6 @@ extern int rtems_leon_greth_driver_attach(
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH RTEMS_BSP_NETWORK_DRIVER_ATTACH_GRETH
 #endif
 
-/*
- *  Simple spin delay in microsecond units for device drivers.
- *  This is very dependent on the clock speed of the target.
- */
-
-extern void Clock_delay(uint32_t microseconds);
-
-#define delay( microseconds ) Clock_delay(microseconds)
 extern int   CPU_SPARC_HAS_SNOOPING;
 
 

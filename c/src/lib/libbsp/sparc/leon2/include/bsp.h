@@ -16,7 +16,7 @@
  *  ERC32 modifications of respective RTEMS file: COPYRIGHT (c) 1995. 
  *  European Space Agency.
  *
- *  $Id: bsp.h,v 1.8 2007/12/11 15:46:18 joel Exp $
+ *  $Id: bsp.h,v 1.8.2.1 2011/04/25 19:40:15 joel Exp $
  */
 
 #ifndef _BSP_H
@@ -59,14 +59,6 @@ extern int rtems_smc91111_driver_attach_leon2(struct rtems_bsdnet_ifconfig *conf
  *  The synchronous trap is an arbitrarily chosen software trap.
  */
 
-/*
- *  Simple spin delay in microsecond units for device drivers.
- *  This is very dependent on the clock speed of the target.
- */
-
-extern void Clock_delay(uint32_t microseconds);
-
-#define delay( microseconds ) Clock_delay(microseconds)
 extern int   CPU_SPARC_HAS_SNOOPING;
 
 
