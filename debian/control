@@ -3,7 +3,8 @@ Section: devel
 Priority: extra
 Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
 Build-Depends: debhelper (>= 7), autotools-dev,
-               gcc-i386-rtems4.9, gcc-powerpc-rtems4.9
+               gcc-i386-rtems4.9, gcc-powerpc-rtems4.9, 
+               gcc-m68k-rtems4.9
 Standards-Version: 3.8.0
 Homepage: http://www.rtems.com
 
@@ -65,3 +66,19 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
          rtems-powerpc (= ${binary:Version})
 Description: Base RTEMS MVME5500 support
  RTEMS support for the mvme5500 PowerPC board
+
+Package: rtems-m68k
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         rtems-common (= ${binary:Version}), gcc-m68k-rtems4.9
+Description: Base RTEMS M68k support
+ M68k specific RTEMS files which are not related to
+ a specific BSP.
+
+Package: rtems-mvme162
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         rtems-m68k (= ${binary:Version})
+Description: Base RTEMS MVME162 support
+ RTEMS support for the mvme162 M68k board
+

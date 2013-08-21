@@ -1,0 +1,11 @@
+rtems-mvme162: non-standard-dir-in-usr
+rtems-mvme162: file-in-unusual-dir
+# RTEMS apps expect to find everything under /usr
+# including /usr/make
+rtems-mvme162: arch-independent-package-contains-binary-or-object
+# target binaries can be built/linked on any host
+rtems-mvme162: unstripped-binary-or-object
+# retain debug symbols.  RTEMS build system automatically strips
+# them after final link
+rtems-mvme162: statically-linked-binary
+# RTEMS does not support shared libraries

@@ -13,6 +13,7 @@ RTEMS_VER ?=4.9
 
 powerpc_BSPS=mvme2100 mvme2307 mvme3100 mvme5500
 i386_BSPS=pc386
+m68k_BSPS=mvme162
 
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
@@ -36,8 +37,10 @@ build-powerpc/config.status: configure
 
 	install -d build-powerpc
 	install -d build-i386
+	install -d build-m68k
 	cd build-powerpc && ../configure $(call CONFIG,powerpc)
 	cd build-i386 && ../configure $(call CONFIG,i386)
+	cd build-m68k && ../configure $(call CONFIG,m68k)
 
 
 #Architecture
@@ -46,7 +49,7 @@ build: build-pre build-target build-post
 build-pre:
 	dh build --before dh_auto_configure
 
-build-target: build-target-powerpc build-target-i386
+build-target: build-target-powerpc build-target-i386 build-target-m68k
 
 build-target-%: build-%/config.status
 	dh_testdir
@@ -62,7 +65,7 @@ build-post:
 clean: 
 	rm -f build-target-* install-stamp
 
-	rm -rf build-powerpc build-i386
+	rm -rf build-powerpc build-i386 build-m68k
 	rm -f config.sub config.guess
 
 	dh clean
@@ -71,13 +74,27 @@ install: build install-stamp
 install-stamp:
 	dh install --before dh_auto_install
 
+	# Write some info helpful to dependent packages
+	install -d $(CURDIR)/debian/rtems-common/usr/share/rtems-common
+	echo "$(RTEMS_VER)" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/series
+	echo "i386 powerpc" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/archs
+
+	install -d $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386
+	echo "$(i386_BSPS)" > $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386/bsps
+
+	install -d $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc
+	echo "$(powerpc_BSPS)" > $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc/bsps
+
 	# powerpc
 	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
 
 	# i386
 	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386 DESTDIR=$(CURDIR)/debian/tmp install
 
-	mv debian/tmp/usr/bin/bin2boot debian/tmp/usr/bin/i386-rtems4.9-bin2boot
+	# m68k
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-m68k DESTDIR=$(CURDIR)/debian/tmp install
+
+	mv debian/tmp/usr/bin/bin2boot debian/tmp/usr/bin/i386-rtems$(RTEMS_VER)-bin2boot
 
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 

@@ -1,0 +1,3 @@
+usr/make/custom/mvme162.cfg
+usr/lib/pkgconfig/m68k-rtems*-mvme162.pc
+usr/m68k-rtems*/mvme162
