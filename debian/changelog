@@ -1,12 +1,8 @@
-rtems (4.9.3-5) unstable; urgency=low
+rtems (4.9.6-1) unstable; urgency=low
 
+  * version changed to 4.9.6
   * unify debin/rules of 4.9 and 4.10 needed to build libbspext 
      for both rtems versions without complain
-
- -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Tue, 11 Jun 2013 10:56:42 +0200
-
-rtems (4.9.3-4) unstable; urgency=low
-
   * add build rules for m68k and mvme162 (needed by HZB)
 
  -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Wed, 05 Jun 2013 16:21:22 +0200
