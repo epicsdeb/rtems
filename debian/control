@@ -18,7 +18,8 @@ Description: Base RTEMS support
 Package: rtems-i386
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         rtems-common (= ${binary:Version}), gcc-i386-rtems4.9
+         rtems-common (>= ${binary:Version}),
+         rtems-common (<< ${binary:Version}.1~), gcc-i386-rtems4.9
 Description: Base RTEMS i386 support
  i386 specific RTEMS files which are not related to
  a specific BSP.
@@ -33,7 +34,8 @@ Description: RTEMS 386 PC support
 Package: rtems-powerpc
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         rtems-common (= ${binary:Version}), gcc-powerpc-rtems4.9
+         rtems-common (>= ${binary:Version}),
+         rtems-common (<< ${binary:Version}.1~), gcc-powerpc-rtems4.9
 Description: Base RTEMS PowerPC support
  PowerPC specific RTEMS files which are not related to
  a specific BSP.
@@ -70,7 +72,8 @@ Description: Base RTEMS MVME5500 support
 Package: rtems-m68k
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         rtems-common (= ${binary:Version}), gcc-m68k-rtems4.9
+         rtems-common (>= ${binary:Version}),
+         rtems-common (<< ${binary:Version}.1~), gcc-m68k-rtems4.9
 Description: Base RTEMS M68k support
  M68k specific RTEMS files which are not related to
  a specific BSP.
