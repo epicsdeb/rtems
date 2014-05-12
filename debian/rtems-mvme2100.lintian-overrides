@@ -1,11 +1,14 @@
-rtems-mvme2100: non-standard-dir-in-usr
-rtems-mvme2100: file-in-unusual-dir
 # RTEMS apps expect to find everything under /usr
 # including /usr/make
-rtems-mvme2100: arch-independent-package-contains-binary-or-object
+rtems-mvme2100: non-standard-dir-in-usr
+rtems-mvme2100: file-in-unusual-dir
+
 # target binaries can be built/linked on any host
-rtems-mvme2100: unstripped-binary-or-object
+rtems-mvme2100: arch-independent-package-contains-binary-or-object
+
 # retain debug symbols.  RTEMS build system automatically strips
 # them after final link
-rtems-mvme2100: statically-linked-binary
+rtems-mvme2100: unstripped-binary-or-object
+
 # RTEMS does not support shared libraries
+rtems-mvme2100: statically-linked-binary
