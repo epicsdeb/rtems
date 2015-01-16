@@ -1,3 +1,10 @@
+rtems (4.9.6-2) unstable; urgency=low
+
+  * remove unused debian/control.<arch> files
+  * fix lintian error: helper-templates-in-copyright
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Fri, 16 Jan 2015 11:26:51 +0100
+
 rtems (4.9.6-1) unstable; urgency=low
 
   * version changed to 4.9.6
