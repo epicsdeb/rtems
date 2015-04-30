@@ -1,3 +1,10 @@
+rtems (4.9.6-3) jessie; urgency=low
+
+  * Fix build for Debian 8
+  * switch debian/rules to dh7 style
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Thu, 30 Apr 2015 18:24:38 -0400
+
 rtems (4.9.6-2) unstable; urgency=low
 
   * remove unused debian/control.<arch> files
