@@ -28,9 +28,15 @@ CONFIG= --target=$(1)-rtems$(RTEMS_VER) --build=$(DEB_BUILD_GNU_TYPE) --host=$(D
 
 #Do not touch CFLAGS use CFLAGS_FOR_HOST or CFLAGS_FOR_TARGET
 
-build-powerpc/config.status: configure
-	dh_testdir
+%:
+	dh $@
 
+override_dh_auto_clean:
+	rm -rf build-powerpc build-i386 build-m68k
+	rm -f config.sub config.guess
+	dh_auto_clean
+
+override_dh_auto_configure:
 	cp -f /usr/share/misc/config.sub config.sub
 	cp -f /usr/share/misc/config.guess config.guess
 
@@ -41,48 +47,29 @@ build-powerpc/config.status: configure
 	cd build-i386 && ../configure $(call CONFIG,i386)
 	cd build-m68k && ../configure $(call CONFIG,m68k)
 
-
-#Architecture
-build: build-pre build-target build-post
-
-build-pre:
-	dh build --before dh_auto_configure
-
-build-target: build-target-powerpc build-target-i386 build-target-m68k
-
-build-target-%: build-%/config.status
-	dh_testdir
-
+override_dh_auto_build:
 	# Note: CFLAGS et all must be explicitly unset to avoid
 	#       clobbering the target CFLAGS
-	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-$*
-	touch $@
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-i386
+	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-m68k
 
-build-post:
-	dh build --after dh_auto_test
+override_dh_auto_test:
 
-clean: 
-	rm -f build-target-* install-stamp
-
-	rm -rf build-powerpc build-i386 build-m68k
-	rm -f config.sub config.guess
-
-	dh clean
-
-install: build install-stamp
-install-stamp:
-	dh install --before dh_auto_install
-
+override_dh_auto_install:
 	# Write some info helpful to dependent packages
 	install -d $(CURDIR)/debian/rtems-common/usr/share/rtems-common
 	echo "$(RTEMS_VER)" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/series
-	echo "i386 powerpc" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/archs
+	echo "i386 powerpc m68k" > $(CURDIR)/debian/rtems-common/usr/share/rtems-common/archs
 
 	install -d $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386
 	echo "$(i386_BSPS)" > $(CURDIR)/debian/rtems-i386/usr/share/rtems-i386/bsps
 
 	install -d $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc
 	echo "$(powerpc_BSPS)" > $(CURDIR)/debian/rtems-powerpc/usr/share/rtems-powerpc/bsps
+
+	install -d $(CURDIR)/debian/rtems-m68k/usr/share/rtems-m68k
+	echo "$(m68k_BSPS)" > $(CURDIR)/debian/rtems-m68k/usr/share/rtems-m68k/bsps
 
 	# powerpc
 	env -u CFLAGS -u CXXFLAGS $(MAKE) $(BMAKEFLAGS) -C build-powerpc DESTDIR=$(CURDIR)/debian/tmp install
@@ -97,14 +84,11 @@ install-stamp:
 
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
-	dh install --after dh_auto_install
-	touch $@
+override_dh_strip:
+	dh_strip_rtems "$@"
 
-binary-arch: install
-	dh binary-arch
+override_dh_shlibdeps:
+	dh_shlibdeps "$@" -XRTEMS -Xrtems -Xdebug
 
-binary-indep: install
-	dh binary-indep
-
-binary: binary-arch binary-indep
-.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch 
+override_dh_makeshlibs:
+	dh_makeshlibs "$@" -XRTEMS -Xrtems -Xdebug

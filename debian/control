@@ -2,7 +2,7 @@ Source: rtems
 Section: devel
 Priority: extra
 Maintainer: Michael Davidsaver <mdavidsaver@bnl.gov>
-Build-Depends: debhelper (>= 7), autotools-dev,
+Build-Depends: debhelper (>= 7.0.50~), epics-debhelper (>= 8.10~), autotools-dev,
                gcc-i386-rtems4.9, gcc-powerpc-rtems4.9, 
                gcc-m68k-rtems4.9
 Standards-Version: 3.8.0
