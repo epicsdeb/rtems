@@ -1,4 +1,10 @@
-rtems (4.9.6-3) jessie; urgency=low
+rtems (4.9.6-4) unstable; urgency=medium
+
+  * set USE_COM1_AS_CONSOLE=1 BSP_PRESS_KEY_FOR_RESET=0
+
+ -- Michael Davidsaver <mdavidsaver@bnl.gov>  Sat, 20 Jun 2015 11:08:32 -0400
+
+rtems (4.9.6-3) unstable; urgency=low
 
   * Fix build for Debian 8
   * switch debian/rules to dh7 style
