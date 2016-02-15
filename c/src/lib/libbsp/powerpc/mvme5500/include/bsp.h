@@ -100,6 +100,10 @@ DiscoveryChipVersion BSP_getDiscoveryChipVersion();
 #define BSP_MAX_PCI_BUS_ON_PCI1 2
 #define BSP_MAX_PCI_BUS  (BSP_MAX_PCI_BUS_ON_PCI0+BSP_MAX_PCI_BUS_ON_PCI1)
 
+
+/* The glues to Till's vmeUniverse, although the name does not
+ * actually reflect the relevant architect of the MVME5500.
+ */
 #define BSP_PCI_IRQ0 BSP_GPP_IRQ_LOWEST_OFFSET
 
 /*

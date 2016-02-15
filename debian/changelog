@@ -1,3 +1,9 @@
+rtems (4.9.6-6) UNRELEASED; urgency=medium
+
+  * include S. Kate Feng's RTEMS disco mvme5500 BSP changes from 2014
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Mon, 15 Feb 2016 14:30:28 +0100
+
 rtems (4.9.6-5) unstable; urgency=medium
 
   * fix lintian error - rtems-common: unstripped-binary-or-object
