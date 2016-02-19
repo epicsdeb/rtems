@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <rtems/bsdnet/servers.h>
 
@@ -37,6 +38,10 @@
 #define UNIX_BASE_TO_NTP_BASE (uint32_t)(((70UL*365UL)+17UL) * (24UL*60UL*60UL))
 
 int NTP_TRACE=0;
+
+void NTP_VER(void) {
+        printf("RTEMS NTP with gp-patch: ignore extra NTP packages\n");
+}
 
 struct ntpPacket {
 	struct ntpPacketSmall	ntp;
@@ -119,6 +124,25 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 
                 if (NTP_TRACE) 
                         fprintf (stderr, "tryServer: empty receive buffer...\n");
+
+                /* empty the receive buffer: */
+                for(;;) {
+                        farlen = sizeof farAddr;
+                        memcpy(&farAddr_cpy, &farAddr, sizeof(farAddr));
+                        i = recvfrom (s, &packet, sizeof packet, MSG_DONTWAIT, (struct sockaddr *)&farAddr_cpy, &farlen);
+                        if (i==0)
+                                break;
+                        if (i < 0) {
+                                if (!((errno == EWOULDBLOCK) || (errno == EAGAIN)) || NTP_TRACE)
+                                        fprintf (stderr, "RTEMS: trywait: recvfrom errno: %d (%s)\n", errno, strerror(errno));
+                                break;
+                        }
+                        fprintf (stderr, "RTEMS: trywait: one NTP packet dropped (%d bytes from %s:%d)\n", i, inet_ntoa(farAddr_cpy.sin_addr), farAddr_cpy.sin_port);
+                        fprintf (stderr, "RTEMS: trywait: timestamps: %u %u\n",
+                                 packet.transmit_timestamp.integer,
+                                 packet.transmit_timestamp.fraction);
+                                
+                }
 
 		memset (&packet, 0, sizeof packet);
 		packet.li_vn_mode = (3 << 3) | 3; /* NTP version 3, client */
