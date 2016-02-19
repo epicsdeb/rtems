@@ -115,24 +115,30 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 		farAddr.sin_addr = rtems_bsdnet_ntpserver[i];
 		memset (&packet, 0, sizeof packet);
 		packet.li_vn_mode = (3 << 3) | 3; /* NTP version 3, client */
-		if ( callback( &packet, 1, usr_data ) )
+		if ( callback( &packet, 1, usr_data ) ) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
 		l = sendto (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, sizeof farAddr);
 		if (l != sizeof packet) {
 			fprintf (stderr, "rtems_bsdnet_get_ntp() Can't send: %s\n", strerror (errno));
 			return -1;
 		}
 	} else {
-		if ( callback( &packet, -1, usr_data ) )
+		if ( callback( &packet, -1, usr_data ) ) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
 	}
 	farlen = sizeof farAddr;
 	i = recvfrom (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, &farlen);
 	if (i == 0)
 		fprintf (stderr, "rtems_bsdnet_get_ntp() Unexpected EOF");
 	if (i < 0) {
-		if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
+		if ((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
 		fprintf (stderr, "rtems_bsdnet_get_ntp() Can't receive: %s\n", strerror (errno));
 	}
 
@@ -143,6 +149,7 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
                0 == callback( &packet, 0 , usr_data) )
 		return 0;
 
+        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 	return -1;
 }
 
