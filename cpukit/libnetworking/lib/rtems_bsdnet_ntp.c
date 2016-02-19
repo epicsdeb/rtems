@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <rtems/bsdnet/servers.h>
 
@@ -96,6 +97,7 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 	struct timeval tv;
 	socklen_t farlen;
 	struct sockaddr_in farAddr;
+	struct sockaddr_in farAddr_cpy;
 	struct ntpPacketSmall packet;
 
 	if (i < 0)
@@ -113,6 +115,22 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 		farAddr.sin_family = AF_INET;
 		farAddr.sin_port = htons (123);
 		farAddr.sin_addr = rtems_bsdnet_ntpserver[i];
+
+                /* empty the receive buffer: */
+                for(;;) {
+                        farlen = sizeof farAddr;
+                        memcpy(&farAddr_cpy, &farAddr, sizeof(farAddr));
+                        i = recvfrom (s, &packet, sizeof packet, MSG_DONTWAIT, (struct sockaddr *)&farAddr_cpy, &farlen);
+                        if (i==0)
+                                break;
+                        if (i < 0) {
+                                if (!((errno == EWOULDBLOCK) || (errno == EAGAIN)))
+                                        fprintf (stderr, "rtems_bsdnet_get_ntp() recvfrom errno: %d (%s)\n", errno, strerror(errno));
+                                break;
+                        }
+                        fprintf (stderr, "rtems_bsdnet_get_ntp() one queued NTP packet dropped (%d bytes from %s:%d)\n", i, inet_ntoa(farAddr_cpy.sin_addr), farAddr_cpy.sin_port);
+                }
+
 		memset (&packet, 0, sizeof packet);
 		packet.li_vn_mode = (3 << 3) | 3; /* NTP version 3, client */
 		if ( callback( &packet, 1, usr_data ) )
@@ -137,10 +155,10 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 	}
 
 	if ( i >= sizeof packet &&
-    (((packet.li_vn_mode & (0x7 << 3)) == (3 << 3)) ||
-     ((packet.li_vn_mode & (0x7 << 3)) == (4 << 3))) &&
-	    ((packet.transmit_timestamp.integer != 0) || (packet.transmit_timestamp.fraction != 0)) &&
-		0 == callback( &packet, 0 , usr_data) )
+             (((packet.li_vn_mode & (0x7 << 3)) == (3 << 3)) ||
+              ((packet.li_vn_mode & (0x7 << 3)) == (4 << 3))) &&
+              ((packet.transmit_timestamp.integer != 0) || (packet.transmit_timestamp.fraction != 0)) &&
+               0 == callback( &packet, 0 , usr_data) )
 		return 0;
 
 	return -1;
