@@ -36,6 +36,8 @@
  */
 #define UNIX_BASE_TO_NTP_BASE (uint32_t)(((70UL*365UL)+17UL) * (24UL*60UL*60UL))
 
+int NTP_TRACE=0;
+
 struct ntpPacket {
 	struct ntpPacketSmall	ntp;
 	char			authenticator[96];
@@ -96,6 +98,7 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 	struct timeval tv;
 	socklen_t farlen;
 	struct sockaddr_in farAddr;
+	struct sockaddr_in farAddr_cpy;
 	struct ntpPacketSmall packet;
 
 	if (i < 0)
@@ -113,12 +116,20 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 		farAddr.sin_family = AF_INET;
 		farAddr.sin_port = htons (123);
 		farAddr.sin_addr = rtems_bsdnet_ntpserver[i];
+
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: empty receive buffer...\n");
+
 		memset (&packet, 0, sizeof packet);
 		packet.li_vn_mode = (3 << 3) | 3; /* NTP version 3, client */
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: callback before send...\n");
 		if ( callback( &packet, 1, usr_data ) ) {
                         fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
                 }
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: send request...\n");
 		l = sendto (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, sizeof farAddr);
 		if (l != sizeof packet) {
 			fprintf (stderr, "rtems_bsdnet_get_ntp() Can't send: %s\n", strerror (errno));
@@ -130,6 +141,8 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 			return -1;
                 }
 	}
+        if (NTP_TRACE) 
+                fprintf (stderr, "tryServer: before recvfrom...\n");
 	farlen = sizeof farAddr;
 	i = recvfrom (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, &farlen);
 	if (i == 0)
@@ -146,8 +159,13 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
              (((packet.li_vn_mode & (0x7 << 3)) == (3 << 3)) ||
               ((packet.li_vn_mode & (0x7 << 3)) == (4 << 3))) &&
               ((packet.transmit_timestamp.integer != 0) || (packet.transmit_timestamp.fraction != 0)) &&
-               0 == callback( &packet, 0 , usr_data) )
+               0 == callback( &packet, 0 , usr_data) ) {
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: got %u %u, returns 0 (no error)\n",
+                                         packet.transmit_timestamp.integer,
+                                         packet.transmit_timestamp.fraction);
 		return 0;
+        }
 
         fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 	return -1;
