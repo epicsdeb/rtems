@@ -1,3 +1,9 @@
+rtems (4.9.6-7) unstable; urgency=medium
+
+  * add bugfix https://devel.rtems.org/ticket/1775
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 25 Feb 2016 07:57:37 +0100
+
 rtems (4.9.6-6) unstable; urgency=medium
 
   * include S. Kate Feng's RTEMS disco mvme5500 BSP changes from 2014
