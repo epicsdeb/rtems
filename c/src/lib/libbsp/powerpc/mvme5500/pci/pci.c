@@ -87,12 +87,12 @@ extern void pci_interface(void);
 /*
  * Bit encode for PCI_CONFIG_HEADER_TYPE register
  */
-unsigned char ucMaxPCIBus=0;
+static unsigned char ucMaxPCIBus=0;
 
 /* Please note that PCI0 and PCI1 does not correlate with the busNum 0 and 1.
  */
 static int indirect_pci_read_config_byte(unsigned char bus,unsigned char dev,unsigned char func,
-unsigned char offset,unsigned char *val)
+unsigned char offset, uint8_t *val)
 {
   int n=0;
 
@@ -108,13 +108,13 @@ unsigned char offset,unsigned char *val)
     BSP_pci[n].config_data,pciConfigPack(bus,dev,func,offset));
 #endif
 
-  out_be32(BSP_pci[n].pci_config_addr, pciConfigPack(bus,dev,func,offset));
+  out_be32((volatile unsigned int *) BSP_pci[n].pci_config_addr, pciConfigPack(bus,dev,func,offset));
   *val = in_8(BSP_pci[n].pci_config_data + (offset&3));
   return PCIBIOS_SUCCESSFUL;
 }
 
 static int indirect_pci_read_config_word(unsigned char bus, unsigned char dev,
-unsigned char func, unsigned char offset, unsigned short *val)
+unsigned char func, unsigned char offset, uint16_t *val)
 {
   int n=0;
 
@@ -135,7 +135,7 @@ unsigned char func, unsigned char offset, unsigned short *val)
 }
 
 static int indirect_pci_read_config_dword(unsigned char bus, unsigned char dev,
-unsigned char func, unsigned char offset, unsigned int *val) 
+unsigned char func, unsigned char offset, uint32_t *val)
 {
   int n=0;
 
@@ -152,7 +152,7 @@ unsigned char func, unsigned char offset, unsigned int *val)
   return PCIBIOS_SUCCESSFUL;
 }
 
-static int indirect_pci_write_config_byte(unsigned char bus, unsigned char dev,unsigned char func, unsigned char offset, unsigned char val) 
+static int indirect_pci_write_config_byte(unsigned char bus, unsigned char dev,unsigned char func, unsigned char offset, uint8_t val)
 {
   int n=0;
 
@@ -168,7 +168,7 @@ static int indirect_pci_write_config_byte(unsigned char bus, unsigned char dev,u
   return PCIBIOS_SUCCESSFUL;
 }
 
-static int indirect_pci_write_config_word(unsigned char bus, unsigned char dev,unsigned char func, unsigned char offset, unsigned short val) 
+static int indirect_pci_write_config_word(unsigned char bus, unsigned char dev,unsigned char func, unsigned char offset, uint16_t val)
 {
   int n=0;
 
@@ -184,7 +184,7 @@ static int indirect_pci_write_config_word(unsigned char bus, unsigned char dev,u
   return PCIBIOS_SUCCESSFUL;
 }
 
-static int indirect_pci_write_config_dword(unsigned char bus,unsigned char dev,unsigned char func, unsigned char offset, unsigned int val) 
+static int indirect_pci_write_config_dword(unsigned char bus,unsigned char dev,unsigned char func, unsigned char offset, uint32_t val)
 {
   int n=0;
 

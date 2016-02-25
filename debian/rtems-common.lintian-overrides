@@ -2,3 +2,4 @@
 # including /usr/make
 rtems-common: non-standard-dir-in-usr
 rtems-common: file-in-unusual-dir
+rtems-common: unstripped-binary-or-object

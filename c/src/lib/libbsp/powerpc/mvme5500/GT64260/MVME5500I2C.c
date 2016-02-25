@@ -9,11 +9,11 @@
  *
  * To read information of the EEPROM via the I2C
  *
- * $Id: MVME5500I2C.c,v 1.5 2008/08/20 06:57:13 ralf Exp $
+ * $Id: MVME5500I2C.c,v 1.7 2009/11/30 04:24:25 ralf Exp $
  */
 
 #include <rtems/bspIo.h>	    /* printk */
-#include <rtems/stdint.h>           /* uint32_t */
+#include <stdint.h>           /* uint32_t */
 #include "bsp/GT64260TWSI.h"
 
 /* #define I2C_DEBUG*/

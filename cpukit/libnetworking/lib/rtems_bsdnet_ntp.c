@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <rtems/bsdnet/servers.h>
 
@@ -35,6 +36,12 @@
  *   NTP base: 1900, January 1
  */
 #define UNIX_BASE_TO_NTP_BASE (uint32_t)(((70UL*365UL)+17UL) * (24UL*60UL*60UL))
+
+int NTP_TRACE=0;
+
+void NTP_VER(void) {
+        printf("RTEMS NTP with gp-patch: ignore extra NTP packages\n");
+}
 
 struct ntpPacket {
 	struct ntpPacketSmall	ntp;
@@ -96,6 +103,7 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 	struct timeval tv;
 	socklen_t farlen;
 	struct sockaddr_in farAddr;
+	struct sockaddr_in farAddr_cpy;
 	struct ntpPacketSmall packet;
 
 	if (i < 0)
@@ -113,35 +121,77 @@ tryServer (int i, int s, rtems_bsdnet_ntp_callback_t callback, void *usr_data)
 		farAddr.sin_family = AF_INET;
 		farAddr.sin_port = htons (123);
 		farAddr.sin_addr = rtems_bsdnet_ntpserver[i];
+
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: empty receive buffer...\n");
+
+                /* empty the receive buffer: */
+                for(;;) {
+                        farlen = sizeof farAddr;
+                        memcpy(&farAddr_cpy, &farAddr, sizeof(farAddr));
+                        i = recvfrom (s, &packet, sizeof packet, MSG_DONTWAIT, (struct sockaddr *)&farAddr_cpy, &farlen);
+                        if (i==0)
+                                break;
+                        if (i < 0) {
+                                if (!((errno == EWOULDBLOCK) || (errno == EAGAIN)) || NTP_TRACE)
+                                        fprintf (stderr, "RTEMS: trywait: recvfrom errno: %d (%s)\n", errno, strerror(errno));
+                                break;
+                        }
+                        fprintf (stderr, "RTEMS: trywait: one NTP packet dropped (%d bytes from %s:%d)\n", i, inet_ntoa(farAddr_cpy.sin_addr), farAddr_cpy.sin_port);
+                        fprintf (stderr, "RTEMS: trywait: timestamps: %u %u\n",
+                                 packet.transmit_timestamp.integer,
+                                 packet.transmit_timestamp.fraction);
+                                
+                }
+
 		memset (&packet, 0, sizeof packet);
 		packet.li_vn_mode = (3 << 3) | 3; /* NTP version 3, client */
-		if ( callback( &packet, 1, usr_data ) )
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: callback before send...\n");
+		if ( callback( &packet, 1, usr_data ) ) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: send request...\n");
 		l = sendto (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, sizeof farAddr);
 		if (l != sizeof packet) {
 			fprintf (stderr, "rtems_bsdnet_get_ntp() Can't send: %s\n", strerror (errno));
 			return -1;
 		}
 	} else {
-		if ( callback( &packet, -1, usr_data ) )
+		if ( callback( &packet, -1, usr_data ) ) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
 	}
+        if (NTP_TRACE) 
+                fprintf (stderr, "tryServer: before recvfrom...\n");
 	farlen = sizeof farAddr;
 	i = recvfrom (s, &packet, sizeof packet, 0, (struct sockaddr *)&farAddr, &farlen);
 	if (i == 0)
 		fprintf (stderr, "rtems_bsdnet_get_ntp() Unexpected EOF");
 	if (i < 0) {
-		if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
+		if ((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
+                        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 			return -1;
+                }
 		fprintf (stderr, "rtems_bsdnet_get_ntp() Can't receive: %s\n", strerror (errno));
 	}
 
 	if ( i >= sizeof packet &&
-		((packet.li_vn_mode & (0x7 << 3)) == (3 << 3)) &&
-	    ((packet.transmit_timestamp.integer != 0) || (packet.transmit_timestamp.fraction != 0)) &&
-		0 == callback( &packet, 0 , usr_data) )
+             (((packet.li_vn_mode & (0x7 << 3)) == (3 << 3)) ||
+              ((packet.li_vn_mode & (0x7 << 3)) == (4 << 3))) &&
+              ((packet.transmit_timestamp.integer != 0) || (packet.transmit_timestamp.fraction != 0)) &&
+               0 == callback( &packet, 0 , usr_data) ) {
+                if (NTP_TRACE) 
+                        fprintf (stderr, "tryServer: got %u %u, returns 0 (no error)\n",
+                                         packet.transmit_timestamp.integer,
+                                         packet.transmit_timestamp.fraction);
 		return 0;
+        }
 
+        fprintf (stderr, "rtems_bsdnet_ntpserver(): tryServer returns -1 in line %d\n",__LINE__);
 	return -1;
 }
 
@@ -187,7 +237,7 @@ int ret;
 		 * and hope that there's an NTP broadcast
 		 * server out there somewhere.
 		 */
-		if (rtems_bsdnet_ntpserver_count < 0) {
+		if (rtems_bsdnet_ntpserver_count <= 0) {
 			ret = tryServer (-1, sock, callback, usr_data);
 		}
 		else {

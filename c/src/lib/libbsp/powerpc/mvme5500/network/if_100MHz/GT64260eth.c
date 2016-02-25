@@ -104,7 +104,7 @@ enum GTeth_hash_op {
 
 #define	ET_MINLEN 64		/* minimum message length */
 
-static int GTeth_ifioctl(struct ifnet *ifp, u_long cmd, caddr_t data);
+static int GTeth_ifioctl(struct ifnet *ifp, ioctl_command_t cmd, caddr_t data);
 static void GTeth_ifstart (struct ifnet *);
 static void GTeth_ifchange(struct GTeth_softc *sc);
 static void GTeth_init_rx_ring(struct GTeth_softc *sc);
@@ -502,9 +502,9 @@ int rtems_GT64260eth_driver_attach(struct rtems_bsdnet_ifconfig *config, int att
 
 static void GT64260eth_stats(struct GTeth_softc *sc)
 {
+#if 0
   struct ifnet *ifp = &sc->arpcom.ac_if;
 
-#if 0
   printf("       Rx Interrupts:%-8lu\n", sc->stats.rxInterrupts);
   printf("     Receive Packets:%-8lu\n", ifp->if_ipackets);
   printf("     Receive  errors:%-8lu\n", ifp->if_ierrors);
@@ -532,7 +532,7 @@ void GT64260eth_printStats(void)
   GT64260eth_stats(root_GT64260eth_dev);
 }
 
-static int GTeth_ifioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
+static int GTeth_ifioctl(struct ifnet *ifp, ioctl_command_t cmd, caddr_t data)
 {
   struct GTeth_softc *sc = ifp->if_softc;
   struct ifreq *ifr = (struct ifreq *) data;

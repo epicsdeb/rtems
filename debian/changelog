@@ -1,3 +1,31 @@
+rtems (4.9.6-8) unstable; urgency=medium
+
+  * ignore NTP extra packages sent by server
+  * add NTP trace messages
+  * add NTP error messages
+  * use port 0 (client/server mode) again for NTP requests
+  * add bugfix mentioned at https://lists.rtems.org/pipermail/vc/2014-January/005994.html
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 25 Feb 2016 08:13:34 +0100
+
+rtems (4.9.6-7) unstable; urgency=medium
+
+  * add bugfix https://devel.rtems.org/ticket/1775
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 25 Feb 2016 07:57:37 +0100
+
+rtems (4.9.6-6) unstable; urgency=medium
+
+  * include S. Kate Feng's RTEMS disco mvme5500 BSP changes from 2014
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 25 Feb 2016 07:54:09 +0100
+
+rtems (4.9.6-5) unstable; urgency=medium
+
+  * fix lintian error - rtems-common: unstripped-binary-or-object
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 12 Jan 2016 15:17:32 +0100
+
 rtems (4.9.6-4) unstable; urgency=medium
 
   * set USE_COM1_AS_CONSOLE=1 BSP_PRESS_KEY_FOR_RESET=0
