@@ -1,3 +1,9 @@
+rtems (4.9.6-5) unstable; urgency=medium
+
+  * fix lintian error - rtems-common: unstripped-binary-or-object
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Thu, 03 Mar 2016 12:56:43 +0100
+
 rtems (4.9.6-4) unstable; urgency=medium
 
   * set USE_COM1_AS_CONSOLE=1 BSP_PRESS_KEY_FOR_RESET=0
