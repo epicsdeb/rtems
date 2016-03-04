@@ -8,7 +8,7 @@
  * All rights reserved.
  *
  * This code is derived from software contributed to The NetBSD Foundation
- * by Charles M. Hannum; by William R. Studenmund; by Jason R. Thorpe. 
+ * by Charles M. Hannum; by William R. Studenmund; by Jason R. Thorpe.
  *
  */
 
@@ -23,6 +23,10 @@
 
 #include <bsp/pci.h>
 #include <bsp/pcireg.h>
+
+extern int pci_get_capability(int b, int d, int f, int capid,int *offset,uint32_t *value);
+extern int pci_mem_find(int b, int d, int f, int reg, unsigned *basep,unsigned *sizep);
+extern int pci_io_find(int b, int d, int f, int reg,unsigned *basep,unsigned *sizep);
 
 int pci_io_find(int b, int d, int f, int reg,unsigned *basep,unsigned *sizep)
 {
@@ -110,7 +114,7 @@ int pci_get_capability(int b, int d, int f, int capid,int *offset,uint32_t *valu
   uint32_t reg, ofs;
 
   /*  i82544EI PCI_CAPLISTPTR_REG */
-  pci_read_config_dword(b,d,f,PCI_CAPLISTPTR_REG, &reg);   
+  pci_read_config_dword(b,d,f,PCI_CAPLISTPTR_REG, &reg);
   ofs = PCI_CAPLIST_PTR(reg);
   while (ofs != 0) {
 #ifdef DIAGNOSTIC

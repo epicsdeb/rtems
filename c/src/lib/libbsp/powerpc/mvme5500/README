@@ -1,22 +1,19 @@
 #
-#  $Id: README,v 1.4.1  Shuchen Kate Feng, NSLS, BNL (03/16/2009)
+#  $Id: README,v 1.5 2008/11/20 16:24:29 joel Exp $
 #
+
+Author : S. Kate Feng <kate007.feng@gmail.com>, 
+         Cornell University 2014, Brookhaven National Laboratory 2006
+            
+As of 4/30/2104, the BSP supports both Intel 82544 EI and 82545GM
+ethernet controllers. The later one is to support the MVME55006E-0163R, which
+is the replacement board for the original mvme5500 one. This work
+is sponsored by Cornell University.
 
 Please reference README.booting for the boot/load process.
 
 For the priority setting of the Interrupt Requests (IRQs), please
 reference README.irq 
-
-The BSP is built and tested on the RTEMS 4.9.1 release. The
-PR1385 patch for c/src/lib/libbsp/powerpc/shared/irq/irq_asm.S
-is not needed for the mvme5500 BSP because the PowerPC BSPs
-use the shared exception framework in the RTEMS 4.9 release.
-
-I believe in valuable real-time programming, where technical neatness,
-performance and truth are.  I hope I still believe. Any suggestion,
-bug reports, or even bug fixes (great!) would be highly appreciated
-so that I still believe what I believe.
-
 
 ACKNOWLEDGEMENTS
 ----------------

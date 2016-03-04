@@ -19,9 +19,9 @@
  *
  *  Modified to support the MVME5500 board.
  *  Also, the settings of L1, L2, and L3 caches is not necessary here.
- *  (C) by Brookhaven National Lab., S. Kate Feng <feng1@bnl.gov>, 2003-2007
- *  
- *  $Id: bspstart.c,v 1.23.2.1 2009/05/08 18:22:51 joel Exp $
+ *  (C) by Brookhaven National Lab., S. Kate Feng <feng1@bnl.gov>, 2003-2009
+ *
+ *  $Id: bspstart.c,v 1.34 2010/03/27 21:09:08 thomas Exp $
  */
 
 #include <string.h>
@@ -51,7 +51,8 @@
 #endif
 
 
-/*#define SHOW_MORE_INIT_SETTINGS
+/*
+#define SHOW_MORE_INIT_SETTINGS
 #define CONF_VPD
 #define SHOW_LCR1_REGISTER
 #define SHOW_LCR2_REGISTER
@@ -119,7 +120,7 @@ unsigned int BSP_processor_frequency;
  * Time base divisior (how many tick for 1 second).
  */
 unsigned int BSP_time_base_divisor;
-unsigned char ConfVPD_buff[200];
+static unsigned char ConfVPD_buff[200];
 
 #define CMDLINE_BUF_SIZE  2048
 
@@ -204,7 +205,7 @@ void zero_bss()
  * the data to the environment / malloced areas...
  */
 
-/* this routine is called early at shared/start/start.S 
+/* this routine is called early at shared/start/start.S
  * and must be safe with a not properly aligned stack
  */
 void
@@ -261,12 +262,14 @@ void bsp_start( void )
    * (otherwise we silently die)
    */
   /*
-   * Kate Feng : PCI 0 domain memory space, want to leave room for the VME window 
+   * Kate Feng : PCI 0 domain memory space, want to leave room for the VME window
    */
   setdbat(2, PCI0_MEM_BASE, PCI0_MEM_BASE, 0x10000000, IO_PAGE);
 
   /* Till Straumann: 2004
-   * map the PCI 0, 1 Domain I/O space, GT64260B registers,
+   * map the PCI 0, 1 Domain I/O space, GT64260B registers
+   * and the reserved area so that the size is the power of 2.
+   * 2009 : map the entire 256 M space
    * Flash Bank 0 and Flash Bank 2.
    */
   setdbat(3,PCI0_IO_BASE, PCI0_IO_BASE, 0x10000000, IO_PAGE);
@@ -280,7 +283,7 @@ void bsp_start( void )
 
 #ifdef SHOW_LCR1_REGISTER
   l1cr = get_L1CR();
-  printk("Initial L1CR value = %x\n", l1cr); 
+  printk("Initial L1CR value = %x\n", l1cr);
 #endif
 
   /*
@@ -347,7 +350,7 @@ void bsp_start( void )
   if (!pt)
      printk("WARNING: unable to setup page tables.\n");
 
-  printk("Now BSP_mem_size = 0x%x\n",BSP_mem_size); 
+  printk("Now BSP_mem_size = 0x%x\n",BSP_mem_size);
 
   /* P94 : 7455 TB/DECR is clocked by the system bus clock frequency */
 
@@ -377,19 +380,19 @@ void bsp_start( void )
 #ifdef SHOW_LCR2_REGISTER
   l2cr = get_L2CR();
   printk("Initial L2CR value = %x\n", l2cr);
-#endif  
+#endif
 
 #ifdef SHOW_LCR3_REGISTER
   /* L3CR needs DEC int. handler installed for bsp_delay()*/
   l3cr = get_L3CR();
   printk("Initial L3CR value = %x\n", l3cr);
-#endif  
+#endif
 
 
   /* Activate the page table mappings only after
    * initializing interrupts because the irq_mng_init()
    * routine needs to modify the text
-   */           
+   */
   if (pt) {
 #ifdef SHOW_MORE_INIT_SETTINGS
     printk("Page table setup finished; will activate it NOW...\n");
@@ -403,7 +406,7 @@ void bsp_start( void )
 #ifdef CONF_VPD
     printk("\n");
     for (i=0; i<150; i++) {
-      printk("%2x ", ConfVPD_buff[i]);  
+      printk("%2x ", ConfVPD_buff[i]);
       if ((i % 20)==0 ) printk("\n");
     }
     printk("\n");
@@ -414,11 +417,11 @@ void bsp_start( void )
    * PCI 1 domain memory space
    */
   setdbat(1, PCI1_MEM_BASE, PCI1_MEM_BASE, 0x10000000, IO_PAGE);
- 
+
 
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Going to start PCI buses scanning and initialization\n");
-#endif  
+#endif
   pci_initialize();
 #ifdef SHOW_MORE_INIT_SETTINGS
   printk("Number of PCI buses found is : %d\n", pci_bus_count());
