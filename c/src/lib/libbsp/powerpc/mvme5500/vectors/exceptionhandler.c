@@ -1,4 +1,4 @@
-/* $Id: exceptionhandler.c,v 1.8 2009/11/30 04:24:26 ralf Exp $ */
+/* $Id: exceptionhandler.c,v 1.5.2.2 2009/05/08 18:22:51 joel Exp $ */
 
 /*
  * Authorship
@@ -50,6 +50,7 @@
 
 #include <bsp.h>
 #include <bsp/vectors.h>
+#include <libcpu/raw_exception.h>
 #include <libcpu/spr.h>
 #include <bsp/pci.h>
 #include <rtems/bspIo.h>
@@ -58,6 +59,13 @@
 
 #define SRR1_TEA_EXC	(1<<(31-13))
 #define SRR1_MCP_EXC	(1<<(31-12))
+
+extern void
+BSP_printStackTrace(BSP_Exception_frame* excPtr);
+
+
+extern void
+bsp_reset(void);
 
 static volatile BSP_ExceptionExtension	BSP_exceptionExtension = 0;
 
@@ -126,6 +134,8 @@ int			quiet=0;
        /* register dump */
        printk("\t Next PC or Address of fault = %x, ", excPtr->EXC_SRR0);
        printk("Mvme5500 Saved MSR = %x\n", excPtr->EXC_SRR1);
+       printk("The Interrupt mask (e.g. MSR_EE) stored in SPRG0= 0x%x\n", 
+	      ppc_interrupt_get_disable_mask());
        printk("\t R0  = %08x", excPtr->GPR0);
        printk(" R1  = %08x", excPtr->GPR1);
        printk(" R2  = %08x", excPtr->GPR2);

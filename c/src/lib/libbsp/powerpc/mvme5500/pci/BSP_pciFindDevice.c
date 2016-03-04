@@ -2,6 +2,10 @@
  * Cornell University, Kate Feng  <kate007.feng@gmail.com>, All rights reserved
  *
  * This is an upgrade version of shared/pci/pcifinddevice.c.
+ * Acknowledgement to Till Straumann <strauman@slac.stanford.edu>, Copyright 2001
+ * Comments from Kate Feng :  This file is a major overhaul of the original 
+ * pcifinddevice.c, Till Straumann, Copyright 2001
+ *            
  *                            
  */
 

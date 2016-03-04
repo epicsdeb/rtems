@@ -1680,28 +1680,28 @@ static int wm_acquire_eeprom(struct wm_softc *sc)
 
   if (sc->sc_flags & WM_F_EEPROM_HANDSHAKE)  {
 
-  reg = CSR_READ(sc,WMREG_EECD);
-
-  /* Request EEPROM access. */
-  reg |= EECD_EE_REQ;
-  CSR_WRITE(sc,WMREG_EECD, reg);
-
-  /* ..and wait for it to be granted. */
-  for (x = 0; x < 1000; x++) {
       reg = CSR_READ(sc,WMREG_EECD);
-      if (reg & EECD_EE_GNT) break;
-      rtems_bsp_delay(5);
-  }
-  if ((reg & EECD_EE_GNT) == 0) {
-      printf("%s Could not acquire EEPROM GNT x= %d\n",sc->dv_xname, x);
-      reg &= ~EECD_EE_REQ;
+
+      /* Request EEPROM access. */
+      reg |= EECD_EE_REQ;
       CSR_WRITE(sc,WMREG_EECD, reg);
-      if (sc->sc_flags & WM_F_SWFW_SYNC)
-	 wm_put_swfw_semaphore(sc, SWFW_EEP_SM);
-      else if (sc->sc_flags & WM_F_EEPROM_SEMAPHORE)
-	      wm_put_swsm_semaphore(sc);
-      return (1);
-  }
+
+      /* ..and wait for it to be granted. */
+      for (x = 0; x < 1000; x++) {
+          reg = CSR_READ(sc,WMREG_EECD);
+          if (reg & EECD_EE_GNT) break;
+          rtems_bsp_delay(5);
+      }
+      if ((reg & EECD_EE_GNT) == 0) {
+          printf("%s Could not acquire EEPROM GNT x= %d\n",sc->dv_xname, x);
+          reg &= ~EECD_EE_REQ;
+          CSR_WRITE(sc,WMREG_EECD, reg);
+          if (sc->sc_flags & WM_F_SWFW_SYNC)
+              wm_put_swfw_semaphore(sc, SWFW_EEP_SM);
+          else if (sc->sc_flags & WM_F_EEPROM_SEMAPHORE)
+              wm_put_swsm_semaphore(sc);
+          return (1);
+      }
   }
 
   return (0);

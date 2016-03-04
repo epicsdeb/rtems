@@ -108,8 +108,11 @@ DiscoveryChipVersion BSP_getDiscoveryChipVersion();
 
 /*
  *  confdefs.h overrides for this BSP:
+ *   - termios serial ports (defaults to 1)
  *   - Interrupt stack space is not minimum if defined.
  */
+
+#define CONFIGURE_NUMBER_OF_TERMIOS_PORTS 2
 #define BSP_INTERRUPT_STACK_SIZE  (16 * 1024) /* <skf> 2/09 wants it to be adjustable by BSP */
 
 /* uart.c uses out_8 instead of outb  */
@@ -148,6 +151,8 @@ extern int BSP_connect_clock_handler (void);
 
 extern unsigned long _BSP_clear_hostbridge_errors();
 
+extern unsigned int BSP_heap_start;
+
 #if 0
 #define RTEMS_BSP_NETWORK_DRIVER_NAME	"gt1"
 #define RTEMS_BSP_NETWORK_DRIVER_ATTACH	rtems_GT64260eth_driver_attach
@@ -157,6 +162,11 @@ extern unsigned long _BSP_clear_hostbridge_errors();
 #endif
 
 extern int RTEMS_BSP_NETWORK_DRIVER_ATTACH();
+
+/*
+ *  BSP Configuration Default Overrides
+ */
+#define BSP_ZERO_WORKSPACE_AUTOMATICALLY TRUE
 
 #define gccMemBar() RTEMS_COMPILER_MEMORY_BARRIER()
 

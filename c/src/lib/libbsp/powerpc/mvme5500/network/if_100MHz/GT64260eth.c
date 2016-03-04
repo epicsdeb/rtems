@@ -42,7 +42,7 @@
 
 #include <rtems/rtems/types.h>
 
-/* #include <sys/queue.h> */
+#include <sys/queue.h>
 
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -60,8 +60,6 @@
 #include <bsp/GT64260ethreg.h>
 #include <bsp/GT64260eth.h>
 #include <bsp/VPD.h>
-
-extern unsigned char ReadConfVPD_buff(int offset); /* in startup/bspstart.c */
 
 #define GT_ETH_TASK_NAME  "Geth"
 #define PKT_BUF_SZ 1536
@@ -858,7 +856,6 @@ static void GTeth_txq_free(struct GTeth_softc *sc, unsigned cmdsts)
   --sc->txq_nactive;
 }
 
-#if UNUSED
 static int txq_high_limit(struct GTeth_softc *sc)
 {
   /*
@@ -898,9 +895,6 @@ static int txq_high_limit(struct GTeth_softc *sc)
   } /* end if ( TX_RING_SIZE == sc->txq_nactive + TXQ_HiLmt_OFF) */
   return 0;
 }
-#endif
-
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 static int GT64260eth_sendpacket(struct GTeth_softc *sc,struct mbuf *m)
 {

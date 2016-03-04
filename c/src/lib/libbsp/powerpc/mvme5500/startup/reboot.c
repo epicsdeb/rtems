@@ -1,6 +1,8 @@
 /* Copyright 2003, Shuchen Kate Feng <feng1@bnl.gov>,
  *                    NSLS,Brookhaven National Laboratory
  *
+ * Ported it from powerpc/shared/console/reboot.c for mvme5500
+ *
  */
 
 #include <rtems.h>
