@@ -1,3 +1,13 @@
+rtems (4.9.6-7) unstable; urgency=medium
+
+  * backport Patch: NTP: Sync time correctly when receiving broadcast updates
+    (cherry picked from commit 2b03a62441d63d056dbbd6de17429ae05e4dfd04)
+    (cherry picked from repo git://git.rtems.org/rtems.git)
+  * use 0 as source port for NTP requests (again)
+  * ignore extra NTP packages sent by the server
+
+ -- Joachim Rahn <Joachim.Rahn@helmholtz-berlin.de>  Tue, 08 Mar 2016 08:00:51 +0100
+
 rtems (4.9.6-6) unstable; urgency=medium
 
   * remove rtems-4.9.6 version of mvme5500 BSP
