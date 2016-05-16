@@ -87,6 +87,9 @@ override_dh_auto_install:
 
 	rm -rf $(CURDIR)/debian/tmp/usr/share/man
 
+	# lintian complains pkg-config-bad-directive
+	sed -i -r -e 's| -O. ?| |g' -e 's| -g ?| |g' -e 's|\-fno-strict-aliasing||g' debian/tmp/usr/lib/pkgconfig/*.pc
+
 override_dh_strip:
 	dh_strip_rtems "$@"
 	dh_strip --package=rtems-common

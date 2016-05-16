@@ -1,3 +1,9 @@
+rtems (4.9.6-6) unstable; urgency=medium
+
+  * fix lintian error: pkg-config-bad-directive
+
+ -- Michael Davidsaver <mdavidsaver@gmail.com>  Mon, 16 May 2016 16:48:04 -0400
+
 rtems (4.9.6-5) unstable; urgency=medium
 
   * fix lintian error - rtems-common: unstripped-binary-or-object
